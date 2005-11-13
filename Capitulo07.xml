@@ -1,0 +1,881 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: Javier Corrales García
+  Formateado DocBook:  Javier Corrales García
+  1ª Revisión:         David Villa
+  2ª Revisión
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C7">
+
+  <title>Sobrecarga de funciones y argumentos por defecto</title>
+  <para>
+    <emphasis>Una de las características más importantes en cualquier
+    lenguaje de programación es la utilización adecuada de
+    nombres.</emphasis>
+  </para>
+  <para>
+    Cuando crea un objeto (una variable) le está asignando un nombre a
+    una región de memoria. Una función es un nombre para una
+    acción. El hecho de poner nombres adecuados a la hora de
+    describir un sistema hace que un programa sea más fácil de
+    entender y modificar. Es muy parecido a la prosa escrita, el
+    objetivo es comunicarse con los lectores.
+  </para>
+  <para>
+    Cuando se trata de representar sutilezas del lenguaje humano en un
+    lenguaje de programación aparecen los problemas. A menudo, la
+    misma palabra expresa diversos significados dependiendo del
+    contexto. Una palabra tiene múltiples significados, es decir, está
+    sobrecargada (polisemia). Esto es muy útil, especialmente cuando 
+    las diferencias son obvias. Puede decir "lave la camiseta, lave el 
+    coche." Sería estúpido forzar la expresión anterior para convertirla en 
+    "lavar_camiseta la camiseta, lavar_coche el coche" pues el oyente no tiene 
+    que hacer ninguna distinción sobre la acción realizada. Los lenguajes 
+    humanos son muy redundantes, así que incluso si pierde algunas palabras, 
+    todavía puede determinar el significado. Los identificadores únicos no son 
+    necesarios, pues se puede deducir el significado a través del contexto.
+  </para>
+  <para>
+    Sin embargo, la mayoría de los lenguajes de programación requieren
+    que se utilice un identificador único para cada función. Si tiene
+    tres tipos diferentes de datos que desee imprimir en la salida:
+    <emphasis>int</emphasis>, <emphasis>char</emphasis> y
+    <emphasis>float</emphasis>, generalmente tiene que crear tres
+    funciones diferentes, como por ejemplo
+    <function>print_int()</function>,
+    <function>print_char()</function> y
+    <function>print_float()</function>. Esto constituye un trabajo
+    extra tanto para el programador, al escribir el programa, como
+    para el lector que trate de entenderlo.
+  </para>
+  <para>
+    En C++ hay otro factor que fuerza la sobrecarga de los nombres de
+    función: el constructor. Como el nombre del constructor está
+    predeterminado por el nombre de la clase, podría parecer que sólo
+    puede haber un constructor.  Pero, ¿qué ocurre si desea crear un
+    objeto de diferentes maneras? Por ejemplo, suponga que escribe una
+    clase que puede inicializarse de una manera estándar o leyendo
+    información de un fichero. Necesita dos constructores, uno que no
+    tiene argumentos (el constructor por defecto) y otro que tiene un
+    argumento de tipo <emphasis>string</emphasis>, que es el nombre
+    del fichero que inicializa el objeto. Ambos son constructores, así
+    pues deben tener el mismo nombre: el nombre de la clase. Así, la
+    sobrecarga de funciones es esencial para permitir el mismo nombre
+    de función (el constructor en este caso) se utilice con diferentes
+    argumentos.
+  </para>
+  <para>
+    Aunque la sobrecarga de funciones es algo imprescindible para los
+    constructores, es también una utilidad general para cualquier
+    función, incluso aquéllas que no son métodos. Además, la
+    sobrecarga de funciones significa que si tiene dos librerías que
+    contienen funciones con el mismo nombre, no entrarán en conflicto
+    siempre y cuando las listas de argumentos sean diferentes. A lo
+    largo del capítulo se verán todos los detalles.
+  </para>
+  <para>
+    El tema de este capítulo es la elección adecuada de los nombres de
+    la funciones. La sobrecarga de funciones permite utilizar el mismo
+    nombre para funciones diferentes, pero hay otra forma más adecuada
+    de llamar a una función. ¿Qué ocurriría si le gustara llamar a la
+    misma función de formas diferentes? Cuando las funciones tienen
+    una larga lista de argumentos, puede resultar tediosa la escritura
+    (y confusa la lectura) de las llamadas a la función cuando la
+    mayoría de los argumentos son lo mismos para todas las
+    llamadas. Una característica de C++ comúnmente utilizada se llama
+    <emphasis>argumento por defecto</emphasis>. Un argumento por defecto es aquél
+    que el compilador inserta en caso de que no se especifique cuando
+    se llama a la función. Así, las llamadas
+    <function>f("hello")</function>, <function>f("hi", 1)</function> y
+    <function>f("howdy", 2, 'c')</function> pueden ser llamadas a la
+    misma función. También podrían ser llamadas a tres funciones
+    sobrecargadas, pero cuando las listas de argumentos son tan
+    similares, querrá que tengan un comportamiento similar, que le
+    lleva a tener una sola función.
+  </para>
+  <para>
+    La sobrecarga de funciones y los argumentos por defecto no son muy
+    complicados. En el momento en que termine este capítulo, sabrá
+    cuándo utilizarlos y entenderá los mecanismos internos que el
+    compilador utiliza en tiempo de compilación y enlace.
+  </para>
+  <sect1>
+    <title>Más decoración de nombres</title>
+    <para>
+      En el Capítulo 4 se presentó el concepto de <emphasis>decoración de
+      nombres</emphasis>. En el código
+    </para>
+<programlisting>
+void f();
+class X { void f(); };
+</programlisting>
+    <para>
+      La función <function>f()</function> dentro del ámbito de la
+      <classname>clase X</classname> no entra en conflicto con la
+      versión global de <function>f()</function>. El compilador
+      resuelve los ámbitos generando diferentes nombres internos tanto
+      para la versión global de <function>f()</function> como para
+      <methodname>X::f()</methodname>.  En el Capítulo 4 se sugirió
+      que los nombres son simplemente el nombre de la clase junto con
+      el nombre de la función. Un ejemplo podría ser que el compilador
+      utilizara como nombres <emphasis>_f</emphasis> y
+      <emphasis>_X_f</emphasis>. Sin embargo ahora se ve que la
+      decoración del nombre de la función involucra algo más que el
+      nombre de la clase.
+    </para>
+    <para>
+      He aquí el porqué. Suponga que quiere sobrecargar dos funciones
+    </para>
+<programlisting>
+void print(char);
+void print(float);
+</programlisting>
+    <para>
+      No importa si son globales o están dentro de una clase. El
+      compilador no puede generar identificadores internos únicos si
+      sólo utiliza el ámbito de las funciones. Terminaría con
+      <emphasis>_print</emphasis> en ambos casos. La idea de una
+      función sobrecargada es que se utilice el mismo nombre de
+      función, pero diferente lista de argumentos. Así pues, para que
+      la sobrecarga funcione el compilador ha de decorar el nombre de
+      la función con los nombres de los tipos de los argumentos.  Las
+      funciones planteadas más arriba, definidas como globales,
+      producen nombres internos que podrían parecerse a algo así como
+      <emphasis>_print_char</emphasis> y
+      <emphasis>_print_float</emphasis>.  Nótese que como no hay
+      ningún estándar de decoración, podrá ver resultados diferentes
+      de un compilador a otro. (Puede ver lo que saldría diciéndole al
+      compilador que genere código fuente en ensamblador.) Esto, por
+      supuesto, causa problemas si desea comprar unas librerías
+      compiladas por un compilador y enlazador particulares, aunque si
+      la decoración de nombres fuera estándar, habría otros obstáculos
+      debido a las diferencias de generación de código máquina entre
+      compiladores.
+    </para>
+    <para>
+      Esto es todo lo que hay para la sobrecarga de funciones: puede
+      utilizar el mismo nombre de función siempre y cuando la lista de
+      argumentos sea diferente. El compilador utiliza el nombre, el
+      ámbito y la lista de argumentos para generar un nombre interno
+      que el enlazador pueda utilizar.
+    </para>
+
+    <sect2>
+      <title>Sobrecarga en el valor de retorno</title>
+      <para>
+	Es muy común la pregunta "¿Por qué solamente el ámbito y la 
+	lista de argumentos? ¿Por qué no también el valor de 
+	retorno?". A primera vista parece que tendría sentido utilizar 
+	también el valor de retorno para la decoración del nombre 
+	interno. De esta manera, también podría sobrecargar con los 
+	valores de retorno:
+      </para>
+<programlisting>
+void f();
+int f();
+</programlisting>
+      <para>
+	Esto funciona bien cuando el compilador puede determinar sin 
+	ambigüedades a qué tipo de valor de retorno se refiere, como 
+	en <emphasis>int x = f();</emphasis>. No obstante, en C se 
+	puede llamar a una función y hacer caso omiso del valor de 
+	retorno (esto es, puede querer llamar a la función debido a 
+	sus <emphasis>efectos laterales</emphasis>). ¿Cómo puede el compilador 
+	distinguir a qué función se refiere en este caso? Peor es la 
+	dificultad que tiene el lector del código fuente para 
+	dilucidar a qué función se refiere. La sobrecarga mediante el 
+	valor de retorno solamente es demasiado sutil, por lo que C++ 
+	no lo permite.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Enlace con tipos seguros</title>
+      <para>
+	Existe un beneficio añadido a la decoración de nombres. En C 
+	hay un problema particularmente fastidioso cuando un 
+	programador cliente declara mal una función o, aún peor, se 
+	llama a una función sin haber sido previamente declarada, y el 
+	compilador infiere la declaración de la función mediante la 
+	forma en que se llama. Algunas veces la declaración de la 
+	función es correcta, pero cuando no lo es, suele resultar en 
+	un fallo difícil de encontrar.
+      </para>
+      <para>
+	A causa de que en C++ se <emphasis>deben</emphasis> declarar todas las 
+	funciones antes de llamarlas, las probabilidades de que ocurra 
+	lo anteriormente expuesto se reducen drásticamente. El 
+	compilador de C++ rechaza declarar una función 
+	automáticamente, así que es probable que tenga que incluir la 
+	cabecera apropiada. Sin embargo, si por alguna razón se las 
+	apaña para declarar mal una función, o declararla a mano o 
+	incluir una cabecera incorrecta (quizá una que sea antigua), 
+	la decoración de nombres proporciona una seguridad que a 
+	menudo se denomina como <emphasis>enlace con tipos seguros</emphasis>.
+      </para>
+      <para>
+	Considere el siguiente escenario. En un fichero está la 
+	definición de una función:
+      </para>
+<programlisting>
+//: C07:Def.cpp {O}
+// definición de la función
+void f(int) {}
+///:~ 
+</programlisting>
+      <para>
+	En el segundo fichero, la función está mal declarada y en 
+	<function>main</function> se le llama:
+      </para>
+<programlisting>
+//: C07:Use.cpp
+//{L} Def
+// función mal declarada
+void f(char);
+
+int main() {
+//!  f(1); // el enlazador lanza un error 
+} ///:~
+</programlisting>
+      <para>
+	Incluso aunque pueda ver que la función es realmente 
+	<function>f(int)</function>, el compilador no lo sabe porque 
+	se le dijo, a través de una declaración explícita, que la 
+	función es <function>f(char)</function>. Así pues, la 
+	compilación tiene éxito. En C, el enlazador podría tener 
+	también éxito, pero <emphasis>no</emphasis> en C++. Como el compilador 
+	decora los nombres, la definición se convierte en algo así 
+	como <emphasis>f_int</emphasis>, mientras que se trata de 
+	utilizar <emphasis>f_char</emphasis>. Cuando el enlazador 
+	intenta resolver la referencia a <emphasis>f_char</emphasis>, 
+	sólo puede encontrar <emphasis>f_int</emphasis>, y da un 
+	mensaje de error. Éste es el enlace de tipos seguro. Aunque el 
+	problema no ocurre muy a menudo, cuando ocurre puede ser 
+	increíblemente difícil de encontrar, especialmente en 
+	proyectos grandes. Éste método puede utilizarse para encontrar 
+	un error en C simplemente intentando compilarlo en C++.
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Ejemplo de sobrecarga</title>
+    <para>
+      Ahora puede modificar ejemplos anteriores para utilizar la sobrecarga 
+      de funciones. Como ya se dijo, el lugar inmediatamente más útil para 
+      la sobrecarga es en los constructores. Puede ver esto en la siguiente 
+      versión de la clase <classname>Stash</classname>:
+    </para>
+<programlisting>
+//: C07:Stash3.h
+</programlisting>
+    <para>
+      El primer constructor de <classname>Stash</classname> es el
+      mismo que antes, pero el segundo tiene un argumento
+      <varname>Quantity</varname> que indica el número inicial de
+      espacios de memoria que podrán ser asignados. En la
+      definición, puede observar que el valor interno de
+      <varname>quantity</varname> se pone a cero, al igual que el
+      puntero <varname>storage</varname>.  En el segundo
+      constructor, la llamada a
+      <function>inflate(initQuantity)</function> incrementa
+      <varname>quantity</varname> al tamaño asignado:
+    </para>
+<programlisting>
+//: C07:Stash3.cpp {O}
+</programlisting>
+
+    <para>
+      Cuando utiliza el primer constructor no se asigna memoria alguna para 
+      <varname>storage</varname>. La asignación ocurre la primera vez que 
+      trate de añadir (con <function>add()</function>) un objeto y en 
+      cualquier momento en el que el bloque de memoria actual se exceda 
+      en <function>add()</function>.
+    </para>
+    <para>
+      Ambos constructores se prueban en este programa de prueba:
+    </para>
+<programlisting>
+//: C07:Stash3Test.cpp
+</programlisting>
+      <para>
+      La llamada al constructor para la variable
+      <varname>stringStash</varname> utiliza un segundo argumento;
+      se presume que conoce algo especial sobre el problema
+      específico que usted está resolviendo que le permite elegir un
+      tamaño inicial para el <emphasis>Stash</emphasis>.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Uniones</title>
+    <para>
+      Como ya ha visto, la única diferencia en C++ entre 
+      <emphasis>struct</emphasis> y <emphasis>class</emphasis> es que 
+      <emphasis>struct</emphasis> pone todo por defecto a 
+      <emphasis>public</emphasis> y la clase pone todo por defecto a 
+      <emphasis>private</emphasis>. Una <emphasis>struct</emphasis>ura 
+      también puede tener constructores y destructores, como cabía esperar. 
+      Pero resulta que el tipo <emphasis>union</emphasis> también puede 
+      tener constructores, destructores, métodos e incluso controles de 
+      acceso. Puede ver de nuevo la utilización y las ventajas de la 
+      sobrecarga de funciones en el siguiente ejemplo:
+    </para>
+<programlisting>
+//: C07:UnionClass.cpp
+</programlisting>
+    <para>
+      Podría pensar sobre el código de más arriba que la única diferencia 
+      entre una unión y una clase es la forma en que los datos se almacenan 
+      en memoria (es decir, el <emphasis>int</emphasis> y el 
+      <emphasis>float</emphasis> están superpuestos). Sin embargo una unión 
+      no se puede utilizar como clase base durante la herencia, lo cual 
+      limita bastante desde el punto de vista del diseño orientado a 
+      objetos (aprenderá sobre la herencia en el Capítulo 14).
+    </para>
+    <para>
+      Aunque los métodos civilizan ligeramente el tratamiento de uniones, 
+      sigue sin haber manera alguna de prevenir que el programador cliente
+      seleccione el tipo de elemento equivocado una vez que la unión se ha
+      inicializado. En el ejemplo de más arriba, podría decir 
+      <methodname>X.read_float()</methodname> incluso aunque es inapropiado. 
+      Sin embargo, una unión "segura" se puede encapsular en una clase. En
+      el siguiente ejemplo, vea cómo la enumeración clarifica el código, y
+      cómo la sobrecarga viene como anillo al dedo con los constructores:
+    </para>
+<programlisting>
+//: C07:SuperVar.cpp
+</programlisting>
+    <para>
+      En el ejemplo de más arriba la enumeración no tiene nombre de tipo 
+      (es una enumeración sin etiqueta). Esto es aceptable si va a definir
+      inmediatamente un ejemplar de la enumeración, tal como se hace aquí.
+      No hay necesidad de referir el nombre del tipo de la enumeración en 
+      el futuro, por lo que aquí el nombre de tipo es optativo.
+    </para>
+    <para>
+      La unión no tiene nombre de tipo ni nombre de variable. Esto se 
+      denomina <emphasis>unión anónima</emphasis>, y crea espacio para la unión pero no
+      requiere acceder a los elementos de la unión con el nombre de la 
+      variable y el operador punto. Por ejemplo, si su unión anónima es:
+    </para>
+<programlisting>
+//: C07:AnonymousUnion.cpp
+</programlisting>
+      <para>
+      Note que accede a los miembros de una unión anónima igual que si 
+      fueran variables normales. La única diferencia es que ambas 
+      variables ocupan el mismo espacio de memoria. Si la unión anónima 
+      está en el ámbito del fichero (fuera de todas las funciones y 
+      clases), entonces se ha de declarar estática para que tenga enlace 
+      interno.
+    </para>
+    <para>
+      Aunque <varname>SuperVar</varname> es ahora segura, su utilidad es
+      un poco dudosa porque la razón de utilizar una unión principalmente 
+      es la de ahorrar memoria y la adición de <emphasis>vartype</emphasis> 
+      hace que ocupe bastante espacio en la unión (relativamente), 
+      por lo que la ventaja del ahorro se elimina. Hay un par de 
+      alternativas para que este esquema funcione. Si 
+      <emphasis>vartype</emphasis> controlara más de una unión (en el caso
+      de que fueran del mismo tipo) entonces sólo necesitaría uno para el 
+      grupo y no ocuparía más memoria. Una aproximación más útil es tener 
+      <emphasis>#ifdef</emphasis>s alrededor del código de 
+      <emphasis>vartype</emphasis>, el cual puede entonces garantizar que 
+      las cosas se utilizan correctamente durante el desarrollo y las 
+      pruebas. Si el código ha de entregarse, antes puede 
+      eliminar las sobrecargas de tiempo y memoria.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Argumentos por defecto</title>
+    <para>
+      En <filename>Stash3.h</filename>, examine los dos constructores 
+      para <emphasis>Stash()</emphasis>. No parecen muy diferentes, 
+      ¿verdad?. De hecho el primer constructor parece ser un caso especial
+      del segundo pero con <varname>size</varname> inicializado a cero. Es 
+      un poco una pérdida de tiempo y esfuerzo crear y mantener dos 
+      versiones diferentes de una función similar.
+    </para>
+    <para>
+      C++ proporciona un remedio mediante los 
+      <emphasis>argumentos por defecto</emphasis>. Un argumento por defecto es una 
+      valor que se da en la declaración para que el compilador lo inserte 
+      automáticamente en el caso de que no se proporcione ninguno en la 
+      llamada a la función. En el ejemplo de <emphasis>Stash</emphasis>, 
+      puede reemplazar las dos funciones:
+    </para>
+<programlisting>
+Stash(int size); // Zero quantity
+Stash(int size, int initQuantity);
+</programlisting>
+    <para>
+      por ésta otra:
+    </para>
+<programlisting>
+Stash(int size, int initQuantity = 0);
+</programlisting>
+    <para>
+      La definición de <function>Stash(int)</function> simplemente se 
+      quita; todo lo necesario está ahora en la definición de 
+      <function>Stash(int, int)</function>.
+    </para>
+    <para>
+      Ahora, las definiciones de los dos objetos
+    </para>
+<programlisting>
+ Stash A(100), B(100, 0);
+</programlisting>
+      <para>
+      producirán exactamente los mismos resultados. En ambos casos se llama 
+      al mismo constructor, aunque el compilador substituye el segundo 
+      argumento de <varname>A</varname> automáticamente cuando ve que 
+      que el primer argumento es un entero y no hay un segundo argumento. 
+      El compilador ha detectado un argumento por defecto, así que sabe 
+      que todavía puede llamar a la función si substituye este segundo 
+      argumento, lo cual es lo que usted le ha dicho que haga al no poner 
+      ese argumento.
+    </para>
+    <para>
+      Los argumentos por defecto, al igual que la sobrecarga de funciones, 
+      son muy convenientes. Ambas características le permiten utilizar un 
+      único nombre para una función en situaciones diferentes. La 
+      diferencia está en que el compilador substituye los argumentos por 
+      defecto cuando usted no los pone. El ejemplo anterior en un buen 
+      ejemplo para utilizar argumentos por defecto en vez de la sobrecarga 
+      de funciones; de otra manera se encuentra con dos o más funciones 
+      que tienen firmas y comportamientos similares. Si las funciones 
+      tiene comportamientos muy diferentes, normalmente no tiene sentido 
+      utilizar argumentos por defecto (de hecho, podría querer preguntarse 
+      si dos funciones con comportamientos muy diferentes deberían 
+      llamarse igual).
+    </para>
+
+    <para>
+      Hay dos reglas que se deben tener en cuenta cuando se utilizan
+      argumentos por defecto. La primera es que sólo los últimos pueden 
+      ser por defecto, es decir, no puede poner un argumento por defecto 
+      seguido de otro que no lo es. La segunda es que una vez se empieza 
+      a utilizar los argumentos por defecto al realizar una llamada a 
+      una función, el resto de argumentos también serán por defecto (esto 
+      sigue a la primera regla).
+    </para>
+    <para>
+      Los argumentos por defecto sólo se colocan en la declaración de la 
+      función (normalmente en el fichero de cabecera). El compilador 
+      debe conocer el valor por defecto antes de utilizarlo. Hay gente 
+      que pone los valores por defecto comentados en la definición por 
+      motivos de documentación.
+    </para>
+<programlisting>
+void fn(int x /* = 0 */) { // ...
+</programlisting>
+    <sect2>
+      <title>Argumentos de relleno</title>
+      <para>
+	Los argumentos de una función pueden declararse sin 
+	identificadores. Cuando esto se hace con argumentos por 
+	defecto, pueden parecer graciosos. Puede encontrarse con
+      </para>
+<programlisting>
+void f(int x, int = 0, float = 1.1);
+</programlisting>
+      <para>
+	En C++, la definición de la función tampoco necesita 
+	identificadores:
+      </para>
+<programlisting>
+void f(int x, int, float flt) { /* ... */ }
+</programlisting>
+      <para>
+	En el cuerpo de la función, se puede hacer referencia a
+	<parameter>x</parameter> y a <parameter>flt</parameter>,
+	pero no al argumento de en medio puesto que no tiene
+	nombre. A pesar de esto, las llamadas a función deben
+	proporcionar un valor para este argumento de relleno :
+	<function>f(1)</function> ó
+	<function>f(1,2,3,0)</function>. Esta sintaxis le permite
+	poner el argumento como un argumento de relleno sin
+	utilizarlo. La idea es que podría querer cambiar la
+	definición de la función para utilizar el argumento de
+	relleno más tarde, sin cambiar todo el código en que ya se
+	invoca la función. Por supuesto, puede obtener el mismo
+	resultado utilizando un argumento con nombre, pero en ese
+	caso está definiendo el argumento para el cuerpo de la
+	función sin que éste lo utilice, y la mayoría de los
+	compiladores darán un mensaje de aviso, suponiendo que usted
+	ha cometido un error. Si deja el argumento sin nombre
+	intencionadamente, evitará el aviso.
+      </para>
+      <para>
+	Más importante, si empieza utilizando un argumento que más 
+	tarde decide dejar de utilizar, puede quitarlo sin generar 
+	avisos ni fastidiar al código cliente que esté utilizando la 
+	versión anterior de la función.
+      </para>
+      
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Elección entre sobrecarga y argumentos por defecto</title>
+    <para>
+      Tanto la sobrecarga de funciones como los argumentos por defecto 
+      resultan útiles para ponerle nombre a las funciones. Sin embargo, a 
+      veces puede resultar confuso saber qué técnica utilizar. Por ejemplo, 
+      estudie la siguiente herramienta que está diseñada para tratar 
+      automáticamente bloques de memoria:
+    </para>
+<programlisting>
+//: C07:Mem.h
+</programlisting>
+      <para>
+      El objeto <classname>Mem</classname> contiene un bloque de
+      octetos y se asegura de que tiene suficiente memoria. El
+      constructor por defecto no reserva memoria pero el segundo
+      constructor se asegura de que hay <parameter>sz</parameter>
+      octetos de memoria en el objeto <classname>Mem</classname>. El
+      destructor libera la memoria, <methodname>msize()</methodname>
+      le dice cuántos octetos hay actualmente en
+      <classname>Mem</classname> y
+      <methodname>pointer()</methodname> retorna un puntero al
+      principio de la memoria reservada (<classname>Mem</classname>
+      es una herramienta a bastante bajo nivel).  Hay una versión
+      sobrecargada de <methodname>pointer()</methodname> que los
+      programadores clientes pueden utilizar para obtener un puntero
+      que apunta a un bloque de memoria con al menos el tamaño
+      <varname>minSize</varname>, y el método lo asegura.
+    </para>
+    <para>
+      El constructor y el método <methodname>pointer()</methodname>
+      utilizan el método privado
+      <methodname>ensureMinSize()</methodname> para incrementar el
+      tamaño del bloque de memoria (note que no es seguro mantener
+      el valor de retorno de <methodname>pointer()</methodname> si
+      se cambia el tamaño del bloque de memoria).
+    </para>
+    <para>
+      He aquí la implementación de la clase:
+    </para>
+<programlisting>
+//: C07:Mem.cpp {O}
+</programlisting>
+      <para>
+      Puede observar que <methodname>ensureMinSize()</methodname> es
+      la única función responsable de reservar memoria y que la
+      utilizan tanto el segundo constructor como la segunda versión
+      sobrecargada de <methodname>pointer()</methodname>. Dentro de
+      <methodname>ensureSize()</methodname> no se hace nada si el
+      tamaño es lo suficientemente grande. Si se ha de reservar más
+      memoria para que el bloque sea más grande (que es el mismo
+      caso cuando el bloque tiene tamaño cero después del
+      constructor por defecto), la nueva porción de más se pone a
+      cero utilizando la función de la librería estándar de C
+      <function>memset()</function>, que fue presentada en el
+      Capítulo 5. La siguiente llamada es a la función de la
+      librería estándar de C <function>memcpy()</function>, que en
+      este caso copia los octetos existentes de
+      <varname>mem</varname> a <varname>newmem</varname>
+      (normalmente de una manera eficaz).  Finalmente, se libera la
+      memoria antigua y se asignan a los atributos apropiados la
+      nueva memoria y su tamaño.
+    </para>
+    <para>
+      La clase <classname>Mem</classname> se ha diseñado para su
+      utilización como herramienta dentro de otras clases para
+      simplificar su gestión de la memoria (también se podría
+      utilizar para ocultar un sistema de gestión de memoria más
+      avanzada proporcionado, por ejemplo, por el el sistema
+      operativo). Esta clase se comprueba aquí con una simple
+      clase de tipo "string":
+    </para>
+<programlisting>
+//: C07:MemTest.cpp
+</programlisting>
+    <para>
+      Todo lo que puede hacer con esta clase es crear un
+      <classname>MyString</classname>, concatenar texto e imprimir a
+      un <emphasis>ostream</emphasis>. La clase sólo contiene un
+      puntero a un <classname>Mem</classname>, pero note la
+      diferencia entre el constructor por defecto, que pone el
+      puntero a cero, y el segundo constructor, que crea un
+      <classname>Mem</classname> y copia los datos dentro del
+      mismo. La ventaja del constructor por defecto es que puede
+      crear, por ejemplo, un array grande de objetos
+      <classname>MyString</classname> vacíos con pocos recursos,
+      pues el tamaño de cada objeto es sólo un puntero y la única
+      sobrecarga en el rendimiento del constructor por defecto es el
+      de asignarlo a cero.  El coste de un
+      <classname>MyString</classname> sólo empieza a aumentar cuando
+      concatena datos; en ese momento el objeto
+      <classname>Mem</classname> se crea si no ha sido creado todavía.
+      Sin embargo, si utiliza el constructor por defecto y nunca
+      concatena ningún dato, la llamada al destructor todavía es
+      segura porque cuando se llama a <function>delete</function>
+      con un puntero a cero, el compilador no hace nada para no
+      causar problemas.
+    </para>
+    <para>
+      Si mira los dos constructores, en principio, podría parecer que 
+      son candidatos para utilizar argumentos por defecto. Sin embargo, 
+      si elimina el constructor por defecto y escribe el constructor que 
+      queda con un argumento por defecto:
+    </para>
+<programlisting>
+MyString(char* str = "");
+</programlisting>
+    <para>
+      todo funcionará correctamente, pero perderá la eficacia anterior 
+      pues siempre se creará el objeto <classname>Mem</classname>. Para 
+      volver a tener la misma eficacia de antes, ha de modificar el 
+      constructor:
+    </para>
+<programlisting>
+MyString::MyString(char* str) {
+  if(!*str) { // Apunta a un string vacío
+    buf = 0;
+    return;
+  }
+  buf = new Mem(strlen(str) + 1);
+  strcpy((char*)buf-&gt;pointer(), str);
+}
+</programlisting>
+    <para>
+      Esto significa, en efecto, que el valor por defecto es un caso que 
+      ha de tratarse separadamente de un valor que no lo es. Aunque 
+      parece algo inocente con un pequeño constructor como éste, en 
+      general esta práctica puede causar problemas. Si tiene que hacer 
+      por separado el valor por defecto en vez de tratarlo como un valor 
+      ordinario, debería ser una pista para que al final se implementen 
+      dos funciones diferentes dentro de una función: una versión para el 
+      caso normal y otra para el caso por defecto. Podría partirlo en dos 
+      cuerpos de función diferentes y dejar que el compilador elija. Esto 
+      resulta en un ligero (pero normalmente invisible) incremento de la 
+      eficacia porque el argumento extra no se pasa y por tanto el código 
+      extra debido a la condición condición no se ejecuta. Más importante 
+      es que está manteniendo el código <emphasis>en</emphasis> dos funciones 
+      separadas en vez de combinarlas en una utilizando argumentos por 
+      defecto, lo que resultará en un mantenimiento más sencillo, 
+      sobre todo si las funciones son largas.
+    </para>
+    <para>
+      Por otro lado, considere la clase
+      <classname>Mem</classname>. Si mira las definiciones de los
+      dos constructores y las dos funciones
+      <methodname>pointer()</methodname>, puede ver que la utilización
+      de argumentos por defecto en ambos casos no causará que los
+      métodos cambien. Así, la clase podría ser fácilmente:
+    </para>
+<programlisting>
+//: C07:Mem2.h
+</programlisting>
+    <para>
+      Note que la llamada a <function>ensureMinSize(0)</function>
+      siempre será bastante eficaz.
+    </para>
+    <para>
+      Aunque ambos casos se basan en decisiones por motivos de
+      eficacia, debe tener cuidado para no caer en la trampa de
+      pensar sólo en la eficacia (siempre fascinante). Lo más
+      importante en el diseño de una clase es la interfaz de la
+      clase (sus miembros públicos, que son las que el programador
+      cliente tiene a su disposición). Si se implementa una clase
+      fácil de utilizar y reutilizar, entonces ha tenido éxito;
+      siempre puede realizar ajustes para mejorar la eficacia en
+      caso necesario, pero el efecto de una clase mal diseñada
+      porque el programador está obsesionado con la eficacia puede
+      resultar grave. Su primera preocupación debería ser que la
+      interfaz tuviera sentido para aquéllos que la utilicen y para
+      los que lean el código. Note que en
+      <filename>MemTest.cpp</filename> el uso de
+      <classname>MyString</classname> no cambia independientemente
+      de si se utiliza el constructor por defecto o si la eficacia
+      es buena o mala.
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Resumen</title>
+    <para>
+      Como norma, no debería utilizar argumentos por defecto si hay que 
+      incluir una condición en el código. En vez de eso debería partir la 
+      función en dos o más funciones sobrecargadas si puede. Un argumento 
+      por defecto debería ser un valor que normalmente pondría ahí. Es el 
+      valor que es más probable que ocurra, para que lo programadores 
+      clientes puedan hacer caso omiso de él o sólo lo pongan cuando no 
+      quieran utilizar el valor por defecto.
+    </para>
+    <para>
+      El argumento por defecto se incluye para hacer más fáciles las 
+      llamadas a función, especialmente cuando esas funciones tiene muchos
+      argumentos con valores típicos. No sólo es mucho más sencillo 
+      escribir las llamadas, sino que además son más sencillas de leer, 
+      especialmente si el creador de la clase ordena los argumentos de tal 
+      manera que aquéllos que menos cambian se ponen al final del todo.
+    </para>
+    <para>
+      Una utilización especialmente importante de los argumentos por 
+      defecto es cuando empieza con una función con un conjunto de 
+      argumentos, y después de utilizarla por un tiempo se da cuenta de 
+      que necesita añadir más argumentos. Si pone los nuevos argumentos 
+      como por defecto, se asegura de que no se rompe el código cliente 
+      que utiliza la interfaz anterior.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Ejercicios</title>
+    <tip>
+      <para>
+	La soluciones a los ejercicios seleccionados se pueden
+	encontrar en el documento electrónico <emphasis>The Thinking in C++
+	Annotated Solution Guide</emphasis>, disponible por un módico precio
+	en <ulink
+	url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
+      </para>
+    </tip>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Cree una clase <emphasis>Text</emphasis> que
+	  contenga un objeto <emphasis>string</emphasis> para que
+	  guarde el texto de un fichero. Póngale dos constructores: un
+	  constructor por defecto y un constructor que tome un
+	  argumento de tipo <emphasis>string</emphasis> que sea el
+	  nombre del fichero que se vaya a abrir. Cuando se utilice el
+	  segundo constructor, abra el fichero y ponga su contenido en
+	  el atributo <emphasis>string</emphasis>. Añada un método
+	  llamado <emphasis>contents()</emphasis> que retorne el
+	  <emphasis>string</emphasis> para que, por ejemplo, se pueda
+	  imprimir. En <emphasis>main()</emphasis> abra un fichero
+	  utilizando <emphasis>Text</emphasis> e imprima el contenido
+	  a la pantalla.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase <emphasis>Message</emphasis> con un
+	  constructor que tome un sólo <emphasis>string</emphasis> con
+	  un valor por defecto. Cree un atributo privado
+	  <emphasis>string</emphasis> y asigne en el constructor el
+	  argumento <emphasis>string</emphasis> al atributo
+	  <emphasis>string</emphasis>.  Cree dos métodos sobrecargados
+	  llamados <emphasis>print()</emphasis>: uno que no tome
+	  argumentos y que imprima simplemente el mensaje guardado en
+	  el objeto, y el otro que tome un argumento
+	  <emphasis>string</emphasis>, que imprima el mensaje interno
+	  además del argumento. ¿Tiene sentido utilizar esta
+	  aproximación en vez del utilizado por el constructor?
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Descubra cómo generar código ensamblador con su compilador 
+	  y haga experimentos para deducir el esquema de decoración de
+	  nombres.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree una clase que contenga cuatro métodos con 0,
+	  1, 2 y 3 argumentos de tipo <emphasis>int</emphasis>
+	  respectivamente. Cree un <emphasis>main()</emphasis> que
+	  haga un objeto de su clase y llame a cada método. Ahora
+	  modifique la clase para que tenga sólo un método con todos
+	  los argumentos por defecto. ¿Esto cambia su
+	  <emphasis>main()</emphasis>?
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree una función con dos argumentos y llámelo desde 
+	  <emphasis>main()</emphasis>. Ahora haga que uno de los argumentos 
+	  sea un argumento de relleno (sin identificador) y mire si el 
+	  <emphasis>main()</emphasis> necesita cambios.
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Modifique <filename>Stash3.h</filename> y
+	  <filename>Stash3.cpp</filename> para que el constructor
+	  utilice argumentos por defecto. Pruebe el constructor
+	  haciendo dos versiones diferentes de un objeto
+	  <emphasis>Stash</emphasis>.
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Cree una nueva versión de la clase 
+	  <emphasis>Stack</emphasis> (del Capítulo 6) que contenga el 
+	  constructor por defecto al igual que antes, y un segundo constructor 
+	  que tome como argumentos un array de punteros a objetos y el tamaño 
+	  del array. Este constructor debería recorrer el array y poner cada 
+	  puntero en la pila (<emphasis>Stack</emphasis>). Pruebe su clase con 
+	  un array de <emphasis>string</emphasis>'s.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Modifique <emphasis>SuperVar</emphasis> para que haya 
+	  <emphasis>#ifdef</emphasis>'s que engloben el código de 
+	  <emphasis>vartype</emphasis> tal como se describe en la sección 
+	  sobre enumeraciones. Haga <emphasis>vartype</emphasis> como una 
+	  enumeración pública (sin ejemplares) y modifique 
+	  <emphasis>print()</emphasis> para que requiera un argumento del tipo 
+	  <emphasis>vartype</emphasis> que le indique qué tiene que
+	  hacer.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Implemente <emphasis>Mem2.h</emphasis> y asegúrese
+	  de que la clase modificada todavía funcione con
+	  <emphasis>MemTest.cpp</emphasis>.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Utilice la clase <emphasis>Mem</emphasis> para 
+	  implementar <emphasis>Stash</emphasis>. Note que debido a que la 
+	  implementación es privada y por tanto oculta al programador 
+	  cliente, no necesita modificar el código de prueba.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Añada un método <emphasis>bool moved()</emphasis> en la
+	  clase <emphasis>Mem</emphasis> que tome el resultado de una
+	  llamada a <emphasis>pointer()</emphasis> y le diga si el
+	  puntero ha cambiado (debido a una reasignación). Escriba una
+	  función <emphasis>main()</emphasis> que pruebe su método
+	  <emphasis>moved()</emphasis>. ¿Tiene más sentido utilizar
+	  algo como <emphasis>moved()</emphasis> o simplemente llamar
+	  <emphasis>pointer()</emphasis> cada vez que necesite acceder
+	  a la memoria de <emphasis>Mem</emphasis>?
+	</para>
+      </listitem>
+
+    </orderedlist>
+  </sect1>
+    
+</chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->

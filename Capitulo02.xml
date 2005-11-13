@@ -1,0 +1,2027 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML  
+  Traducción original: Jesús López Mollo <i302154@correo.unnet.es>
+                       (anterior a LuCaS)
+
+  Formateado DocBook:  Miguel Ángel García Martínez
+  1ª Revisión:
+  2ª Revisión
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C2">
+  
+  <title>Construir y usar objetos</title>
+  <para>
+    Este capítulo le introducirá a la sintaxis básica de C++ y los
+    conceptos de construcción de programas suficientes para
+    permitirle crear y ejecutar cualquier programa simple
+    orientado a objetos. En el siguiente capítulo cubriremos la
+    sintaxis básica de C y C++ en detalle.
+  </para>
+  
+  <para>Leyendo primero este capítulo, cogerá el gustillo a lo que
+    supone programar con objetos en C++, y también descubrirá
+    algunas de las razones por las que hay tanto entusiasmo
+    alrededor de este lenguaje. Debería ser suficiente para
+    llevarle a través del Capítulo 3, el cual puede ser un poco
+    agotador debido a que contiene muchos de los detalles del
+    lenguaje C.
+  </para>
+  
+  <para>
+    Las clases que alguien ha creado son normalmente empaquetadas en
+    una librería. Este capitulo usa varias librerías que vienen en
+    todas las implementaciones de C++. Una librería especialmente
+    importante es iostreams, la cual (entre otras cosas) le permite
+    leer desde ficheros y teclado y escribir a ficheros y a la
+    pantalla. También verás la muy práctica clase
+    <classname>string</classname> y el contenedor
+    <classname>vector</classname> de la Libreria Estándar de C++. Al
+    final del capítulo, verá lo fácil que es usar una librería de
+    clases predefinida.
+  </para>
+
+  <para>
+    Para que pueda crear su primer programa debe conocer primero las
+    herramientas usadas para construir aplicaciones.
+  </para>
+
+
+  <sect1>
+    <title>El proceso de traducción del lenguaje</title> 
+
+    <para>
+      Todos los lenguajes de programación son traducidos de algo que
+      suele ser fácilmente entendible por una persona
+      <emphasis>(código fuente)</emphasis> a algo que es ejecutado
+      por una computadora <emphasis>(código máquina)</emphasis>. Los
+      traductores tradicionalmente han sido divididos en dos
+      categorías: <emphasis>intérpretes</emphasis> y
+      <emphasis>compiladores</emphasis>.
+    </para>
+    
+    <sect2>
+      <title>Intérpretes</title>
+      <para>
+	Un intérprete traduce el código fuente en actividades (las
+	cuales pueden comprender grupos de instrucciones máquina) e
+	inmediatamente ejecuta estas actividades. El BASIC, por
+	ejemplo, ha sido un popular lenguaje interpretado. Los
+	intérpretes de BASIC tradicionales traducen y ejecutan una
+	línea cada vez, y después olvidan la línea traducida. Esto
+	los hace lentos debido a que deben volver a traducir el
+	código que se repita. BASIC también ha sido compilable para
+	ganar en velocidad. La mayoría de los intérpretes modernos,
+	como los de Python, traducen el programa entero en un
+	lenguaje intermedio el cual es ejecutable por un intérprete
+	mucho más rápido<footnote> <para>Los límites entre los
+	    compiladores y los intérpretes tienden a ser difusos,
+	    especialmente con Python, que tiene muchas de las
+	    caractéristicas y el poder de un lenguaje compilado pero
+	    también tiene parte de las ventajas de los lenguajes
+	    interpretados.</para></footnote>.
+      </para>
+
+      <para>
+	Los intérpretes tienen unas cuantas ventajas. La transición
+	del código escrito al código ejecutable el casi inmediata, y
+	el código fuente esta siempre disponible por lo que el
+	intérprete puede ser mucho más específico cuando ocurre un
+	error. Los beneficios que se suelen mencionar de los
+	intérpretes es la facilidad de interacción y el rápido
+	desarrollo (pero no necesariamente ejecución) de los
+	programas.
+      </para>
+
+      <para>
+	Los lenguajes interpretados tienen a menudo severas
+	limitaciones cuando se construyen grandes proyectos (Python
+	parece ser una excepción). El intérprete (o una versión
+	reducida) debe estar siempre en memoria para ejecutar el
+	código e incluso el más rápido intérprete puede introducir
+	inaceptables restricciones de velocidad. La mayoría de los
+	intérpretes requieren que todo el código fuente sea enviado
+	al intérprete de una sola vez. Esto no sólo introduce
+	limitaciones de espacio, sino que puede causar errores
+	difíciles de detectar si el lenguaje no incluye facilidades
+	para localizar el efecto de los diferentes trozos de código.
+      </para>
+
+
+    </sect2>
+    
+    <sect2>
+      <title>Compiladores</title>
+      <para>
+	Un compilador transforma el código fuente directamente en
+	lenguaje ensamblador o código máquina. El producto final
+	suele ser un archivo o archivos que contienen código
+	máquina. La forma de realizarlo suele ser un proceso que
+	consta de varios pasos. La transición del código escrito al
+	código ejecutable es significativamente más largo con un
+	compilador.
+      </para>
+      <para>
+	Dependiendo de la perspicacia del escritor del compilador,
+	los programas generados por un compilador tienden a requerir
+	mucha menos memoria para ser ejecutados, y son ejecudos
+	mucho más rápidamente. Aunque el tamaÃ±o y la velocidad son
+	probablemente las razones más citadas para usar un
+	compilador, en muchas situaciones no son las más
+	importantes. Algunos lenguajes (como el C) están diseÃ±ados
+	para admitir trozos de programas compilados
+	independiéntemente. Estas partes pueden ser combinadas en un
+	programa <emphasis>ejecutable</emphasis> final mediante una
+	herramienta llamada <foreignphrase>linker</foreignphrase>
+	(enlazador) Este proceso es conocido como
+	<emphasis>compilación separada</emphasis>.
+      </para>
+      <para>
+	La compilación separada tiene sus beneficios. Un programa
+	que, tomado de una vez, excedería los límites del compilador
+	o del entorno de compilación puede ser compilado a
+	trocitos. Los programas pueden ser construidos y testados de
+	trozo en trozo. Una vez que ese trozo funciona, puede
+	salvarse y tratarse como si fuera un bloque. Conjuntos ya
+	funcionales y probados pueden ser combinados en librerías
+	para que sean usados por otros programadores. A cada pieza
+	que se crea, la complejidad de las otras piezas es
+	ocultada. Todas estas características ayudan a la creación
+	de grandes programas<footnote> <para>Python es de nuevo una
+	    excepción, debido a que permite compilacón
+	    separada.</para></footnote>.
+      </para>
+      <para>
+	Las características de depuración del compilador han
+	mejorado considerablemente con el tiempo. Los primeros
+	compiladores simplemente generaban código máquina, y el
+	programador insertaba sentencias de impresión para ver que
+	ocurría, lo cual no era siempre efectivo. Los compiladores
+	modernos pueden insertar información del código fuente en el
+	programa ejecutable. Esta información es usada por
+	depuradores a nivel de código que muestran lo que pasa
+	exactamente en un programa rastreando su ejecución mediante
+	su código fuente.
+      </para>
+      <para>
+	Algunos compiladores solucionan los problemas de velocidad
+	de compilación mediante <emphasis>compilación en
+	  memoria</emphasis>. La mayoría de los compiladores trabajan
+	con archivos, leyéndolos y escribiéndolos en cada paso de
+	los procesos de compilación. En la compilación en memoria el
+	compilador se mantiene en RAM. Para programas pequeños,
+	esto puede parecerse a los intérpretes.
+      </para>
+    </sect2>
+    
+    <sect2>
+      <title>El proceso de compilación</title>
+      <para>
+	Para programar en C y en C++, es necesario entender los
+	pasos y las herramientas del proceso de compilación. Algunos
+	lenguajes (C y C++, en particular) empiezan la compilación
+	ejecutando el <emphasis>preprocesador</emphasis> del código
+	fuente. El preprocesador es un simple programa que sustituye
+	patrones que se encuentran en el código fuente con otros que
+	ha definido el programador (usando las <emphasis>directivas
+	  de preprocesado</emphasis>). Las directivas del
+	preprocesador se usan para ahorrar escritura y para aumentar
+	la legilibilidad del código. Posteriormente en este libro,
+	aprenderá como el diseño de C++ desalienta bastante el uso
+	del preprocesador, debido a que fomenta sutiles errores. El
+	código preprocesado es a menudo escrito en un archivo
+	intermedio.
+      </para>
+      <para>
+	Los compiladores normalmente hacen su trabajo en dos
+	pasos. El primer paso consiste en analizar sintácticamente
+	el código generado por el preprocesador. El compilador rompe
+	el código fuente en pequeños trozos y lo organiza en una
+	estructura llamada <emphasis>árbol</emphasis>. En la
+	expresión <quote>A+B</quote>, los elementos
+	<quote>A</quote>, <quote>+</quote>, <quote>B</quote> son
+	hojas del árbol.
+      </para>
+      <para>
+	Se suele usar un <emphasis>optimizador global</emphasis>
+	entre el primer y el segundo paso para producir código más
+	rápido y pequeño.
+      </para>
+      <para>
+	En el segundo paso, el <emphasis>generador de
+	  código</emphasis> recorre el árbol sintáctico y genera
+	lenguaje ensamblador o código máquina para los nodos del
+	árbol. Si el generador de código genera lenguaje
+	ensamblador, el ensamblador debe ser entonces ejecutado. El
+	resultado final es en ambos casos un módulo objeto (un
+	archivo que tiene normalmente una extensión de
+	<filename>.o</filename> o <filename>.obj</filename>. Un
+	<emphasis>optimizador de mirilla</emphasis> es usado a veces
+	en el segundo paso para buscar trozos de código que
+	contengan sentencias de lenguaje ensamblador redundantes.
+      </para>
+      <para>
+	El uso de la palabra <quote>objeto</quote> para describir
+	pedazos de código máquina es un hecho desafortunado. La
+	palabra era usada antes de que la programación orientada a
+	objetos fuera de uso general. <quote>Objeto</quote> tiene el
+	mismo significado en este contexto que <quote>meta</quote>,
+	mientras que en la programación orientada a objetos
+	significa <quote>algo con características</quote>.
+      </para>
+      <para>
+	El <emphasis>enlazador</emphasis> combina una lista de
+	módulos objecto en un programa ejecutable que puede ser
+	cargado y ejecutado por el sistema operativo. Cuando una
+	función en un módulo objeto hace una referencia a una
+	función o variable en otro módulo objeto, el enlazador
+	resuelve estas referencias; se asegura que todas las
+	funciones y los datos externos solicitados durante el
+	proceso de compilación existen realmente. Ell enlazador
+	aÃ±ade además un módulo objeto especial para realizar las
+	actividades de inicialización.
+      </para>
+      <para>
+	El enlazador puede buscar en archivos especiales llamados
+	<emphasis>librerías</emphasis> para poder resolver todas sus
+	referencias. Una librería contiene una colección de módulos
+	objeto en un único archivo. Una librería es creada y
+	mantenida por un programa conocido como
+	<emphasis>bibliotecario</emphasis>.
+      </para>
+
+      <sect3>
+	<title>Comprobación estática de tipos</title>
+	<para>
+	  El compilador realiza <emphasis>chequeo de tipado</emphasis>
+	  durante la primera pasada. El chequeo de tipado comprueba
+	  el correcto uso de los argumentos en las funciones y
+	  previene unos cuantos errores de programación. Como este
+	  chequeo de tipos ocurre durante la compilación y no cuando
+	  el programa está siendo ejecutado, es conocido como
+	  <emphasis>chequeo estático de tipos</emphasis>.
+	</para>
+	<para>
+	  Algunos lenguajes orientados a objetos (Java por ejemplo)
+	  realizan chequeos en tiempo de ejecución
+	  (<emphasis>chequeo dinámico de tipos</emphasis>). Si se
+	  combina con el chequeo estático de tipos, el chequeo
+	  dinámico es más potente que sólo el chequeo estático, sin
+	  embargo, añade una sobrecarga a la ejecución del
+	  programa.
+	</para>
+	<para>
+	  C++ usa el chequeo estático de tipos debido a que el
+	  lenguaje no puede asumir ningún apoyo a las malas
+	  operaciones. El chequeo estático de tipos notifica al
+	  programador malos usos de los tipos durante  la
+	  compilación, y esto maximiza la velocidad de
+	  ejecución. Según aprenda C++, comprobará que la mayoría de
+	  las decisiones de diseño del lenguaje están tomadas a
+	  favor de la mejora del rendimiento, motivo por el cual C
+	  es famoso en la programación orientada a la producción.
+	</para>
+	<para>
+	  Se puede deshabilitar el chequeo estático de tipos en C++,
+	  e incluso usted puede usar su propio chequeo dinámico de
+	  tipos - simplemente necesita escribir el código.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Herramientas para compilación modular</title>
+
+    <para>
+      La compilación separada es particularmente importante cuando
+      se construyen grandes proyectos. En C y en C++, un programa
+      puede ser creado en pequeÃ±os, manejables e independientemente
+      comprobables trozos. La herramienta más importante para romper
+      un programa en piezas más pequeÃ±as es la habilidad de crear
+      subrutinas o subprogramas que tengan un nombre que las
+      identefique. En C y en C++, este subprograma es conocido como
+      <emphasis>función</emphasis>, y las funciones son porciones de
+      código que pueden ser insertadas en diferentes archivos,
+      permitiendo la compilación separada. Dicho de otro forma, una
+      función es la indivisible unidad de código, debido a que no se
+      puede tener una parte de una función en un archivo y el resto
+      en otro (sin embargo los ficheros pueden contener más de una
+      función).
+    </para>
+    <para>
+      Cuando usted llama a una función, normalmente le pasa una
+      serie de <emphasis>argumentos</emphasis>, que son valores que
+      desea que la función utilice durante su ejecución. Cuando la
+      función termina, normalmente le devuelve un <emphasis>valor de
+	retorno</emphasis>, equivalente a un resultado. También es
+      posible crear funciones que no tengan ni argumentos ni valores
+      de retorno.
+    </para>
+    <para>
+      Para crear un programa con varios archivos, las funciones en
+      un archivo deben acceder a las funciones y los datos en otros
+      archivos. Cuando compila un fichero, el compilador de C o C++
+      debe conocer las funciones y los datos de los otros ficheros,
+      en particular sus nombres y la forma de usarlos
+      correctamente. El compilador se asegura de que las funciones y
+      los datos son usados correctamente. El proceso de "decirle al
+      compilador" los nombres de las funciones externas y los datos
+      que necesitan es conocido como
+      <emphasis>declaración</emphasis>.  Una vez que usted declare
+      una función o variable, el compilador sabe como comprobar que
+      la función es usada correctamente.
+    </para>
+
+
+    <sect2>
+      <title>Declaraciones vs definiciones</title>
+
+      <para>
+	Es importante comprender la diferencia entre
+	<emphasis>declaraciones</emphasis> y
+	<emphasis>definiciones</emphasis> porque estos terminos serán
+	usados en todo el libro. Esencialmente todos los programas
+	escritos en C o en C++ requieren declaraciones. Antes de que
+	usted pueda escribir su primer programa, necesita entender
+	la manera correcta de escribir una declaración.
+      </para>
+      <para>
+	Una <emphasis>declaración</emphasis> introduce un nombre -
+	identificador - en el compilador. Le dice al compilador
+	<quote>Esta función o esta variable existe en algún lugar, y
+	  tiene que tener esta forma</quote>. Una
+	<emphasis>definición</emphasis>, sin embargo, dice:
+	<quote>Haz esta varible así</quote> o <quote>Usa esta
+	  función así</quote>. Esto reserva un almacenamiento para el
+	nombre. Significa, además, que funciona igual para una
+	variable que para una función; en ambos casos, en el momento
+	de la definición el compilador reserva espacio. Para una
+	variable, el compilador determina cómo es de grande y genera
+	el espacio en memoria para contener los datos de la
+	variable. Para una función, el compilador genera el código
+	que finalmente ocupará un espacio en memoria.
+      </para>
+      <para>
+	Se puede declarar una variable o una función en muchos
+	sitios diferentes, pero en C o en C++ sólo puede tener una
+	definición (esto es a veces conocido como ODR:
+	<foreignphrase>one definition rule</foreignphrase> o regla
+	de definiciones únicas). Cuando el enlazador está uniendo
+	todos los módulos objetos, normalmente se quejará si
+	encuentra más de una definición para la misma función o
+	variable.
+      </para>
+      <para>
+	Una definición puede ser también una declaración. Si el
+	compilador no ha visto antes el nombre <varname>x</varname>
+	y usted define <command>int x;</command>, el compilador ve
+	el nombre como una declaración y asigna memoria al mismo
+	tiempo.
+      </para>
+
+      <sect3>
+	<title>Sintaxis de declaración de funciones</title>
+
+	<para>
+	  La declaración de una función en C y en C++ consiste en
+	  dar el nombre de la función, los argumentos pasados a la
+	  función, y el valor de retorno de la misma. Por ejemplo,
+	  aquí tenemos una declaración de una función llamada
+	  <function>func1()</function> que toma dos enteros como
+	  argumentos (los enteros son denotados en C/C++ con la
+	  palabra reservada <literal>int</literal>) y que devuelve
+	  un entero:
+	</para>
+	
+	<para> 
+	  <programlisting> int func1(int, int); </programlisting>
+	</para>
+
+	<para>
+	  La primera palabra clave es el valor de retorno:
+	  <literal>int</literal>. Los argumentos están encerrados
+	  entre paréntesis después del nombre de la función en el
+	  orden en que son usados. El punto y coma indica el final
+	  de la sentencia; en este caso le dice al compilador
+	  <quote>esto es todo - ¡aquí no está la definición de la
+	    función!</quote>.
+	</para>
+	<para>
+	  Las declaraciones de C y C++ tratan de mimetizar la forma
+	  en que van a ser usadas. Por ejemplo, si
+	  <varname>a</varname> es otro entero la función de arriba
+	  se usaría de la siguiente manera:
+	</para>
+	<para> 
+	  <programlisting>a=func1(2,3);</programlisting>
+	</para>
+	<para>
+	  Como <function>func1()</function> devuelve un entero, el
+	  compilador de C/C++ comprobará el uso de
+	  <function>func1()</function> para asegurarse que
+	  <varname>a</varname> puede aceptar el valor devuelto y que
+	  los argumentos son válidos.
+	</para>
+	<para>
+	  Los argumentos en la declaración de funciones pueden tener
+	  nombres. El compilador los ignora pero pueden ser útilies
+	  como dispositivos mnemotécnicos para el usuario. Por
+	  ejemplo, podemos declarar <function>func1()</function> de
+	  una forma diferente pero con el mismo significado:
+	</para>
+	<para>
+	  <programlisting> int func1(int length, int width);
+	  </programlisting>
+	</para>
+
+
+      </sect3>
+      
+      <sect3>
+	<title>Una puntualización</title>
+
+
+	<para>
+	  Existe una diferencia significativa entre el C y el C++
+	  para las funciones con lista de argumentos vacía. En C, la
+	  declaración:
+	</para>
+	<para>
+	  <programlisting> int func2();</programlisting>
+	</para>
+	<para>
+	  significa <quote>una funcion con cualquier número y tipo
+	    de argumentos</quote>, lo cual previene el chequeo de
+	  tipos. En C++, sin embargo, significa <quote>una función
+	    sin argumentos</quote>.
+	</para>
+
+
+      </sect3>
+      
+      <sect3>
+	<title>Definición de funciones</title>
+
+	<para>
+	  La definición de funciones se parece a la declaración
+	  excepto que tienen cuerpos. Un cuerpo es una colección de
+	  sentencias encerradas entre llaves. Las llaves indican el
+	  comienzo y el final del código. Para dar a
+	  <function>func1()</function> una definición con un cuerpo
+	  vacío (un cuerpo que no contiene código), escriba:
+	</para>
+	<para>
+	  <programlisting> int func1(int ancho, int largo) {}
+	  </programlisting>
+	</para>
+	<para>
+	  Note que en la definición de la función las llaves
+	  sustituyen el punto y coma. Como las llaves contienen una
+	  sentencia o grupo de sentencias, no es necesario un punto
+	  y coma. Tenga en cuenta además que los argumentos en la
+	  definición de la función tienen que tener nombres  si los
+	  quiere usar en el cuerpo de la función (como aquí no son
+	  usados, son opcionales).
+	</para>
+
+
+
+
+      </sect3>
+      
+      <sect3>
+	<title>Sintaxis de declaración de variables</title>
+
+
+
+	<para>
+	  El significado atribuido a la frase <quote>declaración de
+	    variables</quote> ha sido historicamente confuso y
+	  contradictorio, y es importante que entienda el
+	  significado correcto para que pueda leer el código
+	  correctamente. Una declaración de variable dice al
+	  compilador a qué se parece la variable. Dice, <quote>Sé
+	    que no has visto este nombre antes, pero te prometo que
+	    existe en algún lugar, y que es una variable de tipo
+	    X</quote>.
+	</para>
+	<para>
+	  En una declaración de función, usted da un tipo (el valor
+	  de retorno), el nombre de la función, la lista de
+	  argumentos, y el punto y coma. Con esto el compilador ya
+	  tiene suficiente información para conocer como será la
+	  función. Por inferencia, una declaración de variable
+	  consistirá en un tipo seguido por un nombre. Por ejemplo:
+	</para>
+	<para>
+	  <programlisting>int a;</programlisting>
+	</para>
+	<para>
+	  entonces, podría declarar la variable <varname>a</varname>
+	  como un entero usando la lógica usada anteriormente. Pero
+	  aquí viene el conflicto: existe suficiente información en
+	  el código arriba descrito para que el compilador pueda
+	  crear espacio para la variable entera llamada
+	  <varname>a</varname> y es exactamente lo que ocurre. Para
+	  resolver el dilema, era necesaria una palabra reservada en
+	  C y C++ para decir "Esto es sólo una declaración; esta
+	  variable estará definida en cualquier otro lado". La
+	  palabra reservada es <literal>extern</literal> que puede
+	  significar que la definición es externa al fichero, o que
+	  la definición se encuentra despúes en este archivo.
+	</para>
+	<para>
+	  Declarar una variable sin definirla implica usar la
+	  palabra reservada <literal>extern</literal> antes de una
+	  descripción de la variable, como por ejemplo:
+	</para>
+	<para>
+	  <programlisting>extern int a;</programlisting>
+	</para>
+	<para>
+	  <literal>extern</literal> puede también aplicarse a la
+	  declaración de funciones. Algo parecido a esto:
+	</para>
+	<para>
+	  <programlisting>
+	    extern int func1(int length, int width);
+	  </programlisting>
+	</para>			 
+
+	<para>
+	  Esta sentencia es equivalente a las declaraciones de
+	  <function>func1()</function> anteriores. Como no hay
+	  cuerpo de la función, el compilador debe tratarla como una
+	  declaración de función en vez de como una definición de
+	  función. La palabra reservada <literal>extern</literal> es
+	  bastante supérflua y opcional para la declaración de
+	  funciones. Probablemente sea desafortunado que los
+	  diseñadores de C no obligaran al uso de
+	  <literal>extern</literal> para la declaración de
+	  funciones; hubiera sido más consistente y menos confuso
+	  (pero hubiera requerido teclear más, lo cual explica
+	  probablemente la decisión).
+	</para>
+	<para>
+	  Aquí hay algunos ejemplos más de declaraciones:
+	</para>
+
+	<para>
+	  <programlisting>
+		 <xi:include parse="text" href="./code/C02/Declare.cpp"/>
+	  </programlisting>
+	</para>
+
+	<para>
+	  En la declaración de funciones, los identificadores de los
+	  argumentos son opcionales. En la definición son necesarios
+	  (los identificadores son requeridos solamente en C, no en
+	  C++).
+	</para>
+      </sect3>
+      
+      <sect3>
+	<title>Incluir ficheros de cabecera</title>
+
+	<para>
+	  Los archivos entre paréntesis angulares, como:
+	</para>
+	<para>
+	  <programlisting>#include &lt;header&gt;</programlisting>
+	</para>
+	<para>
+	  hacen que el preprocesador busque el archivo como si fuera
+	  particular a un proyecto, aunque normalmente hay un camino
+	  de búsqueda que es especificado en el entorno o en la
+	  linea de comandos del compilador. El mecanismo para
+	  cambiar el camino de búsqueda (o path) varía entre
+	  maquinas, sistemas operativos, e implementaciones de C++ y
+	  a lo mejor requiere un poco de investigación por su parte.
+	</para>
+	<para>
+	  Los archivos entre comillas dobles, como:
+	</para>
+	<para>
+	  <programlisting>#include "header"</programlisting>
+	</para>
+	<para>
+	  le dicen al compilador que que busque el fichero en (de
+	  acuerdo a la especificación) "donde esté definido por la
+	  implementación". Que normalmente significa buscar el
+	  fichero de forma relativa al directorio actual. Si no se
+	  encuentra, entonces la directiva es reprocesada como si
+	  tuviera paréntesis angulares en vez de comillas.
+	</para>
+	<para>
+	  Para incluir el archivo de cabecera iostream, hay que
+	  escribir:
+	</para>
+	<para>
+	  <programlisting>#include &lt;iostream&gt;</programlisting>
+	</para>
+	<para>
+	  El preprocesador encontrará el archivo de cabecera
+	  iostream (a menudo en un subdirectorio llamado
+	  <literal>include</literal>) y lo insertará.
+	</para>
+      </sect3>
+      
+      <sect3>
+	<title>Formato de include en el estándar C++</title>
+
+	<para>
+	  Como C++ ha evolucionado, los vendedores de diferentes
+	  compiladores eligieron diferentes extensiones para los
+	  nombres de archivos. Además, varios sistemas operativos
+	  tienen distintas restricciones en los nombres de archivos,
+	  en particular en la longitud del nombre. Estas
+	  características crearon problemas de portabilidad del
+	  código fuente. Para limar estos problemas, el estándar usa
+	  un formato que permite los nombres de archivos mas largos
+	  que los famosos ocho caracteres y permite eliminar la
+	  extensión. Por ejemplo en vez de escribir
+	  <filename>iostream.h</filename> en el antiguo estilo, que
+	  se asemejaría a algo así:
+	</para>
+	<para>
+	  <programlisting>
+	    #include &lt;iostream.h&gt;
+	  </programlisting>
+	</para>
+	<para>
+	  ahora puede escribir:
+	</para>
+	<para>
+	  <programlisting> 
+	    #include &lt;iostream&gt;
+	  </programlisting>
+	</para>
+	<para>
+	  El traductor puede implementar la sentencia del include de
+	  tal forma que se amolde a las necesidades de un compilador
+	  particular o sistema operativo, aunque sea, si es necesario,
+	  truncando el nombre y añadiendo una extensión. Evidentemente,
+	  también podría copiar las cabeceras dadas por el vendedor de su
+	  compilador a otras sin extensiones si usted quisiera usar este
+	  nuevo estilo antes de que su proveedor lo soportara.
+	</para>
+	<para>
+	  Las librerías que han sido heredadas de C están todavía
+	  disponibles con el tradicional
+	  <quote><filename>.h</filename></quote> como extensión. Sin
+	  embargo, puede usarlas con el más moderno estilo de
+	  inclusión de C++ precediendo con una
+	  <quote><emphasis>c</emphasis></quote> al nombre. Es decir:
+	</para>
+	
+	<para>	  
+<programlisting>				
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+</programlisting>
+	</para>
+	<para>
+	  Se transformaría en:
+	</para>
+
+	<para>
+<programlisting>
+#include &lt;cstdio&gt;
+#include &lt;cstdlib&gt;
+</programlisting>
+	</para>
+	
+	<para>
+	  Y así para las demás cabeceras del C estándar. Esto
+	  proporciona al lector una interesante distinción entre el
+	  uso de librerías C o librerías C++.
+	</para>
+	<para>
+	  El efecto de esta nueva forma de include no es idéntico al
+	  antiguo: usar el <quote><filename>.h</filename></quote> da
+	  como resultado una versión más vieja, sin templates, y
+	  omitiendo el <quote><filename>.h</filename></quote> le
+	  ofrece, sin embargo, la nueva versión con
+	  plantillas. Normalmente puede tener problemas si intenta
+	  mezclar las dos formas de inclusión en un mismo problema.
+	</para>
+      </sect3>
+    </sect2>
+    
+    <sect2>
+      <title>Enlazado</title>
+
+      <para>
+	El enlazador (<foreignphrase>linker</foreignphrase>) agrupa
+	módulos objeto (que a menudo tienen extensiones como
+	<filename>.o</filename> ó <filename>.obj</filename>), generados
+	por el compilador, en un programa ejecutable que el sistema
+	operativo puede cargar y ejecutar. Es la última fase del
+	proceso de compilación.
+      </para>
+      <para>Las características del enlazador varían de sistema en
+	sistema. En general, simplemente hay que indicar al enlazador
+	los nombres de los módulos objeto, las librerías que se desean
+	enlazar y el nombre del ejecutable de salida. Algunos sistemas
+	requieren que sea usted quien invoque al enlazador, aunque en
+	la mayoría de los paquetes de C++ se llama al enlazador a
+	través del compilador. Incluso en muchas situaciones de manera
+	transparente para el usuario.
+      </para>
+      <para>
+	Algunos de los antiguos enlazadores no buscarán archivos
+	objeto más de una vez y buscan en la lista que se les pasa
+	de izquierda a derecha. Esto significa que el orden de los
+	ficheros objeto y las librerías puede ser importante. Si se
+	encuentra con algún problema misterioso que no aparece hasta
+	el proceso de linkado, una posibilidad es el orden es en el
+	que son pasados los ficheros al enlazador.
+      </para>
+
+    </sect2>
+    
+    <sect2>
+      <title>Uso de librerías</title>
+      
+
+      <para>
+	Ahora que ya conoce la terminología básica, puede entender
+	como usar una librería. Para usarlas:
+      </para>
+
+      <orderedlist>
+	<listitem>
+	  <para> 
+	    Incluir el fichero de cabecera de la librería.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para> 
+	    Usar las funciones y las variables de la librería.
+	  </para>
+	</listitem>			 
+	<listitem>
+	  <para>	
+	    Enlazar la librería con el programa ejecutable.
+	  </para>
+	</listitem>
+      </orderedlist>
+
+      <para>
+	Estos pasos también se aplican cuando los módulos objeto no
+	son combinados para formar una librería. Incluir el fichero
+	cabecera y enlazar los módulos objeto es la base para la
+	compilación separada en C y en C++.
+      </para>
+
+      <sect3>
+	<title>Cómo el enlazador busca una librería</title>
+	<para>
+	  Cuando usted hace una refencia externa a una función o a
+	  una variable en C o C++, al enlazador, mientras trata de
+	  encontrar esa referencia, le pueden suceder dos cosas. Si
+	  todavía no ha encontrado la definición de la función o
+	  variable, entonces añade el identificador a su lista de
+	  <quote>referencias no resueltas</quote>. Si el enlazador ya había
+	  encontrado la definición, se resuelve la referencia.
+	</para>
+	<para>
+	  Si el enlazador no puede encontrar la definición en la
+	  lista de módulos objeto, busca en las librerías. Las
+	  librerías mantienen un tipo de indexación para que el
+	  enlazador no tenga que mirar a través de todos los módulos
+	  objetos en la librería - solamente mira en el
+	  índice. Cuando el enlazador encuentra una definición en
+	  una librería, el módulo objeto entero, no sólo la
+	  definición de la función, es enlazado al programa
+	  ejecutable. Dese cuenta que no se enlaza la librería
+	  completa, simplemente el módulo objeto de la librería que
+	  contiene la definición que necesita (de otra forma los
+	  programas se volverían innecesariamente largos). Si usted
+	  quiere minimizar el tamaño del programa ejecutable,
+	  debería considerar poner una simple función en cada
+	  archivo fuente cuando se construya sus propias
+	  librerías. Esto requiere mayor edición<footnote> <para> Yo
+	      le recomendaría usar Perl o Python para automatizar estas
+	      tareas como parte de su proceso de empaquetamiento de
+	      librerías (ver www.Perl.org ó www.Python.org).</para>
+	  </footnote> , pero puede ser muy útil para el usuario.
+	</para>
+	<para>
+	  Debido a que el enlazador busca los archivos en el orden
+	  que se le dan, usted puede prevenir el uso de una función
+	  de una librería insertando un archivo con su propia
+	  función, usando el mismo nombre de función, en la lista
+	  antes de que el nombre de la librería aparezca. De esta
+	  forma el enlazador resolverá todas las referencias a esta
+	  función usando su función antes de que busque la
+	  librería. Es decir, su función es usada en lugar de la
+	  función de la librería. Note que puede ser también  fuente
+	  de errores, y es la clase de cosas que previenen los
+	  espacios de nombrado (namespaces) de C++.
+	</para>
+	
+      </sect3>
+      
+      <sect3>
+	<title>Añadidos ocultos</title>
+	<para>
+	  Cuando un programa ejecutable en C/C++ es creado, ciertos
+	  elementos son secretamente insertados. Uno de estos
+	  elementos es el módulo de arranque, que contiene rutinas
+	  de inicialización que deben ejecutarse cada vez que un
+	  programa C o C++ empieza a correr. Estas rutinas preparan
+	  la pila e inicializan ciertas variables del programa.
+	</para>
+	<para>
+	  El enlazador siempre busca la librería estándar para las
+	  versiones compiladas de cualquier función
+	  <quote>estándar</quote> llamado en el programa. Debido a
+	  que se busca siempre la librería estándar, usted puede
+	  usar cualquier cosa de esta librería simplemente añadiendo
+	  a su programa la cabecera apropiada; no necesita indicar
+	  donde hay que buscar la librería estándar. Las funciones
+	  de flujo de entrada-salida (iostream), por ejemplo, están
+	  en la Librería Estándar de C++. Para usarla, sólo debe
+	  incluir el fichero de cabecera
+	  <filename>&lt;iostream&gt;</filename>.
+	</para>
+	<para>
+	  Si usted está usando una nueva librería, debe aÃ±adir el
+	  nombre de ésta a la lista de archivos manejada por el
+	  enlazador.
+	</para>
+      </sect3>
+      
+      <sect3>
+	<title>Uso de librerías C plano</title>
+
+	<para>
+	  Sólo porque esté escribiendo código en C++, nadie le
+	  impide usar librerías de C. De hecho, toda la librería de
+	  C está incluida por defecto en el C++ estándar. Hay una
+	  cantidad tremenda de trabajo ya realizado en esas
+	  librerías que le pueden ahorrar un montón de tiempo.
+	</para>
+	<para>
+	  Este libro usará cuando sea necesario la librería estándar
+	  de C++ (y por lo tanto la de C), y sólo la
+	  <emphasis>librería estándar</emphasis>, para asegurar la
+	  portabilidad de los programas. En un par de casos en los
+	  cuales las funciones no sean de C++ estándar, se intentará
+	  usar funciones compatibles con POSIX. POSIX es un estándar
+	  basado en el esfuerzo por conseguir la estandarización del
+	  Unix que incluyen funciones que van más allá del ámbito de
+	  las librerías de C++. Normalmente puede esperar encontrar
+	  funciones POSIX en plataformas Unix (en particular en
+	  Linux), y a menudo en sistemas DOS/Windows. Por ejemplo,
+	  si usted está usando threads (hilos) será mejor usar la
+	  librería de thread compatible con POSIX debido a que su
+	  código será más fácil de entender, portar y mantener (y la
+	  librería de thread usará las facilidades que ofrece el
+	  sistema operativo, si es que son soportadas).
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Su primer programa en C++</title>
+    <para>
+      Ahora ya tiene suficientes conocimientos para crear y compilar
+      un programa. Este programa usará las clases de <emphasis>flujo
+	de entrada-salida</emphasis> (iostream) del C++
+      estándar. iostream es capaz de leer y escribir en ficheros o
+      en la entrada y salida estándar (que suele ser la consola,
+      pero que puede ser redirigida a ficheros o dispositivos). En
+      este simple programa, un objeto stream (flujo) será usado para
+      imprimir un mensaje en la pantalla.
+    </para>
+    <sect2>
+      <title>Uso de las clases iostream</title>
+      <para>
+	Para declarar las funciones y los datos externos que contenga
+	la clase iostream hay que incluir el fichero de cabecera de la
+	siguiente manera:
+      </para>
+      <para>
+	<programlisting> #include &lt;iostream&gt; </programlisting>
+      </para>
+      <para>
+	El primer programa usa el concepto de salida estándar, que
+	significa "un lugar de proposito general, al que se le pueden
+	enviar salidas". Usted verá otros ejemplos usando la salida
+	estándar de otras formas, pero aquí simplemente usaremos la
+	consola. El paquete iostream define una variable (un objeto)
+	de forma automática llamado <command>cout</command> que es
+	capaz de enviar todo tipo de datos a la salida
+	estándar.
+      </para>
+
+      <para>
+	Para enviar datos a la salida estándar, usamos el operador
+	<command>&lt;&lt;</command>.Los programadores de C lo conocen
+	como operador de "desplazamiento a la izquierda", que será
+	descrito en el siguiente capítulo. Baste decir que el
+	desplazamiento a la izquierda no tiene nada que ver con la
+	salida. Sin embargo, C++ permite a los operadores ser
+	<emphasis>sobrecargados</emphasis>. Cuando usted sobrecarga un
+	operador, le da un nuevo significado cuando ese operador es
+	usado con un objeto de un tipo determinado. Con los objetos de
+	iostream, el operador <literal>&lt;&lt;</literal> significa
+	<quote>enviar a</quote>. Por ejemplo:
+      </para>
+      <para>
+	<programlisting> cout &lt;&lt; "¿Qué tal?";</programlisting>
+      </para>
+      <para>
+	envía la cadena <quote>¿Qué tal?</quote> al objeto llamado
+	<command>cout</command> (que es un diminutivo de
+	<quote>console output</quote>, es decir, salida por consola).
+      </para>
+      <para>
+	De momento ya hemos visto suficiente sobrecarga de operadores
+	como para poder empezar. El Capítulo 12 cubre la sobrecarga de
+	operadores de forma detallada.
+      </para>
+
+    </sect2>
+    
+    <sect2>
+      <title>Espacios de nombres</title>
+      <para>
+	Como se menciona en el Capítulo 1, uno de los problemas
+	encontrados en el lenguaje C es que "nos quedamos sin
+	nombres" para las funciones y los identificadores cuando los
+	programas son de una cierta entidad. Por supuesto que
+	realmente no nos quedamos sin nombres; aunque se hace más
+	difícil pensar en nombres nuevos después de un rato. Y
+	todavía más importante, cuando un programa alcanza cierto
+	tamaño es normal fragmentarlo en trozos más pequeños cada
+	uno de los cuales está siendo mantenido por diferentes
+	personas o grupos. Como C sólo tiene un ruedo para lidiar a
+	todos los identificadores y nombres de función, trae como
+	consecuencia que todos los desarrolladores deben tener
+	cuidado de no usar accidentalmente los mismos nombres en
+	situaciones en las que pueden ponerse en conflicto. Esto se
+	convierte en una pérdida de tiempo, se hace tedioso y por
+	último es más caro.
+      </para>
+      <para>
+	El C++ estándar tiene un mecanismo para prevenir estas
+	colisiones: la palabra reservada
+	<literal>namespace</literal> (espacio de nombrado). Cada
+	conjunto de definiciones de una librería o programa es
+	<quote>envuelto</quote> en un espacio de nombrado, y si otra
+	definición tiene el mismo nombre, pero está en otro espacio
+	de nombrado, entonces no se produce colisión.
+      </para>
+      <para>
+	El espacio de nombrado es una herramienta útil y
+	conveniente, pero su presencia implica que debe saber usarla
+	antes de escribir un programa. Si simplemente escribe un
+	archivo de cabecera y usa algunas funciones u objetos de esa
+	cabecera, probablemente reciba extraños mensajes cuando
+	compile el programa, debido a que el compilador no pueda
+	encontrar las declaraciones de los elementos del archivo de
+	cabecera. Después de ver este mensaje un par de veces se le
+	hará familiar su significado (que es: <emphasis>Usted ha
+	  incluido el archivo de cabecera pero todas las declaraciones
+	  están sin un espacio de nombrado y no le dijo al compilador
+	  que quería usar las declaraciones en este espacio de
+	  nombrado</emphasis>).
+      </para>
+      <para>
+	Hay una palabra reservada que le permite decir <quote>Yo
+	  quiero usar las declaraciones y/o definiciones de este
+	  espacio de nombrado</quote>. Esta palabra reservada,
+	bastante apropiada por cierto, es
+	<literal>using</literal>. Todas las librerías de C++
+	estándar están incluidas en un único espacio de nombrado,
+	que es <literal>std</literal> (por <quote>standard</quote>
+	en inglés). Como este libro usa la librería estándar casi
+	exclusivamente, usted verá la siguiente
+	<quote><emphasis>directiva using</emphasis></quote> en casi
+	todos los programas.
+      </para>
+      <para>
+	<programlisting>using namespace std;</programlisting>
+      </para>
+      <para>
+	Esto significa que usted quiere usar todos los elementos del
+	espacio de nombrado llamado <literal>std</literal>. Después
+	de esta sentencia, no se debe preocupar de si su componente
+	o librería particular pertenece a un espacio de nombrado,
+	porque la directiva <literal>using</literal> hace que el
+	espacio de nombrado esté disponible a todo el archivo donde
+	se escribió la directiva <literal>using</literal>.
+      </para>
+      <para>
+	Exponer todos los elementos de un espacio de nombrado
+	después de que alguien se ha molestado en ocultarlos, parace
+	contraproductivo, y de hecho, debería tener mucho cuidado si
+	considera hacerlo (como aprenderá más tarde en este
+	libro). Sin embargo, la directiva <literal>using</literal>
+	expone solamente los nombres para el fichero actual, por lo
+	que no es tan drástico como sonaba al principio.(aún así
+	piénseselo dos veces antes de usarlo en un archivo cabecera,
+	es imprudente).
+      </para>
+      <para>
+	Existe una relación entre los espacios de nombrado y el modo
+	en que son incluidos los archivos cabecera. Antes de que la
+	nueva forma de inclusión de los archivos cabecera fuera
+	estandarizada (sin el <quote><literal>.h</literal></quote>
+	como en <filename>&lt;iostream&gt;</filename>), la manera
+	típica de incluir un archivo cabecera era con el
+	<quote><literal>.h</literal></quote> como en
+	<filename>&lt;iostream.h&gt;</filename>. En esa época los
+	espacios de nombrado tampoco eran parte del lenguaje, por lo
+	que para mantener una compatibilidad hacia atrás con el
+	código existente, si usted dice:
+      </para>
+      <para>
+	<programlisting>#include &lt;iostream.h&gt;</programlisting>
+      </para>
+      <para>
+	En realidad, esta diciendo:
+      </para>
+      <para>
+	<programlisting>
+	  #include &lt;iostream&gt; using namespace std;
+	</programlisting>
+      </para>
+      <para>
+	Sin embargo en este libro se usará la forma estándar de
+	inclusión (sin el <quote><literal>.h</literal></quote>) y
+	haciendo explícita la directiva <literal>using</literal>. 
+      </para>
+      <para>
+	Por ahora, esto es todo lo que necesita saber sobre los
+	espacios de nombrado, aunque en el Capítulo 10 esta materia
+	es cubierta mucho más profundamente.
+      </para>
+
+    </sect2>
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <sect2>
+      <title>Fundamentos de la estructura de un programa</title>
+
+      <para>
+	Un programa C o C++es una colección de variables, definición
+	de funciones, y llamada a funciones. Cuando un programa
+	empieza, ejecuta el código de inicilización y llama a una
+	función especial,
+	<quote><function>main()</function></quote>, que es donde
+	debe colocarse el código principal del programa.
+      </para>
+      <para>
+	Como se mencionó anteriormente, una definición de función
+	consiste en un valor de retorno (el cual debe ser
+	especificado en C++), un nombre de una función, una lista de
+	argumentos, y el código de la función entre llaves. Aquí
+	está un ejemplo de definición de función:
+      </para>
+      <para>
+<programlisting>
+int funcion() {
+   // Código de la función aquí (esto es un comentario)
+}
+</programlisting>	
+      </para>
+      <para>
+	La función de arriba tiene una lista vacía de argumentos y
+	un cuerpo que contiene sólo un comentario.
+      </para>
+      <para>
+	Puede haber varios pares de llaves en la definición de una
+	función, pero siempre debe haber al menos dos que envuelvan
+	a todo el cuerpo de la función. Como
+	<function>main()</function> es una función, debe seguir estas
+	reglas. En C++, <function>main()</function> siempre devuelve
+	un valor de tipo <literal>int</literal> (entero).
+      </para>
+      <para>
+	C y C++ son lenguajes libres de forma. Con un par de
+	excepciones, el compilador ignora los espacios en blanco y
+	los saltos de línea, por lo que hay que determinar el final
+	de una sentencia. Las sentencias están delimitadas con punto
+	y coma.
+      </para>
+      <para>
+	Los comentarios en C empiezan con /* y finalizan con
+	*/. Pueden incluir saltos de línea. C++ soporta este estilo
+	de comentarios y aÃ±ade la doble barra inclinada: //. La //
+	empieza un comentario que finaliza con el salto de línea. Es
+	más útil que /* */ y se usa ampliamente en este libro.
+      </para>
+
+    </sect2>
+    
+    <sect2>
+      <title><quote>Hello, World!</quote></title>
+
+      <para>
+	Y por fin, el primer programa:
+      </para>
+      <para>
+	     <programlisting>
+			 <xi:include parse="text" href="./code/C02/Hello.cpp"/>
+		  </programlisting>
+		</para>
+
+      <para>
+	El objeto <literal>cout</literal> maneja una
+	serie de argumentos gracias a los operadores
+	'&lt;&lt;', que imprime los argumentos de
+	izquierda a derecha. La función especial
+	<literal>endl</literal> muestra un nueva
+	línea. Con los iostreams usted puede encadenar
+	una serie de argumentos como estos, lo que la
+	convierte en una clase fácil de usar.
+      </para>
+      <para>
+	En C, el texto que se encuentra entre comillas dobles es
+	conocido como "string" (cadena). Sin embargo, la librería
+	estándar de C++ tiene una poderosa clase llamada
+	<classname>string</classname> para la manipulación de texto,
+	por lo que usaremos el término más preciso <emphasis>array
+	  de caracteres</emphasis> para el texto que se encuentre
+	entre dobles comillas.
+      </para>
+      <para>
+	El compilador crea almacenamiento para los arrays de
+	caracteres y guarda el equivalente ASCII para cada caracter
+	en este almacenamiento. El compilador finaliza
+	automáticamente este array de caracteres añadiendo el valor
+	0 para indicar su final.
+      </para>
+      <para>
+	Dentro del array de caracteres, se pueden insertar
+	caracteres especiales usando las <emphasis>secuencias de
+	  escape</emphasis>.  Consisten en una barra invertida (\)
+	seguida de un código especial. por ejemplo
+	<constant>\n</constant> significa una línea nueva; otras
+	incluidas son: <constant>\t</constant> (tabulador),
+	<constant>\\</constant> (barra invertida), y
+	<constant>\b</constant> (retroceso). El manual de su
+	compilador o una guía de C le ofrecerá una completa lista de
+	secuencias de escape.
+      </para>
+      <para>
+	Tenga en cuenta que la sentencia puede continuar en otras
+	líneas y la sentencia entera termina con un punto y coma.
+      </para>
+      <para>
+	Los argumentos de tipo arrays de caracteres y los números
+	constantes están mezclados en la sentencia
+	<literal>cout</literal>. Debido a que el operador &lt;&lt;
+	cuando se usa con <literal>cout</literal> está sobrecargado
+	con distintos significados se pueden enviar distintos
+	argumentos y <literal>cout</literal> ya verá como debe
+	mostrarlos.
+      </para>
+      <para>
+	A través de este libro notará que la primera línea de cada
+	archivo es un comentario (empezando normalmente con //),
+	seguido de dos puntos, y el código finaliza con un
+	comentario seguido de <quote>/-</quote>. Esta es una técnica
+	que uso para extraer fácilmente información de los ficheros
+	fuente (el programa que lo hace se puede encontrar en el
+	volumen dos de este libro, en www.BruceEckel.com). La
+	primera línea tiene también el nombre y localización del
+	archivo, por lo que puede ser fácilmente localizado en el
+	código fuente de este libro (que también es descargable de
+	<ulink url="http://www.BruceEckel.com">www.BruceEckel.com</ulink>).
+      </para>
+
+    </sect2>
+    
+    <sect2>
+      <title>Ejecutar al compilador</title>
+
+      <para>
+	Después de descargar y desempaquetar el código fuente del
+	libro, encuentre el programa en el subdirectorio
+	<filename>CO2</filename>. Invoque el compilador con
+	<filename>Hello.cpp</filename> como parámetro. La mayoría de
+	los compiladores le mantienen al margen de todo el proceso
+	cuando los programas constan de un único archivo. Por
+	ejemplo, para usar el compilador GNU C++ (que está
+	disponible en Internet), escriba:
+      </para>
+      <para>
+	<prompt>g++ Hello.cpp</prompt>
+      </para>
+      <para>
+	Otros compiladores tendrán una sintaxis similar aunque
+	deberá consultar la documentación para los detalles
+	particulares.
+      </para>
+
+
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Más sobre iostream</title>
+
+    <para>
+      Hasta ahora sólo ha visto los aspectos más rudimentarios de la
+      clase iostream. El formato de salida que está disponible con
+      los iostreams también incluye características como el formateo
+      de números en decimal, octal, y hexadecimal. Aquí tenemos otro
+      ejemplo del uso de los iostreams:
+    </para>
+    <para>
+		<programlisting>
+			 <xi:include parse="text" href="./code/C02/Stream2.cpp"/>
+		</programlisting>
+    </para>
+    <para>
+      Este ejemplo muestra cómo la clase iostream imprime números en
+      decimal, octal, y hexadecimal usando
+      <emphasis>manipuladores</emphasis> (los cuales no imprimen
+      nada, pero cambian el estado del flujo de salida). El formato
+      de los números en coma flotante es determinado automáticamente
+      por el compilador. En suma, cualquier caracter puede ser
+      enviado a un objeto stream usando un
+      <foreignphrase>cast</foreignphrase> (molde) a
+      <literal>char</literal> (un <literal>char</literal> es un tipo
+      de datos que maneja un sólo caracter). Este
+      <foreignphrase>cast</foreignphrase> se asemeja a una llamada a
+      función: <literal>char()</literal>, que devuelve un valor
+      ASCII. En el programa de arriba, el
+      <function>char(27)</function> envía un <quote>escape</quote> a
+      <function>cout</function>.
+    </para>
+
+
+    <sect2>
+      <title>Concatenar vectores de caracteres</title>
+
+      <para>
+	Una característica importante del preprocesador de C es la
+	<emphasis>concatenación de arrays de caracteres</emphasis>.
+	Esta característica es usada en algunos de los ejemplos de
+	este libro. Si dos arrays de caracteres entrecomillados se
+	encuentran adjuntos, sin signos de puntuación entre ellos,
+	el compilador pegará los arrays en un único array de
+	caracteres. Esto es particularmente útil cuando los listados
+	de código tienen restricciones de anchura.
+      </para>
+      <para>
+		  <programlisting>
+			 <xi:include parse="text" href="./code/C02/Concat.cpp"/>
+		  </programlisting>
+      </para>
+      <para>
+	Al principio, el código de arriba puede parecer erróneo
+	porque no está el ya familiar punto y coma al final de cada
+	línea. Recuerde que C y C++ son lenguajes libres de forma, y
+	aunque normalmente verá un punto y coma al final de cada
+	línea, el requisito actual es que se encuentre un punto y
+	coma al final de cada sentencia, por lo que es posible
+	encontrarse con una sentencia que ocupe varias líneas.
+      </para>
+
+
+    </sect2>
+    
+    <sect2>
+      <title>Leer de la entrada</title>
+
+
+      <para>
+	Las clases iostream nos proporcionan la habilidad de leer de
+	la entrada. El objeto usado para la entrada estándar es
+	<literal>cin</literal> (de <quote><foreignphrase>console
+	    input</foreignphrase></quote>). <literal>cin</literal>
+	normalmente espera la entrada de la consola, pero esta
+	entrada puede ser redirigida a otras fuentes. Un ejemplo de
+	redirección se muestra más tarde en este capítulo.
+      </para>
+      <para>
+	El operador que usa iostream con el objeto
+	<literal>cin</literal> es &gt;&gt;. Este operador espera
+	como parámetro alguna tipo de entrada. Por ejemplo, si
+	introduce un parámetro entero, espera un entero de la
+	consola. Aquí hay un ejemplo:
+      </para>
+      <para>
+		  <programlisting>
+			 <xi:include parse="text" href="./code/C02/Numconv.cpp"/>
+		  </programlisting>
+      </para>
+
+      <para>
+	Este programa convierte un número introducido por el usuario
+	en su representación octal y hexadecimal.
+      </para>
+
+
+    </sect2>
+    
+    <sect2>
+      <title>Llamar a otros programas</title>
+
+
+      <para>
+	Mientras que el modo típico de usar un programa que lee de
+	la entrada estándar y escribe en la salida estándar es
+	dentro de un shell script Unix o en un archivo batch de DOS,
+	cualquier programa puede ser llamado desde dentro de un
+	programa C o C++ usando la llamada a la función estándar
+	<function>system()</function> que debe ser declarada  en el
+	archivo cabecera <filename>&lt;cstdlib&gt;:</filename>.
+      </para>
+
+      <para>
+		  <programlisting>
+			 <xi:include parse="text" href="./code/C02/CallHello.cpp"/>
+		  </programlisting>
+      </para>
+      <para>
+	Para usar la función <function>system()</function>, hay que
+	dar el array de caracteres que desearía que se ejecutara en
+	el prompt del sistema operativo. Puede incluir los
+	parámetros que utilizaría en la línea de comandos, y el
+	array de caracteres puede ser fabricado en tiempo de
+	ejecución (en vez de usar un array de caracteres estático
+	como se mostraba arriba). El comando se ejecuta y el control
+	vuelve al programa.
+      </para>
+      <para>
+	Este programa le muestra lo fácil que es usar C plano en
+	C++; sólo incluya la cabecera y utilice la función. Esta
+	compatibilidad ascendente entre el C y el C++ es una gran
+	ventaja si está aprendiendo C++ y ya tenía conocimientos de
+	C.
+      </para>
+
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Introducir cadenas</title>
+    
+    <para>
+      Un array de caracteres puede ser bastante útil, aunque está
+      bastante limitado. Simplemente son un grupo de caracteres en
+      memoria, pero si quiere hacer algo útil, debe manejar todos
+      los pequeños detalles. Por ejemplo, el tamaño un array de
+      caracteres es fijo en tiempo de compilación. Si tiene un array
+      de caracteres y quiere añadirle más caracteres, necesitará
+      saber un montón (incluso manejo dinámico de memoria, copia de
+      array de caracteres, y concatenación) antes de conseguir lo
+      que desea. Esto es exactamente la clase de cosas que
+      desearíamos que hiciera un objeto por nosotros.
+    </para>
+    <para>
+      La clase <classname>string</classname> (cadena) del C++
+      Estándar ha sido diseñada para que se encargue y oculte las
+      manipulaciones a bajo nivel de los arrays de caracteres que
+      antes tenía que realizar el programador de C. Estas
+      manipulaciones han sido una fuente de constantes pérdidas de
+      tiempo y errores desde los orígenes del lenguaje C. Aunque hay
+      un capítulo entero dedicado a la clase
+      <classname>string</classname> en el Volumen 2 de este libro,
+      las cadenas <command>(string)</command> son demasiado
+      importantes y facilitan mucho la vida por lo que serán
+      introducidas aquí y usadas posteriormente a lo largo de todo
+      el libro.
+    </para>
+    <para>
+      Para usar las cadenas debe incluir el archivo de cabecera
+      <command>&lt;string&gt;</command>. La clase
+      <classname>string</classname> se encuentra en el espacio de
+      nombrado <literal>std</literal> por lo que el uso de la
+      directiva <literal>using</literal> es necesario. Gracias a la
+      sobrecarga de operadores, la sintaxis del uso de las cadenas
+      es muy intuitiva:
+    </para>
+
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/HelloStrings.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Las primeras dos cadenas, <varname>s1</varname> y
+      <varname>s2</varname> comienzan vacías, mientras que
+      <varname>s3</varname> y <varname>s4</varname> nos muestran dos
+      formas de inicializar los objetos
+      <classname>string</classname> con arrays de caracteres (puede
+      inicializar objetos <classname>string</classname> con otros
+      objetos <classname>string</classname>).
+    </para>
+    <para>
+      Usted puede asignar a los objetos
+      <classname>string</classname> usando el símbolo
+      <quote>=</quote>. Esto sustituye el contenido previo de la
+      cadena con lo que se encuentra en el lado derecho de la
+      igualdad, y usted no debe preocuparse de lo que ocurre con el
+      contenido anterior porque es controlado automáticamente. Para
+      combinar las cadenas simplemente debe usar el operador de suma
+      <quote>+</quote>, que tambien le permite concatenar cadenas
+      (<classname>strings</classname>) con arrays de caracteres. Si
+      quiere añadir una cadena o un array de caracteres a otra
+      cadena, puede usar el operador <quote>+=</quote>. Finalmente,
+      dése cuenta que iostream sabe como tratar las cadenas, por lo
+      que usted puede enviar una cadena (o una expresión que
+      produzca un <classname>string</classname>, que es lo que
+      sucede con <informalexample> <programlisting>s1 + s2 +
+	  "!"</programlisting></informalexample>) directamente a
+      <function>cout</function> para imprimirla.
+    </para>
+
+
+  </sect1>
+  
+
+  <sect1>
+    <title>Lectura y escritura de ficheros</title>
+
+    <para>
+      En C, el proceso de abrir y manipular archivos requieren un
+      gran transfondo del lenguaje para prepararle para la
+      complejidad de las operaciones. Sin embargo, la librería
+      iostream de C++ proporciona una forma simple de manejar
+      archivos por lo que puede ser introducido mucho antes que lo
+      sería en C.
+    </para>
+    <para>
+      Hay que incluir la librería <classname>fstream</classname> para
+      poder manejar ficheros. Aunque esto implica la automática
+      inclusión de la librería <classname>iostream</classname>, es
+      prudente incluir <classname>iostream</classname> si usted planea
+      usar <function>cin</function>, <function>cout</function>, etc.
+    </para>
+    <para>
+      Para abrir un archivo para lectura, usted debe crear un objeto
+      ifstream que será usado como el <function>cin</function>. Para
+      crear un fichero de escritura, se genera un objeto
+      <classname>ofstream</classname> que se comporta como el
+      <function>cout</function>. Una vez que tiene abierto el archivo
+      puede leer o escribir en él como si usara otro objeto
+      <classname>iostream</classname>. Así de simple, lo cual es, por
+      supuesto, el objetivo.
+    </para>
+    <para>
+      Una de las más útiles funciones que se encuentran en la
+      librería <classname>iostream</classname> es
+      <function>getline()</function>, que permite leer una línea
+      (terminada en nueva línea) y guardarla en un objeto
+      <classname>string</classname> <footnote><para>Actualmente existen
+	variantes de <function>getline()</function>, las cuales serán
+	profusamente discutidas en el capítulo de iostreams en el
+	Volumen 2 </para></footnote>. El primer argumento es el objeto
+      <classname>ifstream</classname> que es de donde se está
+      leyendo la información y el segundo argumento es el objeto
+      <classname>string</classname>. Cuando la llamada a la función
+      se ha terminado, el objeto <classname>string</classname>
+      contendrá la línea capturada.
+    </para>
+    <para>
+      Aquí hay un ejemplo que copia el contenido de un archivo en
+      fichero nuevo.
+    </para>
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/Scopy.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Para abrir los archivos, simplemente debe controlar los
+      nombres de archivo que se usan en la creación de los objetos
+      <classname>ifstream</classname> y
+      <classname>ofstream</classname>.
+    </para>
+    <para>
+      Aquí se introduce un nuevo concepto: el bucle
+      <literal>while</literal>. Aunque será explicado en detalle en
+      el siguiente capítulo, la idea básica consiste en que la
+      expresión entre paréntesis que sigue al
+      <literal>while</literal> controla la ejecución de la sentencia
+      siguiente (pueden ser múltiples sentencias encerradas entre
+      llaves). Mientras la expresión entre paréntesis (en este caso
+      <function>getline(in,s)</function> produzca un resultado
+      <quote>verdadero</quote>, entonces las sentencias controladas
+      por el <literal>while</literal> se
+      ejecutarán. <function>getline()</function> devolverá un valor
+      que puede ser interpretado como <quote>verdadero</quote> si se
+      ha leido otra línea de forma satisfactoria, y
+      <quote>falso</quote> cuando se alcance el final de la
+      entrada. Lo que quiere decir que el <literal>while</literal>
+      de arriba lee todas las líneas del archivo de entrada y las
+      envía al archivo de salida.
+    </para>
+    <para>
+      <function>getline()</function> lee los caracteres de cada
+      línea hasta que descubre una nueva línea. (el caracter de
+      terminación puede ser cambiado pero no será tratado hasta el
+      capítulo sobre iostreams en el Volumen 2). Sin embargo,
+      desecha el caracter de nueva línea y no lo almacena en el
+      objeto <classname>string</classname>. Por lo que si queremos
+      copiar el archivo de forma idéntica al archivo original,
+      debemos añadir el caracter de nueva línea como se muestra
+      arriba.
+    </para>
+    <para>
+      Otro interesante ejemplo es copiar el archivo entero en un
+      único objeto <classname>string</classname>:
+    </para>
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/FillString.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Debido a la naturaleza dinámica de los
+      <classname>strings</classname>, no nos tenemos que preocupar
+      de la cantidad de almacenamiento a reservar para el
+      <literal>string</literal>. Usted sólo tiene que añadir cosas y
+      el <literal>string</literal> irá expandiéndose para manejar lo
+      que le introduzca.
+    </para>
+    <para>
+      Una de las cosas agradables de poner el fichero entero en una
+      cadena es que la clase <classname>string</classname> nos
+      proporciona funciones para la búsqueda y manipulación que le
+      permiten modificar el archivo como si fuera una simple
+      línea. Sin embargo, tiene sus limitaciones. Por un lado, a
+      menudo, es conveniente tratar un archivo como una colección de
+      líneas en vez de un gran bloque de texto. Por ejemplo, si
+      usted quiere añadir numeración de líneas es mucho más fácil
+      si ya tiene cada línea en un objeto <classname>string</classname>
+      por separado. Para realizarlo, necesitamos otro concepto.
+    </para>
+
+  </sect1>
+  
+  <sect1>
+    <title>Introducción a los vectores</title>
+
+
+
+
+    <para>
+      Con las cadenas, podemos rellenar un objeto
+      <classname>string</classname> sin saber cuanto espacio vamos a
+      necesitar. El problema de introducir líneas de un archivo en
+      objetos <classname>string</classname> es que no conocemos cuántas
+      cadenas vamos a necesitar - sólamente lo sabemos cuando ya
+      hemos leido el archivo entero. Para resolver este problema
+      necesitamos un nuevo tipo de datos que pueda crecer
+      automáticamente para contener las cadenas que le vayamos
+      introduciendo.
+    </para>
+    <para>
+      De hecho, ¿por qué limitarnos a manejar objetos
+      <classname>string</classname>? Parece que este tipo de
+      problema - no saber la cantidad de cosas a manejar mientras
+      está escribiendo el problema - sucede un montón de veces. Y
+      este objeto <quote>contenedor</quote> parecería más útil si
+      pudiera manejar <emphasis>cualquier clase de
+	objeto</emphasis>. Afortunadamente, la librería estándar de
+      C++ tiene una solución: las clases
+      <classname>container</classname> (contenedores). Las clases
+      contenedor son un de los puntos fuertes del C++ estándar.
+    </para>
+    <para>
+      A menudo existe un poco de confusión entre los contenedores y
+      los algoritmos en la librería estándar de C++, y la STL. La
+      Standard Template Library fue el nombre que usó Alex Stepanov
+      (que en aquella época estaba trabajando en Hewlett-Packard)
+      cuando presentó su librería al Comité del C++ Estándar en el
+      encuentro en San Diego, California, en la primavera de
+      1994. El nombre sobrevivió, especialmente después de que HP
+      decidiera dejarlo disponible para la descarga
+      pública. Posteriormente el comité integró las STL en la
+      librería estándar de C++ haciendo un gran número de
+      cambios. El desarrollo de las STL continuan en Silicon
+      Graphics (SGI; ver
+      <ulink url="http://www.sgi.com/Technology/STL">http://www.sgi.com/Technology/STL)</ulink>. Las SGI STL
+      divergen de la librería estándar de C++ en muchos sutiles
+      puntos. Aunque es una creencia ampliamente generalizada, el
+      C++ estándar no "incluye" las STL. Puede ser confuso debido a
+      que los contenedores y los algoritmos en el C++ estándar
+      tienen la misma raiz (y a menudo el mismo nombre) que en el
+      SGI STL. En este libro, intentaré decir <quote>la librería
+	estándar de C++</quote> o <quote>la librería estándar de
+	contenedores</quote>, o algo similar y eludiré usar el término
+      STL.
+    </para>
+    <para>
+      A pesar de que la implementación de los contenedores y
+      algoritmos de la librería estándar de C++ usan algunos
+      conceptos avanzados, que son ampliamente cubiertos en dos
+      largos capítulos en el segundo volumen de este libro, esta
+      librería puede ser potente sin saber mucho sobre ella. Es tan
+      útil que el más básico de los contenedores estándar, el
+      <classname>vector</classname>, es introducido en este capítulo
+      y será usado a lo largo de todo el libro. Verá que puede hacer
+      muchas cosas con el <classname>vector</classname> y no saber
+      cómo está implementado (de nuevo, una de las metas de la
+      POO). Debe ser perdonable si los programas que usan
+      <classname>vector</classname> en estos primeros capítulos del
+      libro no son exactamente como un experimentado programador los
+      haría, como comprobará en el volumen 2. Aún así, encontrará
+      que en la mayoría de los casos el uso mostrado aquí es
+      adecuado.
+    </para>
+    <para>
+      La clase <classname>vector</classname> es una
+      <emphasis>plantilla</emphasis>, lo que significa que puede ser
+      aplicada a tipos de datos diferentes. Es decir, podemos crear
+      un <classname>vector</classname> de
+      <classname>figuras</classname>, un
+      <classname>vector</classname> de <classname>gatos</classname>,
+      un <classname>vector</classname> de
+      <classname>strings</classname>, etc. Básicamente, con un
+      template usted puede crear un vector de "cualquier
+      clase". Para decirle al compilador con qué clase trabajará (en
+      este caso que va a manejar el vector), hay que poner el nombre
+      del tipo deseado entre <quote>llaves angulares</quote>. Por lo
+      que un <classname>vector</classname> de
+      <classname>strings</classname> será denotado como
+      <classname>vector&lt;string&gt;</classname>. Cuando hace esto,
+      crea un vector a medida que solamente contendrá objetos
+      <classname>string</classname>, y recibirá un mensaje de error del
+      compilador si intenta poner otra cosa en él.
+    </para>
+    <para>
+      Como el <classname>vector</classname> expresa el concepto de
+      <quote>contenedor</quote>, debe existir una manera de meter
+      cosas en él y sacar cosas de él. Para añadir un nuevo elemento
+      al final del vector, usamos la función miembro
+      <function>push_back()</function>. Recuerde que, como es una
+      función miembro, hay que usar un '.' para llamarla desde un
+      objeto particular. La razón de que el nombre de la función
+      parezca un poco extraño - <function>push_back()</function> en
+      vez de algo más simple como <function>put</function> - es
+      porque existen otros contenedores y otras funciones miembro
+      para poner nuevos elementos en los contenedores. Por ejemplo,
+      hay una función <function>insert()</function> para poner algo
+      en medio de un contenedor. <classname>vector</classname> la
+      soporta pero su uso es más complicado y no necesitamos
+      explorarla hasta el segundo volumen del libro. También hay un
+      <function>push_front()</function> (que no es parte de
+      <classname>vector</classname>) para poner cosas al
+      principio. Hay muchas más funciones miembro en
+      <classname>vector</classname> y muchos más contenedores en la
+      librería estándar, pero le sorprenderá ver la de cosas que se
+      pueden hacer con sólo un par de características básicas.
+    </para>
+    <para>
+      Entonces usted puede introducir elementos en un
+      <classname>vector</classname> con
+      <function>push_back()</function> pero ¿cómo puede sacar esos
+      elementos? La solución es inteligente y elegante: se usa la
+      sobrecarga de operadores para que el
+      <classname>vector</classname> se parezca a un
+      <literal>array</literal>. El array (que será descrito de forma
+      más completa en el siguiente capítulo) es un tipo de datos que
+      está disponible en virtualmente cualquier lenguaje de
+      programación por lo que debería estar familiarizado con él.Los
+      arrays son <emphasis>agregados</emphasis> lo que significa que
+      consisten en un número de elementos agrupados juntos. La
+      característica distintiva de un array es que estos elementos
+      tienen el mismo tamaño y están organizados uno junto a
+      otro. Todavía es más importante, que pueden ser seleccionados
+      mediante un índice, lo que significa que puede decir:
+      <quote>Quiero el elemento número n</quote> y el elemento será
+      producido, normalmente de forma rápida. A pesar de que existen
+      excepciones en los lenguajes de programación, normalmente se
+      indica la "indexación" mediante corchetes, de tal forma que si
+      usted tiene un array <varname>a</varname> y quiere obtener el
+      quinto elemento, sólo tiene que decir <varname>a[4]</varname>
+      (note que la indexación siempre empieza en cero).
+    </para>
+    <para>
+      Esta forma compacta y poderosa de notación indexada ha sido
+      incorporada al <classname>vector</classname> mediante la
+      sobrecarga de operadores como el <quote>&lt;&lt;</quote> y el
+      <quote>&gt;&gt;</quote> que pertenecían a los iostreams. De
+      nuevo, usted no necesita saber como se ha implementado la
+      sobrecarga de operadores - lo dejamos para un capítulo
+      posterior - pero es útil que sea consciente que hay algo de
+      magia detrás de todo esto para conseguir que los corchetes
+      funcionen con el <classname>vector</classname>.
+    </para>
+    <para>
+      Con todo esto en mente, usted puede ver un programa que usa la
+      clase <classname>vector</classname>. Para usar un vector, hay
+      que incluir el archivo de cabecera
+      <classname>&lt;vector&gt;:</classname>
+    </para>
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/Fillvector.cpp"/>
+      </programlisting>
+    </para>
+
+    <para>
+      Casi todo este programa es similar al anterior; un archivo es
+      abierto y las líneas son leidas en objetos
+      <classname>string</classname> (uno cada vez). Sin embargo,
+      estos objetos <classname>string</classname> son introducidos
+      al final del <classname>vector</classname>
+      <varname>v</varname>. Una vez que el bucle
+      <literal>while</literal> ha terminado, el archivo entero se
+      encuentra en memoria dentro de <varname>v</varname>.
+    </para>
+    <para>
+      La siguiente sentencia en el programa es un bucle
+      <literal>for</literal>. Es parecido a un bucle
+      <literal>while</literal> aunque añade un control extra. Como
+      en el bucle <literal>while</literal> después del
+      <literal>for</literal> hay una <quote>expresión de
+	control</quote> dentro del paréntesis. Sin embargo, esta
+      expresión está dividida en tres partes: una parte que
+      inicializa, una que comprueba si hay que salir del bucle, y
+      otra que cambia algo, normalmente da un paso en una secuencia
+      de elementos. Este programa muestra el bucle
+      <literal>for</literal> de la manera más frecuentemente
+      utilizada: la parte de inicialización <programlisting>int
+	i=0</programlisting> crea un entero <varname>i</varname> para
+      usarlo como contador y le da el valor inicial de cero. La
+      comprobación consiste en ver si <varname>i</varname> es menor
+      que el número de elementos en el <classname>vector</classname>
+      <varname>v</varname>. Esto se consigue usando la función
+      miembro <function>size()</function>,es decir, tamaño (que se
+      debe reconocer que tiene un significado obvio) El útimo trozo,
+      usa el operador de <quote>autoincremento</quote> para aumentar
+      en uno el valor de <varname>i</varname>. Efectivamente,
+      <programlisting>i++</programlisting> dice <quote>Coge el valor
+	de <varname>i</varname> añádele uno y guarda el
+	resultado en <varname>i</varname></quote>. Conclusión: el
+      efecto del bucle <literal>for</literal> es aumentar la
+      variable <varname>i</varname> desde cero hasta el tamaño del
+      <literal>vector</literal> menos uno. Por cada nuevo valor de
+      <varname>i</varname> se ejecuta la sentencia del
+      <function>cout</function>, que construye un linea con el valor
+      de <varname>i</varname> (mágicamente convertida a un array de
+      caracteres por <function>cout</function>), dos puntos, un
+      espacio, la línea del archivo y el carácter de nueva línea que
+      nos proporciona <function>endl</function>. Cuando lo compile y
+      lo ejecute verá el efecto de numeración de líneas del archivo.
+    </para>
+    <para>
+      Debido a que el operador <quote>&gt;&gt;</quote> funciona con
+      iostreams, se puede fácilmente modificar el anterior programa
+      para que convierta la entrada en palabras separadas por
+      espacios, en vez de líneas:
+    </para>
+    
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/GetWords.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      La expresión:
+    </para>
+    <para>
+      <programlisting>
+	while (in>>word)
+      </programlisting>
+    </para>
+    <para>
+      es la que consigue transformar la entrada en una
+      <quote>palabra</quote> cada vez, y cuando la expresión sea
+      evaluada como <quote>falsa</quote> significará que se ha
+      llegado al final del archivo. De acuerdo, delimitar una
+      palabra mediante caracteres en blanco es un poco tosco, pero
+      sirve como ejemplo sencillo. Más tarde, en este libro, verá
+      ejemplos más sofisticados que le permiten romper la entrada de
+      la forma en que usted desee.
+    </para>
+    <para>
+      Para demostrar lo fácil que es usar un
+      <classname>vector</classname> con cualquier tipo, aquí tiene
+      un ejemplo que crea un vector de enteros:
+    </para>
+    <para>
+      <programlisting>
+		  <xi:include parse="text" href="./code/C02/Intvector.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Para crear un <classname>vector</classname> que maneje a un tipo
+      diferente basta con poner el tipo entre las llaves angulares
+      (el argumento de los templates). Los templates y las librerías
+      de templates pretenden ofrecer esta facilidad de uso.
+    </para>
+    <para>
+      Además este ejemplo nos demuestra otra característica esencial
+      del <classname>vector</classname> en la expresión
+    </para>
+    <para>
+      <programlisting>
+	v[i] = v[i] * 10;
+      </programlisting>
+    </para>
+    <para>
+      Puede observar que el <classname>vector</classname> no está
+      limitado a meter cosas y sacarlas. También puede "asignar" (es
+      decir, cambiar) cualquier elemento del vector mediante el uso
+      de los corchetes. Esto significa que el
+      <classname>vector</classname> es un objeto útil, flexible y de
+      propósito general para trabajar con colecciones de objetos, y
+      haremos uso de él en los siguientes capítulos.
+    </para>
+
+  </sect1>
+  
+  <sect1>
+    <title>Resumen</title>
+
+    <para>
+      Este capítulo pretendía mostrarle lo fácil que la programación
+      orientada a objetos puede llegar a ser - si alguien ha hecho
+      el trabajo de definir los objetos por usted. En este caso,
+      sólo hay que incluir el archivo de cabecera, crear los objetos
+      y enviarles mensajes. Si los tipos que está usando están bien
+      diseñados y son potentes, entonces no tendrá mucho trabajo y
+      su programa resultante también será potente.
+    </para>
+    <para>
+      En el proceso para mostrar la sencillez de la POO cuando se usan
+      librerías de clases, este capítulo, también le introduce algunos
+      de los más básicos y útiles tipos de datos de la librería estándar
+      de C++: La familia de los iostreams (en particular aquellos que
+      leen y escriben en consola y ficheros), la clase
+      <classname>string</classname>, y el template
+      <classname>vector</classname>. Ha visto lo sencillo que es usarlos
+      y ahora es probable que se imagine la de cosas que se pueden
+      realizar con ellos, pero hay muchas más cosas que son capaces de
+      realizar<footnote><para> Si está especialmente interesado en ver
+      todas las cosas que se pueden hacer con los componentes de la
+      librería estándar, vea el Volumen 2 de este libro en
+      www.BruceEckel.com y también en <ulink
+      url="http://www.dinkumware.com"> www.dinkumware.com
+      </ulink></para> </footnote>. A pesar de estar usando un pequeño
+      subconjunto de la funcionalidad de éstas herramientas en este
+      principio del libro, da un gran paso frente a los rudimentarios
+      comienzos en el aprendizaje de un lenguaje de bajo nivel como el
+      C. Y mientras que aprender los aspectos de bajo nivel de C es
+      educativo también es una pérdida de tiempo. Al final usted será
+      mucho más productivo si tiene objetos que manejen las
+      características de bajo nivel. Después de todo, el principal
+      objetivo de la POO es esconder los detalles para que usted pueda
+      <quote>pintar con una brocha más gorda</quote>.
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Ejercicios</title>
+
+    <para>
+      La solución a los ejercicios seleccionados se pueden encontrar
+      en el documento electrónico <quote>The thinking in C++
+	Annotated Solution Guide</quote>, disponible por una pequeña
+      cantidad en <ulink
+	url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Modifique <filename>Hello.cpp</filename> para que imprima
+	  su nombre y edad (o tamaño de pie, o la edad de su perro,
+	  si le gusta más). Compile y ejecute el programa.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Usando <filename>Stream2.cpp</filename> y
+	  <filename>Numconv.cpp</filename> como guías, cree un
+	  programa que le pida el radio de un círculo y le muestre
+	  el área del mismo. Puede usar el operador '*' para elevar
+	  al cuadrado el radio. No intente imprimir el valor en
+	  octal o en hexadecimal (sólo funcionan con tipos enteros).
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree un programa que abra un archivo y cuente las palabras
+	  separadas por espacios en blanco que tiene.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree un programa que cuente el número de ocurrencias de
+	  una palabra en concreto en un archivo (use el operador
+	  '==' de la clase <classname>string</classname> para
+	  encontrar la palabra)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cambie <filename>Fillvector.cpp</filename> para que imprima
+	  las líneas al revés (de la última a la primera).
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cambie <filename>Fillvector.cpp</filename> para que
+	  concatene todos los elementos en la clase
+	  <classname>vector</classname> en un único
+	  <classname>string</classname> antes de imprimirlo, pero no
+	  añada numeración de líneas
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Muestre una línea de archivo cada vez esperando a que el
+	  usuario pulse 'Enter'.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree un <classname>vector&lt;float&gt;</classname> e
+	  introduzca 25 números en coma flotante en él usando un
+	  bucle <literal>for</literal> Muestre el vector.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree tres objetos
+	  <classname>vector&lt;float&gt;</classname> y rellene los
+	  dos primeros como en el ejercicio anterior. Escriba un
+	  bucle for que sume los correspondientes elementos y los
+	  añada al tercer vector. Muestre los tres vectores.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree un <classname>vector&lt;float&gt;</classname> e
+	  introduzca 25 números en él como en el ejercicio
+	  anterior. Eleve cada número al cuadrado y ponga su
+	  resultado en la misma posición del vector. Muestre el
+	  vector antes y después de la multiplicación.
+	</para>
+      </listitem>
+    </orderedlist>
+
+  </sect1>
+  
+  </chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->
+  

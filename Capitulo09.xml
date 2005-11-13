@@ -1,0 +1,726 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: Bárbara Teruggi <barby@teruggi.net>
+  Formateado DocBook:  
+  1ª Revisión:
+  2ª Revisión
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C9">
+
+  <title>Funciones <keyword>inline</keyword></title>
+
+<!-- 
+  One of the important features C++ inherits from C is efficiency. If
+  the efficiency of C++ were dramatically less than C, there would be a
+  significant contigent of programmers who couldn't justify its use.
+-->
+
+  <highlights>
+    <para>
+      Una de las características más importantes que C++ hereda de C es
+      la eficiencia.  Si la eficiencia de C++ fuese demasiado inferior a
+      la de C, habría un contingente significativo de programadores que
+      no podrían justificar su uso.
+    </para>
+  </highlights>
+
+<!-- 
+  In C, one of the ways to preserve efficiency is trough the use of
+ macros, wich allow you to make what looks like a function call without
+ the normal function call overhead.  The macro is implementes with the
+ preprocessor instead of the compiler proper, and the preprocessor
+ replaces all macro calls directly with de macrocode, so there's no cost
+ involved from pushing argunments, making an assembly-languaje CALL,
+ returning arguments, and performing an assembly-language RETURN. All
+ the work is performed by the preprocessor, so you have the convenience
+ and readability of a function call but it doesn't cost you anything.
+ -->
+
+  <para>
+    En C, una de las maneras de preservar la eficiencia es mediante el
+    uso de macros, lo que permite hacer lo que parece una llamada a
+    una función sin la cabecera de llamada a la función normal.  La
+    macro está implementada con el preprocesador en vez del propio
+    compilador, y el preprocesador reemplaza todas las llamadas a
+    macros directamente con el código de la macro, de manera que no
+    hay que complicarse pasando argumentos, escribiendo código de
+    ensamblador para <keyword>CALL</keyword>, retornando argumentos ni
+    implementando código ensamblador para el
+    <keyword>RETURN</keyword>. Todo el trabajo está implementado por
+    el preprocesador, de manera que se tiene la coherencia y
+    legibilidad de una llamada a una función pero sin ningún coste por
+    ello.
+  </para>
+
+<!-- 
+  There are two problems with the use of preproccessor macros in
+ C++. The first is also true with C: a macro looks like a function call,
+ but doesn't always act like one. This can bury difficult-to-find
+ bugs. The second problem is specific to C++: the preproccesor has no
+ permission to access class member data. This means preprocessor macros
+ cannot be used as class member functions.  
+-->
+    
+  <para>
+    Hay dos problemas respecto del uso del preprocesador con macros en
+    C++. La primera también existe en C: una macro parece una llamada a
+    función, pero no siempre actúa como tal. Esto puede acarrear
+    dificultades para encontrar errores.  El segundo problema es
+    específico de C++: el preprocesador no tiene permisos para acceder a
+    la información de los miembros de una clase. Esto significa que las
+    macros de preprocesador no pueden usarse como métodos de una clase.
+  </para>
+  
+<!-- 
+  To retain the efficiency of the preprocessor macro, but to add the
+  safety and class scoping of true functions. C++ has the inline
+  function. In this chapter, we'll look at the problems or preprocessor
+  macros in C++, how these problems are solved with de inline functions,
+  and guidelines an insights on the way inlines work.  
+-->
+
+  <para>
+    Para mantener la eficiencia del uso del preprocesador con macros pero
+    añadiendo la seguridad y la semántica de ámbito de verdaderas funciones en
+    las clases. C++ tiene las funciones inline. En este capítulo,
+    veremos los problemas del uso de las maros de preprocesador en C++,
+    como se resuelven estos problemas con funciones inline, y las
+    directrices e incursiones en la forma en que trabajan las
+    funciones inline.
+  </para>
+
+
+  <sect1>
+    <title>Los peligros del preprocesador</title>
+
+<!--
+    The key to the problems of preprocessor macros is that you can be
+    fooled into thinking that the behavior of the preprocessor is the same
+    as teh behavior of the computer. Of course it was intended that a macro
+    look and act like a function call, so it's quite easy to fall into this
+    fiction. The difficulties begin when the subtle differences appear.
+-->
+    
+    <para>
+      La clave de los problemas con las macros de preprocesador radica
+      en que puedes caer en el error de pensar que el comportamiento del
+      preprocesador el igual que el del compilador. Por supuesto, la
+      intención era que una macro se viera y actuara como una llamada a una
+      función, de modo que es muy fácil caer en este error. Las
+      dificultades comienzan cuando las diferencias subyacentes
+      aparecen.
+    </para>
+
+<!--
+ As a simple example, consider the following:
+    #define F (x) (x + 1)
+--> 
+    
+    <para>
+      Consideremos un sencillo ejemplo:
+    </para>
+ 
+<programlisting>
+#define F (x) (x + 1)
+</programlisting>
+
+<!--
+ Now, if a call is made to F like this
+   F(1)
+--> 
+    
+    <para>
+      Ahora, si hacemos una llamada a <function>F</function> de esta
+      manera:
+    </para>
+ 
+<programlisting>
+F(1)
+</programlisting>
+
+      <!--
+      The preprocessor expands it, somewhat unexpectedly, to the following:
+      (x) (x + 1) (1)
+      --> 
+    
+    <para>
+      El preprocesador la expande de manera inexperada esto:
+    </para>
+ 
+    <programlisting>
+      (x) (x + 1) (1)
+    </programlisting>
+
+<!--
+ The problem occurs because of the gap between F and its opening
+ parenthseis in the macro definition.  When this gap is removed, you can
+ actually call the macro with the gap.  F (1)
+-->
+    
+    <para>
+      El problema ocurre a causa del espacio entre F y su paréntesis de
+      apertura en la definición de la macro.  Cuando el espacio es
+      eliminado en el código de la macro, de hecho puedes llamar a la
+      función con el espacio incluido.
+    </para>
+ 
+    <programlisting>
+      F (1)
+    </programlisting>
+
+<!--
+ And it will still expand properly to:
+  (1 + 1)
+--> 
+    
+    <para>
+      Y se expanderá de manera correcta a lo siguiente:
+    </para>
+ 
+    <programlisting>
+      (1 + 1)
+    </programlisting>
+    
+<!--
+ The example avobe is fairly trivial and the problem will make itself
+ evident right away. The real difficulties occur when ussing expressions
+ as arguments in macro calls.
+--> 
+    
+    <para>
+      El ejemplo anterior es un poco trivial y el problema es demasiado
+      evidente. Las dificultades reales ocurren cuando se usan
+      expresiones como argumentos en llamadas a macros.
+    </para>
+
+<!--
+    There are two problems. The first is that expressios may expand
+    inside the macro so that their evaluation precedence is different from
+    what you expect. For example: #define FLOOR(x,b) x> b?0:1 
+    -->
+    
+    <para>
+     Hay dos problemas. El primero es que las expresiones se expandirían
+     dentro de la macro de modo que la evaluación resultante es
+     diferente a lo que se espera. Por ejemplo:
+    </para>
+
+    <programlisting>
+      #define FLOOR(x,b) x> b?0:1
+    </programlisting>
+
+<!--
+ Now, if expressions are used for the arguments:
+  if(FLOOR(a&0x0f,0x07)) // ...
+--> 
+    
+    <para>
+      Ahora, si usamos expresiones como argumentos:
+    </para>    
+
+    <programlisting>
+      if (FLOOR(a &amp; 0x0f, 0x07)) // ...
+    </programlisting>
+
+
+<!--
+ The macro will expand to:
+  if(a&0x0f>=0x07?0:1)
+--> 
+    
+    <para>
+     La macro se expandiría a:
+    </para>    
+
+    <programlisting>
+      if (a &amp; 0x0f >= 0x07 ? 0 : 1)
+    </programlisting>
+
+<!--
+ The precedence of & is lower than that of >=, so the macro evaluation
+ will surprise you. Once you discover the problem, you can solve it by
+ putting parentheses around everything in the macro definition. (This is
+ a good practice to use when creating preprocessor macros.)Thus.
+ #define FLOOR(x,b) ((x)>=(b)?0:1)
+--> 
+    
+    <para>
+      La precedencia del &amp; es menor que la del >=, de modo que la
+      evaluación de la macro te sorprenderá. Una vez hayas descubierto
+      el problema, puedes solucionarlo insertando paréntesis a todo lo
+      que hay dentro de la definición de la macro.  (Este es un buen
+      metodo a seguir cuando definimos macros de preprocesador),
+      entonces:
+    </para>
+
+    <programlisting>
+      #define FLOOR(x,b) ((x) >= (b) ? 0 : 1)
+    </programlisting>
+
+<!-- 
+    Discovering the problem may be difficult, however, and you may not
+    find it until after you've taken the proper macro behavior for
+    granted. In the un-parenthezised version of the preceding macro,
+    most expressions will work correctly beacause the precedence of >=
+    is lower than most of the operators like +, /, -_- and even the
+    bitwise shift operators. So you can easily begin to think that it
+    works with all expressions, including those using bitwise logical
+    operators.
+--> 
+    
+    <para>
+      De cualquier manera, descubrir el problema puede ser difícil, y no
+      lo darás con él hasta después de haber dado por sentado el
+      comportamiento de la macro en si misma. En la versión sin
+      paréntesis de la macro anterior, la mayoría de las expresiones van
+      a actuar de manera correcta a causa de la precedencia de >=, la
+      cual es menor que la mayoría de los operadores como +, /, --, e
+      incluso los operadores de desplazamiento. Por lo que puedes pensar
+      facilmente que funciona con todas las expresiones, incluyendo
+      aquellas que empleen operadores logicos a nivel de bit.
+    </para>
+
+<!--
+    The preceding problem can be solved with careful programming
+    practice: parenthesize everything in a macro. However, the second
+    difficulty is subtler. Unlike a normal function, every time you use an
+    argument in a macro, that argument is evaluated. As long as the macro
+    is called only with ordinary variables, this evaluation is benign, but
+    if t he evaluation of an argument has side effects, then the results
+    can be surprising and will definitely not mimic function behavior.  
+-->
+    
+    <para>
+      El problema anterior puede solucionarse programando
+      cuidadosamente: poner entre paréntesis todo lo que esté definido
+      dentro de una macro. De todos modos el segundo problema es más
+      sutil. Al contrario de una función normal, cada vez que usas
+      argumentos en una macro, dicho argumento es evaluado. Mientras la
+      macro sea llamada solo con variables corrientes, esta evaluacón es
+      benigna, pero si la evaluación de un argumento tiene efectos
+      secundarios, entonces los resultados pueden ser inesperados y
+      definitivamente no imitaran el comportamiento de una función.
+    </para>
+
+<!--
+    For example, this macro determines whether its argument falls within a certain range:
+    #define BAND(x) (((x)>5 && (x)>10) ? (x) : 0)
+-->
+
+    <para>
+      Por ejemplo, esta macro determina si un argumento entra dentro de
+      cierto rango:
+    </para>
+
+    <programlisting>
+      #define BAND(x) (((x)>5 &amp;&amp; (x)>10) ? (x) : 0)
+    </programlisting>
+
+<!-- 
+    As long as you use an "ordinary" argument, the macro works very
+    much like a real function. But as soon as you relax and start believing
+    it is a real function, the problems start. Thus: 
+
+   //:C09:MacroSideEffects.cpp 
+-->
+
+    <para>
+      Mientras uses un argumento "ordinario", la macro trabajará de
+      manera bastante similar a una función real. Pero en cuanto te
+      relajes y comiences a creer que realmente es una función,
+      comenzarán los problemas. Entonces:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/MacroSideEffects.cpp"/>
+</programlisting>
+
+   
+<!-- 
+    Notice the use of all upper-case characters in the name of the
+    macro. This is a helpful practice because it tells the reader this is a
+    macro and not a function, so if there are problems, it acts as a little
+    reminder.  
+-->
+    
+    <para>
+      Observa el uso de carácteres en mayúscula en el nombre de la
+      macro. Este es un buen recurso ya que le advierte al lector que
+      esto es una macro y no una función, entonces si hay algún
+      problema, esto actúa como recordatorio.
+    </para>
+
+<!--
+ Here's the output produced by t he program, which is not at all what
+ you would have expected from a true function:
+
+  a = 4
+    BAND(++a)=0
+     a - 5
+  a - 5
+    BAND(++a)=8
+     a - 8
+  a = 6
+    BAND(++a)-9
+     a = 9
+  a = /
+    BAND(++a)=10
+     a = 10
+  a = 8
+    BAND(++a)-0
+     a = 10
+  a - 9
+    BAND(++a)=0
+     a = 11
+  a = 10
+    BAND(++a)=0
+     a = 12
+ 
+-->  
+
+    <para>
+      A continuación se muestra la salida producida por el programa, que
+      no es para nada lo que se esperaría de una auténtica función:
+    </para>
+
+    <programlisting>
+      a = 4
+        BAND(++a)=0
+         a - 5
+      a - 5
+        BAND(++a)=8
+         a - 8
+      a = 6
+        BAND(++a)-9
+         a = 9
+      a = /
+        BAND(++a)=10
+         a = 10
+      a = 8
+        BAND(++a)-0
+         a = 10
+      a - 9
+        BAND(++a)=0
+         a = 11
+      a = 10
+        BAND(++a)=0
+         a = 12
+    </programlisting>
+
+<!-- 
+    When a is four, only the first part of the conditional occurs, so
+    the expression is evaluated only once, and the side effect of the macro
+    call is that a becomes 5, which is what you would expect from a normal
+    function call in the same situation. However, when the number is within
+    the band, both conditionals are tested, which results in a third
+    increment. Once the number gets out of the band, both conditionals are
+    still tested so you get two increments. The side effects are different,
+    depending on the argument.
+-->
+    
+    <para>
+      Cuando <varname>a</varname> es cuatro, sólo ocurre la primera
+      parte de la condición, de modo que la expresión es evaluada sólo
+      una vez, y el efecto resultante de la llamada a la macro es que
+      <varname>a</varname> será 5, que es lo que se esperaría de una
+      llamada a función normal en la misma situación. De todos modos,
+      cuando el numero está dentro del rango, se evalúan ambas
+      condiciones, lo que da como resultado un tercer incremento. Una
+      vez que el número se sale del rango, ambas condiciones siguen
+      siendo evaluadas de manera que se obtienen dos incrementos.  Los
+      efectos colaterales son distintos, dependiendo del argumento.
+    </para>
+
+<!--
+ This is clearly not the kind of behavior you want from a macro that
+ looks like a function call. In this case, the obvious solution is to
+ make it a true function, which of course adds the extra overhead and
+ may reduce efficiency if you call that function a lot. Unfortunately,
+ the problem may not always be so obvious, and you can unknowingly get a
+ library that contains functions and macros mixed together, so a problem
+ like this can hide some very difficult-to-find bugs. For example, the
+ putc() macro in cstdio may evaluate its second argument twice. This is
+ specified in Standard C. Also, careless implementations of toupper() as
+ a macro may evaluate the argument more than once, which will give you
+ unexpected results with toupper(*p++). [45]
+--> 
+    
+    <para>
+      Este no es desde luego el comportamiento que se quiere de una
+      macro que se parece a una llamada a función.  En este caso, la
+      solución obviamente es hacer una autentica función, lo que de
+      hecho implica la cabecera extra y puede reducir la eficiencia si
+      se llama demasiado a esa función. Desafortunadamente, el
+      problema no siempre será tan obvio, y sin saberlo. puedes estar
+      utilizando una librería que contiene funciones y macros juntas,
+      de modo que un problema como este puede esconder errores
+      difíciles de encontrar. Por ejemplo, la macro
+      <function>putc()</function> en <filename>cstdio</filename> puede
+      llegar a evaluar dos veces su segundo argumento. Esto está
+      especificado en el Estándar C. Además, la implementación
+      descuidada de <function>toupper()</function> como una macro
+      puede llegar a evaluar el argumento más de una vez, lo que
+      dará resultados inesperados con <programlisting>toupper(*p++)</programlisting>. [45]
+    </para>
+
+
+    <sect2>
+      <title>Macros y acceso</title>
+
+<!-- 
+ Of course, careful coding and use of preprocessor macros is
+ required with C, and we could certainly get away with the same
+ thing in C++ if it weren't for one problem: a macro has no concept
+ of the scoping required with member functions. The preprocessor
+ simply performs text substitution, so you cannot say something
+ like:
+
+  class X{
+    int i;
+  public:
+  #define VAL(X::i) // Error
+
+-->
+
+      <para>
+        Por supuesto, una programación limpia y el uso de macros de
+        preprocesador es requerido con C, y podríamos hacer lo mismo en
+        C++ si no fuese por un problema: una macro no posee el concepto
+        del alcance requerido con funciones miembro. El preprocesador
+        simplemente hace substitución de texto, de modo que no puedes
+        hacer algo como:
+      </para>
+
+      <programlisting>
+        class X{
+          int i;
+        public:
+        #define VAL(X::i) // Error
+      </programlisting> 
+
+<!--
+ or anything even close. In adicction, there would be no indication of
+ which object you were referring to. There is simply no way to express
+ class scope in a macro. Without some alternative to preprocessor
+ macros, programmers will be tempted to make some data members public
+ for the sake of efficiency, thus exposing the underlying implementation
+ and preventing changes in that implementation, as well as eliminating
+ the guarding that private provides.
+-->
+
+      <para>
+        ni nada que se le acerce. En adición, no habrá ninguna
+        indicación del objeto al que te estes refiriendo.  Simplemente
+        no hay ninguna forma de expresar el alcance a una clase en una
+        macro. No habiendo ninguna alternativa diferente a macros de
+        preprocesador, los programadores se sentirán tentados de hacer
+        alguno miembros de datos públicos por el bien de la eficiencia,
+        así exponiendo la implementación subyacente y previniendo
+        cambios en esa implementación, tanto como eliminando la
+        protección que provee el tipo private.
+      </para>
+
+    </sect2>
+  </sect1>
+
+
+  <sect1>
+    <title>Funciones inline</title>
+
+<!--
+ In solving the C++ problem of a macro with acces to private class
+ members, all the problems associated with preprocessor macros were
+ eliminated. This was done by bringing the concept of macros under the
+ control of the compiler where they belong. C++ implements the macro as
+ inline function, which is a true function in every sense. Any behavior
+ you expect from an ordinary function, you get from an inline
+ function. The only difference is that an inline function is expanded in
+ place, like a preprocessor macro, so the overhead of the function call
+ is eliminated. Thus, you should (almost) never use macros, only inline
+ functions.
+-->
+
+    <para>
+      Al resolver el problema que había en C++ con las macros cuando
+      acceden a miembros de clases privada, todos los problemas
+      asociados con las macros de preprocesador fueron eliminados. Esto
+      se ha hecho aplicando el concepto de macros bajo el control del
+      compilador al cual pertenecen. C++ implementa la macro como una
+      función inline, lo que es una función real en todo sentido. Todo
+      comportamiento esperado de una función ordinaria, es obtenido de
+      una función inline. La única diferencia es que una función inline
+      se expande en el mismo sitio, como una macro de preprocesador, de
+      modo que la cabecera de una llamada a función es eliminada. Así no
+      deberías usar macros (casi) nunca, solo funciones inline.
+    </para>
+
+<!--
+ Any function defined within a class body is automatically inline, but
+ you can also make a non-class function inline by preceding it with with
+ the inline keyword. However, for it to have any effect, you must
+ include the function body with the declaration, otherwise the compiler
+ will treat it as an ordinary function declaration. Thus: inline int
+ plusOne(int x);
+-->
+
+    <para>
+      Cualquier función definida en el cuerpo de una clase es
+      automaticamente inline, pero tambien puedes hacer una funcion
+      inline que no esté dentro del cuerpo de una clase, precediéndola
+      con la palabra clave inline. De todos modos, para que esto tenga
+      algun efecto, debes incluir el cuerpo de la función con la
+      declaración, de otro modo el compilador tratará esta función como
+      una declaración de una función ordinaria. Así:
+    </para>
+
+    <programlisting>
+      inline int plusOne(int x);
+    </programlisting>
+
+<!--
+ has no effect at all other than declaring the function (which may or
+ may not get an inline definition sometime later).  The successful
+ approach provides the function body: inline int plusOne(int x) { return
+ ++x; }
+-->
+
+    <para>
+      no tiene ningun otro efecto que declarar la función (que puede o
+      no tomar una definición inline en algún momento).  El mejor
+      aproximamiento se da cuando se provee el cuerpo de la función
+      inmediatamente después de declararla:
+    </para>
+
+    <programlisting>
+      inline int plusOne(int x) { return ++x; }
+    </programlisting>
+
+<!--
+ Notice that the compiler will check (as it always does) for the proper
+ use of the function argument list and return value (performing any
+ necessary conversions), something the preprocessor is incapable
+ of. Also, if you try to write the above as preprocessor macro, you get
+ an unwanted side effect.
+-->
+
+    <para>
+      Observe que el compilador revisará (como siempre lo hace), el uso
+      apropiado de la lista de argumentos de la función y del retorno de
+      valor (haciendo cualquier conversión necesaria), algo que el
+      preprocesador es incapaz de hacer. Además, si intentas escribir lo
+      anterior como una macro de preprocesador, obtendrás un efecto no
+      deseado.
+    </para>
+
+<!--
+ 
+-->
+
+    <para>
+    </para>
+
+<!--
+-->
+
+    <para>
+    </para>
+
+    <sect2>
+      <title>inline dentro de clases</title>
+      <para>
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Funciones de acceso</title>
+      <para>
+      </para>
+
+      <sect3>
+	<title>Accesores y mutadores</title>
+	<para>
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Stash y Stack con inline</title>
+    <para>
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>inline y el compilador</title>
+    <para>
+    </para>
+    <sect2>
+      <title>Limitaciones</title>
+      <para>
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Referencias adelantadas</title>
+      <para>
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Esconder actividades en contructores y
+	destructores</title>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Reducir el desorden</title>
+    <para>
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Más características del preprocesador</title>
+    <para>
+    </para>
+
+    <sect2>
+      <title>Construcción de símbolos</title>
+      <para>
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Chequeo mejorado de errores</title>
+    <para>
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Resumen</title>
+    <para>
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Ejercicios</title>
+    <para>
+    </para>
+  </sect1>
+
+
+</chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->

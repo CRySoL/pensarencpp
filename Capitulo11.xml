@@ -1,0 +1,1652 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: Javier Corrales García
+  Formateado DocBook:  Javier Corrales García
+  1ª Revisión:         David Villa (Informe al final del texto)
+  2ª Revisión:
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C11">
+  
+  <title>Las referencias y el constructor de copia</title>
+  <para>
+    Las referencias son como punteros constantes que el compilador utiliza 
+    para acceder directamente a su contenido.
+  </para>
+  <para>
+    Aunque las referencias también existen en Pascal, la versión de C++ se 
+    copió del lenguaje Algol. Las referencias son esenciales en C++ para 
+    ayudar en la sintaxis de los operadores sobrecargados (vea Capítulo 12) 
+    y, además, son una buena forma para controlar la manera en que los 
+    argumentos se pasan a las funciones tanto hacia dentro como hacia fuera.
+  </para>
+  <para>
+    En este capítulo se verá primero la diferencia entre los punteros en C 
+    y en C++., y luego se presentarán las referencias. Pero la mayor parte
+    del capítulo ahondará en el asunto un tanto confuso para los programadores 
+    de C++ novatos: el constructor copia, un constructor especial (que necesita 
+    referencias) que construye un nuevo objeto de otro ya existente del 
+    mismo tipo. El compilador utiliza el constructor copia para pasar y 
+    retornar objetos <emphasis>por valor</emphasis> a las funciones.
+  </para>
+  <para>
+    Finalmente, se hablará sobre la característica (un tanto oscura) de 
+    los <emphasis>punteros a miembro</emphasis> de C++.
+  </para> 
+  <sect1>
+    <title>Punteros en C++</title>
+    <para>
+      La diferencia más importante entre los punteros en C y en C++ es 
+      que los de C++ están fuertemente tipados. Sobre todo en lo que 
+      al tipo <emphasis>void *</emphasis> se refiere. C no permite 
+      asignar un puntero de un tipo a otro de forma casual, pero 
+      <emphasis>sí</emphasis> permite hacerlo mediante el tipo 
+      <emphasis>void *</emphasis>. Por ejemplo,
+    </para>
+    <programlisting>
+Bird* b;
+Rock* r;
+void* v;
+v = r;
+b = v;
+    </programlisting>
+    <para>
+      A causa de esta "característica" de C, puede utilizar cualquier
+      tipo como si de otro se tratara sin ningún aviso por parte del
+      compilador. C++ no permite hacer esto; el compilador da un mensaje
+      de error, y si realmente quiere utilizar un tipo como otro
+      diferente, debe hacerlo explícitamente, tanto para el compilador
+      como para el lector, haciendo molde (denominado
+      <emphasis>cast</emphasis> en inglés). (En el capítulo 3 se habló
+      sobre la sintaxis mejorada del molde "explícito".)
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Referencias en C++</title>
+    <para>
+      Una <emphasis>referencia</emphasis> (<emphasis>&amp;</emphasis>)
+      es como un puntero constante que se destruye
+      automáticamente. Normalmente se utiliza en la lista de argumentos
+      y el valor de retorno de una función. Pero también se puede hacer
+      una referencia que apunte a algo que no ha sido asignado. Por
+      ejemplo,
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/FreeStandingReferences.cpp"/>
+</programlisting>
+
+    <para>
+      En la linea (1), el compilador asigna la cantidad necesaria de
+      memoria, la inicializa con el valor 12, y liga la referencia a esa
+      memoria. Lo importante es que una referencia debe estar ligada a
+      la memoria de <emphasis>alguien</emphasis>. Cuando se accede a una
+      referencia, se está accediendo a esa memoria. Así pues, si escribe
+      las lineas (2) y (3), se incrementará <emphasis>x</emphasis>
+      cuando se incremente <emphasis>a</emphasis>, tal como se muestra
+      en el <emphasis>main()</emphasis>. Lo más fácil es pensar que una
+      referencia es como un puntero de lujo. La ventaja de este
+      "puntero" es que nunca hay que preguntarse si ha sido inicializado
+      (pues el compilador lo impone) y si hay que destruirlo (pues el
+      compilador lo hace).
+    </para>
+    <para>
+      Hay que seguir unas determinadas reglas cuando se utilizan 
+      referencias:
+      <orderedlist>
+	<listitem>
+	  <para>
+	    Cuando una referencia se crea, se ha de
+	    inicializar. (Los punteros pueden inicializarse en cualquier
+	    momento.)  
+	  </para>
+	</listitem>
+	<listitem> 
+	  <para>
+	    Una vez una referencia se inicializa
+	    ligándola a un objeto, no se puede ligar a otro objeto. (Los
+	    punteros se pueden apuntar a otro objeto en cualquier
+	    momento.)
+	  </para>
+	</listitem>
+	<listitem> 
+	  <para>
+	    No se pueden tener referencias con valor
+	    nulo. Siempre ha de suponer que una referencia está conectada
+	    a una trozo de memoria ya asignada.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </para>
+    
+    <sect2>
+      <title>Referencias en las funciones</title>
+      <para>
+	El lugar más común en el que verá referencias es los argumentos
+	y valor de retorno de las funciones. Cuando una referencia se
+	utiliza como un argumento de una función, cualquier cambio
+	realizado en la referencia <emphasis>dentro</emphasis> de la
+	función se realizará también en el argumento
+	<emphasis>fuera</emphasis> de la función.  Por supuesto que
+	podría hacer lo mismo pasando un puntero como argumento, pero
+	una referencia es sintácticamente más claro.  (Si lo desea,
+	puede pensar que una referencia es, nada más y nada menos,
+	sintácticamente más conveniente.)
+      </para>
+
+      <para>
+	Si una función retorna una referencia, ha de tener el mismo
+	cuidado que si la función retornara un puntero. La referencia
+	que se devuelva debe estar ligada a algo que no sea liberado
+	cuando la función retorne. Si no, la referencia se referirá a un
+	trozo de memoria que ya no está asignado.
+      </para>
+
+      <para>
+	He aquí un ejemplo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/Reference.cpp"/>
+</programlisting>
+
+      <para>
+	La llamada a <function>f()</function> no tiene la ventaja ni la
+	claridad que la utilización de referencias, pero está claro que
+	se está pasando una dirección mediante un puntero. En la llamada
+	a <function>g()</function>, también se pasa una dirección
+	(mediante una referencia), pero no se ve.
+      </para>
+      <sect3>
+	<title>Referencias constantes</title>
+	<para>
+	  El argumento referencia en <filename>Reference.cpp</filename>
+	  funciona solamente en caso de que el argumento no sea un
+	  objeto constante (es decir, no sea
+	  <emphasis>const</emphasis>).  Si fuera un objeto
+	  <emphasis>constante</emphasis>, la función
+	  <emphasis>g()</emphasis> no aceptaría el argumento, lo cual es
+	  positivo porque la función <emphasis>modificaría</emphasis> el
+	  argumento que está <emphasis>fuera</emphasis> del ámbito de la
+	  función. Si sabe que la función respetará el valor "constante"
+	  de un objeto, el hecho de que el argumento sea una referencia
+	  constante permitirá que la función se pueda utilizar en
+	  cualquier situación. Esto significa que para tipos
+	  predefinidos, la función no modificará el argumento, y para
+	  tipos definidos por el usuario, la función llamará solamente a
+	  métodos <emphasis>constantes</emphasis>, y no modificara
+	  ningún atributo <emphasis>público</emphasis>.
+	</para>
+
+	<para>
+	  La utilización de referencias <emphasis>constantes</emphasis>
+	  en argumentos de funciones es especialmente importante porque
+	  una función puede recibir un objeto temporal. Éste podría
+	  haber sido creado como valor de retorno de otra función o
+	  explícitamente por el usuario de la función. Los objetos
+	  temporales son siempre <emphasis>constantes</emphasis>.  Así,
+	  si no utiliza una referencia <emphasis>constante</emphasis>,
+	  el compilador se quejará. Como ejemplo muy simple:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/ConstReferenceArguments.cpp"/>
+</programlisting>
+
+	<para>
+	  La llamada <emphasis>f(1)</emphasis> provoca un error en
+	  tiempo de compilación porque el compilador debe primero crear
+	  una referencia. Lo hace asignando memoria para un
+	  <emphasis>int</emphasis>, iniciánlizándolo a uno y generando
+	  la dirección de memoria para ligarla a la referencia. La
+	  memoria debe ser <emphasis>constante</emphasis> porque no
+	  tendría sentido cambiarlo: no puede cambiarse de nuevo. Puede
+	  hacer la misma suposición para todos los objetos temporales:
+	  son inaccesibles. Es importante que el compilador le diga
+	  cuándo está intentando cambiar algo de este estilo porque
+	  podría perder información.
+	</para>
+
+      </sect3>
+      <sect3>
+	<title>Referencias a puntero</title>
+	<para>
+	  En C, si desea modificar el <emphasis>contenido</emphasis> del
+	  puntero en sí en vez de modificar a lo que apunta, la
+	  declaración de la función sería:
+	</para>
+<programlisting>
+void f(int**);
+</programlisting>
+	<para>
+	  y tendría que coger la dirección del puntero cuando se llamara
+	  a la función:
+	</para>
+<programlisting>
+int i = 47;
+int* ip = &amp;i;
+f(&amp;ip); 
+</programlisting>
+	<para>
+	  La sintaxis es más clara con las referencias en C++. El
+	  argumento de la función pasa a ser de una referencia a un
+	  puntero, y así no ha de manejar la dirección del puntero.
+	  Así,
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/ReferenceToPointer.cpp"/>
+</programlisting>
+
+	<para>
+	  Al ejecutar este programa se observa que el puntero se 
+	  incrementa en vez de incrementar a lo que apunta.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Consejos para el paso de argumentos</title>
+      <para>
+	Cuando se pasa un argumento a un función, lo normal debería ser
+	pasarlo como una referencia <emphasis>constante</emphasis>. A
+	Aunque al principio puede parecer que sólo tiene ventajas en
+	términos de eficacia (y normalmente en diseño e implementación
+	inicial no se tiene muy en cuenta la eficacia), además tiene
+	otras: como se podrá ver en el resto del capítulo, se requiere
+	un constructor copia para pasar un objeto por valor, y esto no
+	siempre es posible.
+      </para>
+      <para>
+	La eficacia puede mejorar substancialmente por este simple
+	hábito: pasar un argumento por valor necesita una llamada a un
+	constructor y otra a un destructor, pero si no se va a modificar
+	el argumento, el hecho de pasarlo como una referencia
+	<emphasis>constante</emphasis> sólo necesita poner una dirección
+	en la pila.
+      </para>
+      <para>
+	De hecho, prácticamente la única situación en la que no es
+	preferible pasar la dirección, es cuando se le va a producir al
+	objeto tal daño que la única forma segura de que no ocurra es
+	pasándolo por valor (en vez de modificar el objeto que está
+	fuera del ámbito de la función, algo que el que llama a la
+	función normalmente no espera). Esto es el asunto de la
+	siguiente sección.
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>El constructor de copia</title>
+    <para>
+      Ahora que entiende lo básico de las referencias en C++, está
+      preparado para tratar uno de los conceptos más confusos del
+      lenguaje: el constructor de copia, a menudo denominado
+      <emphasis>X(X&amp;)</emphasis> ("X de la referencia X"). Este
+      constructor es esencial para controlar el paso y retorno por valor
+      de los tipos definidos por el usuario durante las llamadas a
+      funciones. De hecho es tan importante que el compilador crea
+      automáticamente un constructor de copia en caso de que no se
+      proporcione explícitamente.
+    </para>
+    <sect2>
+
+      <title>Paso y retorno por valor</title>
+      <para>
+	Para entender la necesidad del constructor copia, considere la
+	forma en que C maneja el paso y retorno por valor de variables
+	cuando se llama a una función. Si declara una función y la
+	llama,
+      </para>
+
+<programlisting>
+int f(int x, char c);
+int g = f(a, b);
+</programlisting>
+
+      <para>
+	¿cómo sabe el compilador cómo pasar y retornar esas variables?
+	¡Simplemente lo sabe! El rango de tipo con los que trata es tan
+	pequeño (<emphasis>char</emphasis>,<emphasis>int</emphasis>,
+	<emphasis>float</emphasis>, <emphasis>double</emphasis>, y sus
+	variaciones), que tal información ya está dentro del compilador.
+      </para>
+      <para>
+	Si el compilador generara código ensamblador y quisiera ver qué
+	sentencias se generan por llamar a la función
+	<emphasis>f()</emphasis>, tendría el equivalente a:
+      </para>
+<programlisting>
+push  b
+push  a
+call  f()
+add  sp,4
+mov  g, register a
+</programlisting>
+      <para>
+	Este código se ha simplificado para hacerlo genérico; las
+        expresiones <emphasis>b</emphasis> y <emphasis>a</emphasis>
+        serían diferentes dependiendo de si las variables son globales
+        (en cuyo caso serían <emphasis>_b</emphasis> y
+        <emphasis>_a</emphasis>) o locales (el compilador las pondría en
+        la pila). Esto también es cierto para <emphasis>g</emphasis>. La
+        sintaxis de la llamada a <emphasis>f()</emphasis> dependería de
+        su guía de estilo, y "register a" dependería de cómo su
+        ensamblador llama a los registros de la CPU. A pesar de la
+        simplificación, la lógica del código sería la misma.
+      </para>
+      <para>
+	Tanto en C como en C++, primero se ponen los argumentos en la
+	pila de derecha a izquierda, y luego se llama a la función. El
+	código de llamada es responsable de retirar los argumentos de la
+	pila (lo cual explica la sentencia <emphasis>add
+	sp,4</emphasis>).  Pero tenga en cuenta que cuando se pasan
+	argumentos por valor, el compilador simplemente pone copias en
+	la pila (sabe el tamaño de cada uno, por lo que los puede
+	copiar).
+      </para>
+      <para>
+	El valor de retorno de <emphasis>f()</emphasis> se coloca en un
+	registro. Como el compilador sabe lo que se está retornando,
+	porque la información del tipo ya está en el lenguaje, puede
+	retornarlo colocándolo en un registro. En C, con tipos
+	primitivos, el simple hecho de copiar los bits del valor es
+	equivalente a copiar el objeto.
+      </para>
+      
+      <sect3>
+	<title>Paso y retorno de objetos grandes</title>
+	<para>
+	  Considere ahora los tipos definidos por el usuario. Si crea
+	  una clase y desea pasar un objeto de esa clase por valor,
+	  ¿cómo sabe el compilador lo que tiene que hacer?  La
+	  información de la clase no está en el compilador, pues está
+	  definida por el usuario.
+	</para>
+	<para>
+	  Para investigar esto, puede empezar con una estructura simple
+	  que, claramente, es demasiado grande para ser devuelta a
+	  través de los registros:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/PassingBigStructures.cpp"/>
+</programlisting>
+
+	<para>
+	  La conversión a código ensamblador es un poco más complicada
+	  porque la mayoría de los compiladores utilizan funciones
+	  "auxiliares" en vez de <emphasis>inline</emphasis>. En la
+	  función <emphasis>main()</emphasis>, la llamada a
+	  <emphasis>bigfun()</emphasis> empieza como debe: se coloca el
+	  contenido de <emphasis>B</emphasis> en la pila. (Aquí podría
+	  ocurrir que algunos compiladores carguen registros con la
+	  dirección y tamaño de <emphasis>Big</emphasis> y luego una
+	  función auxiliar se encargue de colocar a
+	  <emphasis>Big</emphasis> en la pila.)
+	</para>
+	<para>
+	  En el anterior fragmento de código fuente, lo único necesario
+	  antes de llamar a la función es colocar los argumentos en la
+	  pila. Sin embargo, en el código ensamblador de
+	  <emphasis>PassingBigStructures.cpp</emphasis> se ve una acción
+	  de más: la dirección de <emphasis>B2</emphasis> se coloca en
+	  la pila antes de hacer la llamada a la función aunque,
+	  obviamente, no sea un argumento. Para entender qué pasa,
+	  necesita entender las restricciones del compilador cuando
+	  llama a una función.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Ámbito de la pila para una llamada a una función</title>
+	<para>
+	  Cuando el compilador genera código para llamar a una función,
+	  primero coloca en la pila todos los argumentos y luego hace la
+	  llamada. Dentro de la función se genera código para mover el
+	  puntero de la pila hacia abajo, y así proporciona memoria para
+	  las variables locales dentro de la función.  ("hacia abajo" es
+	  relativo, la máquina puede incrementar o disminuir el puntero
+	  de pila al colocar un argumento.) Pero cuando se hace el CALL
+	  del ensamblador para llamar a la función, la CPU coloca la
+	  <emphasis>dirección de procedencia</emphasis> desde donde se
+	  realiza la llamada, y en el RETURN del ensamblador se utiliza
+	  tal dirección para volver al punto desde donde la llamada se
+	  realizó. Esta dirección es intocable, porque sin ella el
+	  programa se perdería por completo. He aquí lo que en el ámbito
+	  de la pila para la llamada a esa función aparece después de
+	  que se ejecute un CALL y se pongan las variables locales de la
+	  función:
+[FIXME:poner aquí la imagen]
+	</para>
+	<para>
+	  El código generado por el resto de la función espera que la
+	  memoria tenga esta disposición para que pueda utilizar los
+	  argumentos y las variables locales sin tocar la dirección al
+	  punto de retorno. Llámese a este bloque de memoria, que es
+	  todo lo que una función necesita cuando se le llama,
+	  <emphasis>ámbito de la función</emphasis>.
+	</para>
+	<para>
+	  Podría creer que es razonable intentar el retorno de valores
+	  mediante la utilización de la pila. El compilador simplemente
+	  los colocaría allí y la función devolvería un desplazamiento
+	  que indicara cuándo empieza el valor de retorno.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Re-entrada</title>
+	<para>
+	  Este problema ocurre porque las funciones en C y C++ pueden
+	  sufrir interrupciones; esto es, los lenguajes han de ser (y de
+	  hecho son) <emphasis>re-entrantes</emphasis>. También permiten
+	  llamadas a funciones recursivas. Esto quiere decir que en
+	  cualquier punto de ejecución de un programa puede sufrir una
+	  interrupción sin que el programa se vea afectado por
+	  ello. Obviamente la persona que escribe la rutina de servicio
+	  de interrupciones (ISR) es responsable de guardar y restaurar
+	  todos los registros que se utilicen en la ISR. Pero si la ISR
+	  necesita utilizar la pila, ha de hacerlo con
+	  seguridad. (Piense que una ISR es como una función normal sin
+	  argumentos y con valor de retorno <emphasis>void</emphasis>
+	  que guarda y restaura el estado de la CPU. Una llamada a una
+	  ISR se provoca con un evento hardware, y no con una llamada
+	  dentro del programa de forma explícita.)
+	</para>
+	<para>
+	  Ahora imagine que pasaría si una función normal intentara
+	  retornar valores en la pila. No puede tocar la pila por encima
+	  del la dirección del punto de retorno, así que la función
+	  tendría que colocar los valores de retorno debajo de la
+	  dirección del punto de retorno. Pero cuando el RETURN del
+	  ensamblador se ejecuta, el puntero de la pila debería estar
+	  apuntando a la dirección del punto de retorno (o justo debajo,
+	  depende de la máquina), así que la función debe subir el
+	  puntero de la pila, desechando todas las variables locales. Si
+	  intenta retornar valores con la pila por debajo de la
+	  dirección del punto de retorno, en ese momento es vulnerable a
+	  una interrupción. La ISR escribiría encima de los valores de
+	  retorno para colocar su dirección de punto de retorno y sus
+	  variables locales.
+	</para>
+	<para>
+	  Para resolver este problema, el que llama a la
+	  función <emphasis>podría</emphasis> ser
+	  responsable de asignar la memoria extra en la
+	  pila para los valores de retorno antes de
+	  llamar a la función. Sin embargo, C no se
+	  diseñó de esta manera y C++ ha de ser
+	  compatible. Como pronto verá, el compilador de
+	  C++ utiliza un esquema más eficaz.
+	</para>
+	<para>
+	  Otra idea sería retornar el valor utilizando un área de datos
+	  global, pero tampoco funcionaría. La re-entrada significa que
+	  cualquier función puede ser una rutina de interrupción para
+	  otra función, <emphasis>incluida la función en la que ya se
+	  está dentro</emphasis>. Por lo tanto, si coloca un valor de
+	  retorno en un área global, podría retornar a la misma función,
+	  lo cual sobreescribiría el valor de retorno. La misma lógica
+	  se aplica a la recurrencia.
+	</para>
+	<para>
+	  Los registros son el único lugar seguro para devolver valores,
+	  así que se vuelve al problema de qué hacer cuando los
+	  registros no son lo suficientemente grandes para contener el
+	  valor de retorno. La respuesta es colocar la dirección de la
+	  ubicación del valor de retorno en la pila como uno de los
+	  argumentos de la función, y dejar que la función copie la
+	  información que se devuelve directamente en la ubicación. Esto
+	  no solo soluciona todo los problemas, si no que además es más
+	  eficaz. Ésta es la razón por la que el compilador coloca la
+	  dirección de <emphasis>B2</emphasis> antes de llamar a
+	  <emphasis>bigfun</emphasis> en la función
+	  <emphasis>main()</emphasis> de
+	  <emphasis>PassingBigStructures.cpp</emphasis>.  Si mirara
+	  <emphasis>bigfun()</emphasis> en el código ensamblador,
+	  observaría que la función espera este argumento escondido y
+	  copia el valor de retorno <emphasis>ahí</emphasis>.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Copia bit a bit vs. inicialización</title> <para> Hasta
+	aquí, todo bien. Tenemos un procedimiento para pasar y retornar
+	estructuras simples grandes. Pero note que lo único que tiene es
+	una manera de copiar los bits de un lugar a otro, lo que
+	ciertamente funciona bien para la forma (muy primitiva) en que C
+	trata las variables. Sin embargo, en C++ los objetos pueden ser
+	mucho más avanzados que un puñado de bits, pues tienen
+	significado y, por lo tanto, puede que no responda bien a ser
+	copiado.
+	</para>
+	<para>
+	  Considere un simple ejemplo: una clase que conoce cuantos
+	  objetos de un tipo existen en cualquier momento. En el
+	  Capítulo 10 se vio la manera de hacerlo incluyendo un atributo
+	  estático (<emphasis>static</emphasis>):
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/HowMany.cpp"/>
+</programlisting>
+
+	<para>
+	  La clase <emphasis>HowMany</emphasis> contiene un entero
+	  estático llamado <emphasis>objectCount</emphasis> y un método
+	  <emphasis>estático</emphasis> llamado
+	  <emphasis>print()</emphasis> para presentar el valor de
+	  <emphasis>objectCount</emphasis>, junto con argumento de
+	  mensaje optativo. El constructor incrementa
+	  <emphasis>objectCount</emphasis> cada vez que se crea un
+	  objeto, y el destructor lo disminuye.
+	</para>
+	<para>
+	  Sin embargo la salida no es lo que uno esperaría:
+
+<screen>
+after construction of h: objectCount = 1
+x argument inside f(): objectCount = 1
+~HowMany(): objectCount = 0
+after call to f(): objectCount = 0
+~HowMany(): objectCount = -1
+~HowMany(): objectCount = -2
+</screen>
+	
+	  Después de crear <emphasis>h</emphasis>, el contador es uno,
+	  lo cual está bien. Pero después de la llamada a
+	  <emphasis>f()</emphasis> se esperaría que el contador
+	  estuviera a dos, porque <emphasis>h2</emphasis> está ahora
+	  también dentro de ámbito. Sin embargo, el contador es cero, lo
+	  cual indica que algo ha ido muy mal. Esto se confirma por el
+	  hecho de que los dos destructores, llamados al final de
+	  <emphasis>main()</emphasis>, hacen que el contador se pase a
+	  negativo, algo que nunca debería ocurrir.
+	</para>
+	<para>
+	  Mire lo que ocurre dentro de <emphasis>f()</emphasis> después
+	  de que el argumento se pase por valor. Esto quiere decir que
+	  el objeto original <emphasis>h</emphasis> existe fuera del
+	  ámbito de la función y, por otro lado, hay un objeto de más
+	  <emphasis>dentro</emphasis> del ámbito de la función, el cual
+	  es la copia del objeto que se pasó por valor. El argumento que
+	  se pasó utiliza el primitivo concepto de copia bit a bit de C,
+	  pero la clase C++ <emphasis>HowMany</emphasis> necesita
+	  inicializarse correctamente para mantener su integridad. Por
+	  lo tanto, se demuestra que la copia bit a bit no logra el
+	  efecto deseado.
+	</para>
+	<para>
+	  Cuando el objeto local se sale de ámbito al salir de la
+	  función <emphasis>f()</emphasis>, se llama a su destructor, lo
+	  cual disminuye <emphasis>objectCount</emphasis>, y por lo
+	  tanto el <emphasis>objectCount</emphasis> se pone a cero. La
+	  creación de <emphasis>h2</emphasis> se realiza también
+	  mediante la copia bit a bit, así que tampoco se llama al
+	  constructor, y cuando <emphasis>h</emphasis> y
+	  <emphasis>h2</emphasis> se salen de ámbito, sus destructores
+	  causan el valor negativo en <emphasis>objectCount</emphasis>.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Construcción por copia</title>
+      <para>
+	El problema se produce debido a que el compilador hace una
+	suposición sobre cómo crear <emphasis>un nuevo objeto de otro ya
+	existente</emphasis>.  Cuando se pasa un objeto por valor, se
+	crea un nuevo objeto, que estará dentro del ámbito de la
+	función, del objeto original ya existente fuera del ámbito de la
+	función. Esto también es a menudo cierto cuando una función
+	retorna un objeto. En la expresión
+      </para>
+<programlisting>
+HowMany h2 = f(h);
+</programlisting>
+      <para>
+	<emphasis>h2</emphasis>, un objeto que no estaba creado
+	anteriormente, se crea a partir del valor que retorna
+	<emphasis>f()</emphasis>, y otra vez un nuevo objeto se crea de
+	otro ya existente.
+      </para>
+      <para>
+	El compilador supone que la creación ha de hacerse con una copia
+	bit a bit, lo que en muchos casos funciona bien, pero en
+	<emphasis>HowMany</emphasis> no funciona porque la
+	inicialización va más allá de una simple copia. Otro ejemplo muy
+	común ocurre cuando la clase contiene punteros pues, ¿a qué
+	deben apuntar?  ¿debería copiar sólo los punteros o debería
+	asignar memoria y que apuntaran a ella?
+      </para>
+      <para>
+	Afortunadamente, puede intervenir en este proceso y prevenir que
+	el compilador haga una copia bit a bit. Se soluciona definiendo
+	su propia función siempre que el compilador necesite crear un
+	nuevo objeto de otro ya existente. Lógicamente, está creando un
+	nuevo objeto, por lo que esta función es un constructor, y
+	también el único argumento del constructor tiene que ver con el
+	objeto del que se pretende partir para crear el nuevo. Pero no
+	puede pasar ese objeto por valor al constructor porque usted
+	está intentando <emphasis>definir</emphasis> la función que
+	maneja el paso por valor, y, por otro lado, sintácticamente no
+	tiene sentido pasar un puntero porque, después de todo, está
+	creando un objeto de otro ya existente. Aquí es cuando las
+	referencias vienen al rescate, y puede utilizar la referencia
+	del objeto origen. Esta función se llama el
+	<emphasis>constructor copia</emphasis>, que también se lo puede
+	encontrar como <emphasis>X(X&amp;)</emphasis>, que es el
+	constructor copia de una clase denominada
+	<emphasis>X</emphasis>.
+      </para>
+      <para>
+	Si crea un constructor copia, el compilador no realizará una
+	copia bit a bit cuando cree un nuevo objeto de otro ya
+	existente.  El compilador siempre llamará al constructor
+	copia. Si no crea el constructor copia, el compilador hará algo
+	sensato, pero usted tiene la opción de tener control total del
+	proceso.
+      </para>
+      <para>
+	Ahora es posible solucionar el problema en
+	<emphasis>HowMany.cpp</emphasis>:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/HowMany2.cpp"/>
+</programlisting>
+
+      <para>
+	Hay unas cuantas cosas nuevas para que pueda hacerse una idea
+	mejor de lo que pasa. Primeramente, el <emphasis>string
+	name</emphasis> hace de identificador de objeto cuando se
+	imprima en la salida.  Puede poner un identificador (normalmente
+	el nombre del objeto) en el constructor para que se copie en
+	<emphasis>name</emphasis> utilizando el constructor con un
+	<emphasis>string</emphasis> como argumento. Por defecto se crea
+	un <emphasis>string</emphasis> vacío. El constructor incrementa
+	<emphasis>objectCount</emphasis> y el destructor lo disminuye,
+	igual que en el ejemplo anterior.
+      </para>
+      <para>
+	Lo siguiente es el constructor copia, <emphasis>HowMany2(const
+	HowMany2&amp;)</emphasis>. El constructor copia crea un objeto
+	solamente desde otro ya existente, así que copia en
+	<emphasis>name</emphasis> el identificador del objeto origen,
+	seguido de la palabra "copy", y así puede ver de dónde procede.
+	Si mira atentamente, verá que la llamada
+	<emphasis>name(h.name)</emphasis> en la lista de inicializadores
+	del constructor está llamando al constructor copia de la clase
+	<emphasis>string</emphasis>.
+      </para>
+      <para>
+	Dentro del constructor copia, se incrementa el contador igual
+	que en el constructor normal. Esto quiere decir que obtendrá un
+	contador de objetos preciso cuando pase y retorne por valor.
+      </para>
+      <para>
+	La función <emphasis>print()</emphasis> se ha modificado para
+	imprimir en la salida un mensaje, el identificador del objeto y
+	el contador de objetos. Como ahora accede al miembro
+	<emphasis>name</emphasis> de un objeto en particular, ya no
+	puede ser un método <emphasis>estático</emphasis>.
+      </para>
+      <para>
+	Dentro de <emphasis>main()</emphasis> puede ver que hay una
+	segunda llamada a <emphasis>f()</emphasis>. Sin embargo esta
+	llamada utiliza la característica de C para ningunear el valor
+	de retorno. Pero ahora que sabe cómo se retorna el valor (esto
+	es, código <emphasis>dentro</emphasis> de la función que maneja
+	el proceso de retorno poniendo el resultado en un lugar cuya
+	dirección se pasa como un argumento escondido), podría
+	preguntarse qué ocurre cuando se ningunea el valor de
+	retorno. La salida del programa mostrará alguna luz sobre el
+	asunto.
+      </para>
+      <para>
+	Pero antes de mostrar la salida, he aquí un pequeño programa que
+	utiliza iostreams para añadir números de línea a cualquier
+	archivo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/Linenum.cpp"/>
+</programlisting>
+
+      <para>
+	El archivo se pasa a un <emphasis>vector(string)</emphasis>,
+	utilizando el mismo código fuente que se ha visto anteriormente
+	en este libro. Cuando se pone los números de línea, nos gustaría
+	que todas las líneas estuvieran alineadas, y esto necesita
+	conocer el número de líneas en el archivo para que sea
+	coherente.  Se puede conocer el número de líneas con
+	<emphasis>vector::size()</emphasis>, pero lo que realmente
+	necesitamos es conocer si hay más líneas de 10, 100, 1000, etc.
+	Si se utiliza el logaritmo en base 10 sobre el número de líneas
+	en el archivo, se trunca a un entero y se añade uno al valor
+	resultante y eso determinará el ancho máximo en dígitos que un
+	número de línea puede tener.
+      </para>
+      <para>
+	Nótese que hay un par de llamadas extrañas dentro del bucle
+	<emphasis>for</emphasis>: <emphasis>setf()</emphasis> y
+	<emphasis>width()</emphasis>. Hay llamadas de
+	<emphasis>ostream</emphasis> que permiten controlar, en este
+	caso, la justificación y anchura de la salida. Sin embargo se
+	debe llamar cada vez que una línea se imprime y por eso están
+	dentro del bucle <emphasis>for</emphasis>. El Volumen 2 de este
+	libro tiene un capítulo entero que explica los iostreams y que
+	cuenta más sobre estas llamadas así como otras formas de
+	controlar los iostreams.
+      </para>
+      <para>
+	Cuando se aplica <filename>Linenum.cpp</filename> abactor
+	<filename>HowMany2.out</filename>, resulta:
+      </para>
+
+<programlisting>
+1) HowMany2()
+2)   h: objectCount = 1
+3) Entering f()
+4) HowMany2(const HowMany2&amp;)
+5)   h copy: objectCount = 2
+6) x argument inside f()
+7)   h copy: objectCount = 2
+8) Returning from f()
+9) HowMany2(const HowMany2&amp;)
+10)   h copy copy: objectCount = 3
+11) ~HowMany2()
+12)   h copy: objectCount = 2
+13) h2 after call to f()
+14)   h copy copy: objectCount = 2
+15) Call f(), no return value
+16) HowMany2(const HowMany2&amp;)
+17)   h copy: objectCount = 3
+18) x argument inside f()
+19)   h copy: objectCount = 3
+20) Returning from f()
+21) HowMany2(const HowMany2&amp;)
+22)   h copy copy: objectCount = 4
+23) ~HowMany2()
+24)   h copy: objectCount = 3
+25) ~HowMany2()
+26)   h copy copy: objectCount = 2
+27) After call to f()
+28) ~HowMany2()
+29)   h copy copy: objectCount = 1
+30) ~HowMany2()
+31)   h: objectCount = 0
+</programlisting>
+
+      <para>
+	Como se esperaba, la primera cosa que ocurre es que para
+	<emphasis>h</emphasis> se llama al constructor normal, el cual
+	incrementa el contador de objetos a uno. Pero entonces, mientras
+	se entra en <emphasis>f()</emphasis>, el compilador llama
+	silenciosamente al constructor copia para hacer el paso por
+	valor. Se crea un nuevo objeto, que es la copia de
+	<emphasis>h</emphasis> (y por tanto tendrá el identificador "h
+	copy") dentro del ámbito de la función <emphasis>f()</emphasis>.
+	Así pues, el contador de objetos se incrementa a dos, por
+	cortesía del constructor copia.
+      </para>
+      <para>
+	La línea ocho indica el principio del retorno de
+	<emphasis>f()</emphasis>. Pero antes de que se destruya la
+	variable local "h copy" (pues sale de ámbito al final de la
+	función), se debe copiar al valor de retorno, que es
+	<emphasis>h2</emphasis>. Por tanto <emphasis>h2</emphasis>, que
+	no estaba creado previamente, se crea de un objeto ya existente
+	(la variable local dentro de <emphasis>f()</emphasis>) y el
+	constructor copia vuelve a utilizarse en la línea 9. Ahora el
+	identificador de <emphasis>h2</emphasis> es "h copy copy" porque
+	copió el identificador de la variable local de
+	<emphasis>f()</emphasis>. Cuando se devuelve el objeto, pero
+	antes de que la función termine, el contador de objetos se
+	incrementa temporalmente a tres, pero la variable local con
+	identificador "h copy" se destruye, disminuyendo a dos. Después
+	de que se complete la llamada a <emphasis>f()</emphasis> en la
+	línea 13, sólo hay dos objetos, <emphasis>h</emphasis> y
+	<emphasis>h2</emphasis>, y puede comprobar, de hecho, que
+	<emphasis>h2</emphasis> terminó con el identificador "h copy
+	copy".
+      </para>
+
+      <sect3>
+	<title>Objetos temporales</title>
+	<para>
+	  En la línea 15 se empieza la llamada a
+	  <emphasis>f(h)</emphasis>, y esta vez ningunea el valor de
+	  retorno. Puede ver en la línea 16 que el constructor copia se
+	  llama, igual que antes, para pasar el argumento.  Y también,
+	  igual que antes, en la línea 21 se llama al constructor copia
+	  para el valor de retorno. Pero el constructor copia necesita
+	  una dirección con la que trabajar como su destino ( es decir,
+	  para trabajar con el puntero <emphasis>this</emphasis>). ¿De
+	  dónde procede esta dirección?
+	</para>
+	<para>
+	  Esto prueba que el compilador puede crear un objeto temporal
+	  cuando lo necesita para evaluar una expresión
+	  adecuadamente. En este caso él crea uno que ni siquiera se le
+	  ve actuar como el destino para el ninguneado valor que
+	  <emphasis>f()</emphasis> retorna. El tiempo de vida de este
+	  objeto temporal es tan corto como sea posible para que el
+	  programa no se llene de objetos temporales esperando a ser
+	  destruidos, lo cual provocaría la utilización ineficaz de
+	  recursos valiosos. En algunos casos, el objeto temporal podría
+	  pasarse inmediatamente a otra función, pero en este caso no se
+	  necesita después de la llamada a la función, así que tan
+	  pronto como la función termina llamando al destructor del
+	  objeto local (líneas 23 y 24), el objeto temporal también se
+	  destruye (líneas 25 y 26).
+	</para>
+	<para>
+	  Finalmente, de la línea 28 a la línea 31, se destruye el
+	  objeto <emphasis>h2</emphasis>, seguido de
+	  <emphasis>h</emphasis> y el contador de objetos vuelve a cero.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Constructor copia por defecto</title> 
+      <para>
+	Como el constructor de copia implementa el paso y retorno por
+	valor, es importante que el compilador cree uno en el caso de
+	estructuras simples (de hecho, es lo mismo que hace C). Sin
+	embargo todo lo que se ha visto es el comportamiento por
+	defecto: una copia bit a bit.
+      </para>
+      <para>
+	Cuando se utilizan tipos más complejos, el compilador de C++
+	creará un constructor copia automáticamente si no se implementa
+	explícitamente. Se insiste en que una copia bit a bit no tiene
+	sentido, pues no tiene porqué ser el comportamiento que se
+	necesita.
+      </para>
+      <para>
+	He aquí un ejemplo para mostrar el comportamiento más
+	inteligente del compilador. Suponga que crea una nueva clase
+	compuesta por objetos de varias clases diferentes. A esto se le
+	denomina <emphasis>composición</emphasis>, y es una de las
+	formas en las que se pueden hacer nuevas clases a partir de las
+	ya existentes. Ahora desempeñe el papel de un novato que trata
+	de resolver un problema rápidamente creando una nueva clase de
+	esta manera. No sabe nada sobre los constructores de copia, así
+	que no lo implementa. El ejemplo muestra lo que el compilador
+	hace cuando crea un constructor copia por defecto para su nueva
+	clase:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/DefaultCopyConstructor.cpp"/>
+</programlisting>
+
+      <para>
+	La clase <emphasis>WithCC</emphasis> contiene un constructor
+	copia, que simplemente anuncia que ha sido llamado, y esto
+	muestra un asunto interesante: dentro de la clase
+	<emphasis>Composite</emphasis> se crea un objeto tipo
+	<emphasis>WithCC</emphasis> utilizando el constructor por
+	defecto. Si <emphasis>WithCC</emphasis> no tuviera ningún
+	constructor, el compilador crearía uno por defecto
+	automáticamente, el cual, en este caso, no haría nada. No
+	obstante, si añade un constructor por defecto, al compilador se
+	le está diciendo que ha de utilizar los constructores
+	disponibles, por lo que no crea ningún constructor por defecto y
+	se quejará a no ser que explícitamente cree un constructor por
+	defecto, como se hizo en <emphasis>WithCC</emphasis>.
+      </para>
+      <para>
+	La clase <emphasis>WoCC</emphasis> no tiene constructor copia,
+	pero su constructor mantendrá un <emphasis>string</emphasis>
+	interno imprimible por la función <emphasis>print()</emphasis>.
+	La lista de inicializadores en el constructor de
+	<emphasis>Composite</emphasis> llama explícitamente a este
+	constructor (presentado brevemente en el Capítulo 8 y tratado
+	completamente en el Capítulo 14). La razón de esto se verá
+	posteriormente.
+      </para>
+      <para>
+	La clase <emphasis>Composite</emphasis> tiene miembros objeto
+	tanto de <emphasis>WithCC</emphasis> como de
+	<emphasis>WoCC</emphasis> (note que el objeto interno
+	<emphasis>wocc</emphasis> se inicializa en la lista de
+	inicializadores del constructor de
+	<emphasis>Composite</emphasis>, como debe ser), pero no están
+	inicializados explícitamente en el constructor copia. Sin
+	embargo un objeto <emphasis>Composite</emphasis> se crea en
+	<emphasis>main()</emphasis> utilizando el constructor copia:
+      </para>
+
+<programlisting>
+Composite c2 = c;
+</programlisting>
+
+      
+      <para>
+	El compilador ha creado un constructor copia para
+	<emphasis>Composite</emphasis> automáticamente, y la salida del
+	programa revela la manera en que se crea:
+      </para>
+
+<programlisting>
+Contents of c: Composite()
+Calling Composite copy-constructor
+WithCC(WithCC&amp;)
+Contents of c2: Composite()
+</programlisting>
+
+      
+      <para>
+	Para la creación de un constructor copia para una clase que
+	utiliza composición (y herencia, que se trata en el Capítulo
+	14), el compilador llama a todos los constructores copia de
+	todos los miembros objeto y de las clases base de manera
+	recursiva. Es decir, si el miembro objeto también contiene otro
+	objeto, también se llama a su constructor copia. En el ejemplo,
+	el compilador llama al constructor copia de
+	<emphasis>WithCC</emphasis>. La salida muestra que se llama a
+	este constructor. Como <emphasis>WoCC</emphasis> no tiene
+	constructor copia, el compilador crea uno que realiza
+	simplemente una copia bit a bit para que el constructor copia de
+	<emphasis>Composite</emphasis> lo pueda llamar. La llamada a
+	<emphasis>Composite::print()</emphasis> en
+	<emphasis>main()</emphasis> muestra que esto ocurre, porque el
+	contenido de <emphasis>c2.wocc</emphasis> es idéntico al
+	contenido de <emphasis>c.wocc</emphasis>. El proceso que realiza
+	el compilador para crear un constructor copia se denomina
+	<emphasis>inicialización inteligente de miembros(memberwise
+	initialization)</emphasis>.
+      </para>
+      <para>
+	Se recomienda definir constructor copia propio en vez del que 
+	hace el compilador. Esto garantiza que estará bajo control.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Alternativas a la construcción por copia</title>
+      <para>
+	A estas alturas su cabeza debe estar echando humo, y se
+	preguntará cómo es posible que pudiera escribir una clase que
+	funcionase sin saber nada acerca del constructor copia. No
+	obstante, recuerde que el constructor copia sólo es necesario
+	cuando la clase se pasa <emphasis>por valor</emphasis>. Si esto
+	no va a ocurrir, entonces no lo necesita.
+      </para>
+      <sect3>
+	<title>Prevención del paso por valor</title>
+	<para>
+	  "Pero", puede decir, "si no defino el constructor copia, el
+	  compilador lo creará por mí. ¿Cómo sé que un objeto nunca se
+	  pasará por valor?
+	</para>
+	<para>
+	  Existe una técnica simple que previene el paso por valor:
+	  declare un constructor copia <emphasis>private</emphasis>.  Ni
+	  siquiera necesita definirlo (sólo declararlo), a no ser que un
+	  método o una función <emphasis>friend</emphasis> necesite
+	  realizar un paso por valor. Si el usuario intenta pasar o
+	  retornar el objeto por valor, el compilador se quejará con un
+	  error porque el constructor copia es
+	  <emphasis>private</emphasis>. El compilador ya no puede crear
+	  un constructor copia por defecto porque explícitamente ya hay
+	  uno creado.
+	</para>
+	<para>
+	  He aquí un ejemplo:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/NoCopyConstruction.cpp"/>
+</programlisting>
+
+	<para>
+	  Note la  utilización de la forma más general
+	</para>
+
+<programlisting>
+NoCC(const NoCC&amp;);
+</programlisting>
+
+	<para>
+	  utilizando <emphasis>const</emphasis>
+	</para>
+      </sect3>
+      <sect3>
+	<title>Funciones que modifican objetos externos</title>
+	<para>
+	  La sintaxis de referencias es más agradable que la de
+	  punteros, aunque oculte significado al que lea el código
+	  fuente. Por ejemplo, en la librería iostreams existe una
+	  versión sobrecargada de la función <emphasis>get()</emphasis>
+	  que tiene como argumento un <emphasis>char &amp;</emphasis>, y
+	  su cometido es modificar ese argumento y utilizarlo como el
+	  valor que retorna <emphasis>get()</emphasis>. No obstante,
+	  cuando se lee el código fuente de esta función, no es
+	  inmediatamente obvio que la variable que se pasa como
+	  argumento vaya a ser modificada:
+	</para>
+
+<programlisting>
+char c;
+cin.get(c);
+</programlisting>
+
+	<para>
+	  Parece que a la función se le pasa por valor, lo que sugiere
+	  que el argumento que se pasa <emphasis>no</emphasis> se
+	  modifica.
+	</para>
+	<para>
+	  A causa de esto, es probablemente más seguro, desde el punto
+	  de vista de mantenimiento del código fuente, utilizar punteros
+	  que pasen la dirección del argumento que se desee
+	  modificar. Si <emphasis>siempre</emphasis> pasa direcciones
+	  como referencias constantes <emphasis>excepto</emphasis>
+	  cuando intenta modificar el argumento que se pasa a través de
+	  la dirección, donde pasaría un puntero no constante, entonces
+	  es más fácil para el lector seguir el código fuente.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Punteros a miembros</title>
+    <para>
+      Un puntero es una variable que contiene la dirección de una
+      ubicación. Se puede cambiar a lo que el puntero apunta en tiempo
+      de ejecución. La ubicación a la que apunta puede ser un dato o
+      función. El <emphasis>puntero a miembro</emphasis> de C++ sigue el
+      mismo concepto, excepto que a lo que apunta es una ubicación
+      dentro de una clase. Pero surge el dilema de que un puntero
+      necesita una dirección, pero no hay "dirección" alguna dentro de
+      una clase; La selección de un miembro de una clase se realiza
+      mediante un desplazamiento dentro de la clase. Pero primero hay
+      que conocer la dirección donde comienza un objeto en particular
+      para luego sumarle el desplazamiento y así localizar el miembro de
+      la clase. La sintaxis de los punteros a miembros requiere que
+      usted seleccione un objeto al mismo tiempo que está accediendo al
+      contenido del puntero al miembro.
+    </para>
+    <para>
+      Para entender esta sintaxis, considere una simple estructura, con
+      un puntero <emphasis>sp</emphasis> y un objeto
+      <emphasis>so</emphasis>.  Puede seleccionar sus miembros de la
+      misma manera que en el siguiente ejemplo:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/SimpleStructure.cpp"/>
+</programlisting>
+
+    <para>
+      Ahora suponga que tiene un puntero normal que se llama
+      <emphasis>ip</emphasis> y que apunta a un entero. Para acceder a
+      lo que <emphasis>ip</emphasis> está apuntando, ha de estar
+      precedido por un '*':
+    </para>
+
+<programlisting>
+*ip=4;
+</programlisting>
+
+    <para>
+      Finalmente, se preguntará qué pasa si tiene un puntero que está
+      apuntando a algo que está dentro de un objeto, incluso si lo que
+      realmente representa es un desplazamiento dentro del objeto. Para
+      acceder a lo que está apuntando, debe preceder el puntero con '*'.
+      Pero como es un desplazamiento dentro de un objeto, también ha de
+      referirse al objeto con el que estamos tratando. Así, el * se
+      combina con el objeto. Por tanto, la nueva sintaxis se escribe
+      <emphasis>->*</emphasis> para un puntero que apunta a un objeto, y
+      <emphasis>.*</emphasis> para un objeto o referencia, tal como
+      esto:
+    </para>
+
+<programlisting>
+objectPointer->*pointerToMember = 47;
+object.*pointerToMember = 47;
+</programlisting>
+
+    <para>
+      Pero, ¿cuál es la sintaxis para definir el
+      <emphasis>pointerToMember</emphasis>? Pues como cualquier puntero,
+      tiene que decir el tipo al que apuntará, por lo que se utilizaría
+      el * en la definición. La única diferencia es que debe decir a qué
+      clase de objetos este miembro puntero apuntará. Obviamente, esto
+      se consigue con el nombre de la clase y el operador de resolución
+      de ámbito. Así,
+    </para>
+
+<programlisting>
+int ObjectClass::*pointerToMember;
+</programlisting>
+
+    <para>
+      define una variable miembro puntero llamado
+      <emphasis>pointerToMember</emphasis> que apunta a cualquier entero
+      dentro de <emphasis>ObjectClass</emphasis>. También puede
+      inicializar el miembro puntero cuando se define (o en cualquier
+      otro momento):
+    </para>
+
+<programlisting>
+int ObjectClass::*pointerToMember = &amp;ObjectClass::a;
+</programlisting>
+
+    <para>
+      Realmente no existe una "dirección" de
+      <emphasis>ObjectClass::a</emphasis> porque se está refiriendo a la
+      clase y no a un objeto de esa clase.  Así,
+      <emphasis>&amp;ObjectClass::a</emphasis> se puede utilizar sólo
+      con la sintaxis de un puntero a miembro.
+    </para>
+    <para>
+      He aquí un ejemplo que muestra cómo crear y utilizar punteros a 
+      atributos:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/PointerToMemberData.cpp"/>
+</programlisting>
+
+    <para>
+      Obviamente, son muy desagradables de utilizar en cualquier lugar
+      excepto para caso especiales (que es exactamente para lo que
+      crearon).
+    </para>
+    <para>
+      Además, los punteros a miembro son bastante limitados: pueden
+      asignarse solamente a una ubicación específica dentro de una
+      clase.  No podría, por ejemplo, incrementarlos o compararlos tal
+      como puede hacer con punteros normales.
+    </para>
+    <sect2>
+      <title>Funciones</title>
+      <para>
+	Un ejercicio similar se produce con la sintaxis de puntero a
+	miembro para métodos. Un puntero a una función (presentado al
+	final del Capítulo 3) se define como:
+      </para>
+
+<programlisting>
+  int (*fp)(float);
+</programlisting>
+
+      <para>
+	Los paréntesis que engloban a <emphasis>(*fb)</emphasis> son
+	necesarios para que fuercen la evaluación de la definición
+	apropiadamente. Sin ellos sería una función que devuelve un
+	<emphasis>int*</emphasis>.
+      </para>
+      <para>
+	Los paréntesis también desempeñan un papel importante cuando
+	definen y utilizan punteros a métodos. Si tiene una función
+	dentro de una clase, puede definir un puntero a ese método
+	insertando el nombre de la clase y el operador de resolución de
+	ámbito en una definición normal de puntero a función:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/PmemFunDefinition.cpp"/>
+</programlisting>
+
+      <para>
+	En la definición de <emphasis>fp2</emphasis> puede verse que el
+	puntero a un método puede inicializarse cuando se crea, o en
+	cualquier otro momento. A diferencia de las funciones que no son
+	miembros, el <emphasis>&amp;</emphasis> <emphasis>no</emphasis>
+	es optativo para obtener la dirección de un método. Sin embargo,
+	se puede dar el identificador de la función sin la lista de
+	argumentos, porque la sobrecarga se resuelve por el tipo de
+	puntero a miembro.
+      </para>
+      <sect3>
+	<title>Un ejemplo</title>
+	<para>
+	  Lo interesante de un puntero es que se puede cambiar el valor
+	  del mismo para apuntar a otro lugar en tiempo de ejecución, lo
+	  cual proporciona mucha flexibilidad en la programación porque
+	  a través de un puntero se puede cambiar el
+	  <emphasis>comportamiento</emphasis> del programa en tiempo de
+	  ejecución. Un puntero a miembro no es diferente; le permite
+	  elegir un miembro en tiempo de ejecución. Típicamente, sus
+	  clases sólo tendrán métodos visibles públicamente (los
+	  atributos normalmente se consideran parte de la implementación
+	  que va oculta), así que el siguiente ejemplo elige métodos en
+	  tiempo de ejecución.
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/PointerToMemberFunction.cpp"/>
+</programlisting>
+
+	<para>
+	  Por supuesto, no es razonable esperar que el usuario casual
+	  cree expresiones tan complejas. Si el usuario necesita
+	  manipular directamente un puntero a miembro, los
+	  <emphasis>typedef</emphasis> vienen al rescate. Para dejar aún
+	  mejor las cosas, puede utilizar un puntero a función como
+	  parte del mecanismo interno de la implementación. He aquí un
+	  ejemplo que utiliza un puntero a miembro
+	  <emphasis>dentro</emphasis> de la clase. Todo lo que el
+	  usuario necesita es pasar un número para elegir una función.
+	  <footnote>
+	    <para>
+	      Gracias a Owen Mortensen por este ejemplo
+	    </para>
+	  </footnote>
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C11/PointerToMemberFunction2.cpp"/>
+</programlisting>
+
+	<para>
+	  En la interfaz de la clase y en <emphasis>main()</emphasis>,
+	  puede observar que toda la implementación, funciones
+	  incluidas, han sido puestas como privadas. El código ha de
+	  pedir el <emphasis>count()</emphasis> de las funciones. De
+	  esta manera, el que implementa la clase puede cambiar la
+	  cantidad de funciones en la implementación por debajo sin que
+	  afecte al código que utilice la clase.
+	</para>
+	<para>
+	  La inicialización de los punteros a miembro en el constructor
+	  para que estén sobre especificado. ¿No debería ser capaz de
+	  poner
+	</para>
+
+<programlisting>
+fptr[1] = &amp;g;
+</programlisting>
+
+	<para>
+	  porque el nombre <emphasis>g</emphasis> es un método, la cual
+	  está en el ámbito de la clase? El problema aquí es que no
+	  sería conforme a la sintaxis de puntero a miembro.  Así todo
+	  el mundo, incluido el compilador, puede imaginarse qué está
+	  pasando.  De igual forma, cuando se accede al contenido del
+	  puntero a miembro, parece que
+	</para>
+
+<programlisting>
+(this->*fptr[i])(j);
+</programlisting>
+
+	<para>
+	  también está sobre especificado; <emphasis>this</emphasis>
+	  parece redundante. La sintaxis necesita que un puntero a
+	  miembro siempre esté ligado a un objeto cuando se accede al
+	  contenido al que que apunta.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Resumen</title>
+    <para>
+      Los puntero en C++ son casi idénticos a los punteros en C, lo cual
+      es bueno. De otra manera, gran cantidad de código C no compilaría
+      bajo C++. Los únicos errores en tiempo de compilación serán
+      aquéllos que realicen asignaciones peligrosas. Esos errores pueden
+      eliminarse con una simple (¡pero explícito!) molde al tipo
+      deseado.
+    </para>
+    <para>
+      C++ también añade la <emphasis>referencia</emphasis> de Algol y
+      Pascal, que es como un puntero constante que el compilador hace
+      que se acceda directamente al contenido al que apunta. Una
+      referencia contiene una dirección, pero lo trata como un
+      objeto. Las referencias son esenciales para una sintaxis clara con
+      la sobrecarga de operadores (el tema del siguiente capítulo), pero
+      también proporcionan mejoras sintácticas para el paso y retorno de
+      objetos en funciones normales.
+    </para>
+    <para>
+      El constructor copia coge una referencia de un objeto ya existente
+      del mismo tipo que el argumento, y lo utiliza para la creación de
+      un nuevo objeto procedente del ya existente. El compilador llama
+      automáticamente al constructor copia cuando pasa o retorna un
+      objeto por valor. Aunque el compilador crea un constructor copia
+      automáticamente, si cree que su clase necesita uno, debería
+      definirlo para asegurar un comportamiento apropiado. Si no desea
+      que el objeto se pase o retorne por valor, debería crear un
+      constructor copia privado.
+    </para>
+    <para>
+      Los punteros a miembro tienen la misma capacidad que los punteros
+      normales: puede elegir una región de memoria particular (atributo
+      o método) en tiempo de ejecución. Los punteros a miembro funcionan
+      con los miembros de una clase en vez de datos o funciones
+      globales.  Tiene la suficiente flexibilidad para cambiar el
+      comportamiento en tiempo de ejecución.
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Ejercicios</title>
+    <tip>
+      <para>
+	La soluciones a los ejercicios seleccionados se pueden encontrar
+	en el documento electrónico <emphasis>The Thinking in C++
+	Annotated Solution Guide</emphasis>, disponible por un módico
+	precio en www.BruceEckel.com.
+      </para>
+    </tip>
+    <para>		
+      <orderedlist>
+	
+	<listitem> 
+	  <para>
+	    Convierta el fragmento de código "bird &amp; rock" al 
+	    principio de este capítulo a un programa C (utilizando <emphasis>
+	      struct</emphasis>uras para los tipos de datos), y que compile. 
+	    Ahora intente compilarlo con un compilador de C++ y vea qué
+	    ocurre.
+	  </para>
+	</listitem>
+	
+	<listitem> 
+	  <para>
+	    Coja los fragmentos de código al principio de la
+	    sección titulada "Referencias en C++" y póngalos en un
+	    <emphasis>main()</emphasis>.  Añada sentencias para imprimir
+	    en la salida para que pueda demostrar usted mismo que las
+	    referencias son como punteros que acceden automáticamente a lo
+	    que apuntan.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Escriba un programa en el cual intente (1) Crear una
+	    referencia que no esté inicializada cuando se crea. (2)
+	    Cambiar una referencia para que se refiera a otro objeto
+	    después de que se haya inicializado. (3) Crear una
+	    referencia nula.
+	  </para>
+	</listitem>
+	  
+	<listitem>
+	  <para>
+	    Escriba una función que tenga un puntero por argumento,
+	    modifique el contenido de lo que el puntero apunta, y retorno
+	    ese mismo contenido como si de una referencia se tratara.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una nueva clase con algunos métodos, y haga que el 
+	    objeto que sea apuntado por el argumento del Ejercicio 4. Haga que 
+	    el puntero pasado por como argumento y algunos métodos sean 
+	    constantes y pruebe que sólo puede llamar a los métodos constantes 
+	    dentro de su función. Haga que el argumento de su función sea una 
+	    referencia en vez de un puntero.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Coja los fragmentos de código al principio de la sección 
+	    "referencias a puntero" y conviértalos en un programa.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Cree una función que tome como argumento una referencia a 
+	    un puntero que apunta a otro puntero y modifique ese argumento. En 
+	    <emphasis>main()</emphasis>, llame a la función.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Cree una función que toma un argumento del tipo 
+	    <emphasis>char&amp;</emphasis> y lo modifica. En el 
+	    <emphasis>main()</emphasis> imprima a la salida una variable 
+	    <emphasis>char</emphasis>, llame a su función con esa variable e 
+	    imprima la variable de nuevo para demostrar que ha sido cambiada. 
+	    ¿Cómo afecta esto a la legibilidad del programa?
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Escriba una clase que tiene un método constante y otra que 
+	    no lo sea. Escriba tres funciones que toman un objeto de esa clase 
+	    como argumento; la primera lo toma por valor, la segunda lo toma 
+	    por referencia y la tercera lo toma mediante una referencia 
+	    constante. Dentro de las funciones, intente llamar a las dos 
+	    funciones de su clase y explique los resultados.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    (Algo difícil) Escriba una función simple que toma un 
+	    entero como argumento, incrementa el valor, y lo retorna. En el 
+	    <emphasis>main()</emphasis>, llame a su función. Intente que el 
+	    compilador genere el código ensamblador e intente entender cómo 
+	    los argumentos se pasan y se retornan, y cómo las variables locales
+	    se colocan en la pila.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Escriba una función que devuelva un
+	    <emphasis>double</emphasis>.  Genere el código ensamblador y
+	    explique cómo se retorna el valor.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Genere el código ensamblador de
+	    <emphasis>PassingBigStructures.cpp</emphasis>. Recorra y
+	    desmitifique la manera en que su compilador genera el código
+	    para pasar y devolver estructuras grandes.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Escriba una simple función recursiva que disminuya su
+	    argumento y retorne cero si el argumento llega a cero, o que
+	    se vuelva a llamar. Genere el código ensamblador para esta
+	    función y explique la forma en el el compilador implementa la
+	    recurrencia.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Escriba código para demostrar que el compilador
+	    genera un constructor copia automáticamente en caso de que
+	    usted no lo implemente. Demuestre que el constructor copia
+	    generado por el compilador realiza una copia bit a bit de
+	    tipos primitivos y llama a los constructores copia de los
+	    tipos definidos por el usuario.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Escriba una clase que en el constructor copia se anuncia a
+	    sí mismo a través de un <emphasis>cout</emphasis>. Ahora
+	    cree una función que pasa un objeto de su nueva clase por
+	    valor y otro más que crea un objeto local de su nueva clase
+	    y lo devuelve por valor.  Llame a estas funciones para
+	    demostrar que el constructor copia es, en efecto, llamado
+	    cuando se pasan y retornan objetos por valor.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Cree un objeto que contenga un <emphasis>double*</emphasis>.
+	    Que el constructor inicialice el
+	    <emphasis>double*</emphasis> llamando a <emphasis>new
+	    double</emphasis> y asignando un valor. Entonces, que el
+	    destructor imprima el valor al que apunta, asigne ese valor
+	    a -1, llame a <emphasis>delete</emphasis> para liberar la
+	    memoria y que ponga el puntero a cero. Ahora cree una
+	    función que tome un objeto de su clase por valor, y llame a
+	    esta función en el <emphasis>main()</emphasis>. ¿Qué ocurre?
+	    Solucione el problema implementando un constructor copia.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una clase con un constructor que parezca un constructor
+	    copia, pero que tenga un argumento de más con un valor por
+	    defecto. Muestre que aún así se utiliza como constructor
+	    copia.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una clase con un constructor copia que se anuncie a sí
+	    mismo (es decir que imprima por la salida que ha sido
+	    llamado).  Haga una segunda clase que contenga un objeto
+	    miembro de la primera clase, pero no cree un constructor
+	    copia. Muestre que el constructor copia, que el compilador
+	    genera automáticamente en la segunda clase, llama al
+	    constructor copia de la primera.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una clase muy simple, y una función que devuelva un
+	    objeto de esa clase por valor. Cree una segunda función que
+	    tome una referencia de un objeto de su clase. Llame a la
+	    segunda función pasándole como argumento una llamada a la
+	    primera función, y demuestre que la segunda función debe
+	    utilizar una referencia constante como argumento.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Cree una clase simple sin constructor copia, y una simple
+	    función que tome un objeto de esa clase por valor. Ahora
+	    cambie su clase añadiéndola una declaración (sólo declare,
+	    no defina) privada de un constructor copia. Explique lo que
+	    ocurre cuando compila la función.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Este ejercicio crea una alternativa a la utilización del
+	    constructor copia. Cree una clase <emphasis>X</emphasis> y
+	    declare (pero no defina) un constructor copia privado. Haga
+	    una función <emphasis>clone()</emphasis> pública como un
+	    método constante que devuelve una copia del objeto creado
+	    utilizando <emphasis>new</emphasis>. Ahora escriba una
+	    función que tome como argumento un <emphasis>const
+	    X&amp;</emphasis> y clone una copia local que puede
+	    modificarse. El inconveniente de esto es que usted es
+	    responsable de destruir explícitamente el objeto clonado
+	    (utilizando <emphasis>delete</emphasis>) cuando ya haya
+	    terminado con él.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Explique qué está mal en <emphasis>Mem.cpp</emphasis>
+	    y <emphasis>MemTest.cpp</emphasis> del Capítulo 7. Solucione
+	    el problema.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una clase que contenga un <emphasis>double</emphasis> y
+	    una función <emphasis>print()</emphasis> que imprima el
+	    <emphasis>double</emphasis>. Cree punteros a miembro tanto
+	    para el atributo como al método de su clase. Cree un objeto
+	    de su clase y un puntero a ese objeto, y manipule ambos
+	    elementos de la clase a través de los punteros a miembro,
+	    utilizando tanto el objeto como el puntero al objeto.
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Cree una clase que contenga un array de
+	    enteros. ¿Puede recorrer el array mediante un puntero a
+	    miembro?
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Modifique <emphasis>PmemFunDefinition.cpp</emphasis>
+	    añadiendo un método <emphasis>f()</emphasis> sobrecargada
+	    (puede determinar la lista de argumentos que provoque la
+	    sobrecarga).  Ahora haga un segundo puntero a miembro,
+	    asígnelo a la versión sobrecargada de
+	    <emphasis>f()</emphasis>, y llame al método a través del
+	    puntero. ¿Cómo sucede la resolución de función sobrecargada
+	    en este caso?
+	  </para>
+	</listitem>
+
+	<listitem>
+	  <para>
+	    Empiece con la función <filename>FunctionTable.cpp</filename>
+	    del Capítulo 3. Cree una clase que contenga un
+	    <emphasis>vector</emphasis> de punteros a funciones, con
+	    métodos <emphasis>add()</emphasis> y
+	    <emphasis>remove()</emphasis> para añadir y quitar punteros
+	    a función. Añada una función denominada
+	    <emphasis>run()</emphasis> que recorra el
+	    <emphasis>vector</emphasis> y llame a todas la funciones.
+	  </para>
+	</listitem>
+	
+	<listitem>
+	  <para>
+	    Modifique el Ejercicio 27 para que funcione con punteros a
+	    métodos.
+	  </para>
+	</listitem>
+	
+      </orderedlist>
+    </para>
+  </sect1>
+  
+  
+</chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->
+
+<!-- 
+1ª REVISIÓN. (NO TERMINADA)
+  - Marcado DocBook muy deficiente
+  - Uso masivo e injustificado de 'emphasis'
+  - Dentro de los 'programlisting' aparecen cosas como <iostream>
+    que lógicamente dan al traste con la compilación DocBook
+  - La calidad de la traducción es buena aunque fallan algunos
+    términos técnicos (p.ej: "Constructor copia")
+  - Sólo he hecho los cambios necesarios para que compile pero la mayor
+    parte de los errores que cito aún no están corregidos
+-->

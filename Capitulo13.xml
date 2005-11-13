@@ -1,0 +1,1999 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: Fernando Perfumo Velázquez <nperfumo@telefonica.net>
+  Formateado DocBook:  Fernando Perfumo Velázquez <nperfumo@telefonica.net>
+  1ª Revisión:         David Villa Alises (100%)
+  2ª Revisión: 
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C13">
+    
+  <title>
+    Creación dinámica de objetos
+  </title>
+    
+  <highlights>
+    <para> 
+      A veces se conoce el número exacto, el tipo y la duración de la
+      vida de los objetos en un programa, pero no siempre es así.
+    </para>
+  </highlights>
+  
+  <para> 
+    ¿Cuántos aviones tendrá que supervisar un sistema de
+    control de tráfico aéreo? ¿Cuántas formas o figuras se usarán en
+    un sistema CAD? ¿Cuántos nodos habrá en una red? 
+  </para>
+
+  <para>
+    Para resolver un problema general de programación, es imprescindible
+    poder crear y destruir un número indeterminado de objetos en tiempo
+    de ejecución. Con esta finalidad, la biblioteca estándar de C
+    proporciona las funciones de asignación dinámica de memoria
+    <function>malloc()</function> y sus variantes, y
+    <function>free()</function>, que permiten obtener y liberar bloques
+    en el espacio de memoria del <emphasis>montículo</emphasis> (también
+    llamado <emphasis>espacio libre</emphasis><footnote>
+      <para>
+	N.T. espacio de almacenamiento libre (<foreignphrase>free
+    store</foreignphrase>)
+      </para>
+    </footnote> mientras se ejecuta el programa.
+  </para>
+
+  <para>
+    Este método sin embargo, no funcionará en
+    C++. El constructor no le permite
+    manipular la dirección de memoria a inicializar. De permitirse,
+    sería posible:
+  </para>
+
+<!--
+1. Forget. Then guaranteed initialization of objects in C++ wouldn\u2019t be guaranteed.
+2. Accidentally do something to the object before you initialize it, expecting the right thing to happen.
+3. Hand it the wrong-sized object
+-->
+
+  <orderedlist numeration="arabic">
+
+    <listitem>
+      <para>
+	Olvidar la llamada al constructor. Con lo cual no sería posible
+	garantizar la inicialización de los objetos en
+	C++.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para>
+	Usar accidentalmente un objeto que aún no ha sido
+	inicializado, esperando que todo vaya bien.
+      </para>
+    </listitem>
+
+    <listitem>
+      <para> 
+	FIXME: Usar un objeto de tamaño incorrecto.
+      </para>
+    </listitem> 
+
+  </orderedlist>
+  
+  <para>
+    Y por supuesto, incluso si se hizo todo correctamente, cualquiera
+    que modifique el programa estaría expuesto a cometer esos mismos
+    errores. Una gran parte de los problemas de programación tienen su
+    origen en la inicialización incorrecta de objetos, lo que hace
+    especialmente importante garantizar la llamada a los
+    constructores para los objetos que han de ser creados en el
+    montículo.
+  </para>
+
+  <para>
+    ¿Cómo se garantiza en C++ la correcta inicialización y limpieza,
+    permitiendo la creación dinámica de objetos? 
+  </para>
+
+  <para>
+    La respuesta está en integrar en el lenguaje mismo la creación
+    dinámica de objetos. <function>malloc()</function> y <function>
+    free()</function> son funciones de biblioteca y por tanto, están
+    fuera del control del compilador. Si se dispone de un
+    <emphasis>operador</emphasis> que lleve a cabo el acto combinado de
+    la asignación dinámica de memoria y la inicialización, y de otro
+    operador que realice el acto combinado de la limpieza y de
+    liberación de memoria, el compilador podrá garantizar la llamada a
+    los constructores y destructores de los objetos.
+  </para>
+
+  <para>
+    En este capítulo verá cómo se resuelve de modo elegante este
+    problema con los operadores <literal>new</literal> y
+    <literal>delete</literal> de C++.
+  </para>
+  
+  <sect1>
+    <title>Creación de objetos</title>
+    <para>
+      La creación de un objeto en C++ tiene
+      lugar en dos pasos:
+    </para>
+    <orderedlist numeration="arabic">
+      <listitem>
+	<para>Asignación de memoria para el objeto.</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Llamada al constructor.
+	</para>
+      </listitem>
+    </orderedlist>
+
+    <para>
+      Aceptemos por ahora que este segundo paso ocurre
+      <emphasis>siempre</emphasis>. C++ lo
+      fuerza, debido a que el uso de objetos no inicializados es una de
+      las causas más frecuentes de errores de programación. Siempre se
+      invoca al constructor, sin importar cómo ni dónde se crea el
+      objeto.
+    </para>
+
+    <para>
+      El primero de estos pasos puede ocurrir de varios modos y en
+      diferente momento:
+    </para>
+
+    <orderedlist numeration="arabic">
+
+      <listitem>
+	<para>
+	  Asignación de memoria en la zona de almacenamiento
+	  estático, que tiene lugar durante la carga del programa.
+	  El espacio de memoria asignado al objeto existe hasta que
+	  el programa termina.
+	</para>
+      </listitem>
+      
+      <listitem>
+	<para>
+	  Asignación de memoria en la pila, cuando se alcanza algún
+	  punto determinado durante la ejecución del programa (la llave
+	  de apertura de un bloque). La memoria asignada se vuelve a
+	  liberar de forma automática en cuanto se alcanza el punto de
+	  ejecución complementario (la llave de cierre de un
+	  bloque). Las operaciones de manipulación de la pila forman
+	  parte del conjunto de instrucciones del procesador y son muy
+	  eficientes. Por otra parte, es necesario saber cuantas
+	  variables se necesitan mientras se escribe el programa de modo
+	  que el copilador pueda generar el código correspondiente.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Asignanción dinámica, en una zona de memoria libre llamada
+	  montículo (<foreignphrase>heap</foreignphrase> o
+	  <foreignphrase>free store</foreignphrase>). Se reserva espacio
+	  para un objeto en esta zona mediante la llamada a una función
+	  durante la ejecución del programa; esto significa que se puede
+	  decidir en cualquier momento que se necesita cierta cantidad
+	  de memoria. Esto conlleva la responsabilidad de determinar el
+	  momento en que ha de liberarse la memoria, lo que implica
+	  determinar el tiempo de vida de la misma que, por tanto, ya no
+	  esta bajo control de las reglas de ámbito.
+	</para>
+      </listitem>
+    </orderedlist>
+
+    <para>
+      A menudo, las tres regiones de memoria referidas se disponen
+      en una zona contigua de la memoria física: área estática, la
+      pila, y el montículo, en un orden determinado por el escritor
+      del compilador. No hay reglas fijas. La pila puede estar en una zona
+      especial, y puede que las asignaciones en el montículo se
+      obtengan mediante petición de bloques de la memoria del
+      sistema operativo. Estos detalles quedan normalmente ocultos
+      al programador puesto que todo lo que se necesita conocer al
+      respecto es que esa memoria estará disponible para cuando se
+      necesite.  
+    </para>
+
+    <sect2>
+      <title>Asignación dinámica en C</title>
+
+      <para>
+	Cproporciona las funciones de su
+	biblioteca estándar <function>malloc()</function> y sus
+	variantes <function>calloc()</function> y
+	<function>realloc()</function> para asignar, y
+	<function>free()</function> para liberar bloques de memoria
+	dinámicamente en tiempo de ejecución. Estas funciones son
+	pragmáticas pero rudimentarias por lo que requieren comprensión y
+	un cuidadoso manejo por parte del programador. El listado que
+	sigue es un ejemplo que ilustra el modo de crear una instancia
+	de una clase con estas funciones de C:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/MallocClass.cpp"/>
+</programlisting>
+
+      <para>
+	Observe el uso de <function>malloc()</function> para la
+	obtención de espacio para el objeto:
+      </para>
+
+      <programlisting> 
+	Obj* obj = (Obj*)malloc(sizeof(Obj));
+      </programlisting>
+      
+      <para>
+	Se debe pasar como parámetro a <function>malloc()</function> el
+	tamaño del objeto. El tipo de retorno de
+	<function>malloc()</function> es <literal>void*</literal>, pues
+	es sólo un puntero a un bloque de memoria, no un objeto. En
+	C++ no se permite la asignación
+	directa de un <literal>void*</literal> a ningún otro tipo de
+	puntero, de ahí la necesidad de la conversión explícita de
+	tipo (molde)
+      </para>
+
+      <para>
+	Puede ocurrir que <function>malloc()</function> no encuentre
+	un bloque adecuado, en cuyo caso devolverá un puntero nulo,
+	de ahí la necesidad de comprobar la validez del puntero
+	devuelto.
+      </para>
+
+      <para>
+	El principal escollo está en la línea:
+      </para>
+
+      <programlisting>
+	obj->initialize();
+      </programlisting>
+
+      <para>
+	El usuario deberá asegurarse de inicializar el objeto antes de
+	su uso. Obsérvese que no se ha usado el constructor debido a que
+	éste no puede ser llamado de modo explícito
+	<footnote><para>Existe una sintaxis especial llamada
+	<foreignphrase>placement-new</foreignphrase> que permite llamar
+	al constructor para un bloque de memoria preasignando. Se verá
+	más adelante, en este mismo capítulo.</para></footnote>; es
+	llamado por el compilador cuando se crea un objeto.  El problema
+	es que el usuario puede olvidar inicializar el objeto antes de
+	usarlo, introduciendo así una importante fuente de problemas.
+      </para>
+
+      <para>
+	Como consecuencia, muchos programadores encuentran muy confusas
+	y complicadas las funciones de asignación dinámica de la memoria
+	en C. No es muy dificil encontrar
+	programadores que, usando máquinas con memoria virtual, usan
+	vectores enormes en el área de almacenamiento estático para
+	evitar tener que tratar con la asignación dinámica. Dado que
+	C++ intenta facilitar el uso de la
+	biblioteca a los programadores ocasionales, no es aceptable la
+	forma de abordar la asignación dinámica en
+	C.
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Operador <literal>new</literal></title>
+      <para>
+	La solución que ofrece C++ consiste
+	en combinar la serie de acciones necesarias para la creación de
+	un objeto en un único operador llamado
+	<literal>>new</literal>. Cuando se crea un objeto mediante el
+	operador <literal>>new</literal>, éste se encarga de obtener el
+	espacio necesario para el objeto y de llamar a su constructor.
+	Cuando se ejecuta el código:
+      </para>
+      
+      <programlisting>
+	MyType *fp = new MyType(1,2);
+      </programlisting>
+      
+      <para> se asigna espacio mediante alguna llamada equivalente a
+	<literal>>malloc(sizeof(MyType))</literal> --con frecuencia es
+	así, literalmente--, y usando la dirección obtenida como
+	puntero <literal>>this</literal>, y (1,2) como argumentos, se
+	llama al constructor de la clase <classname>MyType</classname>.
+	Para cuando está disponible, el valor de retorno de
+	<literal>new</literal> es ya un puntero válido a un objeto
+	inicializado. Además es del tipo correcto, lo que hace
+	innecesaria la conversión.
+      </para>
+      
+      <para>
+	El operador <literal>new</literal> por defecto, comprueba el
+	éxito o fracaso de la asignación de memoria como paso previo
+	a la llamada al constructor, haciendo innecesaria y
+	redundante la posterior comprobación.  Más adelante en este
+	capítulo se verá qué sucede si se produce este fallo.
+      </para>
+      
+      <para>
+	En las expresiones con <literal>new</literal> se puede usar
+	cualquiera de los constructores disponibles para una
+	clase. Si éste no tiene argumentos, se escribe la expresión
+	sin lista de argumentos
+      </para>
+
+      <programlisting>
+	MyType *fp = new MyType;
+      </programlisting>
+      
+      <para>
+	Es notable la simpleza alcanzada en la creación dinámica de
+	objetos: una única expresión realiza todo el trabajo de cálculo
+	de tamaño, asignación, comprobaciones de seguridad y conversión
+	de tipo. Esto hace que la creación dinámica de objetos sea tan
+	sencilla como la creación en la pila.
+      </para>
+      
+    </sect2>
+    
+    <sect2>
+      
+      <title>Operador <literal>delete</literal></title>
+      
+      <para>
+	El complemento a la expresión <literal>new</literal> es la
+	expresión <literal>delete</literal>, que primero llama al
+	destructor y después libera la memoria (a menudo mediante una
+	llamada a <function>free()</function>). El argumento para una
+	expresión con <literal>delete</literal> debe ser una dirección:
+	un puntero a objeto creado mediante <literal>new</literal>.
+      </para>
+      
+      <programlisting>
+	delete fp;
+      </programlisting>
+      
+      <para>
+	Esta expresión destruye el objeto y después libera el espacio
+	dinámicamente asignado al objeto <type>MyType</type>
+      </para>
+      
+      <para>
+	El uso del operador <literal>delete</literal> debe reservarse
+	sólo para los objetos que hayan sido creados mediante
+	<literal>new</literal>. Las consecuencias de aplicar el operador
+	<literal>delete</literal> a los objetos creados con
+	<function>malloc()</function>, <function>calloc()</function> o
+	<function>realloc()</function> no están definidas. Dado que la
+	mayoría de las implementaciones por defecto de
+	<literal>new</literal> y <literal>delete</literal> usan
+	<function>malloc()</function> y <function>free()</function>, el
+	resultado será probablemente la liberación de la memoria sin la
+	llamada al destructor.
+      </para>
+      
+      <para>
+	No ocurre nada si el puntero que se le pasa a
+	<literal>delete</literal> es nulo. Por esa razón, a menudo se
+	recomienda asignar cero al puntero inmediatamente después de
+	usar <literal>delete</literal>; se evita así que
+	pueda ser usado de nuevo como argumento para
+	<literal>delete</literal>. Tratar de destruir un objeto más de
+	una vez es un error de consecuencias imprevisibles.
+      </para>
+
+    </sect2>
+
+    <sect2>
+
+      <title>Un ejemplo sencillo</title>
+
+      <para>
+	El siguiente ejemplo demuestra que la inicialización tiene lugar:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/Tree.h"/>
+</programlisting>
+
+
+<!--
+ We can prove that the constructor is called by printing out the value
+ of the Tree. Here, it's done by overloading the operator<< to use
+ with an ostream and a Tree*. Note, however, that even though the
+ function is declared as a friend, it is defined as an inline! This is a
+ mere convenience \u2013 defining a friend function as an inline to a
+ class doesn\u2019t change the friend status or the fact that it\u2019s
+ a global function and not a class member function. Also notice that the
+ return value is the result of the entire output expression, which is an
+ ostream& (which it must be, to satisfy the return value type of the
+ function
+-->
+      <para>
+	Se puede probar que el constructor es invocado imprimiendo el
+	valor de <classname>Tree</classname>. Aquí se hace sobrecargando
+	el <function>operator &lt;&lt;</function> para usarlo con un
+	<varname>ostream</varname> y un <type>Tree*</type>. Notar, sin
+	embargo, que aunque la función está declarada como
+	<literal>friend</literal>, está definida como una
+	<literal>inline</literal>!. Esto es así por conveniencia
+	--definir una función amiga como <literal>inline</literal> a una
+	clase no cambia su condición de amiga o el hecho de que es una
+	función global y no una función miembro. También resaltar que el
+	valor de retorno es el resultado de una expresión completa (el
+	<literal>ostream&amp;</literal>), y así debe ser, para
+	satisfacer el tipo del valor de retorno de la función.
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Trabajo extra para el gestor de memoria</title> 
+      <para>
+	El compilador conoce con exactitud el tipo, la cantidad y el
+	ámbito de los objetos automáticos que se crean en la pila;
+	el espacio asignado a los objetos y su duración queda así
+	bien definido en el código que genera. Se requiere mayor
+	gasto tanto en tiempo como en espacio para la creación
+	dinámica de objetos.
+      </para>
+
+      <para>	  
+	Veamos el caso típico, en el que podemos reemplazar
+	<function>malloc()</function> por
+	<function>calloc()</function> o
+	<function>realloc()</function>. En un punto determinado de
+	un programa se llama a <function>malloc()</function>, que
+	solicita un bloque de memoria del montículo. Todo este
+	código puede en realidad formar parte del código de
+	<function>malloc()</function>.
+      </para>
+
+      <para>
+	Ahora tiene lugar la búsqueda de un bloque de tamaño adecuado de
+	entre los bloques libres. Esto requiere la comprobación de un
+	mapa o directorio de algún tipo que lleve el registro de los
+	bloques disponibles y de los que están en uso. Es un proceso
+	rápido, pero puede que necesite varias pruebas, es pues un
+	proceso no determinista. Dicho de otro modo, no se puede contar
+	con que <function>malloc()</function> tarde siempre lo mismo
+	tiempo en cada búsqueda.
+      </para>
+      
+      <para>
+	Antes de entregar el puntero del bloque obtenido, hay que
+	registrar en alguna parte su tamaño y localización para que
+	<function>malloc()</function> no lo vuelva a usar y para que
+	cuando se produzca la llamada a <function>free()</function>,
+	el sistema sepa cuánto espacio ha de liberar.
+      </para>
+
+      <para>
+	El modo en que se implementan todas estas operaciones puede
+	variar mucho. No hay nada que impida que puedan implementarse
+	las primitivas de asignación de memoria en el conjunto de
+	instrucciones del procesador. Si se es lo bastante curioso, se
+	pueden escribir programas que permitan averiguar cómo está
+	implementada <function>malloc()</function>. Si dispone de él,
+	puede leer el código fuente de la biblioteca de funciones de
+	C, si no, siempre está disponible el
+	de GNU C.
+      </para>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Rediseño de los ejemplos anteriores</title>
+    <para>
+	Puede resescribirse el ejemplo <classname>Stash</classname> que
+      vimos anteriormente en el libro, haciendo uso de los operadores
+      <literal>new</literal> y <literal>delete</literal>, con las
+      características que se han visto desde entonces. A la vista del
+      nuevo código se pueden repasar estas cuestiones.
+    </para>
+
+    <para>
+	Hasta este punto del libro, ninguna de las clases
+	<classname>Stash</classname> ni <classname>Stack</classname>
+	poseerán los objetos a los que apuntan; es decir, cuando el
+	objeto <classname>Stash</classname> o
+	<classname>Stack</classname> sale de ámbito, no se invoca
+	<literal>delete</literal> para cada uno de los objetos a los que
+	apunta. La razón por la que eso no es posible es porque, en un
+	intento de conseguir más generalidad, utilizan punteros
+	<type>void</type>. Usar <literal>delete</literal> con
+	punteros <literal>void</literal> libera el bloque de memoria
+	pero, al no existir información de tipo,  el compilador no sabe
+	que destructor debe invocar.
+    </para>
+    
+    <sect2>
+	<title><literal>delete</literal> <type>void*</type> probablemente es un
+      error</title>
+      <para>
+	  Es necesario puntualizar que, llamar a
+	  <literal>delete</literal> con un argumento <type>void*</type>
+	  es casi con seguridad un error en el programa, a no ser que el
+	  puntero apunte a un objeto muy simple; en particular, que no
+	  tenga un destructor.  He aquí un ejemplo ilustrativo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/BadVoidPointerDeletion.cpp"/>
+</programlisting>
+
+      <para>
+	La clase <classname>Object</classname> contiene la variable
+	<varname>data</varname> de tipo <type>void*</type> que es
+	inicializada para apuntar a un objeto simple que no tiene
+	destructor. En el destructor de
+	<classname>Object</classname> se llama a
+	<literal>delete</literal> con este puntero, sin que tenga
+	consecuencias negativas puesto que lo único que se necesita
+	aquí es liberar la memoria.
+      </para>
+
+      <para>
+	Ahora bien, se puede ver en <function>main()</function> la
+	necesidad de que <literal>delete</literal> conozca el tipo del
+	objeto al que apunta su argumento. Esta es la salida del
+	programa:
+      </para>
+
+      
+      <para>	
+	<screen>
+	  Objeto a en construcción, tamaño = 40 
+	  Destrucción del objeto a 
+	  Objeto b en construcción, tamaño = 40 
+	</screen>
+      </para>
+
+      <para>
+	Como <literal>delete</literal> sabe que <varname>a</varname> es
+	un puntero a <classname>Object</classname>, se lleva a cabo la
+	llamada al destructor de <classname>Object</classname>, con lo
+	que se libera el espacio asignado a <varname>data</varname>. En
+	cambio, cuando se manipula un objeto usando un
+	<type>void*</type>, como es el caso en <literal>delete</literal>
+	<varname>b</varname>, se libera el bloque de
+	<classname>Object</classname>, pero no se efectúa la llamada a
+	su destructor, con lo que tampoco se liberará el espacio
+	asignado a <varname>data</varname>, miembro de
+	<classname>Object</classname>. Probablemente no se mostrará
+	ningún mensaje de advertencia al compilar el programa; no hay
+	ningún error sintáctico. Como resultado obtenemos un programa
+	con una silenciosa fuga de memoria.
+      </para>
+
+      <para>
+	Cuando se tiene una fuga de memoria, se debe buscar entre todas
+	las llamadas a <literal>delete</literal> para comprobar el tipo
+	de puntero que se le pasa. Si es un <type>void*</type>, puede
+	estar ante una de las posibles causas (Sin embargo,
+	C++ proporciona otras muchas
+	oportunidades para la fuga de memoria).
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>
+	  Responsabilidad de la limpieza cuando se usan
+	  punteros
+	</title>
+      
+      <para>
+	Para hacer que los contenedores <classname>Stack</classname>
+	y <classname>Stash</classname> sean flexibles, capaces de
+	recibir cualquier tipo de objeto, se usan punteros de
+	tipo <type>void*</type>. Esto hace necesario convertir al
+	tipo adecuado los punteros devueltos por las clases
+	<classname>Stash</classname> y <classname>Stack</classname>,
+	antes de que sean usados. Hemos visto en la sección
+	anterior, que los punteros deben ser convertidos al tipo
+	correcto incluso antes de ser entregados a
+	<literal>delete</literal>, para evitar posibles fugas de
+	memoria.
+      </para>
+
+      <para>
+	Hay otro problema, derivado de la necesidad de llamar a
+	<literal>delete</literal> para cada puntero a objeto
+	almacenado en el contenedor. El contenedor no puede realizar la
+	limpieza para los punteros que almacena puesto que son punteros
+	<type>void*</type>. Esto puede derivar en un serio problema si a
+	un contenedor se le pasan punteros a objetos automáticos junto
+	con punteros a objetos dinámicos; el resultado de usar
+	<literal>delete</literal> sobre un puntero que no haya sido
+	obtenido del montículo es imprevisible. Más aún, al obtener del
+	contenedor un puntero cualquiera, existirán dudas sobre el
+	origen, automático, dinámico o estático, del objeto al que
+	apunta. Esto implica que hay que asegurarse del origen dinámico
+	de los punteros que se almacenen en la siguiente versión de
+	<classname>Stash</classname> y <classname>Stack</classname>,
+	bien sea mediante una programación cuidadosa, o bien por la
+	creación de clases que sólo puedan ser construidas en el
+	montículo.
+      </para>
+
+      <para>
+	Es muy importante asegurarse también de que el programador
+	cliente se responsabilice de la limpieza de los punteros del
+	contenedor. Se ha visto en ejemplos anteriores que la clase
+	<classname>Stack</classname> comprobaba en su destructor que
+	todos los objetos <classname>Link</classname> habían sido
+	desapilados. Un objeto <classname>Stash</classname> para
+	punteros requiere un modo diferente de abordar el problema.
+      </para>
+
+    </sect2>
+
+    <sect2>
+      <title>Stash para punteros</title>
+      <para>
+	Esta nueva versión de la clase <classname>Stash</classname>,
+	que llamamos <classname>PStash</classname>, almacena
+	punteros a objetos existentes en el montículo, a
+	diferencia de la vieja versión, que guardaba una copia por
+	valor de los objetos. Usando <literal>new</literal> y
+	<literal>delete</literal>, es fácil y seguro almacenar
+	punteros a objetos creados en el montículo.
+      </para>
+
+      <para>
+	He aquí el archivo de cabecera de <quote><classname>Stash</classname>
+	para punteros</quote>:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/PStash.h"/>
+</programlisting>
+
+      <para>
+	Los elementos de datos subyacentes no han cambiado mucho, pero
+	ahora el almacenamiento se hace sobre un vector de punteros
+	<type>void</type>, que se obtiene mediante
+	<literal>new</literal> en lugar de
+	<function>malloc()</function>.  En la expresión
+      </para>
+
+      <programlisting>
+	void** st = new void*[ quantity + increase ];
+      </programlisting>
+
+      <para>
+	se asigna espacio para un vector de punteros a
+	<type>void</type>.
+      </para>
+
+      <para>
+	El destructor de la clase libera el espacio en el que se
+	almacenan los punteros sin tratar de borrar los objetos
+	a los que hacen referencia, ya que esto, insistimos,
+	liberaría el espacio asignado a los objetos, pero no se
+	produciría la necesaria llamada a sus destructores por la
+	falta de información de tipo.  
+      </para>
+
+      <para>
+	El otro cambio realizado es el reemplazo de la función
+	<function>fetch()</function> por <function>operator
+	[]</function>, más significativo sintácticamente. Su tipo de
+	retorno es nuevamente <type>void*</type>, por lo que el usuario
+	deberá recordar el tipo de los objetos a que se refieren y
+	efectuar la adecuada conversión al extraerlos del
+	contenedor. Resolveremos este problema en capítulos posteriores.
+      </para>
+
+      <para>
+	Sigue la definición de los métodos de
+	<classname>PStash</classname>:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/PStash.cpp"/>
+</programlisting>
+
+      <para>
+	La función <function>add()</function> es, en efecto, la
+	misma que antes si exceptuamos el hecho de que lo que se
+	almacena ahora es un puntero a un objeto en lugar de una
+	copia del objeto.
+      </para>
+
+      <para>
+	El código de <function>inflate()</function> ha sido modificado
+	para gestionar la asignación de memoria para un vector de
+	<type>void*</type>, a diferencia del diseño previo, que sólo
+	trataba con bytes. Aquí, en lugar de usar el método de copia por
+	el índice del vector, se pone primero a cero el vector usando la
+	función <function>memset()</function> de la biblioteca estandar
+	de C, aunque esto no sea
+	estrictamente necesario ya que, presumiblemente,
+	<classname>PStash</classname> manipulará la memoria de forma
+	adecuada, pero a veces no es muy costoso añadir un poco más de
+	seguridad. A continuación, se copian al nuevo vector usando
+	<function>memcpy()</function> los datos existentes en el
+	antiguo. Con frecuencia verá que las funciones
+	<function>memcpy()</function> y <function>memset()</function>
+	han sido optimizadas en cuanto al tiempo de proceso, de modo que
+	pueden ser más rápidas que los bucles anteriormente vistos. No
+	obstante, una funcion como <function>inflate()</function> no es
+	probable que sea llamada con la frecuencia necesaria para que
+	la difirencia sea palpable. En cualquier caso, el hecho de que
+	las llamadas a función sean más concisas que los bucles, puede
+	ayudar a prevenir errores de programación.
+      </para>
+
+      <para>
+	Para dejar definitivamente la responsabilidad de la limpieza de
+	los objetos sobre los hombros del programador cliente, se
+	proporcionan dos formas de acceder a los punteros en
+	<classname>PStash</classname>: el operador
+	<literal>[]</literal>, que devuelve el puntero sin eliminarlo
+	del contenedor, y un segundo método
+	<function>remove()</function> que además de devolver el puntero
+	lo elimina del contenedor, poniendo a cero la posición que
+	ocupaba. Cuando se produce la llamada al destructor de
+	<classname>PStash</classname>, se prueba si han sido previamente
+	retirados todos los punteros, si no es así, se notifica, de modo
+	que es posible prevenir la fuga de memoria. Se verán otras
+	soluciones mas elegantes en capítulos posteriores.
+      </para>
+      <sect3>
+	<title>Una prueba</title>
+	<para>
+	  Aquí aparece el programa de prueba de
+	  <classname>Stash</classname>, reescrito para
+	  <classname>PStash</classname>:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/PStashTest.cpp"/>
+</programlisting>
+
+	<para>
+	  Igual que antes, se crean y rellenan varias
+	  <classname>Stash</classname>, pero esta vez con los punteros
+	  obtenidos con <literal>new</literal>. En el primer caso, véase
+	  la líneas:
+	</para>
+	
+	<programlisting>
+	  intStash.add( new int(i) );
+	</programlisting>
+	
+	<para> Se ha usado una forma de pseudo constructor en la
+	  espresión <programlisting>new int(i)</programlisting>, con lo
+	  que que además de crear un objeto <type>int</type> en el área
+	  de memoria dinámica, le asigna el valor inicial
+	  <varname>i</varname>.
+	</para>
+
+	<para>
+	  Para imprimir, es necesario convertir al tipo adecuado el
+	  puntero obtenido de <function>PStash::operator[]</function>;
+	  lo mismo se repite con el resto de los objetos de
+	  <classname>PStatsh</classname> del programa. Es la
+	  consecuencia indeseable del uso de punteros <type>void</type>
+	  como representación subyacente, que se corregirá en capítulos
+	  posteriores.
+	</para>
+
+	<para>
+	  En la segunda prueba, se lee línea a línea el propio archivo
+	  fuente. Mediante <function>getline()</function> se lee cada
+	  línea de texto en una variable de <type>cadena</type>, de la
+	  que se crea una copia independiente. Si le hubiéramos pasado
+	  cada vez la dirección de <varname>line</varname>, tendríamos
+	  un montón de copias del mismo puntero, referidas a la última
+	  línea leida.
+	</para>
+
+	<para>
+	  Obsérvese la expresión, en la recuperación de los punteros:
+	  <programlisting>
+	    *(string*)stringStash[v];
+	  </programlisting>
+	</para>
+
+	<para>
+	  El puntero obtenido por medio de
+	  <function>operator[]</function> debe ser convertido a
+	  <type>string*</type> para tener el tipo adecuado. Después
+	  el <type>string*</type> es derreferenciado y es visto por el
+	  compilador como un objeto <type>string</type> que se envía a
+	  <varname>cout</varname>.
+	</para>
+
+	<para>
+	  Antes de destruir los objetos, se han de eliminar las
+	  referencias correspondientes mediante el uso de
+	  <function>remove()</function>. De no hacerse así,
+	  <classname>PStash</classname> notificará que no se ha
+	  efectuado la limpieza correctamente.  Véase que en el caso de
+	  los punteros a <type>int</type>, no es necesaria la conversión
+	  de tipo al carecer de destructor, y lo único que se necesita
+	  es liberar la memoria:
+	</para>
+
+	<para>	    
+	  <programlisting>
+	    delete intStash.remove(k);
+	  </programlisting>
+	</para>
+
+	<para>
+	  En cambio, para los punteros a <type>string</type>, hace falta
+	  la conversión de tipo, so pena de crear otro discreto punto de
+	  fuga de memoria:
+	</para>
+
+	<para>	
+	  <programlisting>
+	    delete (string*) stringStash.remove(k);
+	  </programlisting>
+	</para>
+	
+	<para>
+	  Algunas de estas dificultades pueden resolverse mediante el
+	  uso de plantillas, que veremos en el capítulo 16.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <!-- 592 --> 
+
+    <title>
+      <literal>new</literal> y <literal>delete</literal> para
+      vectores
+    </title>
+
+    <para>
+      En C++ se pueden crear vectores de objetos es igualmente fácil ya
+      sea en la pila o en el montículo, con la certeza de que se
+      producirá la llamada al constructor para cada uno de los objetos
+      del vector. Hay una restricción: debe existir un constructor por
+      defecto, o sea, sin argumentos, que es el que será llamado para
+      cada objeto.
+    </para>
+    <para>
+      Cuando se crean vectores de objetos dinámicamente, usando
+      <literal>new</literal>, hay otras cosas que hay que tener en
+      cuenta. Como ejemplo de este tipo de vectores véase
+    </para>
+
+    <programlisting>
+      MyType* fp = new MyType[100];
+    </programlisting>
+    <para>
+      Esta sentencia asigna espacio suficiente en el motículo para
+      100 objetos <classname>MyType</classname> y llama al
+      constructor para cada uno de ellos. Lo que se ha obtenido es
+      simplemente un <type>MyType*</type>, exactamente lo mismo que hubiera
+      obtenido de esta otra forma, que crea un único objeto:
+    </para>
+
+    <programlisting>
+      MyType* fp2 = new MyType;
+    </programlisting>
+
+    <para>
+      El escritor del programa sabe que <varname>fp</varname> es la
+      dirección del primer elemento de un vector, por lo que tiene
+      sentido selecionar elementos del mismo mediante una expresión como
+      <literal>fp[3]</literal>, pero ¿qué pasa cuando destruimos el
+      vector?. Las sentencias
+      <programlisting>
+	delete fp2; // Correcta.
+	delete fp;  // Esta no tendrá el efecto deseado.
+      </programlisting>
+    </para>
+    <para>
+      parecen iguales, y sus efectos serán los mismos. Se llamará al
+      destructor del objeto <classname>MyType</classname> al que apunta
+      el puntero dado y después se liberará el bloque asignado. Esto es
+      correcto para <varname>fp2</varname>, pero no lo para
+      <varname>fp</varname>, significa que los destructores de los 99
+      elementos restantes del vector no se invocarán. Sin embargo, sí se
+      liberará toda la memoria asignada al vector, ya que fue obtenida
+      como un único gran bloque cuyo tamaño quedó anotado en alguna
+      parte por las rutinas de asignación.
+    </para>
+    
+    <para>
+      Esto se soluciona indicando al compilador que el puntero que
+      pasamos es la dirección de inicio de un vector, usando la
+      siguiente sintaxis:
+    </para>
+
+    <programlisting>
+      delete [] fp; 
+    </programlisting>
+    
+    <para>
+      Los corchetes indican al compilador la necesidad de generar el
+      código para obtener el número de objetos en el vector, que fue
+      guardado en alguna parte cuando se creó, y llamar al
+      destructor para cada uno de dichos elementos. Esta es una
+      mejora sobre la sintaxis primitiva, que puede verse
+      ocasionalmente en el código de viejos programas:
+    </para>
+
+    <programlisting>
+      delete [100] fp; 
+    </programlisting>
+    
+    <para>
+      que forzaba al programador a incluir el número de objetos
+      contenidos en el vector, introduciendo con ello una posible fuente
+      de errores. El esfuerzo adicional que supone para el compilador
+      tener en esto en cuenta es pequeño, y por eso se consideró
+      preferible especificar el número de objetos en un lugar y no en
+      dos.
+    </para>
+    
+    <sect2>
+      <title>Cómo hacer que un puntero sea más parecido a un
+      vector</title>
+
+<!-- 
+ As an aside, the fp defined above can be changed to point to
+ anything, which doesn\u2019t make sense for the starting address of an
+ array. It makes more sense to define it as a constant, so any attempt
+ to modify the pointer will be flagged as an error. To get this effect,
+ you might try
+-->
+
+      <para>
+	[FIXME: Como defecto añadido], existe la posibilidad de modificar el
+	puntero <varname>fp</varname> anteriormente definido, para que
+	apunte a cualquier otra cosa, lo que no es consistente con el
+	hecho de ser la dirección de inicio de un vector. Tiene más
+	sentido definirlo como una constante, de modo que cualquier
+	intento de modificación sea señalado como un error. Para
+	conseguir este efecto se podría probar con:
+      </para>
+
+      <programlisting>
+	int const* q = new int[10];
+      </programlisting>
+      
+      <para>  
+	o bien
+      </para>
+
+      <programlisting>
+	const int* q = new int[10]; 
+      </programlisting>
+      
+      <para>
+	pero en ambos casos el especificador <literal>const</literal>
+	queda asociado al <type>int</type>, es decir, al valor al que
+	apunta, en lugar de al puntero en si. Si se quiere conseguir el
+	efecto deseado, en lugar de las anteriores, se debe poner:
+      </para>
+      
+      <programlisting>
+	int* const q = new int[10]; 
+      </programlisting>
+      
+      <para>
+	Ahora es posible modificar el valor de los elementos del vector,
+	siendo ilegal cualquier intento posterior de modificar
+	<varname>q</varname>, como <literal>q++</literal> por ejemplo,
+	al igual que ocurre con el identificador de un vector ordinario.
+	</para>
+
+    </sect2>
+
+    <sect2>
+      <title>Cuando se supera el espacio de almacenamiento</title>
+
+      <para>
+	¿Qué ocurre cuando el <literal>operator new()</literal> no puede
+	encontrar un bloque contiguo suficientemente grande para alojar
+	el objeto? En este caso se produce la llamada a una función
+	especial: el gestor de errores de <literal>new</literal> o
+	<quote>new-handler</quote>. Para ello se comprueba si un
+	determinado puntero a función es nulo, si no lo es, se efectua la
+	llamada a la función a la que apunta.
+      </para>
+
+      <para>
+	El comportamiento por defecto del gestor de errores de
+	<literal>new</literal> es disparar una excepción, asunto del que
+	se tratará en el Volumen 2. Si se piensa usar la asignación
+	dinámica, conviene al menos reemplazar el gestor de errores de
+	<literal>new</literal> por una función que advierta de la falta
+	de memoria y fuerce la terminación del programa. De este modo,
+	durante la depuración del progama, se podrá seguir la pista de
+	lo sucedido. Para la versión final del programa, será mejor
+	implementar una recuperación de errores más elaborada.
+      </para>
+
+      <para>
+	La forma de reemplazar el gestor de <quote>new-handler</quote>
+	por defecto consiste en incluir el archivo
+	<filename>new.h</filename> y hacer una llamada a la función
+	<function>set_new_handler()</function> con la dirección de la
+	función que se desea instalar:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/NewHandler.cpp"/>
+</programlisting>
+
+      <para>
+	La función a instalar debe retornar <type>void</type> y no tomar
+	argumentos. El bucle <literal>while</literal> seguirá pidiendo
+	bloques de <type>int</type> hasta consumir la memoria libre
+	disponible, sin que haga nada con ellos. Justo a la siguiente
+	llamada a <literal>new</literal>, no habrá espacio para asignar
+	y se producirá la llamada al <emphasis>gestor de
+	<literal>new</literal></emphasis>.
+      </para>
+      
+      <para>
+	Este comportamiento del
+	<foreignphrase>new-handler</foreignphrase> está asociado al
+	<literal>operator new()</literal>, de modo que si se sobrecarga
+	<literal>operator new()</literal>(asunto que se trata en la
+	siguiente sección), no se producirá la llamada al
+	<emphasis>gestor de <literal>new</literal></emphasis>. Si se
+	desea que se produzca dicha llamada será necesario que lo haga
+	en el <literal>operator new()</literal> que substituya al
+	original.
+      </para>
+
+      <para>
+	Por supuesto, es posible escribir gestores
+	<literal>new</literal> más sofisticados, incluso alguno que
+	intente reclamar los bloques asignados que no se usan (conocidos
+	habitualmente como <emphasis>recolectores de
+	basura</emphasis>). Pero este no es un trabajo adecuado para
+	programadores noveles.
+      </para>
+
+    </sect2>
+
+    <sect2>
+      <title>
+	Sobrecarga de los operadores <literal>new</literal> y
+	<literal>delete</literal>
+      </title>
+      <para>
+	Cuando se ejecuta una <emphasis>expresión con
+	<literal>new</literal></emphasis>, ocurren dos cosas. Primero se
+	asigna la memoria al ejecutar el codigo del <function>operator
+	new()</function> y después se realiza la llamada al
+	constructor. En el caso de una <emphasis>expresión con
+	<literal>delete</literal></emphasis>, se llama primero al
+	destructor y después se libera la memoria con el operador
+	<function>operator delete()</function>. Las llamadas al constructor y
+	destructor no están bajo el control del programador pero se
+	<emphasis>pueden</emphasis> cambiar las funciones
+	<function>opertator new()</function> y <function>operatator
+	delete()</function>.
+      </para>
+
+
+
+      <para>
+	El sistema de asignación de memoria usado por
+	<literal>new</literal> y <literal>delete</literal> es un
+	sistema de propósito general. En situaciones especiales,
+	puede que no funcione como se requiere. Frecuentemente la
+	razón para cambiar el asignador es la eficiencia; puede ser
+	que se necesite crear y destruir tantos objetos de la misma
+	clase que lo haga ineficaz en términos de velocidad: un
+	cuello de botella. En C++ es posible sobrecargar
+	<literal>new</literal> y <literal>delete</literal> para
+	implementar un esquema particular más adecuado que permita
+	manejar situaciones como esta.
+      </para>
+
+      <para>
+	Otra cuestión es la fragmentación del montículo. Cuando
+	los objetos tienen tamaños diferentes es posible llegar a
+	dividir de tal modo el área de memoria libre que sea
+	inutilizable. Es decir, el espacio puede estar disponible,
+	pero debido al nivel de fragmentación alcanzado, no exista
+	ningún bloque del tamaño requerido. Es posible asegurarse de
+	que esto no llegue a ocurrir mediante la creación de un
+	asignador para una clase específica.
+      </para>
+
+      <para>
+	En los sistemas de tiempo real y en los sistemas integrados,
+	suele ser necesario que los programas funcionen por largo tiempo
+	con recursos muy limitados. Tales sistemas pueden incluso
+	requerir que cada asignación tome siempre la misma cantidad de
+	tiempo, y que no esté permitida la fragmentación ni el
+	agotamiento en el área dinámica. La solución a este problema
+	consiste en utilizar un asignador <quote>personalizado</quote>;
+	de otro modo, los programadores evitarían usar
+	<literal>new</literal> y <literal>delete</literal> es estos
+	casos y desperdiciarían un recurso muy valioso de
+	C++.
+      </para>
+
+      <para>
+	A la hora de sobrecargar <function>operator new()</function> y
+	<function>operator delete()</function> es importante tener en
+	cuenta que lo único que se está cambiando es la forma en que se
+	realiza la asignación del espacio. El compilador llamará a la
+	nueva versión de <literal>new</literal> en lugar de al original,
+	para asignar espacio, llamando después al constructor que
+	actuará sobre él. Así que, aunque el compilador convierte una
+	expresión <literal>new</literal> en código para asignar el
+	espacio y para llamar al constructor, todo lo que se puede
+	cambiar al sobrecargar <literal>new</literal> es la parte
+	correspondiente a la asignación. (<literal>delete</literal>
+	tiene una limitación similar.
+      </para>
+
+      <para>
+	Cuando se sobrecarga <function>operator new()</function>, se
+	está reemplazando también el modo de tratar los posibles fallos
+	en la asignación de la memoria. Se debe decidir qué acciones va
+	a realizar en tal caso: devolver cero, un bucle de reintento
+	con llamada al <foreignphrase>new-handler</foreignphrase>, o lo
+	que es más frecuente, disparar una excepción
+	<emphasis>bad_alloc</emphasis> (tema que se trata en el
+	Volumen 2).
+      </para>
+
+      <para>
+	La sobrecarga de <literal>new</literal> y
+	<literal>delete</literal> es como la de cualquier otro
+	operador.  Existe la posibilidad de elegir entre sobrecarga
+	global y sobrecarga para una clase determinada.
+      </para>
+      
+      <sect3>
+	<title>Sobrecarga global de <literal>new</literal> y
+	<literal>delete</literal></title>
+
+	<para>
+	  Este es el modo más drástico de abordar el asunto, resulta
+	  útil cuando el comportamiento de <literal>new</literal> y
+	  <literal>delete</literal> no es satisfactorio para la mayor
+	  parte del sistema.  Al sobrecargar la versión global, quedan
+	  inaccesibles las originales, y ya no es posible llamarlas
+	  desde dentro de las funciones sobrecargadas.
+	</para>
+
+	<para>
+	  El <literal>new</literal> sobrecargado debe tomar un argumento
+	  del tipo <type>size_t</type> (el estándar de
+	  C) para tamaños. Este argumento es
+	  generado y pasado por el compilador, y se refiere al tamaño
+	  del objeto para el que ahora tenemos la responsabilidad de la
+	  asignación de memoria. Debe devolver un puntero a un bloque de
+	  ese tamaño, (o mayor, si hubiera motivos para hacerlo así), o
+	  cero en el caso de no se encontrara un bloque adecuado. Si
+	  eso sucede, no se producirá la llamada al constructor. Por
+	  supuesto, hay que hacer algo más informativo que sólo
+	  devolver cero, por ejemplo llamar al
+	  <quote>new-handler</quote> o disparar una excepción, para
+	  indicar que hubo un problema.
+	</para>
+
+	<para>
+	  El valor de retorno del <function>operator new()</function> es
+	  <type>void*</type>, no un puntero a un tipo particular. Lo que
+	  hace es obtener un bloque de memoria, no un objeto definido,
+	  no hasta que que sea llamado el constructor, un acto que el
+	  compilador garantiza y que está fuera del control de  este
+	  operador.
+	</para>
+
+	<para>
+	  El operador <function>operator delete()</function> toma como
+	  argumento un puntero <type>void*</type> a un bloque obtenido
+	  con el <function>operator new()</function>. Es un
+	  <type>void*</type> ya que el <literal>delete</literal> obtiene
+	  el puntero sólo <emphasis>después</emphasis> de que haya sido
+	  llamado el destructor, lo que efectivamente elimina su
+	  caracter de objeto convirtiéndolo en un simple bloque de
+	  memoria. El tipo de retorno para <literal>delete</literal> es
+	  <type>void</type>.
+	</para>
+
+	<para>
+	  A continuación se expone un ejemplo del modo de sobrecargar
+	  globalmente <literal>new</literal> y
+	  <literal>delete</literal>:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/GlobalOperatorNew.cpp"/>
+</programlisting>
+ 
+	<para>
+	  Aquí puede verse la forma general de sobrecarga de operadores
+	  <literal>new</literal> y <literal>delete</literal>.  Estos
+	  operadores sustitutivos usan las funciones
+	  <function>malloc()</function> y <function>free()</function> de
+	  la bliblioteca estándar de C, que es probablemente lo que
+	  ocurre en los operadores originales. Imprimen también mensajes
+	  sobre lo que están haciendo. Nótese que no se han usado
+	  <literal>iostreams</literal> sino
+	  <function>printf()</function> y
+	  <function>puts()</function>. Esto se hace debido a que los
+	  objetos <type>iostream</type> como los globales
+	  <varname>cin</varname>, <varname>cout</varname> y
+	  <varname>cerr</varname> llaman a <literal>new</literal> para
+	  obtener memoria <footnote><para> Provocaría una serie continua
+	  de llamadas a <literal>new</literal> hasta que agotada el área
+	  de la pila y abortara el programa.</para></footnote>. Usar
+	  <function>printf()</function> evita el fatal bloqueo, ya que
+	  no hace llamadas a <literal>new</literal>.
+	</para>
+
+	<para>
+	  En <function>main()</function>, se crean algunos objetos de
+	  tipos básicos para demostrar que también en estos casos se
+	  llama a los operadores <literal>new</literal> y
+	  <literal>delete</literal> sobrecargados. Posteriormente, se
+	  crean un objeto simple y un vector, ambos de tipo
+	  <classname>S</classname>. En el caso del vector se puede ver,
+	  por el número de bytes pedidos, que se solicita algo de
+	  memoria extra para incluir información sobre el número de
+	  objetos que tendrá. En todos los casos se efectúa la llamada a
+	  las versiones globales sobrecargadas de <literal>new</literal>
+	  y <literal>delete</literal>.
+	</para>
+
+      </sect3>
+
+
+      <sect3>
+	<title>
+	  Sobrecarga de <literal>new</literal> y
+	  <literal>delete</literal> específica para una clase
+	</title>
+	
+	<para>
+	  Aunque no es necesario poner el modificador
+	  <literal>static</literal>, cuando se sobrecarga
+	  <literal>new</literal> y <literal>delete</literal> para una
+	  clase se están creando funciones miembro estáticas (métodos de
+	  clase). La sintasis es la misma que para cualquier otro
+	  operador. Cuando el compilador encuentra una expresión
+	  <literal>new</literal> para crear un objeto de una clase,
+	  elige, si existe, un método de la clase llamado
+	  <function>operator new()</function> en lugar del
+	  <literal>new</literal> global. Para el resto de tipos o clases
+	  se usan los operadores globales (a menos que tengan definidos
+	  los suyos propios).
+	</para>
+
+
+<!-- 
+ In the following example, a primitive storage allocation system is
+ created for the class Framis. A chunk of memory is set aside in the
+ static data area at program start-up, and that memory is used to
+ allocate space for objects of type Framis. To determine which blocks
+ have been allocated, a simple array of bytes is used, one byte for each
+ block: 
+-->
+
+	<para>
+	  En el siguiente ejemplo se usa un primitivo sistema de
+	  asignación de almacenamiento para la clase
+	  <classname>Framis</classname>. Se reserva un bloque de memoria
+	  en el área de datos estática FIXME , y se usa esa memoria para
+	  asignar alojamiento para los objetos de tipo
+	  <classname>Framis</classname>. Para determinar que bloques se
+	  han asignado, se una un sencillo vector de bytes, un byte por
+	  bloque.
+	</para>
+	  
+	<informalexample>
+<programlisting>
+<xi:include parse="text" href="./code/C13/Framis.cpp"/>
+</programlisting>
+	</informalexample>
+
+	<para>
+	  El espacio de almacenamiento para el montículo
+	  <classname>Framis</classname> se crea sobre el bloque obtenido
+	  al declarar un vector de tamaño suficiente para contener
+	  <varname>psize</varname> objetos de clase
+	  <classname>Framis</classname>. Se ha declarado también una
+	  variable lógica para cada uno de los <varname>psize</varname>
+	  bloques en el vector. Todas estas variables lógicas son
+	  inicializadas a <constant>false</constant> usando el truco
+	  consistente en inicializar el primer elemento para que el
+	  compilador lo haga automáticamente con los restantes
+	  iniciándolos a su valor por defecto,
+	  <constant>false</constant>, en el caso de variables lógicas.
+	</para>
+
+	<para>
+	  El <function>operador new()</function> local usa la misma
+	  sintaxis que el global. Lo único que hace es buscar una
+	  posición libre, es decir, un valor <constant>false</constant>
+	  en el mapa de localizacíon <varname>alloc_map</varname>. Si la
+	  encuentra, cambia su valor a <constant>true</constant> para
+	  marcarla como ocupada, y devuelve la dirección del bloque
+	  correspondiente. En caso de no encontrar ningún bloque libre,
+	  envía un mensaje al fichero de trazas y dispara una excepción
+	  de tipo <type>bad_alloc</type>.
+	</para>
+
+	<para>
+	  Este es el primer ejemplo con excepción que aparece en este
+	  libro.  En el Volumen 2 se verá una discusión detallada del
+	  tratamiento de excepciones, por lo que en este ejemplo se hace
+	  un uso muy simple del mismo. El <function>operador
+	  new</function> hay dos expresiones relacionadas con el
+	  tratamiento de excepciones. Primero, a la lista de argumentos
+	  de función le sigue la expresión
+	  <literal>throw(bad_alloc)</literal>, esto informa al
+	  compilador que la función puede disparar una excepción del
+	  tipo indicado. En segundo lugar, si efectivamente se agota la
+	  memoria, la función alcanzará la sentencia <literal>throw
+	  bad_alloc()</literal> lanzando la excepción. En el caso de que
+	  esto ocurra, la función deja de ejecutarse y se cede el
+	  control del programa a la rutina de tratamiento de excepción
+	  que se ha definido en una cláusula
+	  <literal>catch(bad_alloc)</literal>.
+	</para>
+
+	<para>
+	  En <function>main()</function> se puede ver la cláusula
+	  <emphasis>try-catch</emphasis> que es la otra parte del
+	  mecanismo. El código que puede lanzar la excepción queda
+	  dentro del bloque <literal>try</literal>; en este caso,
+	  llamadas a <literal>new</literal> para objetos
+	  <classname>Framis</classname>. Justo a continuación de dicho
+	  bloque sigue una o varias cláusulas <literal>catch</literal>,
+	  especificando en cada una la excepción a la que se destina. En
+	  este caso, <literal>catch(bad_alloc)</literal> indica que en
+	  ese bloque se tratarán las excepciones de tipo
+	  <type>bad_alloc</type>.  El código de este bloque sólo se
+	  ejecutará si se dispara la excepción, continuando la ejecución
+	  del programa justo después de la última del grupo de cláusulas
+	  <literal>catch</literal> que existan. Aquí sólo hay una, pero
+	  podría haber más.
+	</para>
+
+	<para>
+	  En este ejemplo, el uso de <literal>iostream</literal> es
+	  correcto ya que el <function>operator new()</function> global
+	  no ha sido modificado.
+	</para>
+
+	<para>
+	  El <function>operator delete()</function> asume que la
+	  dirección de <classname>Framis</classname> ha sido obtenida de
+	  nuestro almacén particular. Una asunción justa, ya que cada
+	  vez que se crea un objeto <classname>Framis</classname> simple
+	  se llama al <function>operator new()</function> local; pero
+	  cuando se crea un vector de tales objetos se llama al
+	  <literal>new</literal> global. Esto causaría problemas si el
+	  usuario llamara accidentalmente al operador
+	  <literal>delete</literal> sin usar la sintaxis para
+	  destrucción de vectores. Podría ser que incluso estuviera
+	  tratando de borrar un puntero a un objeto de la pila. Si se
+	  cree que estas cosas pudiedeb suceder, conviene pensar en
+	  añadir una línea que asegurare que la dirección está en el
+	  intervalo correcto (aquí se demuestra el potencial que tiene
+	  la sobrecarga de los operadores <literal>new</literal> y
+	  <literal>delete</literal> para la localizacíon de fugas de
+	  memoria).
+	</para>
+
+	<para> 
+	  <function>operador delete()</function> calcula el bloque al
+	  que el puntero representa y después pone a
+	  <constant>false</constant> la bandera correspondiente en el
+	  mapa de localización, para indicar que dicho bloque está
+	  libre.
+	</para>
+
+	<para> 
+	  En la función <function>main()</function>, se crean
+	  dinámicamente suficientes objetos Framis para agotar la
+	  memoria. Con esto se prueba el comportamiento del programa en
+	  este caso. A continuación, se libera uno de los objetos y se
+	  crea otro para mostrar la reutilización del bloque recién
+	  liberado.
+	</para>
+	
+	<para>
+	  Este esquema específico de asignación de memoria es
+	  probablemente mucho más rápido que el esquema de propósito
+	  general que usan los operadores <literal>new</literal> y
+	  <literal>delete</literal> originales. Se debe advertir, no
+	  obstante, que este enfoque no es automáticamente utilizable
+	  cuando se usa herencia, un tema que verá en el Capítulo 14.
+	</para>
+      </sect3>
+
+      <!-- 603 -->
+      <sect3>
+	<title>
+	  Sobrecarga de <literal>new</literal> y
+	  <literal>delete</literal> para vectores
+	</title>
+	<para>
+	  Si se sobrecargan los operadores <literal>new</literal> y
+	  <literal>delete</literal> para una clase, esos operadores se
+	  llaman cada vez que se crea un objeto simple de esa clase. Sin
+	  embargo, al crear un vector de tales objetos se llama al
+	  <function>operator new()</function> global para obtener el
+	  espacio necesario para el vector, y al <function>operator
+	  delete()</function> global para liberarlo. Es posible
+	  controlar también la asignación de memoria para vectores
+	  sobrecargando los métodos <function>operator new[]</function>
+	  y <function>operator delete[]</function>; se trata de
+	  versiones especiales para vectores. A continuación se expone
+	  un ejemplo que muestra el uso de ambas versiones.
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/ArrayOperatorNew.cpp"/>
+</programlisting>
+	
+	<para>
+	  Si exceptuamos la información de rastreo que se añade aquí,
+	  las llamadas a las versiones globales de
+	  <literal>new</literal> y <literal>delete</literal> causan el
+	  mismo efecto que si estos operadores no se hubieran
+	  sobrecargado. Como se ha visto anteriormente, es posible usar
+	  cualquier esquema conveniente de asignación de memoria en
+	  estos operadores modificados.
+	</para>
+
+	<para>
+	  Se puede observar que la sintaxis de <literal>new</literal> y
+	  <literal>delete</literal> para vectores es la misma que la
+	  usada para objetos simples añadiéndoles el operador subíndice
+	  <literal>[]</literal>. En ambos casos se le pasa a
+	  <literal>new</literal> como argumento el tamaño del bloque de
+	  memoria solicitado. A la versión para vectores se le pasa el
+	  tamaño necesario para albergar todos sus componentes. Conviene
+	  tener en cuenta que lo único que se requiere del
+	  <function>operator new()</function> es que devuelva un puntero
+	  a un bloque de memoria suficiéntemente grande. Aunque es
+	  posible inicializar el bloque referido, eso es trabajo del
+	  constructor, que se llamará automáticamente por el compilador.
+	</para>
+
+	<para>
+	  El constructor y el destructor símplemente imprimen
+	  mensajes para que pueda verse que han sido llamados. A
+	  continuación se muestran dichos mensajes:
+	</para>
+
+	<screen>
+	    new Widget
+	    Widget::new: 40 bytes
+	    *
+	    delete Widget
+	    ~Widget::delete
+	    new Widget[25]
+	    Widget::new: 1004 bytes
+	    *************************
+	    delete []Widget
+	    ~~~~~~~~~~~~~~~~~~~~~~~~~Widget::delete[]
+	</screen>
+	
+	<para> 
+
+	  La creación de un único objeto <classname>Widget</classname>
+	  requiere 40 bytes, tal y como se podría esperar para una
+	  máquina que usa 32 bits para un <type>int</type>. Se invoca al
+	  <function>operator new()</function> y luego al constructor,
+	  que se indica con la impresión del carácter
+	  <quote>*</quote>. De forma complementaria, la llamada a
+	  <literal>delete</literal> provoca primero la invocación del
+	  destructor y sólo después, la de <literal>operator
+	  delete()</literal>.
+	</para>
+
+	<para>
+	  Cuando lo que se crea es un vector de objetos
+	  <classname>Widget</classname>, se observa el uso de la versión
+	  de <literal>operator new()</literal> para vectores, de acuerdo
+	  con lo dicho anteriormente. Se observa que el tamaño del
+	  bloque solicitado en este caso es cuatro bytes mayor que el
+	  esperado. Es en estos cuatro bytes extra donde el compilador
+	  guarda la información sobre el tamaño del vector. De ese
+	  modo, la expresión
+	</para>
+
+	<programlisting>
+	  delete []Widget;
+	</programlisting>
+	
+	<para>
+	  informa al compilador que se trata de un vector, con lo cual,
+	  generará el código para extraer la información que indica el
+	  número de objetos y para llamar otras tantas veces al
+	  destructor. Obsérvese que aunque se llame solo una vez a
+	  <literal>operator new()</literal> y <literal>operator
+	  delete()</literal> para el vector, se llama al constructor y
+	  al destructor una vez para cada uno de los objetos del vector.
+	</para>
+      </sect3>
+
+
+      <sect3>
+	<title>Llamadas al constructor</title>
+	
+	<para>
+	  Considerando que 
+	</para>
+	
+	<programlisting>
+	  MyType* f = new MyType;
+	</programlisting>
+	
+<!-- 
+ calls new to allocate a MyType-sized piece of storage, then invokes
+ the MyType constructor on that storage, what happens if the storage
+ allocation in new fails? The constructor is not called in that case, so
+ although you still have an unsuccessfully created object, at least you
+ haven\u2019t invoked the constructor and handed it a zero this
+ pointer. Here\u2019s an example to prove it
+-->
+	<para>
+	  llama a <literal>new</literal> para obtener un bloque del
+	  tamaño de <classname>MyType</classname> invocando después a su
+	  constructor, ¿qué pasaría si la asignación de memoria falla en
+	  <literal>new</literal>?. En tal caso, no habrá llamada al
+	  constructor al que se le tendría que pasar un puntero
+	  <varname>this</varname> nulo, para un objeto que no se ha
+	  creado <!--Esta es una frase bastante curiosa en el original,
+	  que traduzco libremente. -->. He aquí un ejemplo que lo
+	  demuestra:
+	</para>
+	  
+<programlisting>
+<xi:include parse="text" href="./code/C13/NoMemory.cpp"/>
+</programlisting>
+	
+	<para>
+	  Cuando se ejecuta, el programa imprime los mensajes del
+	  <function>operator new()</function> y del manejador de
+	  excepción, pero no el del constructor. Como
+	  <literal>new</literal> nunca retorna, no se llama al
+	  constructor y por tanto no se imprime su mensaje.
+	</para>
+	
+	<para>
+	  Para asegurar que no se usa indebidamente, Es importante
+	  inicializar <varname>nm</varname> a cero, debido a que
+	  <literal>new</literal> no se completa. El código de manejo de
+	  excepciones debe hacer algo más que imprimir un mensaje y
+	  continuar como si el objeto hubiera sido creado con
+	  éxito. Idealmente, debería hacer algo que permitiera al
+	  programa recuperarse del fallo, o al menos, provocar la salida
+	  después de registrar un error.
+	</para>
+	
+	<para>
+	  En las primeras versiones de C++, el comportamiento estándar
+	  consistía en hacer que <literal>new</literal> retornara un
+	  puntero nulo si la asignación de memoria fallaba. Esto podía
+	  impedir que se llamara al constructor. Si se intenta hacer
+	  esto con un compilador que sea conforme al estándar actual, le
+	  informará de que en lugar de devolver un valor nulo, debe
+	  disparar una excepción de tipo <type>bad_alloc</type>.
+	</para>
+
+      </sect3>
+
+
+      <sect3>
+	  <title>
+	    Operadores <literal>new</literal> y
+	    <literal>delete</literal> de [FIXME emplazamiento (situación)]
+	  </title>
+	<para>
+	  He aquí otros dos usos, menos comunes, para la sobrecarga de
+	    <function>operador new()</function>:
+	</para>
+
+	  <orderedlist numeration="arabic">
+	    <listitem>
+	      <para>
+		Puede ocurrir que necesite emplazar un objeto en un
+		lugar específico de la memoria.  Esto puede ser
+		importante en programas en los que algunos de los
+		objetos se refieren o son sinónimos de componentes
+		hardware mapeados sobre una zona de la memoria.
+	      </para>
+	    </listitem>
+	    <listitem>
+	      <para>
+		Si se quiere permitir la elección entre varios
+		asignadores de memoria (allocators) en la llamada a
+		<literal>new</literal>.
+	      </para>
+	    </listitem>
+	  </orderedlist>
+
+<!--
+ Both of these situations are solved with the same mechanism: The
+ overloaded operator new( ) can take more than one argument. As
+ you\u2019ve seen before, the first argument is always the size of the
+ object, which is secretly calculated and passed by the compiler. But the
+ other arguments can be anything you want \u2013 the address you want the
+ object placed at, a reference to a memory allocation function or object,
+ or anything else that is convenient for you.
+-->
+
+	<para> 
+	  Ambas situaciones se resuelven mediante el mismo mecanismo: la
+	  función <function>operator new()</function> puede tomar más de
+	  un argumento. Como se ha visto, el primer argumento de
+	  <literal>new</literal> es siempre el tamaño del objeto,
+	  calculado en secreto y pasado por el compilador. El resto de
+	  argumentos puede ser de cualquier otro tipo que se necesite:
+	  la dirección en la que queremos emplazar el objeto, una
+	  referencia a una función de asignación de memoria, o
+	  cualquiera otra cosa que se considere conveniente.
+	</para>
+	
+	<para>
+	  Al principio puede parecer curioso el modo en que se pasan los
+	  argumentos extra al <function>operator
+	  new()</function>. Después de la palabra clave
+	  <literal>new</literal> y antes del nombre de clase del objeto
+	  que se pretende crear, se pone la lista de argumentos, sin
+	  contar con el correspondiente al <literal>size_t</literal> del
+	  objeto, que le pasa el compilador.  Por ejemplo, la expresión:
+	</para>
+
+	<programlisting>
+	  X* xp = new(a) X;
+	</programlisting>
+	
+	<para>
+	  pasará <varname>a</varname> como segundo argumento al operador
+	  <function>operator new()</function>. Por supuesto, sólo
+	  funcionará si ha sido declarado el <function>operator
+	  new()</function> adecuado.
+	</para>
+	
+	<para>
+	  He aquí un ejemplo demostrativo de cómo se usa esto para
+	  colocar un objeto en una posición particular:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C13/PlacementOperatorNew.cpp"/>
+</programlisting>
+
+	<para>
+	  Obsérve que lo único que hace el operador
+	  <literal>new</literal> es retornar el puntero que se
+	  pasa. Por tanto, es posible especificar la dirección en la
+	  que se quiere construir el objeto.
+	</para>
+
+	<para>
+	  Aunque este ejemplo muestra sólo un argumento adicional, nada
+	  impide añadir otros, si se considera conveniente para sus
+	  propósitos.
+	</para>
+
+<!--
+ A dilemma occurs when you want to destroy the object. There's only
+ one version of operator delete, so there's no way to say, "Use
+ my special deallocator for this object." You want to call the
+ destructor, but you don't want the memory to be released by the
+ dynamic memory mechanism because it wasn't allocated on the heap.
+-->
+
+	<para>
+	  Al tratar de destruir estos objetos surge un problema.  Sólo
+	  hay una versión del operador <literal>delete</literal>, de
+	  modo que no hay forma de decir: "Usa mi función de liberación
+	  de memoria para este objeto".  Se requiere llamar al
+	  destructor, pero sin utilizae el mecanismo de memoria
+	  dinámica, ya que el objeto no está alojado en el montículo.
+	</para>
+
+
+<!-- 
+ The answer is a very special syntax. You can explicitly call the
+ destructor, as in 
+-->
+	<para>
+	  La solución tiene una sintaxis muy especial. Se debe llamar
+	  explícitamente al destructor, tal como se muestra:
+	</para>
+
+
+	  <programlisting>
+   xp->X::~X();  //Llamada explícita al destructor
+	  </programlisting>
+
+<!-- Por aquí me quedé revisando -->
+
+	<para>
+	  Hay que hacer una llamada de atención al respecto. Algunas
+	  personas ven esto como un modo de destruir objetos en algún
+	  momento anterior al determinado por las reglas de ámbito, en
+	  lugar de ajustar el ámbito, o más correctamente, en lugar de
+	  usar asignación dinámica como medio de determinar la duración
+	  del objeto en tiempo de ejecución. Esto es un error, que puede
+	  provocar problemas si se trata de destruir de esta manera un
+	  objeto ordinario creado en la pila, ya que el destructor será
+	  llamado de nuevo cuando se produzca la salida del ámbito
+	  correspondiente. Si se llama de esta forma directa al
+	  destructor de un objeto creado dinámicamente, se llevará a
+	  cabo la destrucción, pero no la liberación del bloque de
+	  memoria, lo que probablemente no es lo que se desea. La única
+	  razón para este tipo de llamada explícita al destructor es
+	  permitir este uso especial del operador
+	  <literal>new</literal>, para emplazamiento en memoria.
+	</para>
+
+	<para>
+	  Existe también una forma de operador <literal>delete</literal>
+	  de emplazamiento que sólo es llamada en caso de que el
+	  constructor dispare una excepción, con lo que la memoria se
+	  libera automáticamente durante la excepción. El operador
+	  <literal>delete</literal> de emplazamiento usa una lista de
+	  argumentos que se corresponde con la del operador
+	  <literal>new</literal> de emplazamiento que fue llamado
+	  previamente a que el constructor lanzase la excepción. Este
+	  asunto se tratará en el Volumen 2, en un capítulo dedicado al
+	  tratamiento de excepciones.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Resumen</title>
+    <para>
+      La creación de objetos en la pila es eficaz y conveniente,
+      pero para resolver el problema general de programación es
+      necesario poder crear y destruir objetos en cualquier momento
+      en tiempo de ejecución, en particular, para que pueda
+      responder a la información externa al programa. Aunque C
+      ofrece funciones de asignación dinámica, éstas no proporcionan
+      la facilidad de uso ni la construcción garantizada de objetos
+      que se necesita en C++. Al llevar al núcleo mismo del lenguaje
+      gracias al uso de los operadores <literal>new</literal> y
+      <literal>delete</literal>, la creación dinámica de objetos se
+      hace tan fácil como la creación de objetos en la pila,
+      añadiendo además una gran flexibilidad. Se puede modificar el
+      comportamiento de <literal>new</literal> y
+      <literal>delete</literal> si no se ajusta a los
+      requerimientos, particularmente para mejorar la eficiencia, y
+      también es posible definir su comportamiento en caso de
+      agotarse la memoria libre.
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Ejercicios</title>
+    <para>
+      Las soluciones a los ejercicios se pueden encontrar en el
+      documento electrónico titulado <quote>The Thinking in C++
+	Annotated Solution Guide</quote>, disponible por un pequeño
+      precio en <ulink url="www.BruceEckel.com">www.BruceEckel.com</ulink>
+    </para>
+    
+    <orderedlist numeration="arabic">
+      <listitem>
+	<para>
+	  Crear una clase <classname>Counted</classname> que contenga un
+	  <literal>int id</literal> y un <literal>static int
+	  count</literal>. El constructor por defecto debe empezar con
+	  <literal>Counted():id(count++){</literal>. También deberá
+	  mostrar mensajes con su <varname>id</varname>, además de
+	  alguno que muestre que se está creando. El destructor debe
+	  mostrar que está siendo destruido y su
+	  <varname>id</varname>. Probar su funcionamiento.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Compruebe que <literal>new</literal> y
+	  <literal>delete</literal> llaman siempre a constructores y
+	  destructores, creando mediante el uso de
+	  <literal>new</literal> un objeto de la clase
+	  <classname>Counted</classname> del ejercicio 1, y
+	  destruyéndolo después con <literal>delete</literal>. Cree y
+	  destruya un vector de <classname>Counted</classname> en el
+	  montículo.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree un objeto de la clase <classname>PStash</classname>, y
+	  llénelo de los objetos del ejercicio 1. Observe lo que sucede
+	  cuando el objeto <classname>PStash</classname> sale de su
+	  ámbito y es llamado su destructor.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree un vector de <classname>Counted*</classname> y cárguelo
+	  con punteros a objetos <classname>Counted</classname>. Recorra
+	  el vector llamando imprimiendo cada objeto, repita este paso y
+	  elimínelos uno a uno.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Repita el ejercicio 4 añadiendo una función miembro
+	  <function>f()</function> de <classname>Counted</classname> que
+	  muestre un mensaje. Recorra el vector llamando a
+	  <function>f()</function> para cada objeto del vector.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Repita el ejercicio 5 usando un objeto
+	  <classname>PStash</classname>.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Repita el ejercicio 5 usando <filename>Stack4.h</filename> del
+	  capítulo 9.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree mediante asignación dinámica un vector de objetos de
+	  clase <classname>Counted</classname>. Llame a
+	  <literal>delete</literal> con el puntero resultante como
+	  argumento, sin usar el operador subíndice []. Explique el
+	  resultado.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree un objeto de clase <classname>Counted</classname>
+	  mediante <literal>new</literal>, convierta el puntero
+	  resultante a <literal>void*</literal> y luego
+	  bórrelo. Explique el resultado.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Compile y ejecute el programa
+	  <filename>NewHandler.cpp</filename> en su ordenador. A partir
+	  del número resultante, calcule la cantidad de memoria libre
+	  disponible para su programa.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree una clase y defina en ella operadores de sobrecarga
+	  para <literal>new</literal> y <literal>delete</literal>,
+	  para objetos simples y para vectores de objetos. Demuestre
+	  que ambas versiones funcionan.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Diseñe un test que le permita evaluar de forma aproximada la
+	  mejora en velocidad obtenida en
+	  <filename>Framis.cpp</filename> con el uso de las versiones
+	  adaptadas de <literal>new</literal> y
+	  <literal>delete</literal>, respecto de la obtenida con las
+	  globales .
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Modifique <filename>NoMemory.cpp</filename> para que contenga
+	  un vector de enteros y realmente obtenga memoria en lugar de
+	  disparar <classname>bad_alloc</classname>. Establezca un bucle
+	  <literal>while</literal> en el cuerpo de
+	  <function>main()</function> similar al que existe en
+	  <filename>NewHandler.cpp</filename> para agotar la
+	  memoria. Observe lo que sucede en el caso de que su operador
+	  <literal>new</literal> no compruebe el éxito de la asignación
+	  de memoria. Añada después esa comprobación a su operador
+	  <literal>new</literal> y la llamada a <literal>throw
+	  bad_alloc</literal>.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Cree una clase y defina un operador <literal>new</literal> de
+	  emplazamiento, con un <type>string</type> como segundo
+	  argumento.  Defina un vector de <type>string</type>, en
+	  el que se almacenará este segundo argumento a cada llamada a
+	  <literal>new</literal>.  El operador <literal>new</literal> de
+	  emplazamiento asignará bloques de manera normal.  En
+	  <function>main()</function>, haga llamadas a este operador
+	  <literal>new</literal> pasándole como argumentos cadenas de
+	  caracteres que describan las llamadas. Para ello, puede hacer
+	  uso de las macros <constant>__FILE__</constant> y
+	  <constant>__LINE__</constant> del preprocesador.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Modifique <filename>ArrayOperatorNew.cpp</filename> definiendo
+	  un vector estático de <type>Widget*</type> que añada la
+	  dirección de cada uno de los objetos
+	  <classname>Widget</classname> asignados con
+	  <literal>new</literal>, y la retire cuando sea liberada
+	  mediante <literal>delete</literal>. Puede que necesite buscar
+	  información sebre vectores en la documentación de la
+	  biblioteca estándar de C++, o en el segundo volumen de este
+	  libro que está disponible en la web del autor. Cree una
+	  segunda clase a la que llamará
+	  <classname>MemoryChecker</classname>, que contenga un
+	  destructor que muestre el número de punteros a
+	  <classname>Widget</classname> en su vector. Diseñe un programa
+	  con una única instancia global de
+	  <classname>MemoryChecker</classname>, y en
+	  <function>main()</function>, cree y destruya dinámicamente
+	  varios objetos y vectores de objetos
+	  <classname>Widget</classname>. Observe que
+	  <classname>MemoryCheck</classname> revela fugas de memoria.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+    
+</chapter>
+  
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->
+
+
+
+<!-- Informe de la 1ª revisión: David Villa <dvilla@gmx.net>
+
+  Por convenio hay que utilizar la tercera persona del singular para
+  referirse al lector. En lugar de "Veremos a continuación" debe usarse
+  "Verá a continuación".
+
+  Usar "puntero", en lugar de "apuntador".
+
+  new y delete NO son funciones, son palabras clave (<literal>)
+
+  Cuando dice "operator new()" hay que respetarlo porque se refiere al
+  método de una clase que lleva ese nombre. No debe traducirse por
+  "operador"
+
+  Evitar la pasiva, muy habitual en inglés, pero queda muy forzado en
+  castellano
+
+
+-->
+

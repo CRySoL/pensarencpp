@@ -1,0 +1,1953 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: David Villa <dvilla@gmx.net>
+  Formateado DocBook:  David Villa <dvilla@gmx.net>
+  1ª Revisión:
+  2ª Revisión
+-->
+
+
+<!--
+const es especificador o modificador??
+vector o array?? 
+virtually = practicamente
+actually = en realidad 
+enum hack
+bitwise
+member-by-member basis
+casting away constness ?= constancia de molde lejano
+ROMability
+fichero o archivo?
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C8">
+
+  <title>Constantes</title>
+    
+  <para>
+    [PAG:353]
+    El concepto de constante (expresión con la palabra reservada
+    <emphasis>const</emphasis>) se creó para permitir a los
+    programadores marcar la diferencia entre lo que puede cambiar y
+    lo que no. Esto facilita el control y la seguridad en un
+    proyecto de programación.
+  </para>
+  
+  <para>
+    [PAG: 354]
+    Desde su origen, <emphasis>const</emphasis> ha sido utilizada
+    para diferentes propositos.  In the meantime it trickled back
+    into the C language where its meaning was change puede parecer
+    un poco confuso al principio, y en este capítulo aprenderá
+    cuándo, por qué y cómo usar la palabra reservada
+    <emphasis>const</emphasis>. Hacia el final se expone una
+    disertación de <emphasis>volatile</emphasis>, que es familia de
+    <emphasis>const</emphasis> (pues ambos se refieren a los cambios)
+    y su sintaxis es idéntica.
+  </para>
+  
+  <para>
+    El primer motivo para la creación de <emphasis>const</emphasis>
+    parace que fue eliminar el uso de la directiva del preprocesador
+    <emphasis>#define</emphasis> para sustitución de valores. Desde
+    entonces se usa para punteros, argumentos de funciones, tipos de
+    retorno, objetos y funciones miembro. Todos ellos tienen
+    pequeñas diferencias pero su significado es conceptualmente
+    compatible. Serán tratados en diferentes secciones de este
+    capítulo.
+  </para>
+  
+  <sect1>
+    <title>Sustitución de valores</title>
+    
+    <para>
+      Cuando se programa en C, se usa libremente el preprocesador para
+      crear macros y sustituir valores. El preprocesador simplemente
+      hace un reemplazamiento textual y no realiza ninguna comprobación
+      de tipo. Por ello, la sustitución de valores introduce pequeños
+      problemas que pueden ser evitados usando valores
+      <emphasis>const</emphasis>.
+    </para>
+    
+    <para>
+      El uso más frecuente del preprocesador es la sustitución de
+      valores por nombres, algo que en C es algo como:
+    </para>
+    
+<programlisting>
+  #define BUFSIZE 100
+</programlisting>
+	 
+    <para>
+      <varname>BUFSIZE</varname> es un nombre que sólo existe durante
+      el preprocesamiento. Por tanto, no ocupa memoria y se puede
+      colocar en un fichero de cabecera para ofrecer un valor único a
+      todas las unidades que lo utilicen. Es muy importante para el
+      mantenimiento del código el uso de sustitución de valores en
+      lugar de los también llamados <quote>números mágicos</quote>. Si
+      usa numeros mágicos en su código. no solamente impedirá al
+      lector conocer su procedencia o significado sino que complicará
+      inecesariamente la edición del código si necesitara cambiar
+      dicho valor.
+    </para>
+    
+    <para>
+      [PAG:355]
+      La mayor parte del tiempo, <varname>BUFSIZE</varname> se
+      comportará como un valor ordinario, pero no siempre. No tiene
+      información de tipo. Eso puede esconder errores dificiles de
+      localizar. C++ utilizar <emphasis>const</emphasis> para eliminar
+      estos problemas llevando la sustitución de valores al terreno del
+      compilador. Ahora, puede escribir:
+    </para>
+    
+<programlisting>
+  const int bufsize = 100;
+</programlisting>
+    
+    <para>
+      Puede colocar <varname>bufsize</varname> en cualquier lugar
+      donde se necesite conocer el valor en tiempo de compilación. El
+      compilador utiliza <varname>bufsize</varname> para hacer [FIXME:
+      constant folding], que significa que el compilador reduce una
+      expresión constante complicada a un valor simple realizando los
+      calculos necesarios en tiempo de compilación. Esto es
+      especialmente importante en las definiciones de vectores:
+    </para>
+
+<programlisting>
+  char buf[bufsize];
+</programlisting>
+
+    <para>
+      Puede usar <emphasis>const</emphasis> con todos los tipos
+      básicos(<type>char</type>, <type>int</type>,
+      <type>float</type> y <type>double</type>) y sus
+      variantes (así como clases y todo lo que verá después en este
+      capítulo). Debido a los problemas que introduce el preprocesador
+      deberá utilizar siempre <emphasis>const</emphasis> en lugar de
+      <emphasis>#define</emphasis> para la sustitución de valores.
+    </para>
+    
+    <sect2>
+      <title><command>const</command> en archivos de cabecera</title>
+      
+      <para>
+	Para usar <command>const</command> en lugar de
+	<command>#define</command>, debe ser capaz de colocar las
+	definiciones <command>const</command> en los archivos de
+	cabecera como se hacía con los <command>#define</command>.  De
+	este modo, puede colocar la definición de un const en un único
+	lugar y distribuirla incluyendo el archivo de cabecera en las
+	unidades del programa que la necesiten.  Un
+	<command>const</command> en C++ utiliza <emphasis>enlazado
+	  interno</emphasis>, es decir, es visible sólo desde el archivo
+	donde se define y no puede verse en tiempo de enlazado por
+	otros módulos. Deberá asignar siempre un valor a las
+	constantes cuando las defina, excepto cuando explícitamente
+	use la declaración <command>extern</command>:
+	[PAG:356]
+      </para>
+      
+<programlisting>
+  extern const int bufsize;
+</programlisting>
+
+      <para>
+	Normalmente el compilador de C++ evita la asignación de
+	memoria para las constantes, pero en su lugar ocupa una
+	entrada en la tabla de símbolos.  Cuando se utiliza
+	<command>extern</command> con una constante, se fuerza el
+	alojamiento en memoria (esto también ocurre en otros casos,
+	como cuando se solicita la dirección de una constante). El
+	uso de la memoria debe hacerse porque
+	<command>extern</command> dice <quote>usar enlace
+	  externo</quote>, es decir, que varios módulos deben ser
+	capaces de hacer referencia al elemento, algo que requiere
+	su almacenamiento en memoria.
+      </para>
+      
+      <para>
+	Por lo general, cuando <command>extern</command> no forma parte de
+	la definición, no se pide memoria. Cuando la constante se utiliza
+	simplemte se incorpora en tiempo de compilación.
+      </para>
+      
+      <para>
+	El objetivo de no almacenar en memoria las constantes tampoco
+	se cumple con estructuras complicadas. Siempre que el
+	compilador debe pedir memoria, se evita el [FIXME constant
+	folding] (ya que el compilador no tiene forma de conocer con
+	seguridad que valor debe almacenar; si lo conociese, no
+	necesitaría pedir memoria).
+      </para>
+
+      <para>
+	Como el compilador no siempre puede impedir el almacenamiento
+	para una constante, las definiciones de constantes utilizan
+	enlace interno, es decir, se enlazan sólo con el módulo en que
+	se definen. En caso contrario, los errores de enlace podrían
+	ocurrir con las expresiones constantes complicadas ya que
+	causarían peticion de almacenamiento en diferentes
+	módulos. Entonces, el enlazador vería la misma definición en
+	multiples archivos objeto, lo que causaría un error en el
+	enlace. Con los tipos del lenguaje, que se usan en la mayor
+	parte de las expresiones constantes, el compilador siempre
+	realiza [FIXME: constant folding].
+      </para>
+
+      <para>
+	Ya que las constantes utilizan enlace interno, el enlazador no
+	intenta enlazar esas definiciones a través de los módulos, y
+	así no hay colisiones.  Con los tipos básicos, que son los se
+	ven involucrados en la mayoría de los casos, el compilador
+	siempre ejecuta [FIXME constant folding].
+      </para>
+    </sect2>
+    
+    <sect2>
+      <title>constantes seguras</title>
+      
+      <para>
+	El uso de las constantes no está limitado a la sustitución de
+	los <command>#define</command> por expresiones constantes. Si
+	inicializa una variable con un valor que se produce en tiempo
+	de ejecución y sabe que no cambiará durante la [PAG:357] vida
+	de la variable, es una buena práctica de programación hacerla
+	constante para que de ese modo el compilador produzca un
+	mensaje de error si accidentalmente intenta modificar dicha
+	variable. Aquí hay un ejemplo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Safecons.cpp"/>
+</programlisting>
+
+      <para>
+	Puede ver que <constant>i</constant> es una constante en
+	tiempo de compilación, pero <constant>j</constant> se calcula
+	a partir de <constant>i</constant>. Por otra parte, como
+	<constant>i</constant> es una constante, el valor calculado
+	para <constant>j</constant> es una expresión constante y es en
+	si mismo otra constante en tiempo de compilación. En la
+	siguiente línea se necesita la dirección de
+	<constant>j</constant> y por lo tanto el compilador se ve
+	obligado a pedir almacenamiento para
+	<constant>j</constant>. Ni siquiera eso impide el uso de
+	<constant>j</constant> para determinar el tamaño de
+	<varname>buf</varname> porque el compilador sabe que
+	<constant>j</constant> es una constante y que su valor es
+	válido aunque se asigne almacenamiento, ya que eso se hace
+	para mantener el valor en algún punto en el programa.
+      </para>
+
+      <para>
+	En <function>main()</function>, aparece un tipo diferente de
+	constante en el identificador <constant>c</constant>, porque
+	el valor no puede ser conocido en tiempo de compilación. Eso
+	significa que se requiere almacenamiento, y por eso el
+	compilador no intenta mantener nada en la tabla de simbolos
+	(el mismo comportamiento que en C). La inicialización debe
+	ocurrir, aún así, en el punto de la definición, y una vez que
+	ocurre la inicialización, el valor ya no puede ser
+	cambiado. Puede ver que <constant>c2</constant> se calcula a
+	partir de <constant>c</constant> y además las reglas de ámbito
+	funcionan para las constantes igual que para cualquier otro
+	tipo, otra ventaja respecto al uso de
+	<command>#define</command>.
+      </para>
+
+      <para>
+	[PAG:358] En la práctica, si piensa que una variable no
+	debería cambiar, debería hacer que fuese una constante. Esto
+	no sólo da seguridad contra cambios inadvertidos, también
+	permite al compilador generar código más eficiente ahorrando
+	espacio de almacenamiento y lecturas de memoria en la
+	ejecución del programa.
+      </para>
+    </sect2>
+    
+    <sect2>
+      <title>Vectores</title>
+
+      <para>
+	Es posible usar constantes para los vectores, pero
+	prácticamente está asegurado que el compilador no será lo
+	suficientemente sofisticado para mantener un vector en la
+	tabla de símbolos, así que le asignará espacio de
+	almacenamiento. En estas situaciones, <command>const</command>
+	significa <quote>un conjunto de datos en memoria que no pueden
+	modificarse</quote>. En cualquier caso, sus valores no puede
+	usarse en tiempo de compilación porque el compilador no conoce
+	en ese momento los contenidos de las variables que tienen
+	espacio asignado. En el código siguiente puede ver algunas
+	declaraciones incorrectas.
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Constag.cpp"/>
+</programlisting>
+
+      <para>
+	En la definición de un vector, el compilador debe ser capaz de
+	generar código que mueva el puntero de pila para dar cabida al
+	vector. En las definiciones incorrectas anteriores, el
+	compilador se queja porque no puede encontrar una expresión
+	constante en la definición del tamaño del vector.
+      </para>
+    </sect2>
+    
+    <sect2>
+      <title>Diferencias con C</title>
+      
+      <para>
+	Las constantes se introdujeron en las primeras versiones de
+	C++ mientras la especificación del estandar C estaba siendo
+	terminada. Aunque el comité a cargo de C decidió entonces
+	incluir <command>const</command> en C, por alguna razón, vino
+	a significar para ellos <quote>una variable ordinaria que no
+	puede cambiarse</quote>. En C, una constante siempre ocupa
+	espacio de almacenamiento y su ámbito es global. El compilador
+	C no puede tratar <command>const</command> como una constante
+	en tiempo de compilación. En C, si escribe: [PAG:359]
+      </para>
+
+<programlisting>
+  const int bufsize = 100;
+  char buf[bufsize];
+</programlisting>
+
+      <para>
+	aparecerá un error, aunque parezca algo
+	razonable. <constant>Bufsize</constant> está guardado en algún
+	sitio y el compilador no conoce su valor en tiempo de
+	compilación. Opcionalmente puede escribir:
+      </para>
+
+<programlisting>
+  const int bufsize;
+</programlisting>
+
+      <para>
+	en C, pero no en C++, y el compilador C lo acepta como una
+	declaración que indica que se almacenará en alguna parte. Como
+	C utiliza enlace externo para las constantes, esa semántica
+	tiene sentido. C++ utiliza normalmente enlace interno, así
+	que, si quiere hacer lo mismo en C++, debe indicar
+	expresamente que se use enlace externo usando
+	<command>extern</command>.
+      </para>
+
+<programlisting>
+  extern const int bufsize;  // es declaración, no definición
+</programlisting>
+
+      <para>
+	Esta declaración también es válida en C.
+      </para>
+      
+      <para>
+	En C++, <command>const</command> no implica necesariamente
+	almacenamiento. En C, las constantes siempre necesitan
+	almacenamiento. El hecho de que se necesite almacenamiento o
+	no depende de como se use la constante. En general, si una
+	constante se usa simplemente para reemplazar un número por un
+	nombre (como hace <command>#define</command>), entonces no
+	requiere almacenamiento. Si es así (algo que depende de la
+	complejidad del tipo de dato y de lo sofisticación del
+	compilador) los valores pueden expandirse en el código para
+	conseguir mayor eficiencia después de la comprobación de los
+	tipos, no como con <command>#define</command>. Si de todas
+	formas, se necesita la dirección de una constante (aún
+	desconocida, para pasarla a una función como argumento por
+	referencia) o se declara como <command>extern</command>,
+	entonces se requiere asignar almacenamiento para la constante.
+      </para>
+		
+      <para>
+	En C++, una constante que esté definida fuera de todas las
+	funciones tiene ámbito de archivo (es decir, es inaccesible
+	fuera del archivo). Esto significa que usa enlace
+	interno. Esto es diferente para el resto de indentificadores
+	en C++ (y para las constantes en C) que utilizan siempre
+	enlace externo. Por eso, si declara una constante con el mismo
+	nombre en dos archivos diferentes y no toma sus [PAG:360]
+	direcciones ni los define como <command>extern</command>, el
+	compilador C++ ideal no asignará almacenamiento para la
+	constante, simplemente la expandirá en el código. Como las
+	constantes tienen implícito el ámbito a su archivo, puede
+	ponerlas en un archivo de cabecera de C++ sin que origine
+	conflictos en el enlace.
+      </para>
+
+      <para>
+	Dado que las constante en C++ utilizan por defecto enlace
+	interno, no puede definir una constante en un archivo y
+	utilizarla desde otro. Para conseguir enlace externo para la
+	constante y así poder usarla desde otro archivo, debe
+	definirla explicitamente como <command>extern</command>, algo
+	así:
+      </para>
+
+      <programlisting>
+	extern const int x = 1;  // definición, no declaración
+      </programlisting>
+
+      <para>
+	Señalar que dado un identificador, si se dice que es
+	<command>extern</command>, se fuerza el almacenamiento para la
+	constante (aunque el compilador tenga la opción de hacer la
+	expansión en ese punto). La inicialización establece que la
+	sentencia es una definición, no una declaración. La declaración:
+      </para>
+
+      <programlisting>
+	extern const int x;
+      </programlisting>
+
+      <para>
+	en C++ significa que la definición existe en algún sitio (mientras
+	que en C no tiene porque ocurrir asi). Ahora puede ver porqué C++
+	requiere que las definiciones de constantes incluyan la
+	inicialización: la inicialización diferencia una declaración de
+	una definición (en C siempre es una definición, aunque no esté
+	inicializada). Con una declaración <command>const
+	  extern</command>, el compilador no hace expansión de la constante
+	porque no conoce su valor.
+      </para>
+
+      <para>
+	La aproximación de C a las constantes es poco útil, y si quiere
+	usar un valor simbólico en una expresión constante (que deba
+	evaluarse en tiempo de compilación) casi está forzado a usar
+	<command>#define</command>.
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Punteros</title>
+
+    <para>
+      Los punteros pueden ser <command>const</command>. El compilador
+      pondrá más esfueszo aún para evitar el almacenamiento y hacer
+      expansión de constantes cuando se trata de punteros constantes,
+      pero estas características parecen menos útiles en este
+      caso. [PAG:361] Lo más importante es que el compilador le
+      avisará si intenta cambiar un puntero constante, lo que
+      respresenta un buen elemento de seguridad. Cuando se usa
+      <command>const</command> con punteros tiene dos opciones, se
+      pueden aplicar a lo que apunta el puntero o a la propia dirección
+      almacenada en el puntero, la sintaxis es un poco confusa al
+      principio pero se vuelve cómodo con la práctica.
+    </para>
+
+    <sect2>
+      <title>Puntero a constante</title>
+
+      <para>
+	El truco con la definición de un puntero, al igual que con una
+	definición complicada, es leerla empezando por el identificador e
+	ir analizando la definición hacia afuera. El [FIXME:especificador]
+	<command>const</command> dice que algo es [FIXME:"closet to"].  Así
+	que si se quiere impedir cambios en el elemento que apunta,
+	escribe una definición parecida a esta:
+      </para>
+
+      <programlisting>
+	const int* u;
+      </programlisting>
+
+      <para>
+	Empezando por el identificador, se lee
+	<quote><varname>u</varname> es un puntero, que apunta a un
+	  entero constante</quote>. En este caso no se requiere
+	inicialización porque está diciendo que <varname>u</varname>
+	puede apuntar a cualquier cosa (es decir, no es constante),
+	pero la cosa a la que apunta no puede cambiar.
+      </para>
+
+      <para>
+	Podría pensar que hacer el puntero inalterable en si mismo, es
+	decir, impedir cualquier cambio en la dirección que contiene
+	<varname>u</varname>, es tan simple como mover la palabra
+	<command>const</command> al otro lado de la palabra
+	<type>int</type>:
+      </para>
+
+      <programlisting>
+	int const* v;
+      </programlisting>
+
+      <para>
+	y pensar que esto debería leerse <quote><varname>v</varname> es un
+	  puntero constante a un entero</quote>. La forma de leerlo es
+	<quote><varname>v</varname> es un puntero ordinario a un entero que es
+	  constante</quote>. Es decir, la palabra <command>const</command> se
+	refiere de nuevo al <type>entero</type> y el efecto es el mismo que en la
+	definición previa. El hecho de que estas definiciones sean
+	equivalentes es confuso, para evitar esta confusión por parte del
+	lector del código, debería ceñirse a la primera forma.
+	[PAG:362]
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Puntero constante</title>
+
+      <para>
+	Para conseguir que el puntero sea inalterable, debe colocar el
+	[FIXME:especificador] <command>const</command> a la derecha del *:
+      </para>
+
+      <programlisting>
+	int d = 1;
+	int * const w = &amp;d;
+      </programlisting>
+
+      <para>
+	Ahora, se lee <quote><constant>w</constant> es un puntero
+	  constate, y apunta a un <type>entero</type></quote>. Como
+	el puntero en si es ahora una constante, el compilador
+	requiere que se le dé un valor inicial que no podrá
+	alterarse durante la vida del puntero. En cualquier caso,
+	puede cambiar el valor de lo que apunta el puntero con
+	algo como:
+      </para>
+
+      <programlisting>
+	*w = 2;
+      </programlisting>
+
+      <para>
+	También puede hacer un puntero constante a un elemento constante usando una
+	de las formas siguientes:
+      </para>
+
+      <programlisting>
+	int d = 1;
+	const int* const x = &amp;d;  // (1)
+	int const* const x2 = &amp;d; // (2)
+      </programlisting>
+
+      <para>
+	Así, ni el puntero ni el elemento al que apunta pueden modificarse.
+      </para>
+
+      <para>
+	Algunos argumentan que la segunda forma más consistente porque el
+	<command>const</command> se coloca siempre a la derecha de lo que
+	afecta. Debe decidir que forma resulta más clara para su estilo de
+	codificación particular.
+      </para>
+
+      <para>
+	Algunas líneas de un archivo susceptible de ser compilado.
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstPointers.cpp"/>
+</programlisting>
+
+      <sect3>
+	<title>Formato</title>
+
+	<para>
+	  [PAG:363]
+	  Este libro sigue la norma de poner sólo una definición de puntero
+	  por línea, e inicializar cada puntero en el punto de definición
+	  siempre que sea posible. Por eso, el estilo de formato es colocar
+	  el <symbol>*</symbol> del lado del tipo de dato:
+	</para>
+
+	<programlisting>
+	  int* u = &amp;i;
+	</programlisting>
+
+	<para>
+	  como si <type>int*</type> fuese un tipo de dato
+	  directo. Esto hace que el código sea más fácil de leer,
+	  pero desafortunadamente, esta no es la forma en que
+	  funciona. El <quote><symbol>*</symbol></quote> se refiere
+	  al identificador no al tipo. Se puede colocar en cualquier
+	  sitio entre el nombre del tipo y el identificador. De modo
+	  que puede hacer esto:
+	</para>
+
+	<programlisting>
+	  int * v = &amp;i, v = 0;
+	</programlisting>
+
+	<para>
+	  donde se crea un <type>int*</type> u y después un
+	  [FIXME]int v[/FIXME]. Como a los lectores esto les puede parecer
+	  confuso, es mejor utilizar el estilo mostrado en este libro.
+	</para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <title>Asignación y comprobación de tipos</title>
+
+      <para>
+	[FIXME: SEGUIR] 
+
+	C++ es muy exigente en lo referente a la comprobación de tipos y esto
+	se extiende a la asignación de punteros. Puede asignar la
+	dirección de una variable no constante a un puntero
+	constante porque simplemente está prometiendo no cambiar
+	algo que puede cambiarse. De todos modos, no puede asignar
+	la dirección de una variable constante a un puntero no
+	constante porque entonces está diciendo que podría modificar
+	la variable a través del puntero. Por supuesto, siempre
+	puede usar <quote>un molde</quote> para forzar la
+	asignación, pero eso es siempre una mala práctica de
+	programación porque rompe la consistencia de la variable
+	además del grado de seguridad que ofrece el especificador
+	<command>const</command>. Por ejemplo:
+      </para>
+      
+<programlisting>
+<xi:include parse="text" href="./code/C08/PointerAssignment.cpp"/>
+</programlisting>
+
+      <para>
+	[PAG:364]
+	Aunque C++ ayuda a evitar errores, no le protege de si mismo si se
+	empeña en romper los mecanisnmos de seguridad.
+      </para>
+      
+      <sect3>
+	<title>Literales de cadena</title>
+	
+	<para>
+	  C++ no es estricto con los literales en lo referente a
+	  constantes. Puede escribir:
+	</para>
+	
+	<programlisting>
+	  char * cp = "howdy";
+	</programlisting>
+
+	<para>
+	  y el compilador lo aceptará sin objección. Técnicamente
+	  esto supone un error porque el literal de cadena
+	  (<quote><literal>howdy</literal></quote> en este caso) se crea por el
+	  compilador como un vector de caracteres constante, y el
+	  resultado del vector de caracteres entrecomillado es la
+	  dirección de memoria del primer elemento. Si se modifica
+	  uno de los caracteres del vector en tiempo de ejecución es
+	  un error, aunque no todos los compiladores lo imponen
+	  correctamente.
+	</para>
+	
+	<para>
+	  Así que los literales de cadena son arrays de caracteres
+	  constantes. Por supuesto, el compilador le permite tratarlos como
+	  no constantes porque existe mucho código C que depende de ello. De
+	  todas formas, si intenta cambiar los valores de un literal, el
+	  resultado no está definido, y probablemente funcione en muchos
+	  computadores.
+	</para>
+	
+	<para>
+	  Si quiere poder modificar una cadena, debe ponerla en un vector:
+	</para>
+	
+	<programlisting>
+	  char cp[] = "howdy";
+	</programlisting>
+
+	<para>
+	  Como los compiladores a menudo no imponen la diferecia no tiene
+	  porque recordar que debe usar la última forma.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Argumentos de funciones y valores de retorno</title>
+    
+    <para>
+      El uso del especificador <command>const</command> con
+      argumentos de funciones y valores de retorno es otro lugar
+      donde el concepto de constante puede ser confuso.
+    </para>
+    
+    <para>
+      Si está pasando variables por valor, utilizar
+      <command>const</command> no tiene significado para el cliente
+      (ello significa que el argumento que se pasa no puede
+      modificarse en la función). Si está devolviendo una variable
+      de un tipo derivado y utiliza el especficador
+      <command>const</command>, significa que el valor de retorno no
+      puede modificarse. Si pasa o devuelve direcciones,
+      <command>const</command> impide que el destinatario de la
+      dirección pueda modificarse.
+    </para>
+    
+    <sect2>
+      <title>Paso por valor constante</title>
+      
+      <para>
+	Puede indicar que los argumentos de funciones son constantes
+	cuando se pasa por valor como:
+      </para>
+      
+      <programlisting>
+	void f1(const int i) {
+	i++; // ilegal
+	}
+      </programlisting>
+
+      <para>
+	pero, qué significa esto? Está impidiendo que el valor de la
+	variable original pueda ser cambiado en la función
+	<function>f1()</function>. De todos formas, como el
+	argumento se pasa por valor, es sabido que inmediatamente se
+	hace una copia de la variable original, así que dicha
+	restricción se cumple implicitamente sin necesidad de usar
+	el especificador const.
+      </para>
+      
+      <para>
+	Dentro de la función, <command>const</command> si toma un
+	significado: El argumento no se puede cambiar. Así que, en
+	realidad, es una herramienta para el programador de la
+	función, no para el que la usa.
+      </para>
+      
+      <para>
+	Para impedir la confusión del usuario de la función, puede hacer
+	que el argumento sea constante dentro de la función en lugar de en
+	la lista de argumentos. Podría hacerlo con un puntero, pero la
+	sintaxis más adecuada para lograrlo es la referencia, algo que se
+	tratará en profuncidad en el capitulo 11[FIXME:XREF].
+      </para>
+      
+      <para>
+	Brevemente, una referencia es como un puntero constante que
+	se dereferencia automaticamente, así que es como tener un
+	alias de la variable. Para crear una referencia, debe usar
+	el simbolo <symbol>&amp;</symbol> en la definición. De ese
+	modo se tiene una definición libre de confusiones.
+      </para>
+      
+      <programlisting>
+	void f2(int ic) {
+	const int &amp;i = ic;
+	i++;  // ilegal (error de compilación)
+	}
+      </programlisting>
+
+      <para>
+	De nuevo, aparece un mensaje de error, pero esta vez el
+	especificador <command>const</command> no forma parte de la
+	cabecera de la función, solo tiene sentido en la
+	implementación de la función y por la tanto es invisible para
+	el cliente.
+      </para>
+    </sect2>
+    
+    <sect2>
+      <title>Retorno por valor constante</title>
+      
+      <para>
+	Algo similar ocurre con los valores de retorno. Si dice que el
+	valor de retorno de una función es constante:
+      </para>
+      
+      <programlisting>
+	const int g();
+      </programlisting>
+
+      <para>
+	está diciendo que el valor de la variable original (en el ámbito de
+	la función) no se modificará. Y de nuevo, como lo está devolviendo
+	por valor, es la copia lo que se retorna, de modo que el valor
+	original nunca se podrá modificar.
+      </para>
+      
+      <para>
+	En principio, esto puede hacer suponer que el especificador
+	<command>const</command> tiene poco significado. Puede ver
+	la aparente falta de sentido de devolver constantes por
+	valor en este ejemplo:
+      </para>
+      
+<programlisting>
+<xi:include parse="text" href="./code/C08/Constval.cpp"/>
+</programlisting>
+
+      <para>
+	Para los tipos básicos, no importa si el retorno es
+	constante, así que debería evitar la confusión para el
+	programador cliente y no utilizar <command>const</command>
+	cuando se devuelven variables de tipos básicos por valor.
+      </para>
+      
+      <para>
+	Devolver por valor como constante se vuelve importante cuando
+	se trata con tipos definidos por el programador. Si una
+	función devuelve un objeto por valor como constante, el valor
+	de retorno de la función no puede ser un recipiente (FIXME:
+	NOTA DEL TRADUCTOR) (es decir, no se puede modificar ni
+	asignarle nada).
+      </para>
+      
+      <para>
+	Por ejemplo:
+      </para>
+		
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstReturnValues.cpp"/>
+</programlisting>
+
+		<para>
+	<function>f5()</function> devuelve un objeto de clase
+	<classname>X</classname> no constante, mientras que
+	<function>f6()</function> devuelve un objeto de clase
+	<classname>X</classname> pero constante. Solo el valor de
+	retorno por valor no constante se puede usar como
+	recipiente.
+      </para>
+      
+      <para>
+	Por eso, es importante usar <command>const</command> cuando
+	se devuelve un objeto por valor si quiere impedir que se use como
+	valor izquierdo.
+      </para>
+      
+      <para>
+	La razón por la que <command>const</command> no tiene
+	sentido cuando se usa para devolver por valor variables de tipos
+	del lenguaje es que el compilador impide el uso como recipiente de
+	dichos tipos, ya que devuelve un valor, no una variable. Solo
+	cuando se devuelven objetos por valor de tipos definidos por el
+	programador esta funcionalidad adquiere sentido.
+      </para>
+      
+      <para>
+	La función <function>f7()</function> toma como argumento una
+	referencia no constante (la referencia es una forma adicional para
+	manejar direcciones en C++ y se trata en el [FIXME:capitulo 11]). Es
+	parecido a tomar un puntero no constante, aunque la sintaxis es
+	diferente. La razón por la que no compila es por la creación de un
+	temporario.
+      </para>
+
+      <sect3>
+	<title>Temporarios</title>
+	
+	<para>
+	  A veces, durante la evaluación de una expresión, el compilador
+	  debe crear objetos temporales (temporarios). Son objetos como
+	  cualquier otro: requieren espacio de almacenamiento y se deben
+	  construir y destruir. La diferencia es que nunca se ven, el
+	  compilador es el responsable de decidir si se necesitan y los
+	  detalles de su existencia. Una particularidad importante de los
+	  temporarios es que siempre son constantes. Como normalmente no
+	  manejará objetos temporarios, hacer algo que cambie un temporario
+	  es casi seguro un error porque no será capaz de usar esa
+	  información. Para evitar esto, el compilador crea todos los
+	  temporarios como objetos constantes, de modo que le avisará si
+	  intenta modificarlos.
+	</para>
+	
+	<para>
+	  En el ejemplo anterior, <function>f5()</function> devuelve
+	  un objeto no constante. Pero en la expresión
+	</para>
+	
+	<programlisting>
+	  f7(f5());
+	</programlisting>
+
+	<para>
+	  el compilador debe crear un temporario para albergar el
+	  valor de retorno de <function>f5()</function> para que
+	  pueda ser pasado a <function>f7()</function>. Esto
+	  funcionaria bien si <function>f7()</function> tomara su
+	  argumento por valor; entonces el temporario se copiaría en
+	  <function>f7()</function> y eso no puede pasarle al
+	  temporario X.
+	</para>
+	
+	<para>
+	  Sin embargo, <function>f7()</function> toma su argumento
+	  por referencia, lo que significa que toma la dirección del
+	  temporario X. Como <function>f7()</function> no toma su
+	  argumento por referencia constante, tiene permiso para
+	  modificar el objeto temporario. Pero el compilador sabe
+	  que el temporario desaparecerá en cuanto se complete la
+	  evaluación de la expresión, y por eso cualquier
+	  modificación hechaen el temporario se perderá.  Haciendo
+	  que los objetos temporarios sean constantes
+	  automaticamente, la situación causa un error de
+	  compilación de modo que evitará cometer un error muy
+	  dificil de localizar.
+	</para>
+	
+	<para>
+	  En cuaquier caso, tenga presente que las expresiones siguientes
+	  son correctas.
+	</para>
+	
+	<programlisting>
+  f5() = X(1);
+  f5().modify();
+	</programlisting>
+
+	<para>
+	  Aunque son aceptables para el compilador, en realidad son
+	  problemáticas.  <function>f5()</function> devuelve un
+	  objeto de clase <classname>X</classname>, y para que el
+	  compilador pueda satisfacer las expresiones anteriores
+	  debe crear un temporario para albergar el valor de
+	  retorno. De modo que en ambas expresiones el objeto
+	  temporario se modifica y tan pronto como la expresión es
+	  evaluada el temporario se elimina. Como resultado, las
+	  modificaciones se pierden, así que probablemente este
+	  código es erroneo, aunque el compilador no diga nada al
+	  respecto. Las expresiones como estas son suficientemente
+	  simples como para detectar el problema, pero cuando las
+	  cosas son más complejas los errores son más dificiles de
+	  localizar.
+	</para>
+
+	<para>
+	  La forma de preservar la constancia de los objetos se
+	  muestra más adelante en este capíitulo.
+	</para>
+      </sect3>
+    </sect2>
+    
+    <sect2>
+      <title>Paso y retorno de direcciones</title>
+      
+      <para>
+	Si pasa o retorna una dirección (ya sea un puntero o una
+	referencia), el programador cliente puede recoger y
+	modificar el valor original. Si hace que el puntero o
+	referencia sea constante, impedirá que esto suceda, lo que
+	puede ahorrarle problemas. De hecho, cada vez que se pasa
+	una dirección como parámetro a una función, debería hacerla
+	constante siempre que sea posible. Si no lo hace, está
+	excluyendo la posibilidad de usar la función con constantes.
+      </para>
+      
+      <para>
+	La opción de devolver un puntero o referencia constante
+	depende de lo que quiera permitir hacer al programador
+	cliente. Aquí se muestra un ejemplo que demuestra el uso de
+	punteros constantes como argumentos de funciones y valores
+	de retorno.
+      </para>
+		
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstPointer.cpp"/>
+</programlisting>
+
+      <para>
+	[PAG:371] 
+	
+	La función <function>t()</function> toma un puntero
+	no-constante ordinario como argumento, y
+	<function>u()</function> toma un puntero constante. En el
+	cuerpo de <function>u()</function> puede ver un intento de
+	modificar el valor de un puntero constante, algo incorrecto,
+	pero puede copiar su valor en una variable con constante. El
+	compilador también impide crear un puntero no constante y
+	almacenar en él la dirección contenida en un puntero
+	constante.
+      </para>
+
+      <para>
+	Las funciones <function>v()</function> y
+	<function>w()</function> prueban las semánticas de retorno de
+	valores. <function>v()</function> devuelve un <type>const
+	  char*</type> que se crea a partir de un literal de
+	cadena. Esta sentencia en realidad genera la dirección del
+	literal, una vez que el compilador lo crea y almacena en área
+	de almacenamiento estática. Como se ha dicho antes,
+	técnicamente este vector de caracteres es una constante, como
+	bien indica el tipo de retorno de <function>v()</function>.
+      </para>
+
+      <para>
+	El valor de retorno de <function>w()</function> requiere que
+	tanto el puntero como lo que apunta sean constantes. Como en
+	<function>v()</function>, el valor devuelto por w() es valido
+	una vez terminada la función solo porque es estático. Nunca
+	debe devolver un puntero a una variable local pues se
+	almacenan en la pila y al terminar la función los datos de la
+	pila desaparecen. Lo que si puede hacer es devolver punteros
+	que apuntan a datos almacenados en el montón
+	(<foreignphrase>heap</foreignphrase>), pues siguen siendo
+	validos después de terminar la función.
+      </para>
+      
+      <para>
+	En <function>main()</function> se prueban las funciones con
+	varios argumentos. Puede ver que <function>t()</function>
+	aceptará como argumento un puntero ordinario, pero si
+	intenta pasarle un puntero a una constante, no hay garantia
+	de que no vaya a modificarse el valor de la variable
+	apuntada; por ello el compilador lo indica con un mensaje de
+	error. <function>u()</function> toma un puntero a constante,
+	así que puede aceptar los dos tipos de argumentos. Por eso
+	una función que acepta un puntero a constante es más general
+	que una que acepta un puntero ordinario.
+      </para>
+
+      <para>
+	Como es lógico, el valor de retorno de
+	<function>v()</function> sólo se puede asignar a un puntero
+	a constante. También era de esperar que el compilador reuse
+	asignar el valor devuelto por <function>w()</function> a un
+	puntero ordinario, y que sí acepte un <type>const int*
+	  const</type>, pero podría sorprender un poco que también
+	acepta un <type>const int*</type>, que no es exactamente el
+	tipo de retorno declarado en la función. De nuevo, como el
+	valor (que es la dirección contenida en el puntero) se
+	copia, el requisito de que la variable original permanezca
+	inalterable se cumple automáticamente. Por eso, el segundo
+	<command>const</command> en la declaración <type>const int*
+	  const</type> sólo tiene sentido cuando lo use como
+	recipiente, en cuyo caso el compilador lo impediría.
+      </para>
+
+      <sect3>
+	<title>Criterio de paso de argumentos</title>
+
+	<para>
+	  En C es muy común el paso por valor, y cuando se quiere
+	  pasar una dirección la única posibilidad es usar un
+	  puntero. De cualquier modo, ninguno de estos modos es el
+	  preferido en C++. En su lugar, la primera opción cuando se
+	  pasa un parámetro es hacerlo por referencia o mejor aún, por
+	  referencia constante. Para el cliente de la función, la
+	  sintaxis es identica que en el paso por valor, de ese modo
+	  no hay confusión posible con los punteros, no hay que pensar
+	  en terminos de punteros. Para el creador de una función,
+	  pasar una dirección es siempre más eficiente que pasar un
+	  objeto completo, y si pasa por referencia constante
+	  significa que la función no podrá cambiar lo almacenado en
+	  esa dirección, así que el efecto desde el punto de vista del
+	  programador ciente es el mismo que el paso por valor (sin
+	  embargo es más eficiente).
+	</para>
+
+	<para>
+	  A causa de la sintaxis de las referencias (para el cliente
+	  es igual que el paso por valor) es posible pasar un objeto
+	  temporario a una función que toma una referencia constante,
+	  mientras que nunca puede pasarse un objeto temporario a una
+	  función que toma un puntero (con un puntero, la dirección
+	  debe darse explicitamente). Así que con el paso por
+	  referencia se produce una nueva situación que nunca ocurre
+	  en C: un temporario, que es siempre constante, puede pasar
+	  su dirección a una función (una función puede tomar por
+	  argumento la dirección de un temporario). Esto es así
+	  porque, para permitir que los termporarios se pasen por
+	  referencia, el argumento debe ser una referencia
+	  constante. El siguiente ejemplo lo demuestra:
+	</para>
+	
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstTemporary.cpp"/>
+</programlisting>
+
+	<para>
+	  Algunos autores dicen que todo en C se pasa por valor, ya que
+	  cuando se pasa un puntero se hace también una copia (de modo
+	  que el puntero se pasa por valor). En cualquier caso, hacer
+	  esta precisión puede, en realidad, confundir la cuestión.
+	  [PAG:373]
+	</para>
+
+	<para>
+	  <function>f()</function> retorna un objeto de la clase
+	  <classname>X</classname> por valor. Esto significa que
+	  cuando tome el valor de retorno y lo pase inmediatamente a
+	  otra función como en las llamadas a
+	  <function>g1()</function> y <function>g2()</function>, se
+	  crea un temporario y los temporarios son siempre
+	  constantes. Por eso, la llamada a
+	  <function>g1()</function> es un error pues
+	  <function>g1()</function> no acepta una referencia
+	  constante, mientras que la llamada a
+	  <function>g2()</function> si es correcta.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Clases</title>
+
+    <para>
+      Esta sección muesta la forma en la que se puede usar el
+      especficador <command>const</command> con las clases. Puede
+      ser interesante crear una constante local a una clase para
+      usarla en expresiones constantes que serán evaluadas en tiempo
+      de compilación. Sin embargo, el significado del especificador
+      <command>const</command> es diferente para las clases
+      <footnote><para>Nota del traductor: Esto se conoce como
+	  polisemia del lenguaje</para></footnote>, de modo que debe
+      comprender la opciones adecuadas para crear miembros
+      constantes en una clase.
+    </para>
+
+    <para>
+      También se puede hacer que un objeto completo sea constante (y
+      como se ha visto, el compilador siempre hace constantes los
+      objetos temporarios). Pero preservar la consistencia de un objeto
+      constante es más complicado. El compilador puede asegurar la
+      consistencia de las variables de los tipos del lenguaje pero no
+      puede vigilar la complejidad de una clase. Para garantizar dicha
+      consistencia se emplean las funciones miembro constantes; que son
+      las únicas que un objeto constante puede invocar.
+      [PAG:373]
+    </para>
+
+    <sect2>
+      <title><command>const</command> en las clases</title>
+
+      <para>
+	Uno de los lugares donde interesa usar
+	<command>const</command> es para expresiones constantes
+	dentro de las clases. El ejemplo típico es cuando se define
+	un vector en una clase y se quiere usar
+	<command>const</command> en lugar de
+	<command>#define</command> para establecer el tamaño del
+	vector y para usarlo al calcular datos concernientes al
+	vector.  El tamaño del vector es algo que desea mantener
+	oculto en la clase, así que si usa un nombre como
+	<varname>size</varname>, por ejemplo, se podría usar el
+	mismo nombre en otra clase sin que ocurra un conflicto. El
+	preprocesador trata todos los <command>#define</command> de
+	forma global a partir del punto donde se definen, algo que
+	<command>const</command> permite corregir de forma adecuada
+	consiguiendo el efecto deseado.
+      </para>
+
+      <para>
+	Se podría pensar que la elección lógica es colocar una
+	constante dentro de la clase. Esto no produce el resultado
+	esperado. Dentro de una clase <command>const</command>
+	recupera un poco su significado en C. Asigna espacio de
+	almacenamiento para cada variable y representa un valor que
+	es inicializado y ya no se puede cambiar. El uso de una
+	constante dentro de una clase significa <quote>Esto es constante
+	  durante la vida del objeto</quote>. Por otra parte, en cada objeto
+	la constante puede contener un valor diferente.
+      </para>
+
+      <para>
+	Por eso, cuando crea una constante ordinaria (no estática) dentro
+	de una clase, no puede darle un valor inicial. Esta inicialización
+	debe ocurrir en el constructor. Como la constante se debe
+	inicializar en el punto en que se crea, en el cuerpo del
+	constructor la constante debe estar ya inicializada. De otro modo,
+	le quedaría la opción de esperar hasta algún punto posterior en el
+	constructor, lo que significaria que la constante no tendría valor
+	por un momento. Y nada impediría cambiar el valor de la constante
+	en varios sitios del constructor.
+      </para>
+
+      <sect3>
+	<title>La lista de inicialización del constructor.</title>
+
+	<para>
+	  Un punto especial de inicialización se llama <quote>lista
+	    de inicialización del constructor</quote> y fue pensada en
+	  un principio para su uso en herencia (tratada en el
+	  [FIXMEcapítulo 14]). La lista de inicialización del
+	  constructor (que como su nombre indica, sólo aparece en la
+	  definición del constructor) es una lista de llamadas a
+	  constructores que aparece después de la lista de
+	  argumentos del constructor y antes de abrir la llave del
+	  cuerpo del constructor.
+
+	  [PAG:375]
+
+	  Se hace así para recordarle que las inicialización de la
+	  lista sucede antes de ejecutarse el constructor. Ese es el lugar
+	  donde poner las inicializaciones de todas las constantes de la
+	  clase. El modo apropiado para colocar las constantes en una clase
+	  se muestra a continuación:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstInitialization.cpp"/>
+</programlisting>
+
+	<para>
+	  El aspecto de la lista de inicialización del constructor
+	  mostrada arriba puede crear confución al principio porque no
+	  es usual tratar los tipos del lenguaje como si tuvieran
+	  constructores.
+	</para>
+      </sect3>
+
+      <sect3>
+	<title>Constructores para los tipos del lenguaje</title>
+
+	<para>
+	  Durante el desarrollo del lenguaje se puso más esfuerzo en
+	  hacer que los tipos definidos por el programador se
+	  pareciesen a los tipos del lenguaje, pero a veces, cuando
+	  se vió útil se hizo que los tipos empotrados
+	  (<foreignphrase>built-in</foreignphrase> se pareciesen a
+	  los definidos por el programador. En la lista de
+	  inicialización del constructor, puede tratar a los tipos
+	  del lenguaje como si tuvieran un constructor, como aquí:
+	</para>
+	
+<programlisting>
+<xi:include parse="text" href="./code/C08/BuiltInTypeConstructors.cpp"/>
+</programlisting>
+
+	<para>
+	  [PAG:376] Esto es especialmente crítico cuando se
+	  inicializan atributos constantes porque se deben
+	  inicializar antes de entrar en el cuerpo de la función.
+	  Tiene sentido extender este <quote>constructor</quote>
+	  para los tipos del lenguaje (que simplemente significan
+	  asignación) al caso general que es por lo que la
+	  definición <command>float</command> funciona en el código
+	  anterior. A menudo es útil encapsular un tipo del lenguaje
+	  en una clase para garantizar la inicialización con el
+	  constructor. Por ejemplo, aquí hay una clase
+	  <classname>entero</classname>:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/EncapsulatingTypes.cpp"/>
+</programlisting>
+	  
+	<para>
+	  El vector de enteros declarado en
+	  <function>main()</function> se inicializa automaticamente
+	  a cero. Esta inicialización no es necesariamente más
+	  costosa que un bucle <command>for</command> o
+	  <function>memset()</function>. Muchos compiladores lo
+	  optimizan fácilmente como un proceso muy rápido.
+	</para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <title>Las constantes en tiempo de compilación dentro de las
+	clases.</title>
+
+      <para>
+	El uso anterior de <command>const</command> es interesante y
+	probablemente útil en muchos casos, pero no resuelve el
+	programa original de <quote>como hacer una constante en
+	  tiempo de compilación dentro de una clase</quote>. La
+	respuesta requiere del uso de un especificador adicional que
+	se explicará completamente en el [FIXME:capítulo 10]:
+	<command>static</command>. El especificador
+	<command>static</command>, en esta situación significa
+	<quote>hay sólo una instancia a pesar de que se creen varios
+	  objetos de la clase</quote> que es precisamente lo que se
+	necesita: un atributo de clase que es constante, y que no
+	cambia de un objeto a otro de la misma clase. Por eso, una
+	<command>static const</command> de un tipo del lenguaje se
+	puede tratar como una constante en tiempo de compilación.
+      </para>
+
+      <para>
+	Hay un aspecto de <command>static const</command> cuando se
+	usa dentro de clases que es un tanto inusual: se debe
+	indicar el valor inicial en el punto de la definición de la
+	<command>static const</command>. Esto sólo ocurre con
+	<command>static const</command> y no funciona en otras
+	situaciones porque todos lo otros atributos deben
+	inicializarse en el constructor o en otras funciones
+	miembro.
+      </para>
+
+      <para>
+	A continuación aparece un ejemplo que muestra la creación y
+	uso de una <command>static const</command> llamada
+	<varname>size</varname> en una clase que representa una pila
+	de punteros a cadenas.<footnote><para>Al termino de este
+	libro, no todos los compiladores permiten esta
+	característica.</para></footnote>
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/StringStack.cpp"/>
+</programlisting>
+
+
+      <para>
+	[PAG:379] Como <varname>size</varname> se usa para
+	determinar el tamaño del vector <varname>stack</varname>, es
+	adecuado usar una constante en tiempo de compilación, pero
+	que queda oculta dentro de la clase.
+      </para>
+
+      <para>
+	Conste que <function>push()</function> toma un <type>const
+	  string*</type> como argumento, <function>pop()</function>
+	retorna un <function>const string*</function> y
+	<classname>StringStack</classname> contiene <type>const
+	  string*</type>. Si no fuera así, no podría usar una
+	<classname>StringStack</classname> para contener los
+	punteros de <varname>icecream</varname>. En cualquier caso,
+	también impide hacer algo que cambie los objetos contenidos
+	en <classname>StringStack</classname>. Por supuesto, todos
+	los contenedores no están diseñados con esta restricción.
+      </para>
+
+      <sect3>
+	<title>El enumerado en codigo antiguo</title>
+
+	<para>
+	  En versiones antiguas de C++ el tipo <command>static
+	    const</command> no se permitía dentro de las
+	  clases. Esto hacía que <command>const</command> no
+	  pudiese usarse para expresiones constantes dentro de
+	  clases. Pero muchos programadores lo conseguian con una
+	  solución típica (normalmente conocida como
+	  <quote><foreignphrase>enum hack</foreignphrase></quote>)
+	  que consiste en usar el tipo <type>enum</type> sin
+	  etiqueta y sin instancias. Una enumeración debe tener
+	  establecidos sus valores en tiempo de compilación, es
+	  local a una clase y sus valores están disponibles para
+	  expresiones constantes. Por eso, es común ver código
+	  como:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/EnumHack.cpp"/>
+</programlisting>
+
+	<para>
+	  Este uso de <type>enum</type> garantiza que no se ocupa
+	  almacenamiento en el objeto, y que todos los símbolos
+	  definidos en la enumeración se evaluan en tiempo de
+	  compilación. Además se puede establecer explícitamente el
+	  valor de los símbolos:
+	</para>
+
+	<programlisting>
+	  enum { one = 1, two = 2, three };
+	</programlisting>
+
+	<para>
+	  utilizando el tipo <type>enum</type>, el compilador
+	  continuará contando a partir del último valor, así que el
+	  símbolo <constant>three</constant> tendrá un valor 3.
+	</para>
+
+	<para>
+	  En el ejemplo StringStack anterior, la línea:
+	</para>
+
+	<programlisting>
+	  static const int size = 100;
+	</programlisting>
+
+	<para>
+	  podriá sustituirse por:
+	</para>
+
+	<programlisting>
+	  enum { size = 100 };
+	</programlisting>
+
+	<para>
+	  Aunque es fácil ver esta tícnica en código correcto, el
+	  uso de <command>static const</command> fue añadido al
+	  lenguaje precisamente para resolver este problema.  En
+	  todo caso, no existe ninguna razón abrumadora por la que
+	  deba usar <command>static const</command> en lugar de
+	  <type>enum</type>, y en este libro se utiliza
+	  <type>enum</type> porque hay más compiladores que le dan
+	  soporte en el momento en el momento en que se escribió
+	  este libro.
+	</para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <title>Objetos y métodos constantes</title>
+
+      <para>
+	Las funciones miembro (métodos) se pueden hacer
+	constantes. ¿Qué significa esto?. Para entenderlo, primero
+	debe comprender el concepto de objeto constante.
+      </para>
+
+      <para>
+	Un objeto constante se define del mismo modo para un tipo
+	definido por el usuario que para un tipo del lenguaje. Por
+	ejemplo:
+      </para>
+
+      <programlisting>
+    const int i = 1;
+    const blob b(2);
+      </programlisting>
+
+      <para>
+	Aquí, <varname>b</varname> es un objeto constante de tipo
+	<type>blob</type>, su constructor se llama con un 2 como
+	argumento. Para que el compilador imponga que el objeto sea
+	constante, debe asegurar que el objeto no tiene atributos
+	que vayan a cambiar durante el tiempo de vida del
+	objeto. Puede asegurar fácilmente que los atributos no
+	públicos no sean modificables, pero. ¿Cómo puede saber que
+	métodos cambiarán los atributos y cuales son seguros para un
+	objeto constante?
+      </para>
+
+      <para>
+	Si declara un método como constante, le está diciendo que la
+	función puede ser invocada por un objeto constante. Un
+	método que no se declara constante se trata como uno que
+	puede modificar los atributos del objeto, y el compilador no
+	permitirá que un objeto constante lo utilice.
+      </para>
+
+      <para>
+	Pero la cosa no acaba ahí. Sólo porque una función afirme
+	ser <command>const</command> no garantiza que actuará del
+	modo correcto, de modo que el compilador fuerza que en la
+	definición del método se reitere el especificador
+	<command>const</command> (la palabra
+	<command>const</command> se convierte en parte del nombre de
+	la función, así que tanto el compilador como el enlazador
+	comprobarán que no se viole la [FIXME:constancia]). De este
+	modo, si durante la definición de la función se modifica
+	algún miembro o se llama algún método no constante, el
+	compilador emitirá un mensaje de error. Por eso, está
+	garantizado que los miembros que declare
+	<command>const</command> se comportarán del modo esperado.
+      </para>
+
+      <para>
+	Para comprender la sintaxis para declarar métodos
+	constantes, primero debe recordar que colocar
+	<command>const</command> delante de la declaración del
+	método indica que el valor de retorno es constante, así que
+	no produce el efecto deseado. Lo que hay que hacer es
+	colocar el especificador <command>const</command> después de
+	la lista de argumentos. Por ejemplo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/ConstMember.cpp"/>
+</programlisting>
+
+      <para>
+	[PAG:382] La palabra <command>const</command> debe incluirse
+	tando en la declaración como en la definición del método o
+	de otro modo el compilador asumirá que es un método
+	diferente. Como <function>f()</function> es un método
+	constante, si intenta modificar <varname>i</varname> de
+	alguna forma o llamar a otro método que no sea constante, el
+	compilador informará de un error.
+      </para>
+
+      <para>
+	Puede ver que un miembro constante puede llamarse tanto
+	desde objetos constantes como desde no constantes de forma
+	segura. Por ello, debe saber que esa es la forma más general
+	para un método (a causa de esto, el hecho de que los métodos
+	no sean <command>const</command> por defecto resulta
+	desafortunado). Un método que no modifica ningún atributo se
+	debería escribir como constante y así se podría usar desde
+	objetos constantes.
+      </para>
+
+      <para>
+	Aquí se muestra un ejemplo que compara métodos const y
+	métodos ordinarios:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Quoter.cpp"/>
+</programlisting>
+
+      <para>
+	Ni los constructores ni los destructores pueden ser métodos
+	constantes porque prácticamente siempre realizarn alguna
+	modificación en el objeto durante la inicialización o la
+	terminación. El miembro <function>quote()</function> tampoco
+	puede ser constante porque modifica el atributo
+	<varname>lastquote</varname> (ver la sentencia de retorno).  Por
+	otra parte <function>lastQuote()</function> no hace
+	modificaciones y por eso puede ser <command>const</command> y
+	puede ser llamado de forma segura por el objeto constante
+	<varname>cq</varname>.
+      </para>
+
+      <sect3>
+	<title>FIXME mutable: bitwise vs. logical const</title>
+
+	<para>
+	  ¿Qué ocurre si quiere crear un método constante, pero
+	  necesita cambiar algún atributo del objeto? Esto se aplica
+	  a veces a la diferencia entre constante bitwise y
+	  constante lógica (llamado también constante memberwise
+	  ). Constante bitwise significa que todos los bits del
+	  objeto son permanentes, así que la imagen de bits del
+	  objeto nunca cambia.  Constante lógica significa que,
+	  aunque el objeto completo es conceptualmente constante
+	  puede haber cambios en un member-by-member basis.  Si se
+	  informa al compilador que un objeto es constante, cuidará
+	  celosamente el objeto para asegurar constancia
+	  bitwise. Para conseguir constancia lógica, hay dos formas
+	  de cambiar los atributos con un método constante.
+	</para>
+
+	<para>
+	  La primera solución es la tradicional y se llama constacia
+	  <foreignphrase>casting away</foreignphrase>.  Esto se hace
+	  de un modo bastante raro. Se toma <varname>this</varname>
+	  (la palabra que inidica la dirección del objeto actual) y
+	  se moldea el puntero a un puntero a objeto de la clase
+	  actual. Parece que <varname>this</varname> ya es un
+	  puntero válido. Sin embargo, dentro de un método const,
+	  <varname>this</varname> es en realidad un puntero
+	  constante, así que moldeándolo a un puntero ordinario se
+	  elimina la constancia del objeto para esta operación. Aquí
+	  hay un ejemplo:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Castaway.cpp"/>
+</programlisting>
+
+	<para>
+	  Esta aproximación funciona y puede verse en código
+	  correcto, pero no es la técnica ideal. El problema es que
+	  esta falta de constancia está oculta en la definición de
+	  un método y no hay ningún indicio en la interface de la
+	  clase que haga sospechar que ese dato se modifica a menos
+	  que puede accederse al código fuente (buscando el
+	  molde). Para poner todo al descubierto se debe usar la
+	  palabra <command>mutable</command> en la declaración de la
+	  clase para indicar que un atributo determinado se puede
+	  cambiar aún perteneciendo a un objeto constante.
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Mutable.cpp"/>
+</programlisting>
+
+	<para>
+	  De este modo el usuario de la clase puede ver en la declaración
+	  que miembros tienen posibilidad de ser modificados por un método.
+	</para>
+
+	<para>
+	  [PAG:386] Si un objeto se define como constante es un
+	  candidato para ser almacenado en memoriar de sólo lectura
+	  (ROM), que a menudo es una consideración importante en
+	  programación de sistemas empotrados. Para conseguirlo no
+	  es suficiente con que el objeto sea constante, los
+	  requisitos son mucha más estrictos. Por supuesto, el
+	  objeto debe ser constante bitwise. Eso es fácil de
+	  comprobar si la constancia lógica se implementa mediante
+	  el uso de mutable, pero probablemente el compilador no
+	  podrá detectarlo si se utiliza la técnica del moldeado
+	  dentro de un método constante. En resumen:
+	</para>
+
+
+	<itemizedlist>
+	  <listitem>
+	    <para>
+	      La clase o estructura no puede tener constructores o destructor 
+	      definidos por el usuario.
+	    </para>
+	  </listitem>
+	  <listitem>
+	    <para>
+	      No pueden ser clases base (tratado en el capitulo 14) u objetos miembro 
+	      con constructores o destructor definidos por el usuario.
+	    </para>
+	  </listitem>
+	</itemizedlist>
+
+	<para>
+	  El efecto de una operación de escritura en una parte del
+	  objeto constante de un tipo <type>ROMable</type> no está
+	  definido. Aunque un objeto pueda ser colocado en ROM de
+	  forma conveniente, no todos lo requieren.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  
+  <sect1>
+    <title>Volatile</title>
+
+    <para>
+      La sintaxis de <command>volatile</command> es idéntica a la de
+      <command>const</command>, pero <command>volatile</command>
+      significa <quote>Este dato puede cambiar sin que el compilador
+	sea informado de ello</quote>. De algún modo, el entorno
+      modifica el dato (posiblemente mediante multitarea, multihilo
+      o interrupciones), y <command>volatile</command> indica la
+      compilador que no haga suposiciones sobre el dato,
+      especialmente durante la optimización.
+    </para>
+
+    <para>
+      Si el compilador dice <quote>Yo guardé este dato en un
+	registro anteriormente, y no he tocado ese registro</quote>,
+      normalmente no necesitará leer el dato de nuevo desde
+      memoria. Pero si es <command>volatile</command>, el compilador
+      no debe hacer esa suposición porque el dato puede haber
+      cambiado a causa de otro proceso, y debe releer el dato en vez
+      de optimizar el código (dicha optimización consiste en
+      eliminar la lectura redundante que se hace normalmente).
+    </para>
+
+    <para>
+      Pueden crearse objetos <command>volatile</command> usando la
+      misma sintaxis que se usa para crear objetos
+      constantes. También puede crearse objetos
+      <command>volatile</command> constantes que no pueden cambiarse
+      por el programador cliente pero se pueden modificar por una
+      entidad exterior al programa. Aquí se muestra un ejemplo que
+      representa una clase asociada con algún elemento físico de
+      comunicación.
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C08/Volatile.cpp"/>
+</programlisting>
+
+    <para>
+      [PAG:388] Como ocurre con <command>const</command>, se puede
+      usar <command>volatile</command> para los atributos de la
+      clase, los métodos y para los objetos en si mismos. Sólo puede
+      llamar a métodos <command>volatile</command> desde objetos
+      <command>volatile</command>.
+    </para>
+
+    <para>
+      La razón por la que <function>isr()</function> no se puede
+      usar como una rutina de servicio de interrupción (ISR) es que
+      en un método, la dirección del objeto actual
+      (<varname>this</varname>) debe pasarse secretamente, y una ISR
+      no requiere argumentos. Para resolver este problema se puede
+      hace que el método <function>isr()</function> sea un método de
+      clase (<command>static</command>), un asunto que se trata en
+      el [FIXME:capitulo 10].
+    </para>
+
+    <para>
+      La sintaxis de <command>volatile</command> es idéntica a la de
+      <command>const</command>, así que por eso se suelen tratar
+      juntos. Cuando se usan combinados se conocen como
+      cuantificador <emphasis>c-v</emphasis> (const-volatile).
+    </para>
+  </sect1>
+
+
+
+  <sect1>
+    <title>Resumen</title>
+
+    <para>
+      La palabra <command>const</command> permite la posibilidad de
+      definir objetos, argumentos de funciones, valores de retorno y
+      métodos y elimina el uso de constantes simbólicas para la
+      sustitución de valores del preprocesador sin perder sus
+      ventajas. Todo ello ofrece una forma adicional de comprobación
+      de tipos y seguridad en la programación. El uso de la llamada
+      <quote>constancia exacta</quote> (<foreignphrase>const
+	correctness</foreignphrase>) es decir, el uso de
+      <command>const</command> en todo lugar donde sea posible,
+      puede ser un salvavidas para muchos proyectos.
+    </para>
+
+    <para>
+      Aunque ignore a <command>const</command> y continue usando el
+      estilo tradicional de C, <command>const</command> existe para
+      ayudarle. El [FIXME:capitulo 11] utiliza las referencias
+      extensamente, y se verá más sobre la importancia del uso de
+      <command>const</command> con los argumentos de funciones.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Ejercicios</title>
+    <para>
+      Las soluciones a los ejercicios se pueden encontrar en el
+      documento electrónico titulado <quote>The Thinking in C++
+      Annotated Solution Guide</quote>, disponible por un pequeño precio
+      en <ulink
+      url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
+    </para>
+
+    <orderedlist>
+      <listitem>
+	<para>
+	  Crear 3 valores enteros constantes, después sumarlos todos
+	  para producir un valor que determine el tamaño en la
+	  definición de un vector. Intentar compilar el mismo código
+	  en C y ver que sucede (generalmente se puede forzar al
+	  compilador de C++ para que funcione como un compilador de
+	  C utilizando alguna opción de linea de comandos)
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Probar que los compiladores de C y C++ realmente tratan
+	  las constantes de modo diferente. Crear una constante
+	  global y usarla en una expresión global constante,
+	  compilar dicho código en C y C++.
+	</para>
+      </listitem>
+      <listitem>
+	<para> 
+	  Crear definiciones constantes para todos los tipos del
+	  lenguaje y sus variantes. Usarlos en expresiones con otras
+	  constantes para hacer definiciones de constantes
+	  nuevas. Comprobar que compilan correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una definición de constante en un archivo de
+	  cabecera, incluir dicho archivo en dos archivos
+	  <filename>.cpp</filename>, compilarlos y enlazarlos con el
+	  compilador de C++. No deberian ocurrir errores. Ahora
+	  intentar el mismo experimento con el compilador de C.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una constante cuyo valor se determine en tiempo de
+	  ejecución leyendo la hora en que comienza la ejecución del
+	  programa (se puede usar <filename
+	    class="headerfile">&lt;ctime></filename>). Después, en el
+	  programa, intentar leer un segundo valor de hora,
+	  alamacenarlo en la constante y ver que sucede.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear un vector de caracteres constante, después intentar cambiar uno 
+	  de los caracteres.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una declaración de constante
+	  <command>extern</command> en un fichero y poner un
+	  <function>main()</function> en el que se imprima el valor
+	  de dicha constante. Crear una definición de constante
+	  <command>extern</command> en un segundo fichero, compilar
+	  y enlazar los dos ficheros.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Definir dos punteros a <type>const long</type> utilizando
+	  las dos formas de definición. Apuntar con uno de ellos a
+	  un vector de <type>long</type>. Demostrar que se puede
+	  incrementar o decrementar el puntero, pero no se puede
+	  cambiar el valor de lo que apunta.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Definir un puntero constante a <type>double</type>, y
+	  apuntar con él a un vector de
+	  <type>double</type>. Demostrar que se puede cambiar lo que
+	  apunta el puntero pero no se puede incrementar ni
+	  decrementar el puntero.  
+	  [PAG:390]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Definir un puntero constante a objeto constante. Probar que
+	  solamente se puede leer el valor de lo que apunta el puntero,
+	  pero no se puede cambiar el puntero ni lo que apunta.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Eliminar el comentario de la linea erronea en
+	  <filename>PointerAssignemt.cpp</filename> para ver que
+	  mensaje de error muestra el compilador.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear un literal de cadena y un puntero que apunte al
+	  comienzo del literal. Ahora, usar el puntero para
+	  modificar los elementos del vector, ¿Informa el compilador
+	  de algún error? ¿Debería? Si no lo hace, ¿Porqué piensa
+	  que puede ser?  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una función que tome un argumento por valor como constante, 
+	  después intentar cambiar el argumento en el cuerpo de la
+	  función.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una función que tome un <type>float</type> por
+	  valor. Dentro de la función vincular el argumento a un
+	  <type>const float&amp;</type> y usar dicha referencia para
+	  asegurar que el argumento no se modifique.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modificar <filename>ConstReturnValues.cpp</filename>
+	  eliminando los comentarios en las líneas erroneas una cada
+	  vez para ver que mensajes de error muestra el compilador.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modificar <filename>ConsPointer.cpp</filename> eliminando
+	  los comentarios en las líneas erroneas para ver que mensajes de
+	  error muestra el compilador.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Hacer una nueva versión de
+	  <filename>ConstPointer.cpp</filename> llamada
+	  <filename>ConstReference.cpp</filename> que demuestre el
+	  funcionamiento con referencias en lugar de con punteros.
+	  (quizá necesite consultar el [FIXME:capítulo 11]).
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modificar <filename>ConstTemporary.cpp</filename>
+	  eliminando el comentario en la línea erronea para ver el
+	  mensaje de error que muestra el compilador.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase que contenga un <type>float</type>
+	  constante y otro no constante. Inicializarlos usando la
+	  lista de inicialización del constructor.
+	  [PAG:391]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase llamada <classname>MyString</classname>
+	  que contenga una cadena y tenga un constructor que
+	  inicialice la cadena y un método
+	  <function>print()</function>. Modificar
+	  <filename>StringStack.cpp</filename> para que maneje
+	  objetos <classname>MyString</classname> y
+	  <function>main()</function> para que los imprima.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase que contenga un atributo constante que se
+	  inicialice en la lista de inicialización del constructor y
+	  una enumeración no etiquetada que se use para determinar
+	  el tamaño de un vector.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Eliminar el especificador <command>const</command> en la
+	  definición del método de
+	  <filename>ConstMember.cpp</filename>, pero dejar el de la
+	  declaración para ver que mensaje de error muestra el
+	  compilador.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase con un método constante y otro
+	  ordinario. Crear un objeto constante y otro no constante
+	  de esa clase e intentar invocar ambos métodos desde ambos
+	  objetos.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase con un método constante y otro
+	  ordinario. Interntar llamar al método ordinario esde el
+	  método constante para ver que mensaje de error muestra el
+	  compilador.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Eliminar el comentario de la línea erronea en
+	  <filename>mutable.cpp</filename> para ver el mensaje de error
+	  que muestra el compilador.  
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Modificar <filename>Quoter.cpp</filename> haciendo que
+	  <function>quote()</function> sea un método constante y
+	  <varname>lastquote</varname> sea <command>mutable</command>.
+	</para>
+      </listitem>
+
+      <listitem>
+	<para>
+	  Crear una clase con un atributo
+	  <command>volatile</command>. Crear métodos
+	  <command>volatile</command> y no
+	  <command>volatile</command> que modifiquen el atributo
+	  <command>volatile</command> y ver que dice el compilador.
+	  Crear objetos <command>volatile</command> y no
+	  <command>volatile</command> de esa clase e intentar llamar
+	  a ambos métodos para comprobar si funciona correctamente y
+	  ver que mensajes de error muestra el compilador en caso
+	  contrario.  
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Crear una clase llamada <classname>bird</classname> que
+	  pueda ejecutar <function>fly()</function> y una clase
+	  <classname>rock</classname> que no pueda. Crear un objeto
+	  <varname>rock</varname>, tomar su dirección y asignar a un
+	  <type>void*</type>. Ahora tomar el <type>void*</type>,
+	  asignarlo a un <type>bird*</type> (debe usar un molde) y
+	  llamar a <function>fly()</function> a través de dicho
+	  puntero. ¿Esto es posible porque la caracteristica de C que
+	  permite asignar a un <type>void*</type> (sin un molde) es
+	  un agujero del lenguaje, que no debería propagarse a C++?
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+</chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->

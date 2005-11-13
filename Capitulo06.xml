@@ -1,0 +1,1769 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción:          David Villa <dvilla@gmx.net>
+  Formateado DocBook:  David Villa <dvilla@gmx.net>
+  1ª Revisión:
+  2ª Revisión
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C6">
+ 
+  
+  <title>Inicialización y limpieza</title>
+
+  <!--
+  Chapter 4 made a significant improvement in library use by taking all
+  the scattered components of a typical C library and encapsulating them
+  into a structure (an abstract data type, called a class from now on).
+  -->
+  <highlights>
+    <para>
+      El capitulo 4 constituye una mejora significativa en el uso de
+      librerías cogiendo los diversos componentes de una librería C típica y
+      encapsulandolos en una estructura (un tipo abstracto de dato,
+	llamado <emphasis>clase</emphasis> a partir de ahora).
+    </para>
+  </highlights>
+
+    
+  <!--
+  This not only provides a single unified point of entry into a library
+  component, but it also hides the names of the functions within the
+  class name. In Chapter 5, access control (implementation hiding) was
+  introduced. This gives the class designer a way to establish clear
+  boundaries for determining what the client programmer is allowed to
+  manipulate and what is off limits. It means the internal mechanisms
+  of a data type\u2019s operation are under the control and discretion
+  of the class designer, and it\u2019s clear to client programmers what
+  members they can and should pay attention to.
+  -->
+  <para>
+    Esto no sólo permite disponer de un sólo punto de entrada en un
+    componente de librería, además también oculta los nombres de las
+    funciones con el nombre de la clase. Esto le da al diseñador de la
+    clase la posibilidad de establecer límites claros que determinan que
+    cosas puede hacer el programador cliente y qué queda fuera de los
+    límites. Eso significa que los mecanismos internos de las
+    operaciones sobre los tipos de datos están bajo el control y la
+    discrección del diseñdor de la clase, y deja claro a qué miembros
+    puede y debe prestar atención el programador cliente.
+  </para>
+
+  <!--
+  Together, encapsulation and access control make a significant step in
+  improving the ease of library use. The concept of \u201cnew data
+  type\u201d they provide is better in some ways than the existing
+  built-in data types from C. The C++ compiler can now provide
+  type-checking guarantees for that data type and thus ensure a level of
+  safety when that data type is being used.
+  -->
+  <para>
+    Juntos, la encapsulación y el control de acceso representan un paso
+    significativo para aumentar la sencillez de uso de las librerías. El
+    concepto de "nuevo tipo de dato" que ofrecen es mejor en algunos
+    sentidos que los tipos de datos que incorpora C. El compilador C++
+    ahora puede ofrecer garantías de comprobación de tipos para esos
+    tipos de datos y así asegura un nivel de seguridad cuando se usan
+    esos tipos de datos.
+  </para>
+
+<!--
+ When it comes to safety, however, there\u2019s a lot more the compiler
+ can do for us than C provides. In this and future chapters, you\u2019ll
+ see additional features that have been engineered into C++ that make the
+ bugs in your program almost leap out and grab you, sometimes before you
+ even compile the program, but usually in the form of compiler warnings
+ and errors. For this reason, you will soon get used to the
+ unlikely-sounding scenario that a C++ program that compiles often runs
+ right the first time.
+-->
+  <para>
+    A parte de la seguridad, el compilador puede hacer mucho más por
+    nosotros de los que ofrece C. En este y en próximos capítulos verá
+    posibilidades adicionales que se han incluido en C++ y que hacen que
+    los errores en sus programas casi salten del programa y le agarren,
+    a veces antes incluso de compilar el programa, pero normalemente en
+    forma de advertencias y errores en el proceso de compilación. Por
+    este motivo, pronto se acostubrará a la extraña situación en que un
+    programa C++ que compila, funciona a la primera.
+  </para>
+
+<!--
+ Two of these safety issues are initialization and cleanup. A large
+ segment of C bugs occur when the programmer forgets to initialize or
+ clean up a variable. This is especially true with C libraries, when
+ client programmers don\u2019t know how to initialize a struct, or
+ even that they must. (Libraries often do not include an
+ initialization function, so the client programmer is forced to
+ initialize the struct by hand.) Cleanup is a special problem because
+ C programmers are comfortable with forgetting about variables once
+ they are finished, so any cleaning up that may be necessary for a
+ library\u2019s struct is often missed.
+-->
+  <para>
+    Dos de esas cuestiones de seguridad son la inicialización y la
+    limpiza. Gran parte de los errores de C se deben a que el
+    programador olvida inicializar o liberar una variable. Esto sucede
+    especialmente con las librerías C, cuando el programador cliente no
+    sabe como inicializar una estructura, o incluso si debe
+    hacerlo. (A menudo las librerías no incluyen una función de
+    inicialización, de modo que el programador cliente se ve forzado a
+    inicializar la estructura a mano). La limpieza es un problema
+    especial porque los programadores C se olvidan de las varibles una
+    vez que han terminado, de modo que omiten cualquier limpieza que pudiera
+    ser necesaría en alguna estructura de la librería.
+  </para>
+
+<!--   
+ In C++, the concept of initialization and cleanup is essential for
+ easy library use and to eliminate the many subtle bugs that occur when
+ the client programmer forgets to perform these activities. This chapter
+ examines the features in C++ that help guarantee proper initialization
+ and cleanup
+-->
+
+  <para>
+    En C++. el concepto de inicialización y limpieza es esencial para
+    facilitar el uno de las librerías y eliminar muchos de los errores
+    sutiles que ocurren cuando el programador cliente olvida cumplir con
+    sus actividades. Este capítulo examina las posibilidades de C++ que
+    ayudan a garantizar una inicialización y limpieza apropiadas.
+  </para>
+
+
+
+  <sect1>
+    <title>Inicialización garantizada por el constructor</title> 
+
+<!-- 
+ Both the Stash and Stack classes defined previously have a function
+ called initialize( ), which hints by its name that it should be called
+ before using the object in any other way. Unfortunately, this means the
+ client programmer must ensure proper initialization. Client programmers
+ are prone to miss details like initialization in their headlong rush to
+ make your amazing library solve their problem. In C++, initialization
+ is too important to leave to the client programmer. The class designer
+ can guarantee initialization of every object by providing a special
+ function called the constructor. If a class has a constructor, the
+ compiler automatically calls that constructor at the point an object is
+ created, before client programmers can get their hands on the
+ object. The constructor call isn't even an option for the client
+ programmer; it is performed by the compiler at the point the object is
+ defined.
+-->
+
+    <para>
+      Tanto la clase <classname>>Stash</classname> como la
+      <classname>>Stack</classname> definidas previamente tienen una
+      función llamada <function>initialize()</function>. que como indica
+      su nombre se debería llamar antes de usar el
+      objeto. Desafortunadamente, esto significa que el programador
+      cliente debe asegurar una inicialización apropiada. Los
+      programadores cliente son propensos a olvidar detalles como la
+      inicialización cuando tienen prisa por hacer que la librería
+      resuelva sus problemas. En C++, la inicialización en demasiado
+      importante como para dejarsela al programador cliente. El
+      diseñador de la clase puede garantizar la inicialización de cada
+      objeto facilitando una función especial llamada <quote>el
+      constructor</quote>. Si una clase tiene un constructor, el
+      compilador hará que se llame automáticamente al constructor en el
+      momento de la creación del objeto, antes de que el programador
+      cliente pueda llegar a tocar el objeto. La invocación del
+      constructor no es una opción para el programador cliente; es
+      realizada por el compilador en el punto en el que se define el
+      objeto.
+    </para>
+
+<!--
+ The next challenge is what to name this function. There are two
+ issues. The first is that any name you use is something that can
+ potentially clash with a name you might like to use as a member in the
+ class. The second is that because the compiler is responsible for
+ calling the constructor, it must always know which function to
+ call. The solution Stroustrup chose seems the easiest and most logical:
+ the name of the constructor is the same as the name of the class. It
+ makes sense that such a function will be called automatically on
+ initialization.
+-->
+
+    <para>
+      El siguiente reto es cómo llamar a esta función. Hay dos
+      cuestiones. La primera es que no debería ser ningún nombre que
+      pueda querer usar para un miembro de la clase. La segunda es que
+      dado que el compilador es el responsable de la invocación del
+      constructor, siempre debe saber qué función llamar. La solución
+      eligida por Stroustrup parece ser la más sencilla y lógica: el
+      nombre del constructor es el mismo que el de la clase. Eso hace
+      que tenga sentido que esa función sea invocada automáticamente en
+      la inicialización.
+    </para>
+      
+
+<!--
+Here's a simple class with a constructor:
+
+class X {
+  int i;
+public:
+  X();  // Constructor
+}; 
+-->
+    <para>
+      Aquí se muesta un clase sencilla con un contructor:
+    </para>
+    
+<programlisting>
+class X {
+  int i;
+public:
+  X();  // Constructor
+};
+</programlisting>
+
+    
+<!--
+Now, when an object is defined,
+
+void f() {
+  X a;
+  // ...
+} 
+-->
+
+    <para>
+      Ahora, se define un objeto,
+    </para>
+
+<programlisting>
+void f() {
+  X a;
+  // ...
+} 
+</programlisting>
+
+<!--
+ the same thing happens as if a were an int: storage is allocated for
+ the object. But when the program reaches the sequence point (point of
+ execution) where a is defined, the constructor is called
+ automatically. That is, the compiler quietly inserts the call to X::X(
+ ) for the object a at the point of definition. Like any member
+ function, the first (secret) argument to the constructor is the this
+ pointer \u2013 the address of the object for which it is being
+ called. In the case of the constructor, however, this is pointing to an
+ un-initialized block of memory, and it\u2019s the job of the
+ constructor to initialize this memory properly.
+-->
+
+    <para>
+      Lo mismo pasa si fuese un entero: se pide alojamiento para el
+      objeto. Pero cuando el programa llega al punto de ejecución en el
+      que está definida, se invoca el contructor automáticamente. Es
+      decir, el compilador inserta la llamada a
+      <methodname>X::X()</methodname> para el objeto en el punto de la
+      definición. Como cualquier método, el primer argumento (secreto)
+      para el constructor es el puntero <varname>this</varname> - la
+      dirección del objeto al que corresponde ese método. En el caso del
+      constructor, sin embargo, <varname>this</varname> apunta a un
+      bloque de memoria no inicializado, y el trabajo del constructor es
+      inicializar esa memoria de forma adecuada.
+    </para>
+
+<!-- 
+ Like any function, the constructor can have arguments to allow you
+ to specify how an object is created, give it initialization values, and
+ so on. Constructor arguments provide you with a way to guarantee that
+ all parts of your object are initialized to appropriate values. For
+ example, if a class Tree has a constructor that takes a single integer
+ argument denoting the height of the tree, then you must create a tree
+ object like this:
+   
+
+Tree t(12);  // 12-foot tree
+-->
+
+    <para>
+      Como cualquier función, el contructor puede argumentos que
+      permitan especificar cómo ha de crearse el objeto, dados unos
+      valores de inicialización. Los argumentos del constructor son una
+      especie de garantia de que todas las partes del objeto se
+      inicializan con valores apropiados. Por ejemplo, si una clase
+      <classname>Tree</classname><footnote> <para>árbol</para>
+      </footnote> tiene un contructor que toma como argumento un único
+      entero que indica la altura del árbol, entonces debe crear un
+      objeto árbol como éste:
+    </para>
+    
+    <programlisting>
+      Tree t(12)   // árbol de 12 metros
+    </programlisting>
+
+<!--
+ If Tree(int) is your only constructor, the compiler won\u2019t let you
+ create an object any other way. (We\u2019ll look at multiple
+ constructors and different ways to call constructors in the next
+ chapter.)
+-->
+
+    <para>
+      Si <function>Tree(int)</function> es el único contructor, el
+      compildor no le permitirá crear un objeto de otro modo. (En el
+      próximo capítulo veremos cómo crear múltiples constructores y
+      diferentes maneras para invocarlos.)
+    </para>
+
+<!--
+ That's really all there is to a constructor; it\u2019s a specially
+ named function that is called automatically by the compiler for every
+ object at the point of that object\u2019s creation. Despite it\u2019s
+ simplicity, it is exceptionally valuable because it eliminates a large
+ class of problems and makes the code easier to write and read. In the
+ preceding code fragment, for example, you don\u2019t see an explicit
+ function call to some initialize( ) function that is conceptually
+ separate from definition. In C++, definition and initialization are
+ unified concepts \u2013 you can\u2019t have one without the other.
+-->
+
+    <para>
+      Y realmente un contructor no es más que eso; es una función
+      con un nombre especial que se invoca automáticamente por el
+      compilador para cada objeto en el momento de su creación. A pesar
+      de su simplicidad, tiene un valor excepcional porque evita una
+      gran cantidad de problemas y hace que el código sea más fácil de
+      escribir y leer. En el fragmento de código anterior, por ejemplo,
+      no hay una llamada explícita a ninguna función
+      <function>initilize()</function> que, conceptualmente es una
+      función separada de la definición. En C++, la definición e
+      inicialización con conceptor unificados - no se puede tener el uno
+      si el otro.
+    </para>
+
+<!-- 
+ Both the constructor and destructor are very unusual types of
+ functions: they have no return value. This is distinctly different from
+ a void return value, in which the function returns nothing but you
+ still have the option to make it something else. Constructors and
+ destructors return nothing and you don\u2019t have an option. The acts
+ of bringing an object into and out of the program are special, like
+ birth and death, and the compiler always makes the function calls
+ itself, to make sure they happen. If there were a return value, and if
+ you could select your own, the compiler would somehow have to know what
+ to do with the return value, or the client programmer would have to
+ explicitly call constructors and destructors, which would eliminate
+ their safety.
+-->
+
+    <para>
+      Constructor y destructor son tipos de funciones muy inusuales: no
+      tienen valor de retorno. Esto es distinto de tener valor de
+      retorno <type>void</type>, que indicaría que la función no retorna
+      nada pero teniendo la posibilidad de hacer que otra
+      cosa. Constructores y destructores no retornan nada y no hay otra
+      posibilidad. El acto de traer un objeto al programa, o sacarlo de
+      él es algo especial, como el nacimiento o la muerte, y el
+      compilador siempre hace que la función se llame a si misma, para
+      asegurarse de que ocurre realmente. Si hubiera un valor de
+      retorno, y si no elegiera uno, el compilador no tendría forma de
+      saber qué hacer con el valor retornado, o el programador cliente
+      tendría que disponer de una invocación explícita del contructor o
+      destructor, que eliminaria la seguridad.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Limpieza garantizada por el destructor</title>
+
+    <!-- As a C programmer, you often think about the importance of
+    initialization, but it\u2019s rarer to think about cleanup. After
+    all, what do you need to do to clean up an int? Just forget about
+    it. However, with libraries, just \u201cletting go\u201d of an
+    object once you\u2019re done with it is not so safe. What if it
+    modifies some piece of hardware, or puts something on the screen, or
+    allocates storage on the heap? If you just forget about it, your
+    object never achieves closure upon its exit from this world. In C++,
+    cleanup is as important as initialization and is therefore
+    guaranteed with the destructor.
+    -->
+
+    <para>
+      Como un programador C, a menudo pensará sobre lo importante de la
+      inicialización, pero rara vez piensa en la limpieza. Después de
+      todo, ¿qué hay que limpiar de un <type>int</type>? Simplemente,
+      olvidarlo. Sin embargo, con las librerías, <quote>dejarlo
+      pasar</quote> en un objeto cuando ya no lo necesita no es
+      seguro. Qué ocurre si ese objeto modifica algo en el hardware, o
+      escribe algo en pantalla, o tiene asociado espacio en el
+      montículo(heap). Si simplemente pasa de él, su objeto nunca
+      logrará salir de este mundo. En C++, la limpieza es tan importante
+      como la inicialización y por eso está garantizada por el
+      destructor.
+    </para>
+
+
+    <!--
+    The syntax for the destructor is similar to that for the constructor:
+    the class name is used for the name of the function. However, the
+    destructor is distinguished from the constructor by a leading tilde
+    (~). In addition, the destructor never has any arguments because
+    destruction never needs any options. Here\u2019s the declaration for
+    a destructor:
+    -->
+
+    <para>
+      La sintaxis del destructor es similiar a la del constructor: se
+      usa el nombre de la clase como nombre para la función. Sin
+      embargo, el destructor se distingue del constructor porque va
+      precedido de una tilde (~). Además, el destructor nunca tiene
+      argumentos porque la destrucción nunca necestia ninguna opción. La
+      declaración de un destructor:
+    </para>
+
+    <programlisting>
+class Y {
+public:
+  ~Y();
+};
+    </programlisting>
+
+    <!--
+    The destructor is called automatically by the compiler when the
+    object goes out of scope. You can see where the constructor gets
+    called by the point of definition of the object, but the only
+    evidence for a destructor call is the closing brace of the scope
+    that surrounds the object. Yet the destructor is still called, even
+    when you use goto to jump out of a scope. (goto still exists in C++
+    for backward compatibility with C and for the times when it comes in
+    handy.) You should note that a nonlocal goto, implemented by the
+    Standard C library functions setjmp( ) and longjmp( ), doesn\u2019t
+    cause destructors to be called. (This is the specification, even if
+    your compiler doesn\u2019t implement it that way. Relying on a
+    feature that isn\u2019t in the specification means your code is
+    nonportable
+    -->
+    
+    <para>
+      El destructor se invoca automáticamente por el compilador cuando
+      el objeto sale del ámbito. Puede ver donde se invoca al contructor
+      por el punto de la definición del objeto, pero la única evidencia
+      de que el destructor fue invocado es la llave de cierre del ámbito
+      al que pertenece el objeto. El constructor se invoca incluso
+      aunque utilice <keyword>goto</keyword> para saltar fuera del del
+      ámbito (<keyword>goto</keyword> sigue existiendo en C++ por
+      compatibilidad con C.) Debería notar que un
+      <keyword>goto</keyword> no-local, implementado con las funciones
+      <function>setjmp</function> y <function>longjmp()</function> de la
+      librería estándar de C, evitan que el destructor sea
+      invocado. (Ésta es la especificación, incluso si su compilador no
+      lo implementa de esa manera. Confiar un una característica que no
+      está en la especificación significa que su código no será
+      portable.
+    </para>
+
+    <!-- Here\u2019s an example demonstrating the features of
+    constructors and destructors you\u2019ve seen so far
+    -->
+
+    <para>
+      A continuación un ejemplo que demuestra las características de
+      constructores y destructores que se han mostrado has el momento.
+    </para>
+    
+<programlisting>
+<xi:include parse="text" href="./code/C06/Constructor1.cpp"/>
+</programlisting>               
+
+    <!--
+    Here\u2019s the output of the above program:
+    
+    before opening brace
+    after Tree creation
+    Tree height is 12
+    before closing brace
+    inside Tree destructor
+    Tree height is 16
+    after closing brace
+    
+    You can see that the destructor is automatically called at the closing
+    brace of the scope that encloses it
+    -->
+
+    <para>
+      Y esta sería la salida del programa anterior:
+    </para>
+
+
+    <screen>
+      antes de la llave de apertura
+      después de la creación de Tree
+      la altura del árbol es 12
+      antes de la llave de cierre
+      dentro del destructor de Tree
+      la altura del árbol es 16
+      después de la llave de cierre
+    </screen>
+
+    <para>
+      Puede ver que el destructor se llama automáticamente al acabar el
+      ámbito (llave de cierre) en el que está definido el objeto.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Eliminación del bloque de definiciones</title>
+
+      <!-- In C, you must always define all the variables at the
+      beginning of a block, after the opening brace. This is not an
+      uncommon requirement in programming languages, and the reason
+      given has often been that it\u2019s \u201cgood programming
+      style.\u201d On this point, I have my suspicions. It has always
+      seemed inconvenient to me, as a programmer, to pop back to the
+      beginning of a block every time I need a new variable. I also find
+      code more readable when the variable definition is close to its
+      point of use -->
+      
+    <para>
+      En C, siempre se definen todas las variables al principio de cada
+      bloque, justo después de la llave de apertura. Ése es un requisito
+      común en los lenguajes de programación, y la razón que se da a
+      menudo es que se considera <quote>buenas prácticas de
+      programación</quote>. En este punto, yo tengo mis sospechas. Eso
+      siempre me pareció un inconveniente, como programador, volver al
+      principio del bloque para vez que necesitaba definir una nueva
+      variable. También encuento más legible el código cuando la
+      definición de la variable está certa del punto donde se usa.
+    </para>
+
+      <!--
+      Perhaps these arguments are stylistic. In C++, however, there\u2019s a
+      significant problem in being forced to define all objects at the
+      beginning of a scope. If a constructor exists, it must be called
+      when the object is created. However, if the constructor takes one
+      or more initialization arguments, how do you know you will have
+      that initialization information at the beginning of a scope? In
+      the general programming situation, you won\u2019t. Because C has
+      no concept of private, this separation of definition and
+      initialization is no problem. However, C++ guarantees that when an
+      object is created, it is simultaneously initialized. This ensures
+      that you will have no uninitialized objects running around in your
+      system. C doesn\u2019t care; in fact, C encourages this practice
+      by requiring you to define variables at the beginning of a block
+      before you necessarily have the initialization information[38]
+      -->
+      
+    <para>
+      Quizá esos argumentos son estilísticos. En C++, sin embargo,
+      existe un problema significativo si se fuerza a definir todos los
+      objetos al comienzo del ámbito. Si existe un contructor, debe
+      invocarse cuando el objeto se crea. Sin embargo, si el constructor
+      toma uno o más argumentos, ¿cómo saber que se dispone de la
+      información de inicialización al comienzo del ámbito? Generalmente
+      no se dispone de esa información. Dado que C no tiene el concepto de
+      privado, la separación entre definición e inicialización no es un
+      problema. Además, C++ garantiza que cuando se crea un objeto, es
+      inicializado simultaneamente. Esto asegura que no se tendrán
+      objeto no inicializados ejecutandose en el sistema. C no tiene
+      cuidado, de hecho, C estimula esta práctica ya que obliga a que se
+      definan las variables al comienzo de un bloque, antes de disponer
+      de la información de inicialización necesaria <footnote>
+	<para>C99, la versión actual del Estándar de C, permite definir
+      variables en cualquier punto del bloque, como C++</para>
+      </footnote>.
+    </para>
+
+      <!--
+      In general, C++ will not allow you to create an object before you
+      have the initialization information for the constructor. Because
+      of this, the language wouldn\u2019t be feasible if you had to
+      define variables at the beginning of a scope. In fact, the style
+      of the language seems to encourage the definition of an object as
+      close to its point of use as possible. In C++, any rule that
+      applies to an "object" automatically refers to an object
+      of a built-in type as well. This means that any class object or
+      variable of a built-in type can also be defined at any point in a
+      scope. It also means that you can wait until you have the
+      information for a variable before defining it, so you can always
+      define and initialize at the same time
+      -->
+
+    <para>
+      En general, C++ no permite crear un objeto antes de tener la
+      información de inicialización para el constructor. Por eso, el
+      lenguaje FIXME:feasible si tiene que definir variables al comienzo
+      de un bloque. De hecho, el estilo del lenguaje parece estimular la
+      definición de un objeto tan cerca como sea posible del punto en el
+      que se usa. En C++, cualquier regla que se aplica a un
+      <quote>objeto</quote> automáticamente también se refiere a un
+      objeto de un tipo básico. Esto significa que cualquier clase de
+      objeto o variable de un tipo básico también se puede definir en
+      cualquier punto del bloque. Eso también significa que puede
+      esperar hasta disponer de la información para una variable antes
+      de definirla, de modo que siempre puede definir e inicializar al
+      mismo tiempo:
+    </para>
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/DefineInitialize.cpp"/>
+</programlisting>
+
+
+      <!-- 
+      You can see that some code is executed, then retval is
+      defined, initialized, and used to capture user input, and then y
+      and g are defined. C, on the other hand, does not allow a variable
+      to be defined anywhere except at the beginning of the scope.  -->
+
+    <para>
+      Puede ver que se ejecuta parte del código, entonces se define
+      <varname>>retval</varname>, que se usa para capturar datos de la
+      consola, y entonces se definen <varname>y</varname> y
+      <varname>g</varname>. C, al contrario, no permite definir una
+      variable en ningún sitio que no sea el comienzo de un bloque.
+    </para>
+
+      <!--
+      In general, you should define variables as close to their point of use
+      as possible, and always initialize them when they are
+      defined. (This is a stylistic suggestion for built-in types, where
+      initialization is optional.) This is a safety issue. By reducing
+      the duration of the variable\u2019s availability within the scope,
+      you are reducing the chance it will be misused in some other part
+      of the scope. In addition, readability is improved because the
+      reader doesn\u2019t have to jump back and forth to the beginning
+      of the scope to know the type of a variable
+      -->
+
+    <para>
+      En general, debería definir las variables tan cerca como sea
+      posible del punto en que se usa, e inicializarlas siempre cuando
+      se definen. (Ésta es una sugerencia de estilo para tipos básicos,
+      en los que la inicialización es opcional.) Es una cuestión de
+      seguridad. Reduciendo la duración de disponibilidad al nloque,
+      se reduce la posibilidad de que sea usada inapropiadamente en otra
+      parte del bloque. En resumen, la legibilidad mejora porque el
+      lector no teiene que volver al inicio del bloque para ver el tipo
+      de una variable.
+    </para>
+
+    <sect2>
+      <title>para bucles</title>
+
+      <!--
+      In C++, you will often see a for loop counter defined right inside
+      the for expression:-->
+
+      <para>
+	En C++, a menudo verá bucles <keyboard>for</keyboard> con el
+	contador definido dentro de la propia expresión.
+      </para>
+      
+<programlisting>
+for(int j = 0; j  &lt; 100; j++) {
+    cout &lt;&lt; "j = "  &lt;&lt; j  &lt;&lt; endl;
+}
+for(int i = 0; i  &lt; 100; i++)
+ cout  &lt;&lt; "i = "  &lt;&lt; i  &lt;&lt; endl;
+</programlisting>
+
+      <!--
+      The statements above are important special cases, which cause
+      confusion to new C++ programmers.
+      -->
+
+      <para>
+	Las sentencias anteriores son casos especiales importantes, que
+	provocan confusión en los programadores C++ novatos.
+      </para>
+
+      <!-- The variables i and j are defined directly inside the for
+      expression (which you cannot do in C). They are then available for
+      use in the for loop. It\u2019s a very convenient syntax because
+      the context removes all question about the purpose of i and j, so
+      you don\u2019t need to use such FIXME:ungainly names as i_loop_counter
+      for clarity.-->
+
+      <para>
+	Las variables <varname>i</varname> y <varname>j</varname> están
+	definidas directamente dentro la expresión
+	<keyboard>for</keyboard> (algo que no se puede hacer en C). Esas
+	variables están disponibles para usarlas en el bucle. Es una
+	sintaxis muy conveniente porque el contexto disipa cualquier
+	duda sobre el proposito de <varname>i</varname> y
+	<varname>j</varname>, asi que no necesita utilizar nombres
+	extraños como <varname>contador_bucle_i</varname> para quede más claro.
+      </para>
+
+      <!-- However, some confusion may result if you expect the
+      lifetimes of the variables i and j to extend beyond the scope of
+      the for loop - they do not[39].-->
+
+      <!-- 
+      [39] An earlier iteration of the C++ draft standard said the
+      variable lifetime extended to the end of the scope that enclosed
+      the for loop. Some compilers still implement that, but it is not
+      correct so your code will only be portable if you limit the scope
+      to the for loop.  -->
+
+      <para>
+	Sin embargo, podría resultar confuso si espera que la vida de
+	las variables <varname>i</varname> y <varname>j</varname>
+	continue después del bucle - algo que no ocurre<footnote>
+	<para>Un reciente borrador del estándar C++ dice que la vida de
+	la variable se extiende hasta el final del ámbito que encierra
+	el bucle <keyword>for</keyword>. Algunos compiladores lo
+	implementan, pero eso no es correcto de modo que su código sólo
+	será portable si limita el ámbito al bucle
+	<keyword>for</keyword>.</para>
+	</footnote>
+      </para>
+
+      <!--
+      Chapter 3 points out that while and switch statements also allow
+      the definition of objects in their control expressions, although
+      this usage seems far less important than with the for loop.
+      -->
+
+      <para>
+	El capítulo 3 indica que las sentencias <keyword>while</keyword>
+	y <keyword>switch</keyword> también permiten la definición de
+	objetos en sus expresiones de control, aunque ese uso es menos
+	importante que con el bucle <keyword>for</keyword>.
+      </para>
+
+      <!--
+      Watch out for local variables that hide variables from the
+      enclosing scope. In general, using the same name for a nested
+      variable and a variable that is global to that scope is confusing
+      and error prone[40].
+      -->
+
+      <!-- [40] The Java language considers this such a bad idea that it
+      flags such code as an error. -->
+
+      <para>
+	Hay que tener cuidado con las variables locales que ocultan las
+	variables del ámbito superior. En general, usar el mismo nombre
+	para una variable anidada y una variable que es global en ese
+	ámbito es confuso y propenso a errores<footnote>
+	  <para>El lenguaje Java considera esto una idea tan mal que lo
+	considera un error.</para>
+	</footnote>
+      </para>
+
+      <!--
+      I find small scopes an indicator of good design. If you have
+      several pages for a single function, perhaps you\u2019re trying to
+      do too much with that function. More granular functions are not
+      only more useful, but it\u2019s also easier to find bugs.
+      -->
+
+      <para>
+	Creo que los bloques pequeños son un indicador de un buen
+	diseño. Si una sola función requiere varias páginas, quizá está
+	intentando demasiadas cosas en esa función. Funciones de
+	granularidad más fina no sólo son más útiles, tambíén facilitan
+	la localización de errores.
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>Alojamiento de memoria</title>
+      
+      <!-- A variable can now be defined at any point in a scope, so it
+      might seem that the storage for a variable may not be defined
+      until its point of definition. It's actually more likely that
+      the compiler will follow the practice in C of allocating all the
+      storage for a scope at the opening brace of that scope. It
+      doesn't matter because, as a programmer, you can't
+      access the storage (a.k.a. the object) until it has been
+      defined[41]. Although the storage is allocated at the beginning of
+      the block, the constructor call doesn't happen until the
+      sequence point where the object is defined because the identifier
+      isn't available until then. The compiler even checks to make
+      sure that you don't put the object definition (and thus the
+      constructor call) where the sequence point only conditionally
+      passes through it, such as in a switch statement or somewhere a
+      goto can jump past it. Uncommenting the statements in the
+      following code will generate a warning or an error: -->
+      
+      <!--
+      [41] OK, you probably could by fooling around with pointers, but
+      you'd be very, very bad.
+      -->
+
+      <para>
+	Ahora una variable se puede definir en cualquier parte del
+	bloque, podría parecer que el alojamiento para una variable no
+	se puede llevar a cabo hasta el momento en que se define. En
+	realidad, lo más probable es que el compilador siga la práctica
+	de pedir todo el alojamiento para el bloque en la llave de
+	apertura del bloque. No importa porque, como programador, no
+	puede acceder al espacio asociado (es decir, el objeto) hasta
+	que ha sido definido<footnote>
+	  <para>De acuerdo, probablemente podría trucarlo usando
+	punteros, pero sería muy, muy malo</para>
+	</footnote>. Aunque el espacio se pida al comienzo del bloque,
+	la llamada al constructor no ocurre hasta el punto en el que se
+	define el objeto ya que el identificador no está disponible
+	hasta entonces. El compilador incluso comprueba que no ponga la
+	definición del objeto (y por tanto la llamada al constructor) en
+	un punto que dependa de una sentencia condicional, como en una
+	sentencia <keyword>switch</keyword> o algún lugar que pueda
+	saltar un <keyword>goto</keyword>. Descomentar las sentencias
+	del siguiente código generará un error o aviso.
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Nojump.cpp"/>
+</programlisting>
+
+      <!--
+      In the code above, both the goto and the switch can potentially
+      jump past the sequence point where a constructor is called. That
+      object will then be in scope even if the constructor hasn\u2019t
+      been called, so the compiler gives an error message. This once
+      again guarantees that an object cannot be created unless it is
+      also initialized.
+      -->
+
+      <para>
+	En el código anterior, tanto el <keyword>goto</keyword> como el
+	<keyword>switch</keyword> pueden saltar la sentencia en la que
+	se invoca un constructor. Ese objeto corresponde al ámbito
+	incluso si no se invoca el constructor, de modo que el compilador
+	dará un mensaje de error. Esto garantiza de nuevo que un objeto
+	no se puede crear si no se inicializa.
+      </para>
+
+      <!--
+      All the storage allocation discussed here happens, of course, on the
+      stack. The storage is allocated by the compiler by moving the
+      stack pointer \u201cdown\u201d (a relative term, which may
+      indicate an increase or decrease of the actual stack pointer
+      value, depending on your machine). Objects can also be allocated
+      on the heap using new, which is something we\u2019ll explore
+      further in Chapter 13.
+      -->
+
+      <para>
+	Todo el espacio de almacenamiento necesario se asigna en la
+	pila, por supuesto. Ese espacio lo faciliza el compilador
+	moviendo el puntero de pila <quote>hacia abajo</quote>
+	(dependiendo de la máquina implica incrementar o decrementar el
+	valor del puntero de pila). Los objetos también se pueden alojar
+	en el montículo usando <keyword>new</keyword>, algo que se verá
+	en el capítulo 13. (FIXME:Ref C13)
+      </para>
+
+    </sect2>
+
+  </sect1>
+
+  <sect1>
+    <title>Stash con constructores y destructores</title>
+
+    <!-- The examples from previous chapters have obvious functions that
+    map to constructors and destructors: initialize( ) and cleanup(
+    ). Here\u2019s the Stash header using constructors and
+    destructors:-->
+
+    <para>
+      Los ejemplos de los capítulos previos tienen funciones que tienen
+      correspondencia directa con contructores y destructores:
+      <function>initialize()</function> y
+      <function>cleanup()</function>. Éste es el fichero de cabecera de
+      Stash, utilizando constructor y destructor:
+    </para>
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stash2.h"/>
+</programlisting>
+
+    <!-- The only member function definitions that are changed are
+    initialize( ) and cleanup( ), which have been replaced with a
+    constructor and destructor:
+    -->
+
+    <para>
+      Las únicas definiciones de métodos que han cambiado son
+      <function>initialize()</function> y
+      <function>cleanup()</function>, que han sido reemplazadas con un
+      constructor y un destructor.
+    </para>
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stash2.cpp"/>
+</programlisting>
+
+    <!--
+    You can see that the require.h functions are being used to watch for
+    programmer errors, instead of assert( ). The output of a failed
+    assert( ) is not as useful as that of the require.h functions (which
+    will be shown later in the book).
+    -->
+
+    <para>
+      Puede ver que las funciones de <filename>require.h</filename> se
+      usan para vigilar errores del programador, en lugar de
+      <function>assert()</function>. La salida de un
+      <function>assert()</function> fallido no es tan útil como las
+      funciones de <filename>require.h</filename> (que se verán más
+      adelante en el libro).
+    </para>
+
+
+    <!--
+    Because inflate( ) is private, the only way a require( ) could fail
+    is if one of the other member functions accidentally passed an
+    incorrect value to inflate( ). If you are certain this can't
+    happen, you could consider removing the require( ), but you might
+    keep in mind that until the class is stable, there's always the
+    possibility that new code might be added to the class that could
+    cause errors. The cost of the require( ) is low (and could be
+    automatically removed using the preprocessor) and the value of code
+    robustness is high.
+    -->
+
+    <para>
+      Dado que <methodname>inflate()</methodname> es privado, el único
+      modo en que <function>require()</function> podría fallar sería si
+      uno de los otros miembros pasara accidentalmente un valor
+      incorrecto a <methodname>inflate()</methodname>. Si está seguro de
+      que eso no puede pasar, debería considerar eliminar el
+      <function>require()</function>, pero debería tener en mente que
+      hasta que la clase sea estable, siempre existe la posibilidad de
+      que el código nuevo añadido a la clase podría provocar errores. El
+      coste de <function>require()</function> es bajo (y podría ser
+      eliminado automáticamente por el preprocesador) mientras que la
+      robusted del código es alta.
+    </para>
+
+    <!--
+    Notice in the following test program how the definitions for Stash
+    objects appear right before they are needed, and how the
+    initialization appears as part of the definition, in the constructor
+    argument list:
+    -->
+
+    <para>
+      Fijese cómo en el siguiente programa de prueba la definición de los
+      objetos <classname>Stash</classname> aparecen justo antes de
+      necesitarse, y cómo la inicialización aparece como parte de la
+      definición, en la lista de argumentos del constructor.
+    </para>
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stash2Test.cpp"/>
+</programlisting>
+
+    <!--
+    Also notice how the cleanup( ) calls have been eliminated, but the
+    destructors are still automatically called when intStash and
+    stringStash go out of scope.
+    -->
+
+    <para>
+      También observe que se ha elimiando llamada a
+      <function>cleanup()</function>, pero los destructores se llaman
+      automáticamente cuando <varname>intStash</varname> y
+      <varname>stringStash</varname> salen del ámbito.
+    </para>
+
+    <!--
+    One thing to be aware of in the Stash examples: I'm being very
+    careful to use only built-in types; that is, those without
+    destructors. If you were to try to copy class objects into the
+    Stash, you'd run into all kinds of problems and it
+    wouldn't work right. The Standard C++ Library can actually make
+    correct copies of objects into its containers, but this is a rather
+    messy and complicated process. In the following Stack example,
+    you'll see that pointers are used to sidestep this issue, and
+    in a later chapter the Stash will be converted so that it uses
+    pointers.
+    -->
+
+    <para>
+      Una cosa de la que debe ser consciente en los ejemplos con
+      <classname>Stash</classname>: Tengo mucho cuidado usando sólo
+      tipos básicos; es decir, aquellos sin destructores. Si intenta
+      copiar objetos dentro de <classname>Stash</classname>, aparecerán
+      todo tipo de problemas y no funcionará bien. En realidad la
+      Librería Estándar de C++ puede hacer copias correctas de objetos
+      en sus contenedores, pero es un proceso bastante sucio y
+      complicado. En el siguiente ejemplo de
+      <classname>Stack</classname>, verá que se utilizan punteros para
+      esquivar esta cuestión, y en un capítulo posterior
+      <classname>Stash</classname> también se convertirá para que use
+      punteros.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Stack con constructores y destructores</title>
+
+    <!-- Reimplementing the linked list (inside Stack) with constructors
+    and destructors shows how neatly constructors and destructors work
+    with new and delete. Here's the modified header file:
+    -->
+    
+    <para>
+      Reimplementar la lista enlazada (dentro de
+      <classname>Stack</classname>) con constructores y destructores
+      muestra claramente cómo costructores y destructores utilizan
+      <keyword>new</keyword> y <keyword>delete</keyword>. Éste es el
+      fichero de cabecera modficado:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stack3.h"/>
+</programlisting>
+
+    <!-- Not only does Stack have a constructor and destructor, but so
+    does the nested class struct Link:
+    -->
+
+    <para>
+      No sólo hace que <classname>Stack</classname> tenga un constructor
+      y destructir, también aparece la clase anidada
+      <classname>Link</classname>.
+    </para>
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stack3.cpp"/>
+</programlisting>
+
+    <!-- The Link::Link( ) constructor simply initializes the data and
+    next pointers, so in Stack::push( ) the line
+    -->
+
+    <para>
+      El constructor <methodname>Link:Link()</methodname> simplemente
+      inicializa los punteros <varname>data</varname> y
+      <varname>next</varname>, así que en
+      <methodname>Stack::push()</methodname>, la línea:
+    </para>
+
+<programlisting>
+head = new Link(dat,head);
+</programlisting>
+
+    <!-- not only allocates a new link (using dynamic object creation
+    with the keyword new, introduced in Chapter 4), but it also neatly
+    initializes the pointers for that link.
+    -->
+
+    <para>
+      no sólo aloja un nuevo enlace (usando creación dinámica de objetos
+      con la sentencia <keyword>new</keyword>, vista en el capítulo 4),
+      también inicializa los punteros para ese enlace.
+    </para>
+
+    <!-- You may wonder why the destructor for Link doesn't do
+    anything - in particular, why doesn't it delete the data
+    pointer? There are two problems. In Chapter 4, where the Stack was
+    introduced, it was pointed out that you cannot properly delete a
+    void pointer if it points to an object (an assertion that will be
+    proven in Chapter 13). But in addition, if the Link destructor
+    deleted the data pointer, pop( ) would end up returning a pointer to
+    a deleted object, which would definitely be a bug. This is sometimes
+    referred to as the issue of ownership: the Link and thus the Stack
+    only holds the pointers, but is not responsible for cleaning them
+    up. This means that you must be very careful that you know who is
+    responsible. For example, if you don't pop( ) and delete all
+    the pointers on the Stack, they won't get cleaned up
+    automatically by the Stack's destructor. This can be a sticky
+    issue and leads to memory leaks, so knowing who is responsible for
+    cleaning up an object can make the difference between a successful
+    program and a buggy one - that's why Stack::~Stack( )
+    prints an error message if the Stack object isn\u2019t empty upon
+    destruction.
+    -->
+    
+    <para>
+      Puede que le asombre que el destructor de
+      <classname>Link</classname> no haga nada - en concreto, ¿por qué
+      no elimina el puntero <varname>data</varname>? Hay dos
+      problemas. En el capítulo 4, en el que se apareció
+      <classname>Stack</classname>, se decía que no puede eliminar un
+      puntero <type>void</type> si está apuntado a un objeto (una
+      afirmación que se demostrará en el capítulo 13). Pero además, si
+      el destructor de <classname>Link</classname> eliminara el puntero
+      <varname>data</varname>, <function>pop()</function> retornaría un
+      puntero a un objeto borrado, que definitivamente supone un
+      error. A veces esto se llama una cuestión de
+      <emphasis>propiedad</emphasis>: <classname>Link</classname> y por
+      consiguiente <classname>Stack</classname> sólo contienen los
+      punteros, pero no son responsables de su limpieza. Esto significa
+      que debe tener mucho cuidado para saber quién es el
+      responsable. Por ejemplo, si no invoca
+      <methodname>pop()</methodname> y elemina todos los punteros de
+      <classname>Stack()</classname>, no se limipiarán automáticamente
+      por el destructor de <classname>Stack</classname>. Esto puede ser
+      una cuestión engorrosa y llevar a fugas de memoria, de modo que
+      saber quién es el responsable de la limpieza de un objeto puede
+      suponer la diferencia entre un programa correcto y uno erroneo -
+      es decir, porqué <methodname>Stack::~Stack()</methodname> imprime
+      un mensaje de error si el objeto <classname>Stack</classname> no
+      está vacio en el momento su destrucción.
+    </para>
+
+    <!-- Because the allocation and cleanup of the Link objects are
+    hidden within Stack - it's part of the underlying
+    implementation - you don't see it happening in the test
+    program, although you are responsible for deleting the pointers that
+    come back from pop( ):
+    -->
+
+    <para>
+      Dado que el alojamiento y limpieza de objetos
+      <classname>Link</classname> están ocultos dentro de
+      <classname>Stack</classname> - es parte de la implementación
+      subyacente - no verá este suceso en el programa de prueba, aunque
+      será el responsable de de eliminar los punteros que devuelva
+      <function>pop()</function>:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Stack3Test.cpp"/>
+</programlisting>
+
+    <!-- In this case, all the lines in textlines are popped and
+    deleted, but if they weren't, you'd get a require( )
+    message that would mean there was a memory leak.
+    -->
+
+    <para>
+      En este caso, todas las líneas de <varname>textlines</varname> son
+      desapiladas y eliminadas, pero si no fuese así, obtendría un
+      mensaje de <function>require()</function> que indica que hubo una
+      fuga de memoria.
+    </para>
+    
+  </sect1>
+
+  <sect1>
+    <title>Inicialización de tipos agregados</title>
+
+    <!--
+    An aggregate is just what it sounds like: a bunch of things clumped
+    together. This definition includes aggregates of mixed types, like
+    structs and classes. An array is an aggregate of a single type.
+    -->
+
+    <para>
+      Un agregado es justo lo que parece: un grupo de cosas agrupados
+      juntos. Esta definición incluye agregados de tipos mixtos, como
+      estructuras o clases. Un array es un agregado de un único tipo.
+    </para>
+
+    <!--
+    Initializing aggregates can be error-prone and tedious. C++
+    aggregate initialization makes it much safer. When you create an
+    object that\u2019s an aggregate, all you must do is make an
+    assignment, and the initialization will be taken care of by the
+    compiler. This assignment comes in several flavors, depending on the
+    type of aggregate you\u2019re dealing with, but in all cases the
+    elements in the assignment must be surrounded by curly braces. For
+    an array of built-in types this is quite simple:
+    -->
+
+    <para>
+      Inicializar agregados puede ser tedioso y propenso a errores. La
+      inicialización de agregados en C++ lo hace mucho más
+      seguro. Cuando crea un objeto agregado, todo lo que tiene que
+      hacer es una asignación, y la inicialización la hará el
+      compilador. Esta asignación tiene varias modalidades, dependiendo
+      del tipo de agregado del que se trate, pero en cualquier caso los
+      elementeos en la asignación deben estár rodeadas de llaves. Para
+      un array de tipos básicos es bastante simple:
+    </para>
+
+<programlisting>
+int a[5] = { 1, 2, 3, 4, 5 };
+</programlisting>
+
+    <!--
+    If you try to give more initializers than there are array elements,
+    the compiler gives an error message. But what happens if you give
+    fewer initializers? For example:
+    -->
+
+    <para>
+      Si intenta escribir más valores que elementos tiene el
+      array, el compilador dará un mensaje de error. Pero, ¿qué ocurre
+      si escribes menos valores? Por ejemplo:
+    </para>
+
+<programlisting>
+int b[6] = {0};
+</programlisting>
+
+    <!--
+    Here, the compiler will use the first initializer for the first
+    array element, and then use zero for all the elements without
+    initializers. Notice this initialization behavior doesn\u2019t occur
+    if you define an array without a list of initializers. So the
+    expression above is a succinct way to initialize an array to zero,
+    without using a for loop, and without any possibility of an
+    off-by-one error (Depending on the compiler, it may also be more
+    efficient than the for loop.)
+    -->
+
+    <para>
+      Aquí, el compilara usará el primer valor para el primer elemento
+      del array, y después usará ceros para todos los elementos para los
+      que no se tiene un valor. Fijese en este comportamiento en la
+      inicialización no ocurre si define un array sin una lista de
+      valores de inicialización. Así que la expresión anterior es una
+      forma resumida de inicializar a cero un array sin usar un bucle
+      <keyword>for</keyword>, y sin ninguna posibilidad de un
+      <quote>error por uno</quote> (Dependiendo del compilador, también
+      puede ser más eficiente que un bucle <keyword>for</keyword>.
+    </para>
+
+    <!-- A second shorthand for arrays is automatic counting, in which
+    you let the compiler determine the size of the array based on the
+    number of initializers:-->
+
+    <para>
+      Un segundo método para los arrays es el conteo automático, en el
+      cual se permite que el compilador determine el tamaño del array
+      basándose en el número de valores de inicialización.
+    </para>
+
+<programlisting>
+int c[] = { 1, 2, 3, 4 };
+</programlisting>
+
+
+    <!--
+    Now if you decide to add another element to the array, you simply
+    add another initializer. If you can set your code up so it needs to
+    be changed in only one spot, you reduce the chance of errors during
+    modification. But how do you determine the size of the array? The
+    expression sizeof c / sizeof *c (size of the entire array divided by
+    the size of the first element) does the trick in a way that
+    doesn\u2019t need to be changed if the array size changes[42]:
+    -->
+
+    <!--
+    [42]
+    In Volume 2 of this book (freely available at www.BruceEckel.com),
+    you'll see a more succinct calculation of an array size using
+    templates.
+    -->
+
+    <para>
+      Ahora, si decide añadir otro elemento al array, simplemente debe
+      añadir otro valor. Si puede hacer que su código necesite
+      modificaciones en un único sítio, reducirá la posibilidad de
+      introducir errores durante la modificación. Pero, ¿cómo determinar
+      el tamaño del array? La expresión <programlisting>sizeof c /
+      sizeof *c</programlisting> (el tamaño del array completo dividido
+      entre el tamaño del primer elemento) es un truco que hace que no
+      sea necesario cambiarlo si cambia el tamaño del array <footnote>
+      <para>En el segundo volumen de este libro (disponible libremente
+      en <ulink
+      url="http://www.BruceEckel.com">www.BruceEckel.com</ulink>), verá
+      una forma más corta de calcular el tamaño de un array usando
+      plantillas.</para>
+      </footnote>:
+    </para>
+
+<programlisting>
+for(int i = 0; i &lt; sizeof c / sizeof *c; i++)
+  c[i]++;
+</programlisting>
+
+    <!--
+    Because structures are also aggregates, they can be initialized in a
+    similar fashion. Because a C-style struct has all of its members
+    public, they can be assigned directly:
+    -->
+
+    <para>
+      Dado que las estructuras también son agregados, se pueden
+      inicializar de un modo similar. Como en una estructura estilo-C
+      todos sus miembros son públicos, se pueden asignar directamente:
+    </para>
+
+<programlisting>
+struct X {
+  int i;
+  float f;
+  char c;
+};
+
+X x1 = { 1, 2.2, 'c' };
+</programlisting>
+
+    
+    <!--
+    If you have an array of such objects, you can initialize them by
+    using a nested set of curly braces for each object:
+    -->
+
+    <para>
+      Si tiene una array de esos objetos, puede inicializarlos usando un
+      conjunto anidado de llaves para cada elemento:
+    </para>
+    
+<programlisting>
+X x2[3] = { {1, 1.1, 'a'}, {2, 2.2, 'b'} };
+</programlisting>
+
+    <!--
+    Here, the third object is initialized to zero.
+    -->
+
+    <para>
+      Aquí, el tercer objeto se inicializó a cero.
+    </para>
+
+    <!--
+    If any of the data members are private (which is typically the case
+    for a well-designed class in C++), or even if everything\u2019s
+    public but there\u2019s a constructor, things are different. In the
+    examples above, the initializers are assigned directly to the
+    elements of the aggregate, but constructors are a way of forcing
+    initialization to occur through a formal interface. Here, the
+    constructors must be called to perform the initialization. So if you
+    have a struct that looks like this,
+    -->
+
+    <para>
+      Si alguno de los atributos es privado (algo que ocurre típicamente
+      en el caso de clases bien diseñadas en C++), o incluso si todos
+      son públicos pero hay un constructor, las cosas son distintas. En
+      el ejemplo anterior, los valores se han asignado directamente a
+      los elementos del agregado, pero los constructores son una manera
+      de forzar que la inicialización ocurra por medio de un interface
+      formal. Aquí, los constructores deben ser invocados para realizar
+      la inicialización. De modo, que si tiene un constructor parecido a
+      éste,
+    </para>
+
+<programlisting>
+struct Y {
+  float f;
+  int i;
+  Y(int a);
+}; 
+</programlisting>
+
+    <!-- You must indicate constructor calls. The best approach is the
+    explicit one as follows:
+    -->
+
+    <para>
+      Debe indicar la llamada al constructor. La mejor aproximación es
+      una explícita como la siguiente:
+    </para>
+
+<programlisting>
+Y y1[] = { Y(1), Y(2), Y(3) };
+</programlisting>
+
+    <!--
+    You get three objects and three constructor calls. Any time you have
+    a constructor, whether it's a struct with all members public or
+    a class with private data members, all the initialization must go
+    through the constructor, even if you're using aggregate
+    initialization.
+    -->
+
+    <para>
+      Obtendrá tres objetos y tres llamadas al constructor. Siempre que
+      tenga un constructor, si es una estructura con todos sus miembros
+      públicos o una clase con atributos privados, toda la
+      inicialización debe ocurrir a través del constructor, incluso si
+      está usando la inicialización de agregados.
+    </para>
+
+    <!--
+    Here's a second example showing multiple constructor arguments:
+    -->
+
+    <para>
+      Se muestra un segundo ejemplo con un constructor con múltiples
+      argumentos.
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/Multiarg.cpp"/>
+</programlisting>
+
+    <!-- Notice that it looks like an explicit constructor is called for
+    each object in the array. -->
+
+    <para>
+      Fíjese en cómo se invoca un constructor explícito para cada objeto
+      de un array.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Constructores por defecto</title>
+
+    <!--
+    A default constructor is one that can be called with no arguments. A
+    default constructor is used to create a "vanilla object,"
+    but it's also important when the compiler is told to create an
+    object but isn't given any details. For example, if you take
+    the struct Y defined previously and use it in a definition like
+    this,
+    -->
+    
+    <para>
+      Un constructor por defecto es uno que puede ser invocado sin
+      argumentos. Un constructor por defecto se usa para crear un
+      <quote>FIXME:objeto vainilla</quote> pero también es importante
+      cuando el compilador debe crear un objeto pero no se dan
+      detallas. Por ejemplo, si se toma la <keyword>struct</keyword>
+      <varname>Y</varname> definida previamente y se usa en una
+      definición como ésta,
+    </para>
+
+<programlisting>
+Y y2[2] = { Y(1) };
+</programlisting>
+
+    
+    <!-- the compiler will complain that it cannot find a default
+    constructor. The second object in the array wants to be created with
+    no arguments, and that\u2019s where the compiler looks for a default
+    constructor. In fact, if you simply define an array of Y objects,
+    -->
+
+    <para>
+      el compilador se quejará porque no puede encontrar un constructor
+      por defecto. El segundo objeto del array se creará sin argumentos,
+      y es ahí donde el compilador busca un constructor por defecto. De
+      hecho, si simplemente define un array de objetos
+      <classname>Y</classname>,
+    </para>
+
+<programlisting>
+Y y3[7];
+</programlisting>
+
+    <!-- the compiler will complain because it must have a default
+    constructor to initialize every object in the array.
+    -->
+
+    <para>
+      el compilador se quejará porque debe haber un constructor para
+      inicializar cada objeto del array.
+    </para>
+
+    <!-- The same problem occurs if you create an individual object like
+    this: -->
+
+    <para>
+      El mismo problema ocurre si crea un objeto individual como éste:
+    </para>
+
+<programlisting>
+Y y4;
+</programlisting>
+
+
+    <!-- Remember, if you have a constructor, the compiler ensures that
+    construction always happens, regardless of the situation.
+    -->
+
+    <para>
+      Recuerde, si tiene un constructor, el compilador asegura que
+      siempre ocurrirá la construcción, sin tener en cuenta la situación.
+    </para>
+
+    <!-- The default constructor is so important that if (and only if)
+    there are no constructors for a structure (struct or class), the
+    compiler will automatically create one for you. So this works:
+    -->
+
+    <para>
+      El constructor por defecto es tan importante que si (y sólo si)
+      una estructura (<keyword>struct</keyword> o
+      <keyword>clase</keyword>) no tiene constructor, el compiladore
+      creará uno automáticamente. Por ello, lo siguiente funciona:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C06/AutoDefaultConstructor.cpp"/>
+</programlisting>
+
+    <!-- If any constructors are defined, however, and there\u2019s no
+    default constructor, the instances of V above will generate
+    compile-time errors.
+    -->
+
+    <para>
+      Si se han definido constructores, pero no hay constructor por
+      defecto, las instancias anteriores de <classname>V</classname>
+      provocarán errores durante la compilación.
+    </para>
+
+    <!-- You might think that the compiler-synthesized constructor
+    should do some intelligent initialization, like setting all the
+    memory for the object to zero. But it doesn't - that would
+    add extra overhead but be out of the programmer's control. If
+    you want the memory to be initialized to zero, you must do it
+    yourself by writing the default constructor explicitly.
+    -->
+    
+    <para>
+      Podría pensarse que el constructor sintetizado por el compilador
+      debería hacer alguna inicialización inteligente, como poner a cero
+      la memoria del objeto. Pero no lo hace - añadiría una sobrecarga
+      que quedaría fuera del control del programador. Si quiere que la
+      memoria sea inicializada a cero, debería hacerlo escribiendo un
+      constructor por defecto explícito.
+    </para>
+
+    <!-- Although the compiler will create a default constructor for
+    you, the behavior of the compiler-synthesized constructor is rarely
+    what you want. You should treat this feature as a safety net, but
+    use it sparingly. In general, you should define your constructors
+    explicitly and not allow the compiler to do it for you.
+    -->
+
+    <para>
+      Aunque el compilador creará un constructor por defecto, el
+      comportamiento de ese constructor raramente hará lo que se
+      espera. Debería considerar esta característica como una red de
+      seguridad, pero que debe usarse con moderación. En general,
+      debería definir sus constructores explicitamente y no permitir que
+      el compilador lo haga en su lugar.
+    </para>
+  </sect1>
+  
+  <sect1>
+    <title>Resumen</title>
+
+    <!-- The seemingly elaborate mechanisms provided by C++ should give
+    you a strong hint about the critical importance placed on
+    initialization and cleanup in the language. As Stroustrup was
+    designing C++, one of the first observations he made about
+    productivity in C was that a significant portion of programming
+    problems are caused by improper initialization of variables. These
+    kinds of bugs are hard to find, and similar issues apply to improper
+    cleanup. Because constructors and destructors allow you to guarantee
+    proper initialization and cleanup (the compiler will not allow an
+    object to be created and destroyed without the proper constructor
+    and destructor calls), you get complete control and safety.
+    -->
+
+    <para>
+      Los mecanismos aparecentemente elaborados proporcionados por C++
+      deberían darle una idea de la importancia crítica que tiene en el
+      lenguaje la inicialización y limpieza. Como <personname>
+      Stroustrup</personname> fue quien diseño C++, una de las primeras
+      observaciones que hizo sobre la productividad de C fue que una
+      parte importante de los problemas de programación se deben a la
+      inicialización inapropiada de las variables. Estos tipo de errores
+      son difíciles de encontrar, y otro tanto se puede decir de una
+      limpieza inapropiada. Dado que constructores y destructores le
+      permiten garantizar una inicializacióno y limpieza apropiada (el
+      compilador no permitirá que un objeto sea creado o destruido sin
+      la invocación del contructor y destructor correspondiente),
+      conseguirá control y seguridad.
+    </para>
+
+    <!-- Aggregate initialization is included in a similar vein -
+    it prevents you from making typical initialization mistakes with
+    aggregates of built-in types and makes your code more succinct.
+    -->
+    
+    <para>
+      La inicialización de agregados está incluida  de un modo similar -
+      previene de errores de inicialización típicos con agregados de
+      tipos básicos y hace que el código sea más corto.
+    </para>
+
+    <!-- Safety during coding is a big issue in C++. Initialization and
+    cleanup are an important part of this, but you'll also see
+    other safety issues as the book progresses.  -->
+
+    <para>
+      La seguridad durante la codificación es una cuestión importante en
+      C++. La inicialización y la limpieza son una parte importante,
+      pero también verá otras cuestiones de seguridad más adelante en
+      este libro.
+    </para>
+  </sect1>
+
+  <sect1>
+    <title>Ejercicios</title>
+
+    <para>
+      Las soluciones a los ejercicios se pueden encontrar en el
+      documento electrónico titulado <quote>The Thinking in C++
+      Annotated Solution Guide</quote>, disponible por un pequeño precio
+      en <ulink
+      url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
+    </para>
+
+    <!--
+   1. Write a simple class called Simple with a constructor that prints
+      something to tell you that it's been called. In main( ) make
+      an object of your class.
+
+   2. Add a destructor to Exercise 1 that prints out a message to tell
+      you that it's been called.
+
+   3. Modify Exercise 2 so that the class contains an int member. Modify
+      the constructor so that it takes an int argument that it stores in
+      the class member. Both the constructor and destructor should print
+      out the int value as part of their message, so you can see the
+      objects as they are created and destroyed.
+    -->
+    
+    <orderedlist>
+      <listitem>
+	<para>
+	  Escriba una clase simple llamada <classname>Simple</classname>
+	  con un constructor que imprima algo indicando que se ha
+	  invocado. En <function>main()</function> crear un objeto de
+	  esa clase.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un destructor al Ejercicio 1 que imprima un mensaje
+	  indicado que se ha llamado. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique el Ejercicio 2 de modo que la clase contenga un
+	  miembro <type>int</type>. Modifique el constructor para que
+	  tome un argumento <type>int</type> que se almacene en el
+	  atributo. Tanto el contructor como el destructor deberán
+	  imprimir el valor del entero como parte se su mensaje, de modo
+	  que se pueda ver cómo se crean y destruyen los objetos.
+	</para>
+      </listitem>
+
+    <!--
+   4. Demonstrate that destructors are still called even when goto is
+      used to jump out of a loop.
+
+   5. Write two for loops that print out values from zero to 10. In the
+      first, define the loop counter before the for loop, and in the
+      second, define the loop counter in the control expression of the
+      for loop. For the second part of this exercise, modify the
+      identifier in the second for loop so that it as the same name as
+      the loop counter for the first and see what your compiler does.
+
+   6. Modify the Handle.h, Handle.cpp, and UseHandle.cpp files at the
+      end of Chapter 5 to use constructors and destructors.
+    -->
+
+      <listitem>
+	<para>
+	  Demuestre se invocan incluso cuando se utiliza
+	  <keyword>goto</keyword> para salir de un bucle.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Escriba dos bucles <keyword>for</keyword> que impliman los
+	  valores de 0 a 10. En el primero, defina el contador del bucle
+	  antes del bucle, y en el segundo, defina el contador en la
+	  expresión de control del <keyword>for</keyword>. En la segunda
+	  parte del ejercicio, modifique el identificador del segundo
+	  bucle para que tenga el mismo nombre del el contador del
+	  priimero y vea que hace el compilador.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique los ficheros <filename>Handle.h</filename>,
+	  <filename>Handle.cpp</filename>, y
+	  <filename>UseHandle.cpp</filename> del capítulo 5 para que
+	  usen constructores y destructores.
+	</para>
+      </listitem>
+
+
+    <!--
+   7. Use aggregate initialization to create an array of double in which
+      you specify the size of the array but do not provide enough
+      elements. Print out this array using sizeof to determine the size
+      of the array. Now create an array of double using aggregate
+      initialization and automatic counting. Print out the array.
+
+   8. Use aggregate initialization to create an array of string
+      objects. Create a Stack to hold these strings and step through
+      your array, pushing each string on your Stack. Finally, pop the
+      strings off your Stack and print each one.
+    -->
+
+      <listitem>
+	<para>
+	  Use inicialización de agregados para crear un array de
+	  <type>double</type> en el que se indique el tamaño del array
+	  pero no se den suficientes elementos. Imprima el array usando
+	  <keyword>sizeof</keyword> para determinar el tamaño del
+	  array. Ahora cree un array de <type>double</type> usando
+	  inicialización de agregados y conteo automático. Imprima el
+	  array.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Utiliza inicialización de agregados para crear un array de objetos
+	  <type>string</type>. Cree una <classname>Stack</classname>
+	  para guardar esas cadenas y recorra el array, apilando cada
+	  cadena en la pila. Finalmente, extraiga las cadenas de la pila
+	  e imprima cada una de ellas.
+	</para>
+      </listitem>
+    
+    <!--
+   9. Demonstrate automatic counting and aggregate initialization with
+      an array of objects of the class you created in Exercise 3. Add a
+      member function to that class that prints a message. Calculate the
+      size of the array and move through it, calling your new member
+      function.
+
+  10. Create a class without any constructors, and show that you can
+   create objects with the default constructor. Now create a nondefault
+   constructor (one with an argument) for the class, and try compiling
+   again. Explain what happened.
+    -->
+      <listitem>
+	<para>
+	  Demuestre el conteo automático e inicialización de agregados
+	  con un array de objetos de la clase creada en el Ejercicio
+	  3. Añada un método a la clase que imprima un mensaje. Calcule
+	  el tamaño del array y recorralo, llamando al nuevo método.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase sin ningún constructor, y demuestre que puede
+	  crear objetos con el constructor por defecto. Ahora cree un
+	  constructor explícito (que tenga un argumento) para la clase,
+	  e intente compilar de nuevo. Explique lo que ocurre.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+
+</chapter>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document:"PensarEnC++.sgml" -->
+<!-- End: -->

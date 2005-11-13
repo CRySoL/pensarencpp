@@ -1,0 +1,2093 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traducción original: José María Requena López
+                       (anterior a LuCaS)
+  Formateado DocBook:  Miguel Ángel García Martínez
+  1ª Revisión: Sebastián Gurin (cancerbero) <cancerbero_sgx@users.sourceforge.net>
+  2ª Revisión
+-->
+
+<!--<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+                 "/home/sgx/programas/xml/docbookx.dtd">
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C12">
+  
+  <title>Sobrecarga de operadores</title>
+
+  <para>
+    La sobrecarga de operadores es simplemente un
+    <quote>endulzamiento sintáctico</quote>, lo que significa que
+    es simplemente otra forma que usted tiene para realizar
+    llamadas a funciones.
+  </para>
+
+  <para>
+    La diferencia es que los argumentos para estas funciones no
+    aparecen entre paréntesis, sino que rodean o siguen a los
+    caracteres que siempre pensó como operadores inalterables.
+  </para>
+
+  <para>
+    Hay dos diferencias entre el uso de un operador y el de una
+    llamada a función normal. La sintaxis es diferente: un
+    operador es a menudo <quote>llamado</quote> situándolo entre
+    (o después de) los argumentos.  La segunda diferencia
+    es que el compilador determina qué <quote>función</quote>
+    llamar. Por ejemplo, si usted está usando el operador
+    <literal role="operator">+</literal> con argumentos de punto
+    flotante, el compilador <quote>llama</quote> a la función
+    para realizar una suma de punto flotante (esta
+    <quote>llamada</quote> es normalmente el acto de insertar
+    código en linea, o una instrucción de punto flotante del
+    procesador). Si usa el operador <literal
+    role="operator">+</literal> con un nómero de punto flotante y
+    un entero,el compilador "llama" a una función especial para
+    convertir el <type>int</type> a un <type>float</type>,y
+    entonces <quote>llama</quote> a la función de suma de punto
+    flotante.
+  </para>
+
+  <para>
+    Sin embargo, en C++ es posible definir nuevos operadores que
+    trabajen con clases. Esta definición es exactamente como la
+    defición de una función ordinaria, excepto que el nombre de
+    la función consiste en la palabra reservada <literal
+    role="keyword">operator</literal> seguida del
+    operador. Siendo esta la única diferencia, el operador se
+    convierte en una función como otra cualquiera que el
+    compilador llama cuando ve el prototipo adecuado.
+  </para>
+
+  <sect1>
+    <title>Precaución y tranquilidad </title>
+    <para>
+      Es tentador convertirse en un super-entusiasta de la
+      sobrecarga de operadores. Son un juguete divertido,
+      inicialmente. Pero recuerde que es sólo un endulzamiento
+      sintáctico, otra manera de llamar a una función. Mirándolo
+      desde esa perspectiva, no hay razón para sobrecargar un
+      operador excepto si eso hace al código implicado con la
+      clase más sencillo e intuitivo de escribir y especialmente
+      de leer. (Recuerde, el código se lee mucho más que se
+      escribe). Si éste no es el caso no se moleste.
+    </para>
+    
+    <para>
+      Otra reacción cmún frente al uso de la sobrecarga de
+      operadores es el pánico: de repente, los operadores de C
+      pierden su significado familiar.<quote>¡Todo ha cambiado y
+      mi código C por completo hará cosas
+      diferentes!</quote>. Esto no es verdad. Todos los
+      operadores usados en expresiones que contienen solo tipos
+      de datos incorporados no pueden ser cambiados. Nunca podrá
+      sobrecargar operadores así
+    </para>
+	 
+    <para> 
+      <programlisting> 1 &lt;&lt; 4;</programlisting>
+    </para>
+
+    <para>
+      para que se comporten de forman diferente, o
+    </para>
+    <para>
+      <programlisting>1.414 &lt;&lt; 2;</programlisting>
+    </para>
+    <para>
+      que tengan significado. Sólo una expresión que contenga tipos de
+      datos definidos por el usuario podrá tener operadores
+      sobrecargados.
+    </para>
+
+  </sect1>
+
+
+  <sect1>
+    <title>Sintaxis</title>
+    <para>
+      Definir un operador sobrecargado es como definir una función, pero
+      el nombre de esa función es <function>operator@</function> en la
+      que <literal role="operator">arroba</literal> representa el
+      operador que está siendo sobrecargado. El número de argumentos en
+      la lista de argumentos del operador sobrecargado depende de dos
+      factores:
+    </para>
+    <orderedlist>
+      <listitem>
+	<para>
+	  Si es un operador unario (un argumento) o un operador
+	binario (dos argumentos) </para>
+      </listitem>
+      <listitem>
+	<para>
+	  Si el operador es definido como una función global (un
+	  argumento para los unarios, dos para los binarios) o
+	  una función miembro (cero argumentos para los unarios y
+	  uno para los binarios. En este último caso el objeto
+	  (this) se convierte en el argumento del lado izquierdo
+	  al operador).
+	</para>
+      </listitem>
+    </orderedlist>
+    
+    <para>
+      He aquí una pequeña clase que muestra la sintaxis de la
+      sobrecarga de operadores:
+    </para>
+    
+    
+    <programlisting>
+      <xi:include parse="text"
+	href="./code/C12/OperatorOverloadingSyntax.cpp"/>
+    </programlisting>
+    
+
+    <para>
+      Los dos operadores sobrecargados son definidos como
+      funciones miembros en línea que imprimen un mensaje al ser
+      llamados. El único argumento de estas funciones miembro
+      será el que aparezca del lado derecho del operador
+      binario. Los operadores unarios no tienen argumentos cuando
+      son definidos como funciones miembro. La función miembro es
+      llamada por el objeto de la parte izquierda del operador.
+    </para>
+
+    <para>
+      Para los operadores incondicionales (los condicionales
+      generalmente devuelven un valor booleano), generalmente se
+      deseará devolver un objeto o una referencia del mismo tipo
+      que está operando, si los dos argumentos son del mismo
+      tipo. (Si no son del mismo tipo, la interpretación de lo
+      que debería pasar es responsabilidad nuestra). De esta
+      manera, se pueden construir expresiones tan complicadas
+      como la siguiente:
+    </para>
+	
+    <para>
+      <programlisting>
+	kk += ii + jj ;
+      </programlisting>
+    </para>  
+
+    <para>
+      La expresión <function>operator+</function> crea un nuevo
+      objeto <classname>Integer</classname> (temporal) que se usa
+      como el argumento <varname>rv</varname> para el operador
+      <function>operator+=</function>. Este objeto temporal se
+      destruye tan pronto como deja de necesitarse.
+    </para>
+    
+  </sect1>
+
+
+  <sect1>
+    <title>Operadores sobrecargables </title>
+
+    <para>
+      Aunque usted puede sobrecargar casi todos los operadores
+      disponibles en C, el uso de operadores sobrecargados es
+      bastante restrictivo. En particular, usted no puede
+      combinar operadores que actualmente no tienen significado
+      en C (como <literal role="operator">**</literal> para
+      representar la potencia), no puede cambiar la prioridad de
+      evaluación de operadores, y tampoco el número de argumentos
+      requeridos por un operador. Estas restricciones existen
+      para prevenir que la creación de nuevos operadores ofusquen
+      el significado más que clarificarlo.</para>
+
+    <para> Las siguientes dos subsecciones muestran ejemplos de
+      todos los operadores normales, sobrecargados en la forma
+      que usted mas comúnmente usará.
+    </para>
+
+    <sect2>
+      <title>Operadores unarios</title>
+      <para>
+	El ejemplo siguiente muestra la sintaxis para sobrecargar
+	todos los operadores unarios, en ambas formas: como
+	funciones globales (funciones <literal
+	role="keyword">amigas</literal> que no son funciones
+	miembro) y como funciones miembroenderá la clase
+	<classname>Integer</classname> vista previamente y
+	añadirá una nueva clase <classname>byte</classname>. El
+	significado de sus operadores particulares dependerá de
+	la forma en que los use, pero considere a los
+	programadores del grupo antes de hacer algo inesperado.
+	He aquí un catálogo de todas las funciones unarias:
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/OverloadingUnaryOperators.cpp"/>
+	</programlisting>
+      </para>
+      <para>
+	Las funciones están agrupadas de acuerdo a la forma en que se
+	pasan los argumentos.  Más tarde se darán unas cuantas
+	directivas de cómo pasar y devolver argumentos. Las clases
+	expuestas anteriormente (y las que siguen en la siguiente
+	sección) son las típicas que usted usará, asi que empiece con
+	ellas como un patrón cuando sobrecargue sus propios operadores.
+      </para>
+
+      <sect3>
+	<title>Incremento y decremento</title>
+	<para>
+	  Los operadores de incremento<literal
+	    role="operator">++</literal> y de decremento <literal
+	    role="operator">--</literal> provocan un conflicto porque
+	    querrá ser capaz de llamar diferentes funciones dependiendo
+	    de si aparecen antes(prefijo) o después(posfija) del objeto
+	    sobre el que actuan. La solución es simple, pero la gente a
+	    veces lo encuentra un poco confuso inicialmente. Cuando el
+	    compilador ve, por ejemplo,
+	    <programlisting>++a</programlisting> (un preincremento),
+	    genera una llamada al <function>operator++(a)</function>
+	    pero cuando ve <literal role="operator">a++</literal>,
+	    genera una llamada a <function>operator++(a,
+	    int)</function>. Asi es como el compilador diferencia entre
+	    los dos tipos, generando llamadas a funciones sobrecargadas
+	    diferentes. En
+	    <filename>OverloadingUnaryOperators.cpp</filename> para la
+	    versión de funciones miembro, si el compilador ve
+	    <programlisting>++b</programlisting>, genera una llamada a
+	    <function>B::operator++()</function>y si be
+	    <programlisting>b++</programlisting>genera una llamada a
+	    <function>B::operator++(int)</function>.  Todo lo que el
+	    usuario ve es que una función diferente es llamada para las
+	    versiones posfija y prefija. Ocultamente, sin embargo, las
+	    dos llamadas de funciones tienen diferentes firmas, asi que
+	    conectan con dos diferentes cuerpos. El compilador pasa un
+	    valor constante ficticio para el argumento
+	    <type>int</type>(el cual nunca es proporcionado por un
+	    identificador porque el valor nunca se usa) para generar las
+	    diferentes firmas para la versión posfija.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Operadores binarios</title>
+      <para>
+	El listado siguiente repite el ejemplo de
+	<filename>OverloadingUnaryOperators.cpp</filename> para los
+	operadores binarios presentándole un ejemplo de todos los
+	operadores que usted pueda querer sobrecargar. De nuevo se
+	muestran ambas versiones, la global y la de función miembro.
+		</para>
+
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/Integer.h"/>
+	</programlisting>
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/Integer.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/IntegerTest.cpp"/>
+	</programlisting>
+      </para>
+      
+      
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/Byte.h"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/ByteTest.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	Puede ver como a <function>operator=</function> sólo se
+	le permite ser una función miembro. Esto se explicará mas
+	adelante.  Advierta que todos los operadores de
+	asignación tienen codigo para comprobar la auto
+	asignación; esta es una directiva general. En algunos
+	casos esto no es necesario; por ejemplo, con
+	<function>operator+=</function> a menudo usted querrá
+	decir <equation>A+=A</equation> y sumar
+	<varname>A</varname> a sí mismo. El lugar más importante
+	para situar las comprobaciones para la auto asignación es
+	<function>operator=</function> porque con objetos
+	complicados pueden ocurrir resultados desastrosos. (En
+	algunos casos es correcto, pero siempre se debería
+	tenerlo en mente cuando escriba
+	<function>operator=</function>).
+      </para>
+	
+      <para>
+	Todos los operadores mostrados en los dos ejemplos previos son
+	sobrecargados para manejar un tipo simple. También es posible
+	sobrecargar operadores para manejar tipos compuestos, de manera
+	que pueda sumar manzanas a naranjas, por ejemplo. Antes de que
+	empiece una sobrecarga exhaustiva de operadores, no obstante,
+	deberia mirar la sección de conversión automática de tipos mas
+	adelante en este capitulo. A menudo, una conversión de tipos en
+	el lugar adecuado puede ahorrarle un montón de operadores
+	sobrecargados
+      </para>
+    </sect2>
+
+
+    <sect2>
+      <title>Argumentos y valores de retorno</title>
+
+      <para>
+	Puede parecer un poco confuso inicialmente cuando mira a los
+	archivos <filename>OverloadingUnaryOperators.cpp</filename>,
+	<filename>Integer.h</filename> y <filename>Byte.h</filename> y
+	vea todas las diferentes maneras en que los argumentos son
+	pasados y devueltos. Aunque usted pueda pasar y devolver
+	argumentos de la forma que prefiera, las elecciones en estos
+	ejemplos no se han realizado al azar. Siguen un patrón lógico,
+	el mismo que usted usará en la mayoría de sus elecciones.
+      </para>
+
+      <orderedlist>
+	<listitem>
+	  <para>
+	    Como con cualquier argumento de función, si sólo
+	    necesita leer el argumento y no cambiarlo, lo usual
+	    es pasarlo como una referencia <literal
+	    role="keyword">const</literal>. Normalmente
+	    operaciones aritméticas (como <literal
+	    role="operator">+</literal> y <literal
+	    role="operator">-</literal>, etc.) y booleanas no
+	    cambiarán sus argumentos, así que pasarlas como una
+	    referencia <literal role="keyword">const</literal> es
+	    lo que usted vera mayoritariamente. Cuando la función
+	    es un miembro de una clase, esto se traduce en hacer
+	    una función miembro <literal
+	    role="keyword">const</literal>. Sólo con los
+	    operadores de asignación(como <literal
+	    role="operator">+=</literal>) y
+	    <function>operator=</function>, que cambian el
+	    argumento de la parte derecha, no es el argumento
+	    derecho una constante, pero todavía se pasa en
+	    dirección porque será cambiado.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    El tipo de valor de retorno que debe seleccionar depende del
+	    significado esperado del operador. (Otra vez, puede hace
+	    cualquier cosa que desee con los argumentos y con los
+	    valores de retorno). Si el efecto del operador es producir
+	    un nuevo valor, necesitará generar un nuevo objeto como el
+	    valor de retorno. Por ejemplo,
+	    <function>Integer::operator+</function> debe producir un
+	    objeto <classname>Integer</classname> que es la suma de los
+	    operandos. Este objeto se devuelve por valor como una
+	    constante así que el resultado no puede ser modificado como
+	    un valor izquierdo.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Todas las operadores de asignación modifican el valor
+	    izquierdo. Para permitir al resultado de la asignación ser
+	    usado en expresiones encadenadas, como
+	    <equation>a=b=c</equation>, se espera que devuelva una
+	    referencia al mismo valor izquierdo que acaba de ser
+	    modificado. ¡Pero debería ser esta referencia <literal
+	    role="keyword">const</literal> o no <literal
+	    role="keyword">const</literal>?. Aunque lee
+	    <equation>a=b=c</equation>de izquierda a derecha, el
+	    compilador la analiza de derecha a izquierda, asi que no
+	    esta obligado a devolver una referencia no <literal
+	    role="keyword">const</literal> para soportar asignaciones
+	    encadenadas. Sin embargo, la gente a veces espera ser capaz
+	    de realizar una operación sobre el elemento de acaba de ser
+	    asignado, como
+	    <programlisting>(a=b).func();</programlisting> para llamar a
+	    <function>func</function> de <varname>a</varname> después de
+	    asignarle <varname>b</varname>. De ese modo, el valor de
+	    retorno para todos los operadores de asignación debería ser
+	    una referencia no <literal role="keyword">const</literal>
+	    para el valor izquierdo.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Para los operadores lógicos, todo el mundo espera obtener en
+	    el peor de los casos un tipo <type>int</type>, y en el mejor
+	    un tipo <type>bool</type>. (Las librerías desarrolladas
+	    antes de que los compiladores de C++ soportaran el tipo
+	    incorporado <type>bool</type>usaran un tipo <type>int</type>
+	    o un <type>typedef</type> equivalente).
+	  </para>
+	</listitem>
+      </orderedlist>
+      <para>
+	Los operadores de incremento y de decremento presentan un dilema
+	a causa de las versiones posfija y prefija. Ambas versiones
+	cambian el objeto y por tanto no pueden tratar el objeto como un
+	<literal role="keyword">const</literal>. La versión prefija
+	devuelve el valor del objeto después de que sea cambiado, asi
+	que usted espera recuperar el objeto que fue cambiado. De este
+	modo, con la versión prefija puede simplemente revolver
+	<varname>*this</varname> como una referencia. La versión posfija
+	se supone que devolverá el valor antes de que sea cambiado,
+	luego está forzado a crear un objeto separado para representar
+	el valor y devolverlo. Así que con la version posfija debe
+	devolverlo por valor si quiere mantener el sifgnificado
+	esperado. (Advierta que a veces usted encuentra los operadores
+	de incremento y de decremento devolviendo un <type>int</type> o
+	un <varname>bool</varname> para indicar, por ejemplo, cuando un
+	objeto preparado para moverse a través de una lista esta al
+	final de ella). Ahora la pregunta es:¿Debería éste ser devuelto
+	como una referencia <literal role="keyword">const</literal>o no
+	<literal role="keyword">const</literal>?. Si permite que el
+	objeto sea modificado y alguien escribe
+	<programlisting>(a++).func()</programlisting>,
+	<function>func</function> operará en la propia
+	<varname>a</varname>, pero con
+	<programlisting>(++a).func()</programlisting>,
+	<function>func</function>opera en el objeto temporal devuelto
+	por el operador posfijo <function>operator++</function>. Los
+	objetos temporales son automáticamente <literal
+	role="keyword">const</literal>, asi que esto podría ser
+	rechazado por el compilador, pero en favor de la consistencia
+	tendría más sentido hacerlos ambos <literal
+	role="keyword">const</literal> como hemos hecho aquí. O puede
+	elegir hacer la versión prefija no <literal
+	role="keyword">const</literal> y la posfija <literal
+	role="keyword">const</literal>. Debido a la variedad de
+	significados que puede darle a los operadores de incremento y de
+	decremento, necesitarán ser considerados en términos del caso
+	individual.
+      </para>
+      <sect3>
+	<title>Retorno por valor como constante</title>
+	<para>
+	  La devolución por valor como una constante puede parecer un
+	  poco sutil en principio, asi que es digna de un poco mas de
+	  explicación. Considere el operador binario
+	  <function>operator+</function>. Si lo ve en una expresión como
+	  <programlisting>f(a+b)</programlisting>, el resultado de
+	  <programlisting>a+b</programlisting> se convierte en un objeto
+	  temporal que se usará en la llamada a
+	  <function>f()</function>. Debido a que es temporal, es
+	  automáticamente <literal role="keyword">const</literal>, así
+	  que aunque usted de, forma explicita, haga el valor de
+	  retorno <literal role="keyword">const</literal>o no, no tendrá
+	  efecto.
+	</para>
+	<para>
+	  Sin embargo es también posible mandar un mensaje para devolver
+	  el valor <programlisting>a+b</programlisting>, mejor que
+	  simplemente pasarlo a la función. Por ejemplo, puede decir
+	  <programlisting>(a+b).g()</programlisting> en la que
+	  <function>g()</function> es alguna función miembro de
+	  <classname>Integer</classname>, en este caso. Haciendo el
+	  valor de retorno <literal role="keyword">const</literal>,
+	  declara que sólo una función miembro <literal
+	  role="keyword">const</literal> puede ser llamada para ese
+	  valor de retorno. Esto es correcto desde el punto de vista del
+	  <literal role="keyword">const</literal>, porque previene de
+	  que almacene información potencialmente importante en un
+	  objeto que será casi seguro destruido.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Optimización del retorno</title>
+	<para>
+	  Advierta la manera que se usa cuando se crean nuevos objetos
+	  para ser devueltos. En <function>operator+</function>, por
+	  ejemplo:
+	</para>
+		  
+	<para>
+	  <programlisting>
+	    return Integer(left. i + right. i);
+	  </programlisting>
+	</para>
+	<para>
+	  Esto puede parecer en principio como una función de llamada de
+	  a un constructor pero no lo es. La sintaxis es la de un objeto
+	  temporal;la sentencia dice <quote>crea un objeto
+	  <classname>Integer</classname> temporal y
+	  desvuélvelo</quote>. A causa de esto, puede pensar que el
+	  resultado es el mismo que crear un objeto local con nombre y
+	  devolverle. Sin embargo, es algo diferente. Si quisiera decir
+	  en cambio:
+	</para>
+	<para>
+	  <programlisting> 
+	    Integer tmp(left. i + right. i);
+	    return tmp;
+	  </programlisting>
+	</para>
+	<para>
+	  tres cosas sucederán. La primera, el objeto
+	  <varname>tmp</varname> es creado incluyendo la llamada a su
+	  constructor. La segunda, el constructor de copia duplica
+	  <varname>tmp</varname> a la localización del valor de retorno
+	  externo. La tercera, se llama al destructor para
+	  <varname>tmp</varname> cuando sale del ámbito.
+	</para>
+	<para>
+	  En contraste, la aproximación de <quote>devolver un objeto
+	  temporal</quote> funciona de manera bastante diferente. Cuando
+	  el compilador ve que usted hace esto, sabe que no tiene otra
+	  razón para crearlo mas que para devolverlo. El compilador
+	  aprovecha la ventaja que esto da para construir el objeto
+	  directamente en la localización del valor de retorno externo a
+	  la función. Esto necesita de una sola y ordinaria llamada al
+	  constructor(la llamada al constructor de copia no es
+	  necesaria) y no hay llamadas al destructor porque nunca se
+	  crea un objeto local. De esta manera, mientras que no cuesta
+	  nada mas que el conocimiento del programador, es
+	  significativamente mas eficiente. Esto es llamado a menudo la
+	  optimización del valor de retorno.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Operadores poco usuales</title>
+      <para>
+	Varios operadores adicionales tienen una forma ligeramente
+	diferente de ser sobrecargados.  El subíndice,
+	<function>operator[]</function> debe ser una función miembro y
+	precisa de un argumento simple. Dado que
+	<function>operator[]</function> implica que el objeto que está
+	siendo utilizado como un array, usted a menudo devolverá una
+	referencia de este operador, asi que puede ser convenientemente
+	usado en la parte derecha de un signo de igualdad. Esto operador
+	es muy comónmente sobrecargado;verá ejemplos en el resto del
+	libro.
+      </para>
+      <para>
+	Los operadores <literal role="operator">new</literal> y <literal
+	role="operator">delete</literal> controlan la reserva dinámica
+	de almacenamiento y pueden ser sobrecargados de muchas maneras
+	diferentes. Este tema esta cubierto en el capitulo 13.
+      </para>
+<!-- FIXME referencia -->
+      <sect3>
+	<title>El operador coma</title>
+	<para>
+	  El operador coma es llamado cuando aparece siguiendo a un
+	  objeto del tipo para el que está definido. Sin embargo,
+	  <quote><function>operator,</function></quote> no se llama para
+	  listas de argumentos de funciones, sólo para objetos fuera de
+	  ese lugar separados por comas. No parece haber un montón de
+	  usos prácticos para este operador, solo es por consistencia
+	  del lenguaje. He aquí un ejemplo que muestra como la función
+	  coma puede ser llamada cuando aparece antes de un objeto, así
+	  como después:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/OverloadingOperatorComma.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  Las funciones globales permiten a la coma ser situada antes
+	  del objeto en cuestión. El uso mostrado es bastante oscuro y
+	  cuestionable. Aunque usted podría probablemente usar una lista
+	  separada por comas como parte de una expresión mas complicada,
+	  es demasiado refinado en la mayoría de las ocasiones.
+	</para>
+      </sect3>
+      <sect3>
+	<title>El operador -></title>
+	<para>
+	  El operador <literal role="operator">-></literal> se usa
+	  generalmente cuando quiera hacer que un objeto aparezca como
+	  un puntero. Un objeto como este es llamado a menudo un
+	  <emphasis>puntero inteligente</emphasis>. Estos son
+	  especialmente utiles si usted quiere <quote>envolver</quote>
+	  una clase con un puntero para hacer que ese puntero sea
+	  seguro, o en la forma común de un
+	  <classname>iterador</classname>, que es un objeto que se mueve
+	  a través de una <classname>colección</classname> o
+	  <classname>contenedor</classname> de otros objetos y los
+	  selecciona de uno en uno cada vez, si proporcionar acceso
+	  directo a la implementación del contenedor. (A menudo
+	  encontrará iteradores y contenedores en las librerías de
+	  clases, como en la Libreria Standar de C++, descrita en el
+	  volumen 2 de este libro).
+	</para>
+	<para>
+	  El operador de indirección de punteros (*) debe ser una
+	  función miembro. Tiene otras obligaciones atípicas: debe
+	  devolver un objeto( o una referencia a un objeto) que también
+	  tenga un operador de indirección de punteros, o debe devolver
+	  un puntero que pueda ser usado para encontrar a lo que apunta
+	  la flecha del operador de indireción de punteros. He aquí un
+	  ejemplo simple:
+	</para>
+
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/SmartPointer.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  La clase <classname>Obj</classname> define los objetos que son
+	  manipulados en este programa. Las funciones
+	  <function>f()</function> y <function>g()</function>
+	  simplemente escriben en pantalla los valores interesantes
+	  usando miembros de datos estáticos. Los punteros a estos
+	  objetos son almacenados en el interior de los contenedores del
+	  tipo <classname>ObjContainer</classname> usando su función
+	  <function>add()</function>. <classname>ObjContanier</classname>
+	  parece un array de punteros, pero advertirá que no hay forma
+	  de traer de nuevo los punteros. Sin embargo,
+	  <classname>SmartPointer</classname> se declara como una clase
+	  <classname>friend</classname>, asi que tiene permiso para
+	  mirar dentro del contenedor. La clase
+	  <classname>SmartPointer</classname> parece mucho más un
+	  puntero inteligente-usted puede moverlo hacia adelante usando
+	  <function>operator++</function>(también puede definir un
+	  <function>operator--</function>, no pasará del final del
+	  contenedor al que apunta, y genera( a través del operador de
+	  indireccion de punteros) el valor al que apunta. Advierta que
+	  <classname>SmartPointer</classname> está hecho a medida sobre
+	  el contenedor para el que se crea;a diferencia de un puntero
+	  normal, no hay punteros inteligentes de "propósito
+	  general". Aprenderá mas sobre los punteros inteligentes
+	  llamados <quote>iteradores</quote> en el ultimo capitulo de
+	  este libro y en el volumen 2(descargable desde
+	  FIXME:url www. BruceEckel. com).
+	</para>
+	<para>
+	  En <function>main()</function>, una vez que el contenedor
+	  <varname>oc</varname> se rellena con objetos
+	  <classname>Obj</classname> un <varname>SmartPointer
+	  sp</varname> se crea. La llamada al puntero inteligente sucede
+	  en las expresiones:
+	</para>
+	
+	<para>
+	  <programlisting>
+	    sp->f():;    //Llamada al puntero inteligente
+	    sp->g();
+	  </programlisting>
+	</para>
+	<para>
+	  Aquí, incluso aunque <varname>sp</varname> no tiene funciones
+	  miembro <function>f()</function> y <function>g()</function>,
+	  el operador de indirección de punteros automáticamente llama a
+	  esas funciones para <type>Obj*</type> que es devuelto por
+	  <function>SmartPointer::operator-></function>. El compilador
+	  realiza todas las comprobaciones pertinentes para asegurar que
+	  la llamada a función funciona de forma correcta.
+	</para>
+	<para>
+	  Aunque la mecánica subyacente de los operadores de
+	  indirección de punteros es más compleja que la de los otros
+	  operadores, la meta es exactamente la misma:proporcionar una
+	  sintaxis mas conveniente para los usuarios de sus clases.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Un operador anidado</title>
+	<para>
+	  Es más común ver un puntero inteligente o un clase iteradora
+	  anidada dentro de la clase a la que sirve. El ejemplo previo
+	  puede ser reescrito para anidar
+	  <classname>SmartPointer</classname> dentro de
+	  <classname>ObjContainer</classname> así:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/NestedSmartPointer.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  Además del actual anidamiento de la clase, hay solo dos
+	  diferencias aquí. La primera es la declaración de la clase
+	  para que pueda ser <literal role="keyword">amiga</literal>:
+	</para>
+	<para>
+	  <programlisting>
+class SmartPointer;
+friend SmartPointer;
+	  </programlisting>
+	</para>
+	<para>
+	  El compilador debe saber primero que la clase existe, antes de
+	  que se le diga que es <literal role="keyword">amiga</literal>.
+	</para>
+	<para>
+	  La segunda diferencia es en
+	  <classname>ObjContainer</classname>donde la función miembro
+	  <function>begin()</function> produce el
+	  <classname>SmartPointer</classname> que apunta al principio de
+	  la secuencia del <classname>ObjContainer</classname>. Aunque
+	  realmente es sólo por conveniencia, es adecuado porque sigue
+	  la manera habitual de la librería estándar de C++.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Operador ->*</title>
+	<para>
+	  El operador <literal role="operator">->*</literal> es un
+	  operador binario que se comporta como todos los otros
+	  operadores binarios. Se proporciona para aquellas situaciones
+	  en las que quiera imitar el comportamiento producido por la
+	  sintaxis incorporada <emphasis>puntero a miembro</emphasis>,
+	  descrita en el capitulo anterior.
+	</para>
+	<para>
+	  Igual que <literal role="operator">operator-></literal>, el
+	  operador de indirección de puntero a miembro es usado
+	  normalmente con alguna clase de objetos que representan un
+	  <quote>puntero inteligente</quote>, aunque el ejemplo mostrado
+	  aqui será más simple para que sea comprensible. El truco
+	  cuando se define <literal
+	  role="operator">operator->*</literal> es que debe devolver un
+	  objeto para el que <function>operator()</function> pueda ser
+	  llamado con los argumentos para la función miembro que usted
+	  llama.
+	</para>
+	<para>
+	  La llamada a función <function>operator()</function> debe ser
+	  una función miembro, y es ónica en que permite cualquier
+	  nómero de argumentos. Hace su objeto parecer como si fuera
+	  realmente una función. Aunque usted prodría definir varias
+	  funciones sobrecargadas <function>operator()</function> con
+	  diferentes argumentos, a menudo se usa para tipos que solo
+	  tienen una operación simple, o al menos una especialmente
+	  destacada. Usted verá en el Volumen2 que la librería estándar
+	  de C++ usa el operador de llamada a función para crear
+	  <quote>objetos función</quote>.
+	</para>
+	<para>
+	  Para crear un <literal role="operator">operator->*</literal>
+	  debe primero crear una clase con un
+	  <function>operator()</function> que sea el tipo de objeto que
+	  <literal role="operator">operator->*</literal> devolverá.
+	</para>
+	<para>
+	  Esta clase debe, de algón modo, capturar la información
+	  necesaria para que cuando <function>operator()</function> sea
+	  llamada( lo que sucede automáticamente), el puntero a miembro
+	  sea indireccionado para el objeto. En el ejemplo siguiente, el
+	  constructor de <classname>FunctionObject</classname>captura y
+	  almacena el puntero al objeto y el puntero a la función
+	  miembro, y entonces <function>operator()</function> los usa
+	  para hacer la actual llamada a "puntero a miembro":
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text"
+	    href="./code/C12/PointerToMemberOperator.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  <classname>Dog</classname> tiene tres funciones miembro, todas
+	  las cuales toman un argumento entero y devuelven un
+	  entero. <varname>PMC</varname> es un <type>typedef</type> para
+	  simplificar el definir un puntero a miembro para las funciones
+	  miembro de <classname>Dog</classname>.
+	</para>
+	<para>
+	  Una <function>FunctionObject</function> es creada y devuelta
+	  por <literal role="operator">operator->*</literal>. Dese
+	  cuenta que <literal role="operator">operator->*</literal>
+	  conoce el objeto para el que puntero a miembro esta siendo
+	  llamado(<varname>this</varname>) y el puntero a miembro, y los
+	  pasa al constructor <function>FunctionObject</function> que
+	  almacena sus valores. Cuando <literal
+	  role="operator">operator->*</literal> es llamado, el
+	  compilador inmediatamente se revuelve y llama a
+	  <function>operator()</function> para el valor de retorno de
+	  <literal role="operator">operator->*</literal>, pasandole los
+	  argumentos que le fueron pasados a <literal
+	  role="operator">operator->*</literal>.
+	  <function>FucntionObject::operator()</function> toma los
+	  argumentos y entonces indirecciona el puntero a miembro
+	  <quote>real</quote> usando los punteros a objeto y a miembro
+	  almacenados.
+	</para>
+	<para>
+	  Percátese de que lo que está haciendo aquí, justo como con
+	  <literal role="operator">operator-></literal>, es insertarse
+	  en la mitad de la llamada a <literal
+	  role="operator">operator->*</literal>. Esto permite realizar
+	  algunas operaciones adicionales si las necesitara.
+	</para>
+	<para>
+	  El mecanismo <literal role="operator">operator->*</literal>
+	  implementado aquí solo trabaja para funciones miembro que
+	  toman un argumento entero y devuelven otro entero. Esto es una
+	  limitación, pero si intenta crear mecanismos sobrecargados
+	  para cada diferente posibilidad, verá que es una tarea
+	  prohibitiva. Afortunadamente, el mecanismo de plantillas de
+	  C++(descrito el el ultimo capitulo de este libro, y en el
+	  volumen2) esta diseñado para manejar semejante problema.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Operadores que no puede sobrecargar</title>
+      <para>
+	Hay cierta clase de operadores en el conjunto disponible que no
+	pueden ser sobrecargados. La razón general para esta restricción
+	es la seguridad. Si estos operadores fuesen sobrecargabales,
+	podría de algón modo arriesgar o romper los mecanismos de
+	seguridad, hacer las cosas mas difíciles o confundir las
+	costumbres existentes.
+      </para>
+      <orderedlist>
+	<listitem>
+	  <para>
+	    El operador de selección de miembros <literal
+	    role="keyword">operator</literal>. Actualmente, el punto
+	    tiene significado para cualquier miembro de una clase, pero
+	    si le permite ser sobrecargado, no podría acceder a miembros
+	    de la forma normal;en lugar de eso debería usar un puntero y
+	    la flecha <literal role="keyword">operator-></literal>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    La indirección de punteros a miembros <literal
+	    role="keyword">operator *</literal> por la misma razón que
+	    <literal role="keyword">operator. </literal>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    No hay un operador de potencia. La elección mas popular para
+	    este era <literal role="keyword">operator**</literal> de
+	    Fortram, pero provoca casos de análisis gramatical
+	    dificiles. C tampoco tiene un operador de potencia, así que
+	    C++ no parece tener necesidad de uno porque siempre puede
+	    realizar una llamada a una función. Un operador de potencia
+	    añadirá una notación adecuada, pero ninguna nueva
+	    funcionalidad a cuenta de una mayor complejidad del
+	    compilador.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    No hay operadores definidos por el usuario. Esto es, no
+	    puede crear nuevos operadores que no estén ya en el actual
+	    conjunto. Una parte del problema es como determinar la
+	    prioridad, y otra parte es la falta de necesidad a costa del
+	    problema inherente.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Usted no puede cambiar las reglas de prioridad. Son lo
+	    suficientemente difíciles de recordad como son sin dejar a
+	    la gente jugar con ellas.
+	  </para>
+	</listitem>
+      </orderedlist>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Operadores no miembros</title>
+    <para>
+      En algunos de los ejemplos anteriores, los operadores pueden ser
+      miembros o no miembros, y no parece haber mucha diferencia. Esto
+      usualmente provoca la pregunta, <quote>¿Cual debería
+      elegir?</quote>. En general, si no provoca ninguna diferencia
+      deberían ser miembros, para enfatizar la asociación entre el
+      operador y su clase. Cuando el operando de la izquierda es siempre
+      un objeto de la clase actual funciona bien.
+    </para>
+    <para>
+      Sin embargo, usted querrá que el operando de la izquierda sea un
+      objeto de alguna otra clase. Un lugar típico en el que verá esto
+      es cuando los operadores <literal
+      role="operator">&#60;&#60;</literal> y <literal
+      role="operator">>></literal> son sobrecargados para los flujos de
+      entrada salida. Dado que estos flujos son una librería fundamental
+      en C++, probablemente querrá sobrecargar estos operadores para la
+      mayoría de sus clases, así que el proceso sea digno de aprender:
+    </para>
+
+    <para>
+      <programlisting>
+	<xi:include parse="text" href="./code/C12/IostreamOperatorOverloading.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Esta clase contiene también un operador sobrecargado <literal
+      role="operator">operator[]</literal> la cual devuelve una
+      referencia a un valor a licito en el array. Dado que se devuelve
+      una referencia, la expresión:
+    </para>
+
+    <para>
+      <programlisting>I[4] = -1;</programlisting>
+    </para>
+    <para>
+      No sólo parece mucho más adecuada que si se usaran punteros,
+      también causa el efecto deseado.
+    </para>
+    <para>
+      Es importante que los operadores de desplazamiento sobrecargados
+      pasen y devuelvan por referencia, para que los cambios afecten a
+      los objetos externos. En las definiciones de las funciones,
+      expresiones como:
+    </para>
+    
+    <para>
+      <programlisting>os &#60;&#60; ia.i[j];</programlisting>
+    </para>
+    <para>
+      provocan que sean llamadas las funciones de los operadores
+      sobrecargados(esto es, aquellas definidas en
+      <classname>iostream</classname>). En este caso, la función llamada
+      es <function>ostream&amp; operator&#60;&#60;(ostream&amp;,
+      int)</function> dado que <varname>ia[i].j</varname> se resuelve en
+      un <type>int</type>.
+    </para>
+    <para>
+      Una vez que las operaciones se han realizado en
+      <classname>istream</classname> o en <classname>ostream</classname>
+      se devuelve para que pueda ser usado en expresiones mas complejas.
+    </para>
+    <para>
+      En <function>main()</function> se usa un nuevo tipo de
+      <classname>iostream</classname>: el
+      <type>stringstream</type>(declarado en
+      <classname>&#60;sstream></classname>). Esta es una clase que toma
+      una cadena(que se puede crear de un array de <type>char</type>,
+      como se ve aquí) y lo convierte en un
+      <classname>iostream</classname>. En el ejemplo de arriba, esto
+      significa que los operadores de desplazamiento pueden ser
+      comprobados sin abrir un archivo o sin escribir datos en la línea
+      de comandos.
+    </para>
+    <para>
+      La manera mostrada en este ejemplo para el extractor y el
+      insertador es estándar. Si quiere crear estos operadores para su
+      propia clase, copie el prototipo de la función y los tipos de
+      retorno de arriba y siga el estilo del cuerpo.
+    </para>
+
+    <sect2>
+      <title>Directrices básicas</title>
+      <para>
+	<!-- FIXME: referencia --> 
+	Murray&sup1; sugiere estas reglas
+	de estilo para elegir entre miembros y no miembros:
+      </para>
+      
+      <table>
+	<title>Guidelines for choosing between members and non-members</title>
+	<tgroup cols="2">
+	  <thead>
+	    <row>
+	      <entry>Operador</entry>
+	      <entry>Uso recomendado</entry>
+	    </row>
+	  </thead>
+	  <tbody>
+	    <row>
+	      <entry>Todos los operadores unarios</entry>
+	      <entry>Miembro</entry>
+	    </row>
+	    <row>
+	      <entry>= () [] -> ->*</entry>
+	      <entry>Debe ser miembro</entry>
+	    </row>
+	    <row>
+	      <entry>+= -= /= *= ^= &amp;= |= %= >>=
+				  &#60;&#60;=</entry>
+	      <entry>No miembro</entry>
+	    </row>
+	  </tbody>
+	</tgroup>
+      </table>
+<!-- FIXME: nota bibliográfica:
+      <notapie>
+&sup1;Rob Murray, C++ Strategies &amp; Tactics, Addison Wesley, 1993, pagina 47. 
+    </notapie> -->
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>Sobrecargando la asignación</title>
+    <para>
+      Una causa común de confusión para los nuevos programadores de C++
+      es la asignación. De esto no hay duda dado que el signo
+      <literal>=</literal> es una operación fundamental en la
+      programación, directamente hasta copiar un registro al nivel
+      maquina. Adicionalmente, el constructor de copia (descrito en el
+      capítulo 11) es llamado a veces cuando el signo
+      <literal>=</literal> se usa:
+    </para>
+    
+
+    <programlisting>
+MyType b;
+MyType a = b;
+a = b;
+    </programlisting>
+    <para>
+      En la segunda línea, se define el objeto <varname>a</varname>. Se
+      crea un nuevo objeto donde no existía ninguno. Dado que por ahora
+      conoce como de quisquilloso es el compilador de C++ respecto a la
+      inicialización de objetos, sabrá que un constructor debe siempre
+      ser llamado cuando se define un objeto.
+    </para>
+    <para>
+      ¿Pero qué constructor?, <varname>a</varname> se crea desde un
+      objeto existente <classname>MyType</classname>
+      (<varname>b</varname>, en el lado derecho del signo de igualdad),
+      asi que hay solo un elección: el constructor de copia. Incluso
+      aunque el signo de igualdad está involucrado, se llama al
+      constructor de copia.
+    </para>
+    <para>
+      En la tercera línea, las cosas son diferentes. En la parte
+      izquierda del signo igual, hay un objeto previamente
+      inicializado. Claramente, usted no llama a un constructor para un
+      objeto que ya ha sido creado. En este caso
+      <function>MyType::operator=</function> se llama para
+      <varname>a</varname>, tomando como argumento lo que sea que
+      aparezca en la parte derecha. (Puede tener varios funciones
+      <function>operator=</function> que tomen diferentes argumentos en
+      la parte derecha).
+    </para>
+    <para>
+      Este comportamiento no está restringido al constructor de
+      copia. Cada vez que inicializa un objeto usando un signo
+      <literal>=</literal> en lugar de la forma usual de llamada al
+      constructor, el compilador buscará un constructor que acepte lo
+      que sea que haya en la parte derecha:
+    </para>
+    <para>
+      <programlisting>
+	<xi:include parse="text" href="./code/C12/CopyingVsInitialization.cpp"/>
+      </programlisting>
+    </para>
+    <para>
+      Cuando se trata con el signo <literal>=</literal>, es importante
+      mantener la diferencia en mente:Si el objeto ha sido creado ya, se
+      requiere una inicialización;en otro caso el operador de asignación
+      <literal>=</literal> se usa.
+    </para>
+    <para>
+      Es incluso mejor el evitar escribir código que usa
+      <literal>=</literal> para la inicialización; en cambio, use
+      siempre la manera del constructor explícito. Las dos
+      construcciones con el signo igual se convierten en:
+    </para>
+    <programlisting>
+Fee fee(1);
+Fee fum(fi);
+    </programlisting>
+    <para>
+      De esta manera, evitará confundir a sus lectores. 
+    </para>
+
+    <sect2>
+      <title>Comportamiento del operador =</title>
+      
+      <para>
+	En <filename>Integer.h</filename> y en
+	<filename>Byte.h</filename> usted vio que el operador <literal
+	role="operator">=</literal> sólo puede ser una función
+	miembro. Está íntimamente ligado al objeto que hay en la parte
+	izquierda del <literal role="operator">=</literal>. Si fuese
+	posible definir <function>operator=</function> de forma global,
+	entonces podría intentar redefinir el signo incorporado <literal
+	role="operator">=</literal>:
+      </para>
+      <programlisting>
+int operator=(int, MyType);   //Global = !No permitido!
+      </programlisting>
+      <para>
+	El compilador evita esta situación obligandole a hacer una
+	función miembro <function>operator=</function>.
+      </para>
+      <para>
+	Cuando usted crea un <literal
+	role="operator">operator=</literal>, debe copiar todo la
+	información necesaria desde el objeto de la parte derecha al
+	objeto actual(esto es, el objeto para el que <literal
+	role="operator">operator=</literal> está siendo llamado) para
+	realizar lo que sea que considere <quote>asignación</quote> para
+	su clase. Para objetos simples, esto es trivial:
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/SimpleAssignment.cpp"/>
+	</programlisting>
+      </para>
+      <para>
+	Aquí, el objeto de la parte izquierda del igual copia todos los
+	elementos del objeto de la parte derecha, y entonces devuelve
+	una referencia a sí mismo, lo que permite crear expresiones
+	mas complejas.
+      </para>
+      <para>
+	Este ejemplo incluye un error comón. Cuando usted está asignando
+	dos objetos del mismo tipo, siempre debería comprobar primero la
+	auto asignación: ¿Está el objeto siendo asignado a sí mismo?. En
+	algunos casos como éste, es inofensivo si realiza la operación
+	de asignación, de todas formas, pero si se realizan cambios a la
+	implementación de la clase, puede haber diferencias y si no lo
+	toma con una cuestión de costumbre, puede olvidarlo y provocar
+	errores difíciles de encontrar.
+      </para>
+      <sect3>
+	<title>Punteros en clases</title>
+	<para>
+	  ¿Qué ocurre si el objeto no es tan simple?. Por ejemplo,
+	  &iquest;qué pasa si el objeto contiene punteros a otros
+	  objetos?. Simplemente copiar el puntero significa que usted
+	  terminará con dos objetos apuntando a la misma localización de
+	  memoria. En situaciones como ésta, necesita hacer algo de
+	  contabilidad.
+	</para>
+	<para>
+	  Hay dos aproximaciones a este problema. La técnica mas simple
+	  es copiar lo que quiera que apunta el puntero cuando realiza
+	  una asignación o una construcción de copia. Es es
+	  directamente:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/CopyingWithPointers.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  <classname>Dog</classname> es una clase simple que contiene
+	  solo una cadena con el nombre del perro. Sin embargo,
+	  generalmente sabrá cuando le sucede algo al perro dado que los
+	  constructores y destructores imprimen información cuando son
+	  llamados. Advierta que el segundo constructor es un poco como
+	  un constructor de copia excepto que toma un puntero a
+	  <classname>Dog</classname> en vez de una referencia, y tiene
+	  un segundo argumento que es un mensaje a ser concatenado con
+	  el nombre del perro. Esto se hace asi para ayudar a rastrear
+	  el comportamiento del programa.
+	</para>
+	<para>
+	  Puede ver que cuando sea que una función miembro imprime
+	  información, no accede a esa información directamente sino en
+	  su lugar manda <varname>*this</varname> a
+	  <function>cout</function>. Este a su vez llama a
+	  <function>ostream operator&#60;&#60;</function>. Es
+	  aconsejable hacer esto así dado que si quiere reformatear la
+	  manera en la que información del perro es mostrada(como hice
+	  añadiendo el <quote>[</quote> y el <quote>]</quote>) solo
+	  necesita hacerlo en un lugar.
+	</para>
+	<para>
+	  Una <classname>DogHouse</classname> contiene un
+	  <varname>Dog*</varname> y explica las cuatro funciones que
+	  siempre necesitará definir cuando sus clases contengan
+	  punteros:todos los constructores necesarios usuales, el
+	  constructor de copia, <literal
+	  role="operator">operator=</literal> (se define o se
+	  deshabilita) y un destructor. <literal
+	  role="operator">Operator=</literal> comprueba la auto
+	  asignación como una cuestión de estilo, incluso aunque no es
+	  estrictamente necesario aquí. Esto virtualmente elimina la
+	  posibilidad de que olvide comprobar la auto asignación si
+	  cambia el código.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Contabilidad de referencias</title>
+	<para>
+	  En el ejemplo de arriba, el constructor de copia y el operador
+	  <literal role="operator">=</literal> realizan una copia de lo
+	  que apunta el puntero, y el destructor lo borra. Sin embargo,
+	  si su objeto requiere una gran cantidad de memoria o una gran
+	  inicialización fija, a lo mejor puede querer evitar esta
+	  copia. Una aproximación común a este problema se llama
+	  <emphasis>contabilidad de referencias</emphasis>. Se le da
+	  inteligencia al objeto que esta siendo apuntado de tal manera
+	  que sabe cuantos objetos le están apuntado. Entonces la
+	  construcción por copia o la asignación consiste en añadir otro
+	  puntero a un objeto existente e incrementar la cuenta de
+	  referencias. La destrucción consiste en reducir esta cuenta de
+	  referencias y destruir el objeto si la cuenta llega a cero.
+	</para>
+	<para>
+	  ¿Pero que pasa si quiere escribir el
+	  objeto(<varname>Dog</varname> en el ejemplo anterior)?. Más de
+	  un objeto puede estar usando este <varname>Dog</varname> luego
+	  podría estar modificando el perro de alguien más a la vez que
+	  el suyo, lo cual no parece ser muy amigable. Para resolver
+	  este problema de <quote>solapamiento</quote> se usa una
+	  técnica adicional llamada <emphasis>copia para
+	  escritura</emphasis>. Antes de escribir un bloque de memoria,
+	  debe asegurarse que nadie más lo está usando. Si la cuenta de
+	  referencia es superior a uno, debe realizar una copia personal
+	  del bloque antes de escribirlo, de tal manera que no moleste
+	  el espacio de otro. He aquí un ejemplo simple de contabilidad
+	  de referencias y de copia para escritura:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text"
+	      href="./code/C12/ReferenceCounting.cpp"/>
+	  </programlisting>
+	</para>
+	<para>
+	  La clase <classname>Dog</classname> es el objeto apuntado por
+	  <classname>DogHouse</classname>. Contiene una cuenta de
+	  referencia y funciones para controlar y leer la cuenta de
+	  referencias. Hay un constructor de copia luego puede crear un
+	  nuevo <classname>Dog</classname> de uno existente.
+	</para>
+	<para>
+	  La función <function>attach()</function> incrementa la cuenta
+	  de referencia de un <classname>Dog</classname> para indicar
+	  que hay otro objeto usandolo. La función
+	  <function>detach()</function> decrementa la cuenta de
+	  referencia. Si llega a cero, entonces nadie más lo esta
+	  usando, así que la función miembro destruye su propio objeto
+	  llamando a <function>delete this</function>.
+	</para>
+	<para>
+	  Antes de que haga cualquier modificación(como renombrar un
+	  perro), debería asegurarse de que no está cambiando un
+	  <classname>Dog</classname> que algón otro objeto está
+	  usando. Hace esto llamando a <function>DogHouse::unalias()
+	  </function>, la cual llama a
+	  <function>Dog::unalias()</function>. Esta última función
+	  devolverá el puntero a <classname>Dog</classname> existente si
+	  la cuenta de referencia es uno (lo que significa que nadie mas
+	  está usando ese <classname>Dog</classname>), pero duplicará
+	  <classname>Dog</classname> si esa cuenta es mayor que uno.
+	</para>
+	<para>
+	  El constructor de copia, además de crear su propia memoria,
+	  asigna un <classname>Dog</classname> al
+	  <classname>Dog</classname> del objeto fuente. Entonces, dado
+	  que ahora hay un objeto más usando ese bloque de memoria,
+	  incrementa la cuenta de referencia llamando a
+	  <function>Dog::attach()</function>.
+	</para>
+	<para>
+	  El operador <literal role="operator">=</literal> trata con un
+	  objeto que ha sido creado en la parte izquierda del
+	  <literal>=</literal>, así que debe primero debe limpiarlo
+	  llamando a <function>detach()</function> para ese perro, el
+	  cual destruirá el viejo perro si nadie más lo está
+	  usando. Entonces <literal role="operator">operator=</literal>
+	  repite el comportamiento del constructor de copia. Advierta
+	  que primero realiza comprobaciones para detectar cuando está
+	  asignando el objeto a sí mismo.
+	</para>
+	<para>
+	  El destructor llama a <function>detach()</function> para
+	  destruir condicionalmente a <classname>Dog</classname>.
+	</para>
+	<para>
+	  Para implementar la copia para escritura, debe controlar todas
+	  las operaciones que escriben en su bloque de memoria. Por
+	  ejemplo, la función miembro <function>renameDog()</function>
+	  le permite cambiar valores en el bloque de memoria. Pero
+	  primero, usa <function>unalias()</function> para prevenir la
+	  modiciación de un <classname>Dog</classname> solapado (un
+	  <classname>Dog</classname> con más de un objeto
+	  <classname>DogHouse</classname> apuntándole). Y si necesita
+	  crear un puntero a <classname>Dog</classname> desde un
+	  <classname>DogHouse</classname> debe evitar el solapamiento
+	  del puntero primero.
+	</para>
+	<para>
+	  La función <function>main()</function> comprueba las numerosas
+	  funciones que deben funcionar correctamente para implementar
+	  la cuenta de referencia:el constructor, el constructor de
+	  copia, <literal role="operator">operator=</literal> y el
+	  destructor. También comprueba la copia para escritura llamando
+	  a <function>renameDog()</function>.
+	</para>
+	<para>
+	  He aquí la salida (después de un poco de reformateo):
+	</para>
+	<para>
+	  <programlisting>
+Creando Dog: [Fido],  rc = 1
+CreadoDogHouse: [FidoHouse]
+contiene [Fido],  rc = 1
+Creando Dog: [Spot],  rc = 1
+CreadoDogHouse: [SpotHouse]
+contiene [Spot],  rc = 1
+Entrando en el constructor de copia
+Dog añadido:[Fido],  rc = 2
+DogHouse constructor de copia
+[construido por copia FidoHouse]
+contiene [Fido],  rc = 2
+Despues de la construcción por copia de Bobs
+fidos:[FidoHouse] contiene [Fido],  rc = 2
+spots:[SpotHouse] contiene [Spot],  rc = 1
+bobs:[construido por copia FidoHouse]
+contiene[Fido],  rc = 2
+Entrando spots = fidos
+Eliminando perro: [Spot],  rc = 1
+Borrando Perro: [Spot],  rc = 0
+Añadido Dog: [Fido],  rc = 3
+DogHouse operador= : [FidoHouse asignado]
+contiene[Fido],  rc = 3
+Despues de  spots = fidos
+spots:[FidoHouse asignado] contiene [Fido], rc = 3
+Entrando en la auto asignación
+DogHouse operador= : [construido por copia FidoHouse]
+contiene [Fido],  rc = 3
+Despues de la auto asignación
+bobs:[construido por copia FidoHouse]
+contiene [Fido],  rc = 3
+Entando rename("Bob")
+Despues de rename("Bob")
+DogHouse destructor: [construido por copia FidoHouse]
+contiene [Fido],  rc = 3
+Eliminando perro: [Fido],  rc = 3
+DogHouse destructor: [FidoHouse asignado]
+contiene [Fido],  rc = 2
+Eliminando perro: [Fido],  rc = 2
+DogHouse destructor: [FidoHouse]
+contiene [Fido],  rc = 1
+Eliminando perro: [Fido],  rc = 1
+Borrando perro: [Fido],  rc = 0
+	  </programlisting>
+	</para>
+	<para>
+	  Estudiando la salida, rastreando el código fuente y
+	  experimentando con el programa, podrá ahondar en la
+	  comprensión de estas técnicas.
+	</para>
+      </sect3>
+      <sect3>
+	<title>Creación automática del operador =</title>
+	<para>
+	  Dado que asignar un objeto a otro <emphasis>del mismo tipo
+	  </emphasis> es una operación que la mayoría de la gente espera
+	  que sea posible, el compilador automaticamente creará un
+	  <literal>type::operator=(type)</literal> si usted no hace
+	  uno. El comportamiento de este operador imita el del
+	  constructor de copia creado automáticamente; si la clase
+	  contiene objetos(o se deriva de otra clase), se llama
+	  recursivamente a <literal role="operator">operator=</literal>
+	  para esos objetos. A esto se le llama <emphasis>asignación
+	  guiada por miembros</emphasis>. Por ejemplo
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/AutomaticOperatorEquals.cpp"/>
+	  </programlisting>
+	</para>
+	
+	<para>
+	  El operador <literal>=</literal> generador automáticamente
+	  para <classname>Truck</classname> llama a
+	  <literal>Cargo::operator=</literal>.
+	</para>
+	<para>
+	  En general, no querrá dejar al compilador que haga esto por
+	  usted. Con clases de cualquier sofisticación (¡Especialmente
+	  si contienen punteros!)querrá crear de forma explicita un
+	  <literal role="operator">operator=</literal>. Si realmente no
+	  quiere que la gente realice asignaciones, declare <literal
+	  role="operator">operator=</literal> como una función <literal
+	  role="keyword">private</literal>. (No necesita definirla a
+	  menos que la esté usando dentro de la clase).
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <title>Conversión automática de tipos</title>
+    <para>
+      En C y C++, si el compilador encuentra una expresión o una llamada
+      a función que usa un tipo que no es el que requiere, puede
+      usualmente realizar una conversión automática de tipos desde el
+      tipo que tiene hasta el tipo que necesita. En C++, puede conseguir
+      este mismo efecto para los tipos definidos por el usuario creando
+      funciones de conversión de tipos automática. Estas funciones se
+      pueden ver en dos versiones:un tipo particular de constructores y
+      un operador sobrecargado.
+    </para>
+    
+    <sect2>
+      <title>Conversión por constructor</title>
+      <para>
+	Si define un constructor que toma como su ónico argumento un
+	objeto(o referencia) de otro tipo, ese constructor permite al
+	compilador realizar una conversión automática de tipos. Por
+	ejemplo:
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text"
+	    href="./code/C12/AutomaticTypeConversion.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	Cuando el compilador ve <function>f()</function> llamada con un
+	objeto <varname>One</varname>, mira en la declaración de
+	<function>f()</function> y nota que requiere un
+	<varname>Two</varname>. Entonces busca si hay alguna manera de
+	conseguir un <varname>Two</varname> de un
+	<varname>One</varname>, y encuentra el constructor
+	<function>Two::Two(One)</function> al cual llama. El objeto
+	resultante <varname>Two</varname> es pasado a
+	<function>f()</function>.
+      </para>
+      <para>
+	En este caso, la conversión automática de tipos le ha salvado
+	del problema de definir dos versiones sobrecargadas de
+	<function>f()</function>. Sin embargo el coste es la llamada
+	oculta al constructor de <varname>Two</varname> lo cual puede
+	importar si está preocupado por la eficiencia de las llamadas a
+	<function>f()</function>,
+      </para>
+
+      <sect3>
+	<title>Prevenir la conversión por constructor</title>
+	<para>
+	  Hay veces que la conversión automática de tipos via
+	  constructor puede ocasionar problemas. Para desactivarlo,
+	  modifique el constructor anteponiéndole la palabra reservada
+	  <literal role="keyword">explicit</literal>(que sólo funciona
+	  con constructores). Así se ha hecho para modificar el
+	  constructor de la clase <classname>Two</classname> en el
+	  ejemplo anterior:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/ExplicitKeyword.cpp"/>
+	  </programlisting>
+	</para>
+	
+	<para>
+	  Haciendo el constructor de <varname>Two</varname> explicito,
+	  se le dice al compilador que no realice ninguna conversión
+	  automática de tipos usando ese constructor en particular(otros
+	  constructores no explicitos en esa clase pueden todavia
+	  realizar conversiones automáticas). Si el usuario quiere que
+	  ocurra esa conversión, debe escribir el codigo necesario. En
+	  el codigo de arriba, <function>f(Two(one))</function> crea un
+	  objeto temporal de tipo <varname>Two</varname> desde
+	  <varname>one</varname>, justo como el compilador hizo en la
+	  versión previa.
+	</para>
+      </sect3>
+    </sect2>
+    
+    <sect2>
+      <title>Conversión por operador</title>
+      <para>
+	La segunda manera de producir conversiones automáticas de tipos
+	es a través de la sobrecarga de operadores. Puede crear una
+	función miembro que tome el tipo actual y lo convierta en el
+	tipo deseado usando la palabras reservada <literal
+	role="operator">operator</literal> seguida del tipo al que
+	quiere convertir. Esta forma de sobrecarga de operadores es
+	ónica porque parece que no se especifica un tipo de retorno - el
+	tipo de retorno es el nombre del operador que está
+	sobrecargando. He aquí un ejemplo:
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/OperatorOverloadingConversion.cpp"/>
+	</programlisting>
+      </para>
+
+      <para>
+	Con la técnica del constructor, la clase destino realiza la
+	conversión, pero con los operadores, la realiza la clase
+	origen. Lo valioso dela técnica del constructor es que puede
+	añadir una nueva ruta de conversión a un sistema existente
+	mientras está creando una nueva clase. Sin embargo, creando un
+	constructor con un ónico argumento siempre define una conversión
+	automática de tipos(incluso si requiere más de un argumento si
+	el resto de los argumentos tiene un valor por defecto), que
+	puede no ser lo que desea(en cuyo caso puede desactivarlo usando
+	<literal role="operator">explicit</literal>). Además, no hay
+	ninguna manera de usar una conversión por constructor desde un
+	tipo definido por el usuario a un tipo incorporado;esto es
+	posible solo con la sobrecarga de operadores.
+      </para>
+      <sect3>
+	<title>Reflexividad</title>
+	<para>
+	  Una de las razones mas normales para usar operadores
+	  sobrecargados globales en lugar de operadores miembros es que
+	  en la versión global, la conversión automática de tipos puede
+	  aplicarse a cualquiera de los operandos, mientras que con
+	  objetos miembro, el operando de la parte izquierda debe ser
+	  del tipo apropiado. Si quiere que ambos operandos sean
+	  convertidos, la versión global puede ahorrarle un montón de
+	  código. He aquí un pequeño ejemplo:
+	</para>
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/ReflexivityInOverloading.cpp"/>
+	  </programlisting>
+	</para>
+	
+	<para>
+	  La clase <classname>Number</classname> tiene tanto un miembro
+	  <literal role="operator">operator+</literal> como un <literal
+	  role="operator">firiend operator-</literal>. Dado que hay un
+	  constructor que acepta un argumento <type>int</type> simple,
+	  un <type>int</type> puede ser convertido automáticamente a un
+	  <type>Number</type>, pero sólo bajo las condiciones
+	  adecuadas. En <function>main()</function>, puede ver que
+	  añadir un <type>Number</type> a otro <type>Number</type>
+	  funciona bien dado que tiene una correspondencia exacta con el
+	  operador sobrecargado. Además, cuando el compilador ve un
+	  <type>Number</type> seguido de un <literal
+	  role="operator">+</literal> y de un <type>int</type>, puede
+	  emparejarlo a la función miembro
+	  <function>Number::operator+</function> y convertir el
+	  argumento<type>int</type> a un <type>Number</type> usando el
+	  constructor. Pero cuando ve un <type>int</type>, un <literal
+	  role="operator">+</literal> y un <type>Number</type>, no sabe
+	  que hacer porque todo lo que tiene es <literal
+	  role="operator">Number::operator+</literal> el cual requiere
+	  que el operando de la izquierda sea ya un objeto
+	  <type>Number</type>. Así que, el compilador emite un error.
+	</para>
+	<para>
+	  Con <literal role="operator">friend operator-</literal> las
+	  cosas son diferentes. El compilador necesita rellenar ambos
+	  argumentos como quiera que pueda; no está restringido a tener
+	  un <type>Number</type> como argumento de la parte
+	  izquierda. Asi que si ve:
+	</para>
+	<programlisting>
+1 - a 
+	</programlisting>
+	<para>
+	  puede convertir el primer argumento a un <type>Number</type>
+	  usando el constructor.
+	</para>
+	<para>
+	  A veces querrá ser capaz de restringir el uso de sus
+	  operadores haciéndolos miembros. Por ejemplo, cuando
+	  multiplique una matriz por un vector, el vector debe ir en la
+	  derecha. Pero si quiere que sus operadores sean capaces de
+	  convertir cualquier argumento, haga el operador una función
+	  <literal role="keyword">friend</literal>.
+	</para>
+	<para>
+	  Afortunadamente, el compilador cogerá la expresión
+	  <programlisting>1-1</programlisting> y convertirá ambos
+	  argumentos a objetos <classname>Number</classname> y despues
+	  llamará a <literal role="operator">operator-</literal>. Eso
+	  significaría que el código C existente pudiera empezar a
+	  funcionar de forma diferente. El compilador encaja la
+	  posibilidad mas simple primero, la cual es el operador
+	  incorporado para la expresión
+	  <programlisting>1-1</programlisting>.
+	</para>
+      </sect3>
+    </sect2>
+    <sect2>
+      <title>Ejemplo de conversión de tipos</title>
+      <para>
+	Un ejemplo en el que la conversión automática de tipos es
+	extremadamente útil es con cualquier clase que encapsule una
+	cadena de caracteres(en este caso, simplemente implementaremos
+	la clase usando la clase estándar de C++ <type>string</type>
+	dado que es simple). Sin la conversión automática de tipos, si
+	quiere usar todas las funciones existentes de string de la
+	librería estándar de C, tiene que crear una función miembro para
+	cada una, así:
+      </para>
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/Strings1.cpp"/>
+	</programlisting>
+      </para>
+      <para>
+	Aquí, sólo se crea la función <function>strcmp()</function>,
+	pero tendría que crear las correspondientes funciones para cada
+	una de <filename>&#60;cstring></filename> que
+	necesitará. Afortunadamente, puede proporcionar una conversión
+	automática de tipos permitiendo el acceso a todas las funciones
+	de <classname>cstring</classname>.
+      </para>
+      
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/Strings2.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	Ahora cualquier función que tome un argumento <type>char*</type>
+	puede tomar también un argumento <classname>Stringc</classname>
+	porque el compilador sabe como crear un <type>char*</type> de un
+	<classname>Stringc</classname>.
+      </para>
+    </sect2>
+    <sect2>
+      <title>Las trampas de la  conversión automática de tipos</title>
+      <para>
+	Dado que el compilador debe elegir como realizar una conversión
+	de tipos, puede meterse en problemas si no usted no diseña las
+	conversiones correctamente. Una situación obvia y simple sucede
+	cuando una clase <classname>X</classname> que puede convertirse
+	a sí misma en una clase <classname>Y</classname> con un <literal
+	role="operator">operator Y()</literal>. Si la clase
+	<classname>Y</classname> tiene un constructor que toma un
+	argumento simple de tipo <classname>X</classname>, esto
+	representa la conversión de tipos por identidad. El compilador
+	ahora tiene dos formas de ir de <classname>X</classname> a
+	<classname>Y</classname>, asi que se generará una error de
+	ambigüedad cuando esa conversión ocurra:
+      </para>
+      
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/TypeConversionAmbiguity.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	La solución obvia a este problema es no hacerla. Simplemente
+	proporcione una ruta ónica para la conversión automática de un
+	tipo a otro.
+      </para>
+      <para>
+	Un problema más difícil de eliminar sucede cuando proporciona
+	conversiones automáticas a más de un tipo. Esto se llama a veces
+	<emphasis>acomodamiento</emphasis>:
+      </para>
+
+
+      <para>
+	<programlisting>
+	  <xi:include parse="text" href="./code/C12/TypeConversionFanout.cpp"/>
+	</programlisting>
+      </para>
+      
+      <para>
+	La clase <classname>Apple</classname> tiene conversiones
+	automáticas a <classname>Orange</classname> y a
+	<classname>Pear</classname>. El elemento capcioso sobre esto es
+	que no hay problema hasta que alguien inocentemente crea dos
+	versiones sobrecargadas de <function>eat()</function>. (Con sólo
+	una versión el codigo en <function>main()</function> funciona
+	correctamente).
+      </para>
+      <para>
+	De nuevo la solución - y el lema general de la conversión
+	automática de tipos- es proveer solo una ónica conversión
+	automática de un tipo a otro. Puede tener conversiones a otros
+	tipos, sólo que no deberían ser
+	<emphasis>automaticas</emphasis>. Puede crear llamadas a
+	funciones explicitas con nombres como
+	<function>makeA()</function> y <function>makeB()</function>.
+      </para>
+      
+      <sect3>
+	<title>Actividades ocultas</title>
+	<para>
+	  La conversión automática de tipos puede producir mas actividad
+	  subyacente de la que podría esperar. Mire esta modificación de
+	  <filename>CopyingVsInitialization.cpp</filename> como un juego
+	  de inteligencia:
+	</para>
+	
+	<para>
+	  <programlisting>
+	    <xi:include parse="text" href="./code/C12/CopyingVsInitialization2.cpp"/>
+	  </programlisting>
+	</para>
+	
+	<para>
+	  No hay un constructor para crear <varname>Fee fee</varname> de
+	  un objeto <classname>Fo</classname>. Sin embargo,
+	  <classname>Fo</classname> tiene una conversión automática de
+	  tipos a <classname>Fee</classname>. No hay un constructor de
+	  copia para crear un <classname>Fee</classname> de un
+	  <classname>Fee</classname>, pero esta es una de las funciones
+	  especiales que el compilador puede crear por usted. (El
+	  constructor por defecto, el constructor de copia y <literal
+	  role="operator">operator=</literal>) y el destructor puede
+	  sintetizarse automáticamente por el compilador. Asi que para
+	  la relativamente inocua expresión:
+	</para>
+	<programlisting>
+Fee fee = fo;
+	</programlisting>
+	<para>
+	  el operador de conversión automática es llamado, y se crea un
+	  constructor de copia.
+	</para>
+	<para>
+	  Use la conversión automática de tipos con precaución. Como con
+	  toda la sobrecarga de operadores, es excelente cuando reduce
+	  la tarea de codificación significativamente, pero no vale la
+	  pena usarla de forma gratuita.
+	</para>
+      </sect3>
+    </sect2>
+  </sect1>
+  <sect1>
+    <title>Resumen</title>
+    <para>
+      La completa razón para la existencia de la sobrecarga de
+      operadores es para aquellas situaciones cuando simplifica la
+      vida. No hay nada particularmente mágico sobre ello;los operadores
+      sobrecargados son solo funciones con nombres divertidos, y las
+      llamadas a función son llamadas por el compilador para usted
+      cuando se satisface el patrón adecuado. Pero si la sobrecarga de
+      operadores no proporciona un beneficio significativo para usted(el
+      creador de la clase) o para el usuario de la clase, no complique
+      el asunto añadiéndolo.
+    </para>
+  </sect1>
+  <sect1>
+    <title>Ejercicios</title>
+    
+    <para>
+      Las soluciones de los ejercicios elegidos se pueden encontrar en
+      el documento electrónico <quote>The Thinking in C++ Annotated
+      Solution Guide</quote> disponible por una pequeña cantidad en
+      <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
+    </para>
+    
+    <orderedlist>
+      <listitem>
+	<para>
+	  Cree una clase sencilla con un operador sobrecargado
+	  <literal role="operator">++</literal>. Intente llamar a este
+	  operador en la forma prefija y posfija y vea que clase de
+	  advertencia del compilador obtiene.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase sencilla que contenga un <type>int</type> y
+	  sobrecargue el operador <literal role="operator">+</literal>
+	  como una función miembro. También cree una función miembro
+	  <function>print()</function> que tome un
+	  <classname>ostream&amp;</classname> como un argumento y lo
+	  imprima a un
+	  <classname>ostream&amp;</classname>. Experimente con su
+	  clase para comprobar que funciona correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un operador binario <literal
+	    role="operator">-</literal> al ejercicio 2 como una función
+	  miembro. Demuestre que puede usar sus objetos in expresiones
+	  complejas como <equation>a + b -c</equation>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un operador <literal role="operator">++</literal> y
+	  otro <literal role="operator">--</literal> al ejercicio 2,
+	  ambos con las versiones prefijas y postfijas, tales que
+	  devuelvan el objeto incrementado o decrementado. Asegurese
+	  que la versión posfija devuelve el valor adecuado.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique los operadores de incremento y de decremento del
+	  ejercicio 4 para que la versión prefija devuelva a
+	  referencia no <literal role="keyword">const</literal> y la
+	  posfija devuelva un objeto <literal
+	    role="keyword">const</literal>. Muestre que funcionan
+	  correctamente y explique por qué esto se puede hacer en la
+	  práctica.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cambie la función <function>print()</function> del
+	  ejercicio2 para que use el operador sobrecargado <literal
+	    role="operator">&#60;&#60;</literal> como en
+	  <filename>IostreamOperatorOverloading.cpp</filename>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique el ejercicio 3 para que los operadores <literal
+	    role="filename">+</literal> y <literal
+	    role="operator">-</literal> sean funciones no
+	  miembro. Demuestre que todavía funcionan correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada el operador unario <literal
+	    role="operator">-</literal> al ejercicio 2 y demuestre que
+	  funciona correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase que contenga un único <type>private
+	    char</type>. Sobrecargue los operadores de flujos de
+	  entrada/salida <literal role="operator">&#60;&#60;</literal> y
+	  <literal role="operator">>></literal>(como en
+	  <filename>IostreamOperatorOverloading.cpp</filename>) y
+	  pruebelos. Puede probarlos con <literal>fstreams</literal>,
+	  <literal>stringstreams</literal> y <literal>cin</literal> y
+	  <literal>cout</literal> .
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Determine el valor constante ficticio que su compilador pasa
+	  a los operadores posfijos <literal role="operator">++</literal> y
+	  <literal role="operator">--</literal>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Escriba una clase <classname>Number</classname> que contenga
+	  un <type>double</type> y añada operadores sobrecargados para
+	  <literal role="operator">+</literal>, <literal
+	    role="operator">-</literal>, <literal
+	    role="operator">*</literal>, <literal
+	    role="operator">/</literal> y la asignación. Elija los
+	  valores de retorno para estas funciones para que las
+	  expresiones puedan ser encadenadas juntas y para que sea
+	  eficiente.  Escriba una conversión automática de tipos
+	  <type>operator int()</type>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique el ejercicio 11 para que use la
+	  <emphasis>optimización del valor de retorno</emphasis>, si
+	  todavía no lo ha hecho.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase que contenga un puntero, y demuestre que si
+	  permite al compilador sintetizar el operador <literal
+	    role="operator">=</literal> el resultado de usar ese
+	  operador serán punteros que estarán solapados en la misma
+	  localización de memoria. Ahora arregle el problema
+	  definiendo su propio operador <literal
+	    role="operator">=</literal> y demuestre que corrige el
+	  solapamiento. Asegórese que comprueba la auto asignación y
+	  que maneja el caso apropiadamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Escriba una clase llamada <classname>Bird</classname> que
+	  contenga un miembro <type>string</type> y un <type>static
+	    int</type>. El el constructor por defecto, use el
+	  <type>int</type> para generar automáticamente un
+	  identificador que usted construya en la <type>string</type>
+	  junto con el nombre de la clase(<varname>Bird #1</varname>,
+	  <varname>Bird #2</varname>, etc). Añada un operador <literal
+	    role="operator">&#60;&#60;</literal> para flujos de salida
+	  para imprimir los objetos
+	  <classname>Bird</classname>-Escriba un operador de
+	  asignación <literal role="operator">=</literal> y un
+	  constructor de copia. En <function>main()</function>
+	  verifique que todo funciona correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Escriba una clase llamada <classname>BirdHouse</classname>
+	  que contenga un objeto, un puntero y una referencia para la
+	  clase <classname>Bird</classname> del ejercicio 14. El
+	  constructor debería tomar 3 <classname>Birds</classname>
+	  como argumentos. Añada un operador <literal
+	    role="operator">&#60;&#60;</literal> de flujo de salida para
+	  <classname>BirdHouse</classname>. Deshabilite el operador de
+	  asignación <literal role="operator">=</literal> y el
+	  constructor de copia. En <function>main()</function>
+	  verifique que todo funciona correctamente. Asegórese de que
+	  puede encadenar asignaciones para objetos
+	  <classname>BirdHouse </classname> y construya expresiones
+	  que involucren a móltiples operadores.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un miembro de datos <type>int</type> a
+	  <classname>Bird</classname> y a
+	  <classname>BirdHouse</classname> en el ejercicio 15. Añada
+	  operadores miembros <literal role="operator">+</literal>,
+	  <literal role="operator">-</literal>, <literal
+	    role="operator">*</literal> y <literal
+	    role="operator">/</literal> que usen el miembro
+	  <type>int</type> para realizar las operaciones en los
+	  respectivos miembros. Verifique ques estas funcionan.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Repita el ejercicio 16 usando operadores no miembros. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un operador <literal role="operator">-</literal> a
+	  <filename>SmartPointer.cpp</filename> y a
+	  <filename>NestedSmartPointer.cpp</filename>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique <filename>CopyingVsInitialization.cpp</filename>
+	  para que todos los constructores impriman un mensaje que
+	  cuente que está pasando. Ahora verifique que las dos maneras
+	  de llamar al constructor de copia(la de asignación y la de
+	  parentesis) son equivalentes.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Intente crear un operador no miembro <literal
+	    role="operator">=</literal> para una clase y vea que clase
+	  de mensaje del compilador recibe.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase con un operador de asignación que tenga un
+	  segundo argumento, una <classname>string</classname> que
+	  tenga un valor por defecto que diga <quote>op =
+	    call</quote>. Cree una función que asigne un objeto de su
+	  clase a otro y muestre que su operador de asignación es
+	  llamado correctamente.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  En <filename>CopyingWithPointers.cpp</filename> elimine el
+	  operador <literal role="operator">=</literal> en
+	  <classname>DogHouse</classname> y muestre el el operador
+	  <literal role="operator">=</literal> sintetizado por el
+	  compilador copia correctamente <classname>string</classname>
+	  pero simplemente solapa el puntero a
+	  <classname>Dog</classname>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  En <filename>ReferenceCounting.cpp</filename> añada un
+	  <type>static int</type> y un <type>int</type> ordinario como
+	  miembros de datos a <classname>Dog</classname> y a
+	  <classname>DogHouse</classname>. En todos los constructores
+	  para ambas clases, incremente el <type>static int</type> y
+	  asigne el resultado al <type>int</type> ordinario para
+	  mantener un seguimiento del nómero de objetos que están
+	  siendo creados. Haga las modificaciones necesarias para que
+	  todas las sentencias de impresin muestren los
+	  identificadores <type>int</type> de los objetos
+	  involucrados.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase que contenga un <classname>string</classname>
+	  como un mimebro de datos. Inicialice el
+	  <classname>string</classname> en el constructor, pero no
+	  cree un constructor de copia o un operador <literal
+	    role="operator">=</literal>. Haga una segunda clase que
+	  tenga un objeto miembro de su primera clase;no cree un
+	  constructor de copia o un operador <literal
+	    role="operator">=</literal> para esta clase
+	  tampoco. Demuestre que el constructor de copia y el operador
+	  <literal role="operator">=</literal> son sintetizados
+	  correctamente por el compilador.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Combine las clases en
+	  <filename>OverloadingUnaryOperators.cpp</filename> y en
+	  <filename>Integer.cpp</filename>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique <filename>PointerToMemmberOperator.cpp</filename>
+	  añadiendo dos nuevas funciones miembro a
+	  <classname>Dog</classname> que no tomen argumentos y
+	  devuelvan <type>void</type>. Cree y compruebe un operador
+	  sobrecargado <literal role="operator">->*</literal> que
+	  funcione con sus dos nuevas funciones.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un operador <literal role="operator">->*</literal> a
+	  <filename>NestedSmartPointer.cpp</filename>. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree dos clases, <classname>Apple</classname> y
+	  <classname>Orange</classname>. En
+	  <classname>Apple</classname>, cree un constructor que tome
+	  una <classname>Orange</classname> como un argumento. Cree
+	  una función que tome un <classname>Apple</classname> y llame
+	  a esa función con una una <classname>Orange</classname> para
+	  demostrar que funciona. Ahora haga explicito el constructor
+	  de <classname>Apple</classname> para demostrar que la
+	  conversión automática de tipos es prevenida así. Modifique
+	  la llamada a su función para que la la conversión se haga
+	  explicitamente y así funcione.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Añada un operador global <literal
+	    role="operator">*</literal> a
+	  <filename>ReflexivityInOverloading.cpp</filename> y
+	  demuestre que es reflexivo.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree dos clases y un operador <literal
+	  role="operator">+</literal> y las funciones de conversión de
+	  tal manera que la adicción sea reflexiva para las dos clases.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Arregle <filename>TypeConversionFanout.cpp</filename> creando
+	  una  función explicita para realizar la conversión de tipo,
+	  en lugar de uno de los operadoes de conversión automáticos. 
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Escriba un código simple que use los operadores <literal
+	    role="operator">+</literal>, <literal
+	    role="operator">-</literal>, <literal
+	    role="operator">*</literal>, <literal
+	    role="operator">/</literal> para
+	  <type>double</type>. Imaginese como el compilador genera el
+	  codigo ensamblador y mire el ensamblador que se genera para
+	  descubir y explicar que está ocurriendo bajo el envoltorio.
+	</para>
+      </listitem>
+    </orderedlist>
+  </sect1>
+</chapter>
