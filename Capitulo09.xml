@@ -707,17 +707,251 @@ may mitigate the speed benefit (the only reliable course of action is to
 experiment to discover the effects of inlining on your program with your
 compiler).  -->
 
+      <para>
+	Por supuesto, la tentación es usar declaraciones inline en
+	cualquier parte dentro de la case porque ahorran el paso extra
+	de hacer una definición de método externa. Sin embargo, debe
+	tener presente, que la idea de una inline es dar al compilador
+	mejores oportunidades de optimización. Pero si declara inline
+	una función grande provocará que el código se duplique allí
+	donde se llame la función, produciendo código [FIXME:bloat] que
+	anulará el beneficio de velocidad obtenido (la única manera de
+	descubrir los efectos del uso de inline en su programa con su
+	compilador es experimentar).
+      </para>
+
     </sect2>
 
     <sect2>
       <title>Funciones de acceso</title>
+
+<!--
+One of the most important uses of inlines inside classes is the access
+function. This is a small function that allows you to read or change
+part of the state of an object \u2013 that is, an internal variable or
+variables. The reason inlines are so important for access functions can
+be seen in the following example: -->
+
       <para>
+	Uno de los usos más importantes de inline dentro de clases son
+	las funciones de acceso. Se trata de pequeñas funciones que le
+	permiten leer o cambiar parte del estado de un objeto, es decir,
+	un o varias variables interanas. La razón por la que la inline
+	es tan importante para las funciones de acceso se puede ver en
+	el siguente ejemplo:
+      </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/Access.cpp"/>
+</programlisting>
+
+<!--
+Here, the class user never has direct contact with the state variables
+inside the class, and they can be kept private, under the control of the
+class designer. All the access to the private data members can be
+controlled through the member function interface. In addition, access is
+remarkably efficient. Consider the read( ), for example. Without
+inlines, the code generated for the call to read( ) would typically
+include pushing this on the stack and making an assembly language
+CALL. With most machines, the size of this code would be larger than the
+code created by the inline, and the execution time would certainly be
+longer.  -->
+
+      <para>
+	Aquí, el usuario de la clase nunca tiene contacto directo con
+	las variables de estado internas a la clase, y pueden mantenerse
+	como privadas, bajo el control del diseñador de la clase. Todo
+	el acceso a los atributos se puede controlar a través de los
+	métodos de la interfaz. Además, el acceso es notablemente
+	eficiente. Considere <function>read()</function>, por
+	ejemplo. Sin inline, el código generado para la llamada a
+	<function>read()</function> podría incluir colocarla en la pila
+	y ejecutar la llamada CALL de ensamblador. En la mayoría de las
+	arquitecturas, el tamaño de ese código sería mayor que el código
+	creado para la variante inline, y el tiempo de ejecución sería
+	más largo con toda certeza.
+      </para>
+
+<!--
+Without inline functions, an efficiency-conscious class designer will be
+tempted to simply make i a public member, eliminating the overhead by
+allowing the user to directly access i. From a design standpoint, this
+is disastrous because i then becomes part of the public interface, which
+means the class designer can never change it. You're stuck with an
+int called i. This is a problem because you may learn sometime later
+that it would be much more useful to represent the state information as
+a float rather than an int, but because int i is part of the public
+interface, you can't change it. Or you may want to perform some
+additional calculation as part of reading or setting i, which you
+can't do if it's public. If, on the other hand, you've
+always used member functions to read and change the state information of
+an object, you can modify the underlying representation of the object to
+your heart's content.
+-->
+
+      <para>
+	Sin las funciones inline, un diseñador de clases preocupado por
+	la eficiencia estaría tentado de hacer que <varname>i</varname>
+	fuese un atributo público, eliminado la sobrecarga y permitiendo
+	al usuario acceder directamente a <varname>i</varname>. Desde el
+	punto de vista de un diseñador, eso resulta desastroso
+	<varname>i</varname> sería parte de la interfaz pública, lo cual
+	significa que el diseñador de la clase no podrá cambiar esto en
+	el futuro. Tendrá que cargar con un entero llamado
+	<varname>i</varname>. Esto es un problema porque después puede
+	que considere mejor usar un <type>float</type> en lugar de un
+	<type>int</type> para representar el estado, pero como
+	<varname>i</varname> es parte de la interfaz pública, no podrá
+	cambiarlo. O puede que necesite realizar algún cálculo adicional
+	como parte de la lectura o escritura de <varname>i</varname>,
+	que no podrá hacer si es público. Si, en el otro extremo,
+	siempre usa métodos para leer y cambiar la información de estado
+	de un objeto, podrá modificar la representación subyacente del
+	objeto [FIXME: to your heart's content]
+      </para>
+
+<!--
+In addition, the use of member functions to control data members allows
+you to add code to the member function to detect when that data is being
+changed, which can be very useful during debugging. If a data member is
+public, anyone can change it anytime without you knowing about it.  
+-->
+
+      <para>
+	Además, el uso de métodos para controlar atributos le permite
+	añadir código al método para detectar cuando cambia el valor,
+	algo que puede ser muy útil durante la depuración. Si un
+	atributo es público, cualquiera puede cambiarlo en cualquier
+	momento sin que el programador lo sepa.
       </para>
 
       <sect3>
 	<title>Accesores y mutadores</title>
+
+<!--
+Some people further divide the concept of access functions into
+accessors (to read state information from an object) and mutators (to
+change the state of an object). In addition, function overloading may be
+used to provide the same function name for both the accessor and
+mutator; how you call the function determines whether you\u2019re
+reading or modifying state information. Thus, 
+-->
+
+
 	<para>
 	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/Rectangle.cpp"/>
+</programlisting>
+
+<!--
+The constructor uses the constructor initializer list (briefly
+introduced in Chapter 8 and covered fully in Chapter 14) to initialize
+the values of wide and high (using the pseudoconstructor form for
+built-in types).
+-->
+
+	<para>
+	</para>
+
+<!--
+You cannot have member function names using the same identifiers as data
+members, so you might be tempted to distinguish the data members with a
+leading underscore. However, identifiers with leading underscores are
+reserved so you should not use them.
+-->
+
+	<para>
+	</para>
+
+<!--
+You may choose instead to use \u201cget\u201d and \u201cset\u201d to
+indicate accessors and mutators: 
+-->
+
+	<para>
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/Rectangle2.cpp"/>
+</programlisting>
+
+<!--
+Of course, accessors and mutators don\u2019t have to be simple pipelines
+to an internal variable. Sometimes they can perform more sophisticated
+calculations. The following example uses the Standard C library time
+functions to produce a simple Time class:
+-->
+
+	<para>
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/Cpptime.h"/>
+</programlisting>
+
+<!--
+The Standard C library functions have multiple representations for time,
+and these are all part of the Time class. However, it isn\u2019t
+necessary to update all of them, so instead the time_t t is used as the
+base representation, and the tm local and ASCII character representation
+asciiRep each have flags to indicate if they\u2019ve been updated to the
+current time_t. The two private functions updateLocal( ) and
+updateAscii( ) check the flags and conditionally perform the update.
+-->
+
+	<para>
+	</para>
+
+<!--
+The constructor calls the mark( ) function (which the user can also call
+to force the object to represent the current time), and this clears the
+two flags to indicate that the local time and ASCII representation are
+now invalid. The ascii( ) function calls updateAscii( ), which copies
+the result of the Standard C library function asctime( ) into a local
+buffer because asctime( ) uses a static data area that is overwritten if
+the function is called elsewhere. The ascii( ) function return value is
+the address of this local buffer.  -->
+
+	<para>
+	</para>
+
+<!--
+All the functions starting with daylightSavings( ) use the updateLocal(
+) function, which causes the resulting composite inlines to be fairly
+large. This doesn\u2019t seem worthwhile, especially considering you
+probably won\u2019t call the functions very much. However, this
+doesn\u2019t mean all the functions should be made non-inline. If you
+make other functions non-inline, at least keep updateLocal( ) inline so
+that its code will be duplicated in the non-inline functions,
+eliminating extra function-call overhead.
+-->
+
+	<para>
+	</para>
+
+<!--
+Here\u2019s a small test program:
+-->
+
+	<para>
+	  Este es un pequeño programa de prueba:
+	</para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C09/Cpptime.cpp"/>
+</programlisting>
+
+<!--
+A Time object is created, then some time-consuming activity is
+performed, then a second Time object is created to mark the ending
+time. These are used to show starting, ending, and elapsed times.
+-->
+
+	<para>
+	</para>
+
       </sect3>
     </sect2>
   </sect1>
@@ -745,7 +979,7 @@ compiler).  -->
     </sect2>
 
     <sect2>
-      <title>Esconder actividades en contructores y
+      <title>Ocultar actividades en contructores y
 	destructores</title>
       <para>
       </para>
