@@ -643,7 +643,7 @@ You\u2019ll almost always want to put inline definitions in a header file. When 
       (colocando los argumentos en la pila y haciendo el CALL)
     </para>
 
-<!-->
+<!--
 An inline function in a header file has a special status, since you must include the header file containing the function and its definition in every file where the function is used, but you don\u2019t end up with multiple definition errors (however, the definition must be identical in all places where the inline function is included).
 -->
 
@@ -708,16 +708,17 @@ experiment to discover the effects of inlining on your program with your
 compiler).  -->
 
       <para>
-	Por supuesto, la tentación es usar declaraciones inline en
-	cualquier parte dentro de la case porque ahorran el paso extra
-	de hacer una definición de método externa. Sin embargo, debe
-	tener presente, que la idea de una inline es dar al compilador
+	Por supuesto, la tentación es usar
+	declaraciones <keyword>inline</keyword> en cualquier parte
+	dentro de la case porque ahorran el paso extra de hacer una
+	definición de método externa. Sin embargo, debe tener
+	presente, que la idea de una inline es dar al compilador
 	mejores oportunidades de optimización. Pero si declara inline
 	una función grande provocará que el código se duplique allí
-	donde se llame la función, produciendo código [FIXME:bloat] que
-	anulará el beneficio de velocidad obtenido (la única manera de
-	descubrir los efectos del uso de inline en su programa con su
-	compilador es experimentar).
+	donde se llame la función, produciendo código [FIXME:bloat]
+	que anulará el beneficio de velocidad obtenido (la única
+	manera de descubrir los efectos del uso de inline en su
+	programa con su compilador es experimentar).
       </para>
 
     </sect2>
@@ -838,9 +839,13 @@ reading or modifying state information. Thus,
 -->
 
 	<para>
-	  Hay gente que divide el concepto de funciones de acceso en dos
-	  accesores (para leer la informaión de estado de un objeto) y
-	  mutadores (para cambiar el estado de un objeto). Además, se puede utilizar la sobrecarga de funciones para tener métodos accesores y mutadores con el mismo nombre; el modo en que se invoque el método determina si se lee o modifica la información de estado. Así,
+	  Hay gente que divide el concepto de funciones de acceso en
+	  dos accesores (para leer la informaión de estado de un
+	  objeto) y mutadores (para cambiar el estado de un
+	  objeto). Además, se puede utilizar la sobrecarga de
+	  funciones para tener métodos accesores y mutadores con el
+	  mismo nombre; el modo en que se invoque el método determina
+	  si se lee o modifica la información de estado. Así,
 	</para>
 
 <programlisting>
@@ -900,6 +905,11 @@ functions to produce a simple Time class:
 -->
 
 	<para>
+	  Por supuesto, los accesores y mutadores no tienen que ser
+	  simples tuberías hacias las variables internas. A veces,
+	  puedes efectuar cálculos más sofísticados. El siguiente
+	  ejemplo usa las funciones de tiempo de la librería C
+	  estándar para crear una clase <classname>Time</classname>:
 	</para>
 
 <programlisting>
@@ -908,7 +918,7 @@ functions to produce a simple Time class:
 
 <!--
 The Standard C library functions have multiple representations for time,
-and these are all part of the Time class. However, it isn\u2019t
+and these are all part of the Time class. However, it isn't
 necessary to update all of them, so instead the time_t t is used as the
 base representation, and the tm local and ASCII character representation
 asciiRep each have flags to indicate if they\u2019ve been updated to the
@@ -917,7 +927,18 @@ updateAscii( ) check the flags and conditionally perform the update.
 -->
 
 	<para>
-	</para>
+	  Las funciones de la librería C estándar tienen múltiples
+	  representaciones para el tiempo, y todas ellas son parte de
+	  la clase <classname>Time</classname>. Sin embargo, no es
+	  necesario actualizar todos ellos, así
+	  que <type>time_t</type> se usa para la representación base,
+	  y tm local y la representación ASCII asciiRep tienen
+	  banderas para indicar si han sido actualizadas para
+	  el <type>time_t</type> actual. Las dos funciones
+	  privadas <function>updateLocal()</function>
+	  y <function>updateAscii()</function> comprueban las banderas
+	  y condicionalmente hacen la actualización.
+ 	</para>
 
 <!--
 The constructor calls the mark( ) function (which the user can also call
@@ -930,20 +951,46 @@ the function is called elsewhere. The ascii( ) function return value is
 the address of this local buffer.  -->
 
 	<para>
+	  El constructor llama a la
+	  función <function>mark()</function> (que el usuario puede
+	  llamar también para forzar al objeto a representar el tiempo
+	  actual), y esto limpia las dos banderaas para indicar que el
+	  tiempo local y la representación ASCII son ahora
+	  inválidas. La función <function>ascii()</function> llama
+	  a <function>updateAscii()</function>, que copia el resultado
+	  de la función de la librería estándar de
+	  C <function>asctime()</function> en un buffer local
+	  porque <function>asctime()</function> usa una área de datos
+	  estática que se sobreescribe si la función se llama en otra
+	  parte. El valor de retorno de la
+	  función <function>ascii()</function> es la dirección de este
+	  buffer local.
 	</para>
 
 <!--
 All the functions starting with daylightSavings( ) use the updateLocal(
 ) function, which causes the resulting composite inlines to be fairly
-large. This doesn\u2019t seem worthwhile, especially considering you
-probably won\u2019t call the functions very much. However, this
-doesn\u2019t mean all the functions should be made non-inline. If you
+large. This doesn't seem worthwhile, especially considering you
+probably won't call the functions very much. However, this
+doesn't mean all the functions should be made non-inline. If you
 make other functions non-inline, at least keep updateLocal( ) inline so
 that its code will be duplicated in the non-inline functions,
 eliminating extra function-call overhead.
 -->
 
 	<para>
+	  Todas las funciones que empiezan
+	  con <function>daylightSavings()</function> usan la
+	  función <function>updateLocal()</function>, que causa que la
+	  composción resultante de inlines sea bastante larga. No
+	  parece que eso valga la pena, especialmente considerando que
+	  probablemente no quiera llamar mucho las funciones. Sin
+	  embargo, esto no significa que todas las funciones deban ser
+	  no-inline. Is hace otras funciones no-inline, al menos
+	  mantenga <function>updateLocal()</function>
+	  como <keyword>inline</keyword> de modo que su código se
+	  duplique en las funciones no-inline, eliminando la
+	  sobrecarga extra de invocación de funciones.
 	</para>
 
 <!--
