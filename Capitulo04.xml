@@ -3,6 +3,7 @@
 <!--
   Editor:              Emacs 21/PSGML
   Traducción original: Sebastián Gurin <sgurin@motevideo.com.uy>
+                       David Villa <dvilla@gmx.net>
   Formateado DocBook:  Sebastián Gurin <sgurin@motevideo.com.uy>
                        David Villa <dvilla@gmx.net>
   1ª Revisión:
@@ -136,9 +137,8 @@ cosas por hacer:
       el estilo clásico de una librería escrita en C:
     </para>
 
-
 <programlisting>
-//: C04:CLib.h
+<xi:include parse="text" href="./code/C04/CLib.h"/>
 </programlisting>
 
     <para>
@@ -610,7 +610,7 @@ cp = (char*)fetch(&amp;stringStash,i++)
     
 
     <sect2>
-      <title>Suposiciones equivocadas</title>
+      <title>Malas suposiciones</title>
 
       <para>
 	Antes de meternos en los problemas principales de crear una
@@ -718,24 +718,22 @@ cp = (char*)fetch(&amp;stringStash,i++)
 
 
 
-
-
   <sect1>
     <title>¿Qué está mal?</title>
     
     <para>
       Somos seres realmente destinados a la adaptación: nos adaptamos a
-      situaciones en las que, quizá, no <emphasis>no
-      deberíamos</emphasis> hacerlo. El estilo de la librería
-      <type>Cstash</type> ha sido un modelo a seguir por los
+      situaciones en las que, quizá, <emphasis>no
+      deberíamos</emphasis>. El estilo de la librería
+      <type>CStash</type> ha sido un modelo a seguir por los
       programadores en C durante mucho tiempo. Sin embargo, si nos
       ponemos a examinarla por un momento, nos daremos cuenta de que
-      utilizar esta librería puede resultar algo engorroso[fixme:
-      awkward]. Cuando la usamos debemos, por ejemplo, pasar la
-      dirección de la estructura a cada función de la librería. Así,
-      cuando leemos el código, los mecanismos de la librería se mezclan
-      con el significado de las llamadas a las funciones, lo cual
-      dificulta el entender lo que el programa hace.
+      utilizar esta librería puede resultar incómoda. Cuando la usamos
+      debemos, por ejemplo, pasar la dirección de la estructura a cada
+      función de la librería. Así, cuando leemos el código, los
+      mecanismos de la librería se mezclan con el significado de las
+      llamadas a las funciones, lo cual dificulta la comprecsión del
+      programa.
     </para>
 
     <para>
@@ -803,15 +801,16 @@ cp = (char*)fetch(&amp;stringStash,i++)
 
     <para>
       Nuestro primer paso será exactamente lo mencionado anteriormente:
-      Meter las funciones C++ dentro de las estructuras como "funciones
-      miembro". Así se verá nuestra estructura luego de realizados estos
-      cambios de la versión C de la <type>CStash</type> a la versión en
-      C++ a la cual llamaremos <type>Stash</type>: 
+      Meter las funciones C++ dentro de las estructuras como
+      <quote>funciones miembro</quote>. Así se verá nuestra estructura
+      luego de realizados estos cambios de la versión C de la
+      <type>CStash</type> a la versión en C++ a la cual llamaremos
+      <type>Stash</type>:
     </para>
 
 
 <programlisting>
-//: C04:CppLib.h
+<xi:include parse="text" href="./code/C04/CppLib.h"/>
 </programlisting>
 
     <para>
@@ -980,8 +979,8 @@ cp = (char*)fetch(&amp;stringStash,i++)
 
     <para>
       Queda aún un último tema que tocar. En C, se puede asignar un
-      <type>void *</type> a cualquier otro puntero. Por ejemplo al
-      compilar
+      <type>void *</type> a cualquier otro puntero, algo como esto:
+    </para>
 
 <programlisting>
 int i = 10;
@@ -989,26 +988,28 @@ void* vp = &amp;i; // OK tanto en C como en C++
 int* ip = vp; // Sólo aceptable en C
 </programlisting>
 
-      no habrá ningún tipo de quejas. Sin embargo, en C++, lo anterior
-      no estará permitido. ¿Por qué? Porque C no es tan estricto con los
-      tipos de información y nos deja asignar un puntero sin un tipo
-      específico a un puntero de un tipo bien determinado. No así C++ en
-      el cual la verificación de tipos es crítica y el compilador se
-      detendrá quejándose en cualquier violación de tipos. Esto siempre
-      ha sido importante, pero es especialmente importante en C++ ya que
-      dentro de las estructuras podemos tener funciones miembros. Si en
-      C++ estuviera permitido pasar punteros a estructuras sin ningún
-      tipo de impunidad en cuanto a violaciones de tipos, ¡podríamos
-      terminar llamando a una función miembro de una estructura en la
-      cual no existiera lógicamente dicha función miembro! Una verdadera
-      fórmula para el desastre. Así, mientras C++ sí nos deja asignar
-      cualquier puntero a un <type>void *</type> (en realidad este es el
-      propósito original del puntero a <type>void</type>: que sea
-      suficientemente largo como para apuntar a cualquier tipo) no nos
-      dejará asignar un <type>void *</type> a cualquier otro tipo de
-      puntero. Para ello se requiere un moldeado para indicarle tanto al
-      lector como al compilador que realmente queremos tratarlo como el
-      puntero destino.  
+    <para>
+      y no habrá ningún tipo de queja por parte de compilador. Sin
+      embargo, en C++, lo anterior no estará permitido. ¿Por qué? Porque
+      C no es tan estricto con los tipos de información y nos deja
+      asignar un puntero sin un tipo específico a un puntero de un tipo
+      bien determinado. No así C++ en el cual la verificación de tipos
+      es crítica y el compilador se detendrá quejándose en cualquier
+      violación de tipos. Esto siempre ha sido importante, pero es
+      especialmente importante en C++ ya que dentro de las estructuras
+      podemos tener funciones miembros. Si en C++ estuviera permitido
+      pasar punteros a estructuras sin ningún tipo de impunidad en
+      cuanto a violaciones de tipos, ¡podríamos terminar llamando a una
+      función miembro de una estructura en la cual no existiera
+      lógicamente dicha función miembro! Una verdadera fórmula para el
+      desastre. Así, mientras C++ sí nos deja asignar cualquier puntero
+      a un <type>void *</type> (en realidad este es el propósito
+      original del puntero a <type>void</type>: que sea suficientemente
+      largo como para apuntar a cualquier tipo) no nos dejará asignar un
+      <type>void *</type> a cualquier otro tipo de puntero. Para ello se
+      requiere un moldeado para indicarle tanto al lector como al
+      compilador que realmente queremos tratarlo como el puntero
+      destino.
     </para>
 
     <para>
@@ -1231,7 +1232,7 @@ int* ip = vp; // Sólo aceptable en C
       puede ser resumida en la siguiente frase: <emphasis>enviar
       mensajes a objetos</emphasis>. Y es realmente todo lo que se hace:
       se crea un conjunto de objetos y se les envía mensajes. El truco,
-      ovbiamente, es entender qué <emphasis>son</emphasis> en nuestro
+      obviamente, es entender qué <emphasis>son</emphasis> en nuestro
       problema los objetos y los mensajes, pero una vez que se ha
       cumplido esa etapa, la implementación en C++ será
       sorprendentemente directa.
@@ -1245,19 +1246,376 @@ Hasta aquí tradujo Sebastián Gurin
 
   <sect1>
     <title>Detalles del objeto</title>
+    
+    <!--
+    A question that often comes up in seminars is, "How big is an
+    object, and what does it look like?" The answer is "about what you
+    expect from a C struct." In fact, the code the C compiler produces
+    for a C struct (with no C++ adornments) will usually look exactly
+    the same as the code produced by a C++ compiler. This is reassuring
+    to those C programmers who depend on the details of size and layout
+    in their code, and for some reason directly access structure bytes
+    instead of using identifiers (relying on a particular size and
+    layout for a structure is a nonportable activity).
+    -->
+
     <para>
+      Una pregunta que surge a menudo en seminarios es <quote>¿Cómo de
+      grande es un objeto y qué pinta tiene?</quote> La respuesta es
+      <quote>más o menos lo que esperas de un <keyword>struct</keyword>
+      C</quote>. De hecho, el código que produce el compilador de C para
+      un <keyword>struct</keyword> C (sin adornos C++) normalmente será
+      <emphasis>exactamente</emphasis> el mismo que el producido por un
+      compilador C++. Eso tranquiliza a aquellos programadores C que
+      dependan de los detalles de tamaño y distribución de su código, y
+      que por alguna razón accedan directamente a los bytes de la
+      estructura en lugar de usar identificadores (confiar en un tamaño
+      y distribución particular para una estructura no es portable).
+    </para>
+
+
+    <!--
+    The size of a struct is the combined size of all of its
+    members. Sometimes when the compiler lays out a struct, it adds
+    extra bytes to make the boundaries come out neatly - this may
+    increase execution efficiency. In Chapter 15, you'll see how in
+    some cases "secret" pointers are added to the structure, but you
+    don't need to worry about that right now.
+    -->
+    
+    <para>
+      El tamaño de una <keyword>struct</keyword> es la combinación de
+      los tamaños de todos sus miembros. A veces cuando el compilador
+      crea una <keyword>struct</keyword>, añade bytes extra para hacer
+      que los límites encajen limpiamente - eso puede incrementar la
+      eficiencia de la ejecución. En el Capítulo 14, verá cómo en
+      algunos casos se añaden punteros <quote>secretos</quote> a la
+      estructura, pero no tiene que preocuparse de eso ahora.
+    </para>
+  
+    <!--
+    You can determine the size of a struct using the sizeof
+    operator. Here's a small example:
+    -->
+
+    <para>
+      Puede determinar el tamaño de una <keyword>struct</keyword> usando
+      el operador <literal role="operator">sizeof</literal>. Aquí tiene
+      un pequeño ejemplo:
+    </para>
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/Sizeof.cpp"/>
+</programlisting>
+
+    <!--
+    On my machine (your results may vary) the first print statement
+    produces 200 because each int occupies two bytes. struct B is
+    something of an anomaly because it is a struct with no data
+    members. In C, this is illegal, but in C++ we need the option of
+    creating a struct whose sole task is to scope function names, so it
+    is allowed. Still, the result produced by the second print statement
+    is a somewhat surprising nonzero value. In early versions of the
+    language, the size was zero, but an awkward situation arises when
+    you create such objects: They have the same address as the object
+    created directly after them, and so are not distinct. One of the
+    fundamental rules of objects is that each object must have a unique
+    address, so structures with no data members will always have some
+    minimum nonzero size.
+    -->
+
+    <para>
+      En mi máquina (sus resultado pueden variar) el primer resultado
+      produce 200 porque cada <type>int</type> ocupa 2 bytes. La
+      <keyword>struct</keyword> <type>B</type> es algo anómalo porque es
+      una <keyword>struct</keyword> sin atributos. En C, eso es ilegal,
+      pero en C++ necesitamos la posibilidad de crear una
+      <keyword>struct</keyword> cuya única tarea es ofrecer un ámbito a
+      nombres de funciones, de modo que está permitido. Aún asi, el
+      segundo resultado es un sorprendente valor distinto de cero. En
+      versiones anteriores del lenguage, el tamaño era cero, pero
+      aparecia una situación incómoda cuando se creaban estos objetos:
+      tenían la misma dirección que el objeto creado antes que él, y
+      eran indistinguibles. Una de las reglas fundamentales de los
+      objetos es que cada objeto debe tener una dirección única, así que
+      las estructuras sin atributos siempre tendrán tamaño mínimo
+      distinto de cero.
+    </para>
+
+    <!--
+    The last two sizeof statements show you that the size of the
+    structure in C++ is the same as the size of the equivalent version
+    in C. C++ tries not to add any unnecessary overhead.
+    -->
+
+    <para>
+      Las dos últimas sentencias <literal
+      role="operator">sizeof</literal> muestran que el tamaño de la
+      estructura en C++ es el mismo que en la versión en C. C++ intenta
+      no añadir ninguna sobrecarga innecesaria.
     </para>
   </sect1>
 
 
   <sect1>
-    <title>Conveciones de los ficheros de cabecera</title>
+    <title>Conveciones para los ficheros de cabecera</title>
+
+    <!--
+    When you create a struct containing member functions, you are
+    creating a new data type. In general, you want this type to be
+    easily accessible to yourself and others. In addition, you want to
+    separate the interface (the declaration) from the implementation
+    (the definition of the member functions) so the implementation can
+    be changed without forcing a re-compile of the entire system. You
+    achieve this end by putting the declaration for your new type in a
+    header file.
+    -->
+
     <para>
+      Cuando se crea una <keyword>struct</keyword> que contiene
+      funciones miembro, se está creando un nuevo tipo de dato. En
+      general, se intenta que ese tipo sean fácilmente accesible. En
+      resumen, se quiere que la interface (la declaración) está separada
+      de la implmentación (la definición de las funciones miembro) de
+      modo que la implementación pueda cambiar sin obligar a recompilar
+      el sistema completo. Puede conseguir esto poniendo la declaración
+      del nuevo tipo en un fichero de cabecera.
+    </para>
+
+
+    <!--
+    When I first learned to program in C, the header file was a mystery
+    to me. Many C books don't seem to emphasize it, and the compiler
+    didn't enforce function declarations, so it seemed optional most of
+    the time, except when structures were declared. In C++ the use of
+    header files becomes crystal clear. They are virtually mandatory for
+    easy program development, and you put very specific information in
+    them: declarations. The header file tells the compiler what is
+    available in your library. You can use the library even if you only
+    possess the header file along with the object file or library file;
+    you don't need the source code for the cpp file. The header file is
+    where the interface specification is stored.
+    -->
+
+    <para>
+      Cuando yo aprendí a programar en C, el fichero de cabecera era un
+      misterio para mi. Muchos libros de C no hacen hincapié, y el
+      compilador no obliga la declaración de las funciones, así que
+      parecía algo opcional la mayor parte de las veces, excepto cuando
+      se declaraban estrucutras. En C++ el uso de los ficheros de
+      cabecera se vuelve clara como el cristal. SOn práctimente
+      obligatorios para el desarrollo de programas sencillos, y ponga en
+      ellos información muy específica: declaraciones. El fichero de
+      cabecera informa al compilador lo que hay disponible en la
+      librería. Puede usar la librería incluso si sólo se dispone del
+      fichero de cabecera y el fichero objeto o el fichero de librería;
+      no necesita disponer del código fuente del fichero
+      <filename>cpp</filename>. El fichero de cabecera es donde se
+      guarda la especificación de la interfaz.
+    </para>
+
+    <!--
+    Although it is not enforced by the compiler, the best approach to
+    building large projects in C is to use libraries; collect associated
+    functions into the same object module or library, and use a header
+    file to hold all the declarations for the functions. It is de
+    rigueur in C++; you could throw any function into a C library, but
+    the C++ abstract data type determines the functions that are
+    associated by dint of their common access to the data in a
+    struct. Any member function must be declared in the struct
+    declaration; you cannot put it elsewhere. The use of function
+    libraries was encouraged in C and institutionalized in C++.
+    -->
+
+    <para>
+      Aunque el compilador no lo obliga, el mejor modo de construir
+      grandes proyectos en C es usar librerías; colecciones de funciones
+      asociadas en un mismo módulo objeto o librería, y usar un fichero
+      de cabecera para colocar todas las declaraciones de las
+      funciones. Es <emphasis>de rigor</emphasis> en C++, Podría meter
+      cualquier función en una librería C, pero el tipo abstrato de dato
+      C++ determina las funciones que están asociadas por medio del
+      acceso común a los datos de una
+      <keyword>struct</keyword>. Cualquier función miembro debe ser
+      declarada en la declaración de la <keyword>struct</keyword>; no
+      puede ponerse en otro lugar. El uso de librerías de funciones fue
+      fomentado en C y institucionalizado en C++.
     </para>
     
 
     <sect2>
       <title>Importancia de los ficheros de cabecera</title>
+
+      <!--
+      When using a function from a library, C allows you the option of
+      ignoring the header file and simply declaring the function by
+      hand. In the past, people would sometimes do this to speed up the
+      compiler just a bit by avoiding the task of opening and including
+      the file (this is usually not an issue with modern compilers). For
+      example, here's an extremely lazy declaration of the C function
+      printf( ) (from %amp;stdio.h>):
+      -->
+
+      <para>
+	Cuando se una función de una librería, C le permite la
+	posibilidad de ignorar el fichero de cabecera y simplemente
+	declarar la función a mano. En el pasado, la gente hacía eso a
+	veces para acelerar un poquito la compilación evitando la tarea
+	de abrir e incluir el fichero (eso no supone ventaja alguna con
+	los compiladores modernos). Por ejemplo, la siguiente es una
+	declaración extremadamente vaga de la función
+	<function>printf()</function> (de
+	<filename>&lt;stdio.h></filename>):
+      </para>
+
+<programlisting>
+printf(...);
+</programlisting>
+
+      <!--
+      The ellipses specify a variable argument list[34], which says:
+      printf( ) has some arguments, each of which has a type, but ignore
+      that. Just take whatever arguments you see and accept them. By
+      using this kind of declaration, you suspend all error checking on
+      the arguments.
+      -->
+
+      <para>
+	Estos suspensivos (N. de T. <emphasis>ellipsis</emphasis>) en
+	inglés) especifican una lista variable de argumentos[34], que
+	dice: <function>printf()</function> tiene algunos argumentos,
+	cada uno con su tipo, pero no se sabe cuales. Simplemente, coge
+	los argumentos que veas y aceptalos. Usando este tipo de
+	declaración, se suspende la comprobación de errores en los
+	argumentos.
+      </para>
+
+      <!--
+      This practice can cause subtle problems. If you declare functions
+      by hand, in one file you may make a mistake. Since the compiler
+      sees only your hand-declaration in that file, it may be able to
+      adapt to your mistake. The program will then link correctly, but
+      the use of the function in that one file will be faulty. This is a
+      tough error to find, and is easily avoided by using a header file.
+      -->
+
+      <para>
+	Esta práctica puede causar problemas sutiles. Si declara
+	funciones <quote>a mano</quote>, en un fichero puede cometer un
+	error. Dado que el compilador sólo verá las declaración hechas a
+	mano en ese fichero, se adaptará al error. El programa enlazará
+	correctamente, pero el uso de la función en ese fichero será
+	defectuoso. Se trata de un error dificil de encontrar, y que se
+	puede evitar fácilmente usando el fichero de cabecera
+	correspondiente.
+      </para>
+
+      <!--
+      If you place all your function declarations in a header file, and
+      include that header everywhere you use the function and where you
+      define the function, you ensure a consistent declaration across
+      the whole system. You also ensure that the declaration and the
+      definition match by including the header in the definition file.
+      -->
+
+      <para>
+	Si se colocan todas las declaraciones de funciones en un fichero
+	de cabecera, y se incluye ese fichero allí donde se use la
+	función se asegurará una declaración consistente a través del
+	sistema completo. También se asegurará de que la declaración y
+	la definición corresponden incluyendo el fichero de cabecera en
+	el fichero de definición.
+      </para>
+
+
+      <!--
+      If a struct is declared in a header file in C++, you must include
+      the header file everywhere a struct is used and where struct
+      member functions are defined. The C++ compiler will give an error
+      message if you try to call a regular function, or to call or
+      define a member function, without declaring it first. By enforcing
+      the proper use of header files, the language ensures consistency
+      in libraries, and reduces bugs by forcing the same interface to be
+      used everywhere.
+      -->
+
+      <para>
+	Si se declara una <keyword>struct</keyword> en un fichero de
+	cabecera en C++, se debe incluir ese fichero allí donde se use
+	una <keyword>struct</keyword> y también donde se definan los
+	métodos la <keyword>struct</keyword>. El compilador
+	de C++ devolverá un mensaje de error si intenta llamar a una
+	función, o llamar o definir un método, sin declararla
+	primero. Imponiendo el uso apropiado de los ficheros de
+	cabecera, el lenguaje asegura la cosistencia de las librerías, y
+	reduce el número de error forzando que se use la misma interface
+	en todas partes.
+      </para>
+
+
+      <!--
+      The header is a contract between you and the user of your
+      library. The contract describes your data structures, and states
+      the arguments and return values for the function calls. It says,
+      "Here's what my library does." The user needs some of this
+      information to develop the application and the compiler needs all
+      of it to generate proper code. The user of the struct simply
+      includes the header file, creates objects (instances) of that
+      struct, and links in the object module or library (i.e.: the
+      compiled code).
+      -->
+      
+      <para>
+	El fichero de cabecera es un contrato entre el programador de la
+	librería y el que la usa. El contrato describe las estructuras
+	de datos, expone los argumentos y valores de retorno para las
+	funciones. Dice, <quote>Esto es lo que hace mi
+	librería</quote>. El usuario necesita parte de esta información
+	para desarrollar la aplicación, y el compilador necesita toda
+	ella para generar el código correcto. El usuario de la
+	<keyword>struct</keyword> simplemente incluye el fichero de
+	cabecera, crea objetos (instancias) de esa
+	<keyword>struct</keyword>, y enlaza con el módulo objeto o
+	librería (es decir, el código compilado)
+      </para>
+
+      <!--
+      The compiler enforces the contract by requiring you to declare all
+      structures and functions before they are used and, in the case of
+      member functions, before they are defined. Thus, you're forced to
+      put the declarations in the header and to include the header in
+      the file where the member functions are defined and the file(s)
+      where they are used. Because a single header file describing your
+      library is included throughout the system, the compiler can ensure
+      consistency and prevent errors.
+      -->
+
+
+      <!--
+      There are certain issues that you must be aware of in order to
+      organize your code properly and write effective header files. The
+      first issue concerns what you can put into header files. The basic
+      rule is "only declarations," that is, only information to the
+      compiler but nothing that allocates storage by generating code or
+      creating variables. This is because the header file will typically
+      be included in several translation units in a project, and if
+      storage for one identifier is allocated in more than one place,
+      the linker will come up with a multiple definition error (this is
+      C++'s one definition rule: You can declare things as many times
+      as you want, but there can be only one actual definition for each
+      thing).
+      -->
+
+
+      <!--
+      This rule isn't completely hard and fast. If you define a
+      variable that is "file static" (has visibility only within a
+      file) inside a header file, there will be multiple instances of
+      that data across the project, but the linker won't have a
+      collision[35]. Basically, you don't want to do anything in the
+      header file that will cause an ambiguity at link time.
+      -->
+
       <para>
       </para>
     </sect2>
@@ -1265,6 +1623,51 @@ Hasta aquí tradujo Sebastián Gurin
 
     <sect2>
       <title>El problema de la declaración múltiple</title>
+
+    <!--
+      The second header-file issue is this: when you put a struct
+      declaration in a header file, it is possible for the file to be
+      included more than once in a complicated program. Iostreams are a
+      good example. Any time a struct does I/O it may include one of the
+      iostream headers. If the cpp file you are working on uses more
+      than one kind of struct (typically including a header file for
+      each one), you run the risk of including the iostream> header
+      more than once and re-declaring iostreams.
+    -->
+
+
+    <!--
+      The compiler considers the redeclaration of a structure (this
+      includes both structs and classes) to be an error, since it would
+      otherwise allow you to use the same name for different types. To
+      prevent this error when multiple header files are included, you
+      need to build some intelligence into your header files using the
+      preprocessor (Standard C++ header files like iostream> already
+      have this "intelligence").
+    -->
+
+
+    <!--
+      Both C and C++ allow you to redeclare a function, as long as the
+      two declarations match, but neither will allow the redeclaration
+      of a structure. In C++ this rule is especially important because
+      if the compiler allowed you to redeclare a structure and the two
+      declarations differed, which one would it use?
+    -->
+
+    <!--
+      The problem of redeclaration comes up quite a bit in C++ because
+      each data type (structure with functions) generally has its own
+      header file, and you have to include one header in another if you
+      want to create another data type that uses the first one. In any
+      cpp file in your project, it's likely that you'll include
+      several files that include the same header file. During a single
+      compilation, the compiler can see the same header file several
+      times. Unless you do something about it, the compiler will see the
+      redeclaration of your structure and report a compile-time
+      error. To solve the problem, you need to know a bit more about the
+      preprocessor.
+    -->
       <para>
       </para>
     </sect2>
@@ -1274,6 +1677,77 @@ Hasta aquí tradujo Sebastián Gurin
       <title>
 	Las directivas del preprocesador #define, #ifndef y #endif
       </title>
+
+    <!--
+	The preprocessor directive #define can be used to create
+	compile-time flags. You have two choices: you can simply tell
+	the preprocessor that the flag is defined, without specifying a
+	value:
+    -->
+
+      <programlisting>
+    #define FLAG
+</programlisting>
+
+    <!--
+	or you can give it a value (which is the typical C way to define
+	a constant):
+    -->
+
+      <programlisting>
+    #define PI 3.14159
+      </programlisting>
+
+	    <!--
+	In either case, the label can now be tested by the preprocessor
+	to see if it has been defined:
+    -->
+
+      <programlisting>
+    #ifdef FLAG
+      </programlisting>
+
+
+    <!--
+	This will yield a true result, and the code following the #ifdef
+	will be included in the package sent to the compiler. This
+	inclusion stops when the preprocessor encounters the statement
+    -->
+
+      <programlisting>
+    #endif
+      </programlisting>
+
+    <!--
+	or
+    -->
+
+      <programlisting>
+    #endif // FLAG
+      </programlisting>
+
+    <!--
+	Any non-comment after the #endif on the same line is illegal,
+	even though some compilers may accept it. The #ifdef/#endif
+	pairs may be nested within each other.
+    -->
+
+    <!--
+	The complement of #define is #undef (short for "un-define"),
+	which will make an #ifdef statement using the same variable
+	yield a false result. #undef will also cause the preprocessor to
+	stop using a macro. The complement of #ifdef is #ifndef, which
+	will yield a true if the label has not been defined (this is the
+	one we will use in header files).
+    -->
+
+
+    <!--
+	There are other useful features in the C preprocessor. You
+	should check your local documentation for the full set. 
+    -->
+
+
       <para>
       </para>
     </sect2>
@@ -1281,6 +1755,52 @@ Hasta aquí tradujo Sebastián Gurin
 
     <sect2>
       <title>Un estándar para los ficheros de cabecera</title>
+
+    <!--
+      In each header file that contains a structure, you should first
+      check to see if this header has already been included in this
+      particular cpp file. You do this by testing a preprocessor
+      flag. If the flag isn't set, the file wasn't included and you
+      should set the flag (so the structure can't get re-declared) and
+      declare the structure. If the flag was set then that type has
+      already been declared so you should just ignore the code that
+      declares it. Here's how the header file should look:
+    -->
+
+      <programlisting>
+    #ifndef HEADER_FLAG
+    #define HEADER_FLAG
+    // Type declaration here...
+    #endif // HEADER_FLAG
+      </programlisting>
+
+    <!--
+      As you can see, the first time the header file is included, the
+      contents of the header file (including your type declaration) will
+      be included by the preprocessor. All the subsequent times it is
+      included - in a single compilation unit - the type declaration
+      will be ignored. The name HEADER_FLAG can be any unique name, but
+      a reliable standard to follow is to capitalize the name of the
+      header file and replace periods with underscores (leading
+      underscores, however, are reserved for system names). Here's an
+      example:
+    -->
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/Simple.h"/>
+</programlisting>
+
+
+    <!--
+      Although the SIMPLE_H after the #endif is commented out and thus
+      ignored by the preprocessor, it is useful for documentation.
+    -->
+
+    <!--
+      These preprocessor statements that prevent multiple inclusion are
+      often referred to as include guards
+    -->
+      
       <para>
       </para>
     </sect2>
@@ -1288,13 +1808,60 @@ Hasta aquí tradujo Sebastián Gurin
 
     <sect2>
       <title>Espacios de nombres en las cabeceras</title>
-      <para>
-      </para>
+
+    <!--
+      You'll notice that using directives are present in nearly all the
+      cpp files in this book, usually in the form:
+    -->
+
+      <programlisting>
+    using namespace std;
+      </programlisting>
+
+    <!--
+      Since std is the namespace that surrounds the entire Standard C++
+      library, this particular using directive allows the names in the
+      Standard C++ library to be used without qualification. However,
+      you'll virtually never see a using directive in a header file (at
+      least, not outside of a scope). The reason is that the using
+      directive eliminates the protection of that particular namespace,
+      and the effect lasts until the end of the current compilation
+      unit. If you put a using directive (outside of a scope) in a
+      header file, it means that this loss of "namespace protection"
+      will occur with any file that includes this header, which often
+      means other header files. Thus, if you start putting using
+      directives in header files, it's very easy to end up "turning
+      off" namespaces practically everywhere, and thereby neutralizing
+      the beneficial effects of namespaces.
+    -->
+
+    <!--
+      In short: don't put using directives in header files.
+    -->
     </sect2>
 
 
     <sect2>
       <title>Uso de las cabeceras en proyectos</title>
+
+    <!--
+      When building a project in C++, you'll usually create it by
+      bringing together a lot of different types (data structures with
+      associated functions). You'll usually put the declaration for
+      each type or group of associated types in a separate header file,
+      then define the functions for that type in a translation
+      unit. When you use that type, you must include the header file to
+      perform the declarations properly.
+    -->
+
+    <!--
+      Sometimes that pattern will be followed in this book, but more
+      often the examples will be very small, so everything - the
+      structure declarations, function definitions, and the main( )
+      function - may appear in a single file. However, keep in mind that
+      you'll want to use separate files and header files in practice.
+    -->
+
       <para>
       </para>
     </sect2>
@@ -1303,11 +1870,183 @@ Hasta aquí tradujo Sebastián Gurin
 
   <sect1>
     <title>Estructuras anidadas</title>
+
+    <!--
+    The convenience of taking data and function names out of the global
+    name space extends to structures. You can nest a structure within
+    another structure, and therefore keep associated elements
+    together. The declaration syntax is what you would expect, as you
+    can see in the following structure, which implements a push-down
+    stack as a simple linked list so it "never" runs out of memory:
+    -->
+
     <para>
     </para>
 
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/Stack.h"/>
+</programlisting>
+
+
+    <!--
+    The nested struct is called Link, and it contains a pointer to the
+    next Link in the list and a pointer to the data stored in the
+    Link. If the next pointer is zero, it means you're at the end of
+    the list.
+    -->
+
+
+    <!--
+    Notice that the head pointer is defined right after the declaration
+    for struct Link, instead of a separate definition Link* head. This
+    is a syntax that came from C, but it emphasizes the importance of
+    the semicolon after the structure declaration; the semicolon
+    indicates the end of the comma-separated list of definitions of that
+    structure type. (Usually the list is empty.)
+    -->
+
+
+    <!--
+    The nested structure has its own initialize( ) function, like all
+    the structures presented so far, to ensure proper
+    initialization. Stack has both an initialize( ) and cleanup( )
+    function, as well as push( ), which takes a pointer to the data you
+    wish to store (it assumes this has been allocated on the heap), and
+    pop( ), which returns the data pointer from the top of the Stack and
+    removes the top element. (When you pop( ) an element, you are
+    responsible for destroying the object pointed to by the data.) The
+    peek( ) function also returns the data pointer from the top element,
+    but it leaves the top element on the Stack.
+    -->
+
+
+    <!--
+    Here are the definitions for the member functions:
+    -->
+
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/Stack.cpp"/>
+</programlisting>
+
+
+    <!--
+    The first definition is particularly interesting because it shows
+    you how to define a member of a nested structure. You simply use an
+    additional level of scope resolution to specify the name of the
+    enclosing struct. Stack::Link::initialize( ) takes the arguments and
+    assigns them to its members.
+    -->
+
+
+    <!-- 
+    Stack::initialize( ) sets head to zero, so the object knows it
+    has an empty list. 
+    -->
+
+
+    <!--
+    Stack::push( ) takes the argument, which is a pointer to the
+    variable you want to keep track of, and pushes it on the
+    Stack. First, it uses new to allocate storage for the Link it will
+    insert at the top. Then it calls Link's initialize( ) function to
+    assign the appropriate values to the members of the Link. Notice
+    that the next pointer is assigned to the current head; then head is
+    assigned to the new Link pointer. This effectively pushes the Link
+    in at the top of the list.
+    -->
+
+
+    <!--
+    Stack::pop( ) captures the data pointer at the current top of the
+    Stack; then it moves the head pointer down and deletes the old top
+    of the Stack, finally returning the captured pointer. When pop( )
+    removes the last element, then head again becomes zero, meaning the
+    Stack is empty.
+    -->
+
+
+    <!--
+    Stack::cleanup( ) doesn't actually do any cleanup. Instead, it
+    establishes a firm policy that "you (the client programmer using
+    this Stack object) are responsible for popping all the elements off
+    this Stack and deleting them." The require( ) is used to indicate
+    that a programming error has occurred if the Stack is not empty.
+    -->
+
+    <!--
+    Why couldn't the Stack destructor be responsible for all the
+    objects that the client programmer didn't pop( )? The problem is
+    that the Stack is holding void pointers, and you'll learn in
+    Chapter 13 that calling delete for a void* doesn't clean things up
+    properly. The subject of "who's responsible for the memory" is
+    not even that simple, as we'll see in later chapters.
+    -->
+
+    <!--
+    Here's an example to test the Stack:
+    -->
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/StackTest.cpp"/>
+</programlisting>
+
+
+    <!--
+    This is similar to the earlier example, but it pushes lines from a
+    file (as string pointers) on the Stack and then pops them off, which
+    results in the file being printed out in reverse order. Note that
+    the pop( ) member function returns a void* and this must be cast
+    back to a string* before it can be used. To print the string, the
+    pointer is dereferenced.
+    -->
+
+
+    <!--
+    As textlines is being filled, the contents of line is "cloned" for
+    each push( ) by making a new string(line). The value returned from
+    the new-expression is a pointer to the new string that was created
+    and that copied the information from line. If you had simply passed
+    the address of line to push( ), you would end up with a Stack filled
+    with identical addresses, all pointing to line. You'll learn more
+    about this "cloning" process later in the book.
+    -->
+
+
+    <!--
+    The file name is taken from the command line. To guarantee that
+    there are enough arguments on the command line, you see a second
+    function used from the require.h header file: requireArgs( ), which
+    compares argc to the desired number of arguments and prints an
+    appropriate error message and exits the program if there aren't
+    enough arguments.
+    -->
+
     <sect2>
-      <title>Resolución del alcance global</title>
+      <title>Resolución de ámbito global</title>
+
+    <!--
+      The scope resolution operator gets you out of situations in which
+      the name the compiler chooses by default (the "nearest" name)
+      isn't what you want. For example, suppose you have a structure
+      with a local identifier a, and you want to select a global
+      identifier a from inside a member function. The compiler would
+      default to choosing the local one, so you must tell it to do
+      otherwise. When you want to specify a global name using scope
+      resolution, you use the operator with nothing in front of it. Here'
+      s an example that shows global scope resolution for both a
+      variable and a function:
+    -->
+
+<programlisting>
+<xi:include parse="text" href="./code/C04/Scoperes.cpp"/>
+</programlisting>
+
+    <!--
+      Without scope resolution in S::f( ), the compiler would default to
+      selecting the member versions of f( ) and a
+    -->
       <para>
       </para>
     </sect2>
@@ -1315,6 +2054,28 @@ Hasta aquí tradujo Sebastián Gurin
 
   <sect1>
     <title>Resumen</title>
+
+    <!--
+    In this chapter, you've learned the fundamental "twist" of C++:
+    that you can place functions inside of structures. This new type of
+    structure is called an abstract data type, and variables you create
+    using this structure are called objects, or instances, of that
+    type. Calling a member function for an object is called sending a
+    message to that object. The primary action in object-oriented
+    programming is sending messages to objects.
+    -->
+
+    <!--
+    Although packaging data and functions together is a significant
+    benefit for code organization and makes library use easier because
+    it prevents name clashes by hiding the names, there's a lot more
+    you can do to make programming safer in C++. In the next chapter,
+    you'll learn how to protect some members of a struct so that only
+    you can manipulate them. This establishes a clear boundary between
+    what the user of the structure can change and what only the
+    programmer may change.
+    -->
+
     <para>
     </para>
   </sect1>
@@ -1322,6 +2083,39 @@ Hasta aquí tradujo Sebastián Gurin
 
   <sect1>
     <title>Ejercicios</title>
+
+    <xi:include parse="xml" href="./ejercicios.xml"/>
+
+
+
+
+   1. In the Standard C library, the function puts( ) prints a char array to the console (so you can say puts("hello")). Write a C program that uses puts( ) but does not include &lt;stdio.h> or otherwise declare the function. Compile this program with your C compiler. (Some C++ compilers are not distinct from their C compilers; in this case you may need to discover a command-line flag that forces a C compilation.) Now compile it with the C++ compiler and note the difference.
+   2. Create a struct declaration with a single member function, then create a definition for that member function. Create an object of your new data type, and call the member function.
+   3. Change your solution to Exercise 2 so the struct is declared in a properly "guarded" header file, with the definition in one cpp file and your main( ) in another.
+   4. Create a struct with a single int data member, and two global functions, each of which takes a pointer to that struct. The first function has a second int argument and sets the struct's int to the argument value, the second displays the int from the struct. Test the functions.
+   5. Repeat Exercise 4 but move the functions so they are member functions of the struct, and test again.
+   6. Create a class that (redundantly) performs data member selection and a member function call using the this keyword (which refers to the address of the current object).
+   7. Make a Stash that holds doubles. Fill it with 25 double values, then print them out to the console.
+   8. Repeat Exercise 7 with Stack.
+   9. Create a file containing a function f( ) that takes an int argument and prints it to the console using the printf( ) function in &lt;stdio.h> by saying: printf("%d\n", i) in which i is the int you wish to print. Create a separate file containing main( ), and in this file declare f( ) to take a float argument. Call f( ) from inside main( ). Try to compile and link your program with the C++ compiler and see what happens. Now compile and link the program using the C compiler, and see what happens when it runs. Explain the behavior.
+  10. Find out how to produce assembly language from your C and C++ compilers. Write a function in C and a struct with a single member function in C++. Produce assembly language from each and find the function names that are produced by your C function and your C++ member function, so you can see what sort of name decoration occurs inside the compiler.
+  11. Write a program with conditionally-compiled code in main( ), so that when a preprocessor value is defined one message is printed, but when it is not defined another message is printed. Compile this code experimenting with a #define within the program, then discover the way your compiler takes preprocessor definitions on the command line and experiment with that.
+  12. Write a program that uses assert( ) with an argument that is always false (zero) to see what happens when you run it. Now compile it with #define NDEBUG and run it again to see the difference.
+  13. Create an abstract data type that represents a videotape in a video rental store. Try to consider all the data and operations that may be necessary for the Video type to work well within the video rental management system. Include a print( ) member function that displays information about the Video.
+  14. Create a Stack object to hold the Video objects from Exercise 13. Create several Video objects, store them in the Stack, then display them using Video::print( ).
+  15. Write a program that prints out all the sizes for the fundamental data types on your computer using sizeof.
+  16. Modify Stash to use a vector&lt;char> as its underlying data structure.
+  17. Dynamically create pieces of storage of the following types, using new: int, long, an array of 100 chars, an array of 100 floats. Print the addresses of these and then free the storage using delete.
+  18. Write a function that takes a char* argument. Using new, dynamically allocate an array of char that is the size of the char array that's passed to the function. Using array indexing, copy the characters from the argument to the dynamically allocated array (don't forget the null terminator) and return the pointer to the copy. In your main( ), test the function by passing a static quoted character array, then take the result of that and pass it back into the function. Print both strings and both pointers so you can see they are different storage. Using delete, clean up all the dynamic storage.
+  19. Show an example of a structure declared within another structure (a nested structure). Declare data members in both structs, and declare and define member functions in both structs. Write a main( ) that tests your new types.
+  20. How big is a structure? Write a piece of code that prints the size of various structures. Create structures that have data members only and ones that have data members and function members. Then create a structure that has no members at all. Print out the sizes of all these. Explain the reason for the result of the structure with no data members at all.
+  21. C++ automatically creates the equivalent of a typedef for structs, as you've seen in this chapter. It also does this for enumerations and unions. Write a small program that demonstrates this.
+  22. Create a Stack that holds Stashes. Each Stash will hold five lines from an input file. Create the Stashes using new. Read a file into your Stack, then reprint it in its original form by extracting it from the Stack.
+  23. Modify Exercise 22 so that you create a struct that encapsulates the Stack of Stashes. The user should only add and get lines via member functions, but under the covers the struct happens to use a Stack of Stashes.
+  24. Create a struct that holds an int and a pointer to another instance of the same struct. Write a function that takes the address of one of these structs and an int indicating the length of the list you want created. This function will make a whole chain of these structs (a linked list), starting from the argument (the head of the list), with each one pointing to the next. Make the new structs using new, and put the count (which object number this is) in the int. In the last struct in the list, put a zero value in the pointer to indicate that it's the end. Write a second function that takes the head of your list and moves through to the end, printing out both the pointer value and the int value for each one.
+  25. Repeat Exercise 24, but put the functions inside a struct instead of using "raw" structs and functions.
+
+
     <para>
     </para>
   </sect1>
