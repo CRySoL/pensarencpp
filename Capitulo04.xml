@@ -1481,11 +1481,12 @@ printf(...);
       -->
 
       <para>
-	Estos suspensivos (N. de T. <emphasis>ellipsis</emphasis>) en
-	inglés) especifican una lista variable de argumentos[34], que
-	dice: <function>printf()</function> tiene algunos argumentos,
-	cada uno con su tipo, pero no se sabe cuales. Simplemente, coge
-	los argumentos que veas y aceptalos. Usando este tipo de
+	Estos puntos suspensivos (N. de
+	T. <emphasis>ellipsis</emphasis>) en inglés) especifican una
+	lista de argumentos variable[34], que dice:
+	<function>printf()</function> tiene algunos argumentos, cada uno
+	con su tipo, pero no se sabe cuales. Simplemente, coge los
+	argumentos que veas y aceptalos. Usando este tipo de
 	declaración, se suspende la comprobación de errores en los
 	argumentos.
       </para>
@@ -1541,15 +1542,15 @@ printf(...);
 
       <para>
 	Si se declara una <keyword>struct</keyword> en un fichero de
-	cabecera en C++, se debe incluir ese fichero allí donde se use
-	una <keyword>struct</keyword> y también donde se definan los
-	métodos la <keyword>struct</keyword>. El compilador
-	de C++ devolverá un mensaje de error si intenta llamar a una
-	función, o llamar o definir un método, sin declararla
-	primero. Imponiendo el uso apropiado de los ficheros de
-	cabecera, el lenguaje asegura la cosistencia de las librerías, y
-	reduce el número de error forzando que se use la misma interface
-	en todas partes.
+	cabecera en C++, se <emphasis>debe</emphasis> incluir ese
+	fichero allí donde se use una <keyword>struct</keyword> y
+	también donde se definan los métodos la
+	<keyword>struct</keyword>. El compilador de C++ devolverá un
+	mensaje de error si intenta llamar a una función, o llamar o
+	definir un método, sin declararla primero. Imponiendo el uso
+	apropiado de los ficheros de cabecera, el lenguaje asegura la
+	cosistencia de las librerías, y reduce el número de error
+	forzando que se use la misma interface en todas partes.
       </para>
 
 
@@ -1590,6 +1591,16 @@ printf(...);
       consistency and prevent errors.
       -->
 
+      <para>
+	El compilador impone el contrato obligando a declarar todas las
+	estruturas y funciones antes que de ser usadas y, en el caso de
+	métodos, antes de ser definidas. De ese modo, se le obliga a
+	poner las declaraciones en el fichero de cabecera e incluirlo en
+	el fichero en el que se definen los métodos y en los ficheros en
+	los que se usen. Como se incluye un único fichero que describe
+	la librería para todo el sistema, el compilador puede asegurar
+	la consistencia y prevenir errores.
+      </para>
 
       <!--
       There are certain issues that you must be aware of in order to
@@ -1606,6 +1617,21 @@ printf(...);
       thing).
       -->
 
+      <para>
+	Hay ciertos asuntos a los que debe prestar atención para
+	organizar su código apropiadamente y escribir ficheros de
+	cabecera eficaces. La regla básica es <quote>únicamente
+	declaraciones</quote>, es decir, sólo información para el
+	compiladore pero nada que requiera alojamiento en memoria ya sea
+	generando código o creando variables. Esto es así porque el
+	fichero de cabecera normalmente es incluido en varios unidades
+	de traducción en un proyecto, y si el almacenamiento para un
+	identificador se pide en más de un sitio, el enlazador indicará
+	un error de definición múltiple (ésta es la <emphasis>regla de
+	definición única</emphasis> de C++: Se puede declarar tantas
+	veces como se quiera, pero sólo puede haber una definición real
+	para cada cosa).
+      </para>
 
       <!--
       This rule isn't completely hard and fast. If you define a
@@ -1617,6 +1643,14 @@ printf(...);
       -->
 
       <para>
+	Esta regla no es completamente [FIXME:hard and fast]. Si se
+	define una variable que es <quote>file static</quote> (que tiene
+	visibilidad sólo en un fichero) dentro de un fichero de
+	cabecera, habrá múltiples instancias de ese dato a lo largo del
+	proyecto, pero el enlazador no tendrá una
+	colisión[35]. Básicamente, se debe evitar cualquier cosa en los
+	ficheros de cabecera que pueda causar una ambigüedad en tiempo
+	de enlazado.
       </para>
     </sect2>
 
@@ -1624,7 +1658,7 @@ printf(...);
     <sect2>
       <title>El problema de la declaración múltiple</title>
 
-    <!--
+      <!--
       The second header-file issue is this: when you put a struct
       declaration in a header file, it is possible for the file to be
       included more than once in a complicated program. Iostreams are a
@@ -1633,10 +1667,25 @@ printf(...);
       than one kind of struct (typically including a header file for
       each one), you run the risk of including the iostream> header
       more than once and re-declaring iostreams.
-    -->
+      -->
 
 
-    <!--
+      <para>
+	La segunda cuestión respecto a los ficheros de cabecera es ésta:
+	cuando se pone una declaración de <keyword>struct</keyword> en
+	un fichero de cabecera, es posible que el fichero sea incluido
+	más de una vez en un programa complicado. Los iostreams son un
+	buen ejemplo. Cada vez que una <keyword>struct</keyword> hace
+	E/S debe incluir uno de los ficheros de cabecera iostream. Si el
+	fichero <filename>cpp</filename> sobre el que se está trabajando
+	utiliza más de un tipo de <keyword>struct</keyword> (tipicamente
+	incluyendo un fichero de cabecera para cada una), se está
+	corriendo el riesgo de incluir el fichero
+	<filename>&lt;isotream></filename> más de una vez y re-declarar
+	los iostreams.
+      </para>
+
+      <!--
       The compiler considers the redeclaration of a structure (this
       includes both structs and classes) to be an error, since it would
       otherwise allow you to use the same name for different types. To
@@ -1644,31 +1693,65 @@ printf(...);
       need to build some intelligence into your header files using the
       preprocessor (Standard C++ header files like iostream> already
       have this "intelligence").
-    -->
+      -->
+
+      <para>
+	El compilador considera que la redeclaración de una estructura (eso
+	es aplicable tando a las <keyword>struct</keyword> como a las
+	<keyword>class</keyword>) es un error, dado que de otro modo,
+	debería permitir el uso del mismo nombre para tipos
+	diferentes. Para prevenir este error cuando se incluyen
+	múltiples ficheros de cabecera, es necesario dar algo de
+	inteligencia a los ficheros de cabecera usando el preprocesador
+	(los ficheros de cabecera estándares como
+	<filename>&ltMiostream></filename> también tienes esta
+	<quote>inteligencia</quote>).
+      </para>
 
 
-    <!--
+      <!--
       Both C and C++ allow you to redeclare a function, as long as the
       two declarations match, but neither will allow the redeclaration
       of a structure. In C++ this rule is especially important because
       if the compiler allowed you to redeclare a structure and the two
       declarations differed, which one would it use?
-    -->
+      -->
 
-    <!--
+      <para>
+	Tanto C como C++ permiten redeclarar una función, siempre que
+	las dos declaración coincidan, pero ni en ese caso se permite la
+	redeclaración de una estructura. En C++ esta regla es
+	especialmente importante porque si el compilador permitiera la
+	redeclaración de una estructura y las dos declaraciones
+	difirieran, ¿cuál debería usar? 
+      </para>
+
+      <!--
       The problem of redeclaration comes up quite a bit in C++ because
       each data type (structure with functions) generally has its own
       header file, and you have to include one header in another if you
-      want to create another data type that uses the first one. In any
-      cpp file in your project, it's likely that you'll include
-      several files that include the same header file. During a single
+      want to create another data type that uses the first one. 
+      In any cpp file in your project, it's likely that you'll include several
+      files that include the same header file. During a single
       compilation, the compiler can see the same header file several
       times. Unless you do something about it, the compiler will see the
       redeclaration of your structure and report a compile-time
       error. To solve the problem, you need to know a bit more about the
-      preprocessor.
-    -->
+      preprocessor.  -->
+
       <para>
+	El problema de la redeclaración se agrava un poco en C++ porque
+	cada tipo de dato (estructura con funciones) generalmente tiene
+	su propio fichero de cabecera, y hay que incluir un fichero de
+	cabecera en otro si se quiere crear otro tipo de dato que use al
+	primero. Es probable que en algún fichero
+	<filename>cpp</filename> de su proyecto, que se incluyan varios
+	ficheros que incluyan al mismo fichero de cabecera. Durante una
+	compilación simple, el compilador puede ver el mismo fichero de
+	cabecera varias veces. A menos que se haga algo al respecto, el
+	compilador verá la redeclaración de la estructura e informará un
+	error en tiempo de compilación. Para resolver el problema,
+	necesitará saber un poco más acerca del preprocesador.
       </para>
     </sect2>
 
@@ -1678,76 +1761,84 @@ printf(...);
 	Las directivas del preprocesador #define, #ifndef y #endif
       </title>
 
-    <!--
-	The preprocessor directive #define can be used to create
-	compile-time flags. You have two choices: you can simply tell
-	the preprocessor that the flag is defined, without specifying a
-	value:
-    -->
+      <!--
+      The preprocessor directive #define can be used to create
+      compile-time flags. You have two choices: you can simply tell
+      the preprocessor that the flag is defined, without specifying a
+      value:
+      -->
+      
+      <para>
+	
+      </para>
 
-      <programlisting>
+<programlisting>
     #define FLAG
 </programlisting>
 
-    <!--
-	or you can give it a value (which is the typical C way to define
-	a constant):
-    -->
+      <!--
+      or you can give it a value (which is the typical C way to define
+      a constant):
+      -->
 
-      <programlisting>
+<programlisting>
     #define PI 3.14159
-      </programlisting>
+</programlisting>
 
-	    <!--
-	In either case, the label can now be tested by the preprocessor
-	to see if it has been defined:
-    -->
+      <!--
+      In either case, the label can now be tested by the preprocessor
+      to see if it has been defined:
+      -->
 
-      <programlisting>
+<programlisting>
     #ifdef FLAG
-      </programlisting>
+</programlisting>
 
 
-    <!--
-	This will yield a true result, and the code following the #ifdef
-	will be included in the package sent to the compiler. This
-	inclusion stops when the preprocessor encounters the statement
-    -->
+      <!--
+      This will yield a true result, and the code following the #ifdef
+      will be included in the package sent to the compiler. This
+      inclusion stops when the preprocessor encounters the statement
+      -->
 
       <programlisting>
     #endif
       </programlisting>
 
-    <!--
-	or
-    -->
+      <!--
+      or
+      -->
+
+      <para>
+	o
+      </para>
 
       <programlisting>
     #endif // FLAG
       </programlisting>
 
-    <!--
-	Any non-comment after the #endif on the same line is illegal,
-	even though some compilers may accept it. The #ifdef/#endif
-	pairs may be nested within each other.
-    -->
-
-    <!--
-	The complement of #define is #undef (short for "un-define"),
-	which will make an #ifdef statement using the same variable
-	yield a false result. #undef will also cause the preprocessor to
-	stop using a macro. The complement of #ifdef is #ifndef, which
-	will yield a true if the label has not been defined (this is the
-	one we will use in header files).
-    -->
-
-
-    <!--
-	There are other useful features in the C preprocessor. You
-	should check your local documentation for the full set. 
-    -->
+      <!--
+      Any non-comment after the #endif on the same line is illegal,
+      even though some compilers may accept it. The #ifdef/#endif
+      pairs may be nested within each other.
+      -->
+      
+      <!--
+      The complement of #define is #undef (short for "un-define"),
+      which will make an #ifdef statement using the same variable
+      yield a false result. #undef will also cause the preprocessor to
+      stop using a macro. The complement of #ifdef is #ifndef, which
+      will yield a true if the label has not been defined (this is the
+      one we will use in header files).
+      -->
 
 
+      <!--
+      There are other useful features in the C preprocessor. You
+      should check your local documentation for the full set. 
+      -->
+      
+      
       <para>
       </para>
     </sect2>
@@ -1807,7 +1898,7 @@ printf(...);
 
 
     <sect2>
-      <title>Espacios de nombres en las cabeceras</title>
+      <title>Espacios de nombres en los ficheros de cabecera</title>
 
     <!--
       You'll notice that using directives are present in nearly all the
@@ -1842,7 +1933,7 @@ printf(...);
 
 
     <sect2>
-      <title>Uso de las cabeceras en proyectos</title>
+      <title>Uso de los fichero de cabecera en proyectos</title>
 
     <!--
       When building a project in C++, you'll usually create it by
