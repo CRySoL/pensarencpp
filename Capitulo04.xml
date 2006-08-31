@@ -1704,7 +1704,7 @@ printf(...);
 	múltiples ficheros de cabecera, es necesario dar algo de
 	inteligencia a los ficheros de cabecera usando el preprocesador
 	(los ficheros de cabecera estándares como
-	<filename>&ltMiostream></filename> también tienes esta
+	<filename>&lt;iostream></filename> también tienes esta
 	<quote>inteligencia</quote>).
       </para>
 
@@ -2135,6 +2135,17 @@ printf(...);
     structure type. (Usually the list is empty.)
     -->
 
+    <para>
+      Fíjese que el puntero <varname>head</varname> está definido a la
+      derecha después de la declaración de la <keyword>struct</keyword>
+      <type>Link</type>, es lugar de una definición separada
+      <programlisting>Link* head</programlisting>. Se trata de una
+      sintaxis que viene de C, pero que hace hincapié en la importancia
+      del punto y coma después de la declaración de la estructura; el
+      punto y coma indica el fin de una lista de definiciones separadas
+      por comas de este tipo de estructura (Normalmente la lista está
+      vacía.)
+    </para>
 
     <!--
     The nested structure has its own initialize( ) function, like all
@@ -2150,10 +2161,32 @@ printf(...);
     -->
 
 
+    <para>
+      La estructura anidada tiene su propia función
+      <function>initialize()</function>, como todas las estructuras
+      hasta el momento, para asegurar una inicialización
+      adecuada. <classname>Stack</classname> tiene tanto función
+      <function>initialice()</function> como
+      <function>cleanup()</function>, además de
+      <function>push()</function>, que toma un puntero a los datos que
+      se desean almacenar (asume que ha sido alojado en el montículo), y
+      <function>pop()</function>, que devuelve el puntero
+      <varname>data</varname> de la cima de la
+      <classname>Stack</classname> y elimina el elemento de la cima. (El
+      que hace <function>pop()</function> de un elemento se convierte en
+      responsable de la destrucción del objeto apuntado por
+      <varname>data</varname>.) La función <function>peak()</function>
+      también devuelve un puntero <varname>data</varname> a la cima de
+      la pila, pero deja el elemento en la <classname>Stack</classname>.
+    </para>
+
     <!--
     Here are the definitions for the member functions:
     -->
 
+    <para>
+      Aquí se muestran las definiciones de los métodos:
+    </para>
 
 <programlisting>
 <xi:include parse="text" href="./code/C04/Stack.cpp"/>
@@ -2168,11 +2201,26 @@ printf(...);
     assigns them to its members.
     -->
 
+    <para>
+      La primera definición es particularmente interesante porque
+      muestra cómo se define un miembro de una estructura
+      anidada. Simplemente se usa un nivel adicional de resolución de
+      ámbito para especificar el nombre de la <keyword>struct</keyword>
+      interna. <methodname>Stack::Link::initialize()</methodname> toma
+      dos argumentos y los asigna a sus atributos.
+    </para>
+
 
     <!-- 
     Stack::initialize( ) sets head to zero, so the object knows it
     has an empty list. 
     -->
+
+    <para>
+      <methodname>Stack::initialize()</methodname> asgina cero a
+      <varname>head</varname>, de modo que el objeto sabe que
+      tiene una lista vacía.
+    </para>
 
 
     <!--
@@ -2186,6 +2234,21 @@ printf(...);
     in at the top of the list.
     -->
 
+    <para>
+      <methodname>Stack::push()</methodname> toma el argumento, que es
+      un puntero a la variable a la que se quiere seguir la pista, y la
+      apila en la <classname>Stack</classname>. Primero, usa
+      <keyword>new</keyword> para pedir alojamiento para el
+      <classname>Link</classname> que se insertará en la cima. Entonces
+      llama a la función <methodname>initialize()</methodname> para
+      asignar los valores apropiados a los miembres del
+      <classname>Link</classname>. Fijese que el siguiente puntero se
+      asigna al <varname>head</varname> actual; entonces
+      <varname>head</varname> se asigna al nuevo puntero
+      <classname>Link</classname>. Esto apila eficazmente el
+      <classname>Link</classname> en la cima de la lista.
+    </para>
+
 
     <!--
     Stack::pop( ) captures the data pointer at the current top of the
@@ -2194,6 +2257,17 @@ printf(...);
     removes the last element, then head again becomes zero, meaning the
     Stack is empty.
     -->
+
+    <para>
+      <methodname>Stack::pop()</methodname> captura el puntero
+      <varname>data</varname> en la cima actual de la
+      <classname>Stack</classname>; entonces mueve el puntero
+      <varname>head</varname> hacia abajo y borrar la anterior cima de
+      la <classname>Stack</classname>, finalmente devuelve el puntero
+      capturado. Cuando <methodname>pop()</methodname> elemina el último
+      elemento, <varname>head</varname> vuelve a ser cero, indicando que
+      la <classname>Stack</classname> está vacía.
+    </para>
 
 
     <!--
@@ -2204,6 +2278,17 @@ printf(...);
     that a programming error has occurred if the Stack is not empty.
     -->
 
+    <para>
+      <methodname>Stack::cleanup()</methodname> realmente no hace
+      ninguna limpieza. En su lugar, establece una política firme que
+      dice <quote>el programador cliente que use este objeto
+      <classname>Stack</classname> es responsable de des-apilar todos
+      los elementos y borrarlos</quote>. <function>require()</function>
+      se usa para indicar que ha ocurrido un error de programación si la
+      <classname>Stack</classname> no está vacía.
+    </para>
+
+
     <!--
     Why couldn't the Stack destructor be responsible for all the
     objects that the client programmer didn't pop( )? The problem is
@@ -2213,9 +2298,27 @@ printf(...);
     not even that simple, as we'll see in later chapters.
     -->
 
+    <para>
+      Por qué no puede ser el destructor de <classname>Stack</classname>
+      responsable de todos los objetos que el programador ciente no
+      des-apiló? El problema es que la <classname>Stack</classname> está
+      usando punteros <type>void</type>, y aprenderá en el Capítulo 13
+      que usar <keyword>delete</keyword> para un <type>void*</type> no
+      libera correctamente. El asunto de <quote>quién es el responsable de
+      la memoria</quote> no siempre es sencillo, tal como veremos en
+      próximos capítulos.
+    </para>
+ 
+
+
     <!--
     Here's an example to test the Stack:
     -->
+
+    <para>
+      Un ejemplo para probar la <classname>Stack</classname>:
+    </para>
+
 
 <programlisting>
 <xi:include parse="text" href="./code/C04/StackTest.cpp"/>
@@ -2231,6 +2334,9 @@ printf(...);
     pointer is dereferenced.
     -->
 
+    <para>
+    </para>
+
 
     <!--
     As textlines is being filled, the contents of line is "cloned" for
@@ -2242,6 +2348,9 @@ printf(...);
     about this "cloning" process later in the book.
     -->
 
+    <para>
+    </para>
+
 
     <!--
     The file name is taken from the command line. To guarantee that
@@ -2251,6 +2360,10 @@ printf(...);
     appropriate error message and exits the program if there aren't
     enough arguments.
     -->
+
+    <para>
+    </para>
+
 
     <sect2>
       <title>Resolución de ámbito global</title>
@@ -2267,6 +2380,10 @@ printf(...);
       s an example that shows global scope resolution for both a
       variable and a function:
     -->
+
+    <para>
+    </para>
+
 
 <programlisting>
 <xi:include parse="text" href="./code/C04/Scoperes.cpp"/>
@@ -2293,6 +2410,10 @@ printf(...);
     message to that object. The primary action in object-oriented
     programming is sending messages to objects.
     -->
+
+    <para>
+    </para>
+
 
     <!--
     Although packaging data and functions together is a significant
