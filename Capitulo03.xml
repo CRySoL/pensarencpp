@@ -2255,14 +2255,15 @@ default: statement;
       -->
 
       <para>
-	En la lista de argumentos de f( ), en lugar de decir int* para
-	pasar un puntero, se dice int& para pasar una referencia. Dentro
-	de f( ), si simplemente se dice 'r' (lo cual produciría la
-	dirección si r fuese un puntero) se obtiene el valor en la
-	variable que referencia r. Si se asigna a r, en realidad se esta
-	asignado a la variable que r referencia.  De hecho, la única
-	manera de obtener la dirección que se aloja dentro de r es con el
-	operador '&amp;'.
+        En la lista de argumentos de <function>f()</function>, en lugar
+        de decir <type>int*</type> para pasar un puntero, se dice
+        <type>int&amp;</type> para pasar una referencia. Dentro de
+        <function>f()</function>, si simplemente se dice 'r' (lo cual
+        produciría la dirección si r fuese un puntero) se obtiene el
+        valor en la variable que referencia r. Si se asigna a r, en
+        realidad se esta asignado a la variable que r referencia.  De
+        hecho, la única manera de obtener la dirección que se aloja
+        dentro de r es con el operador '&amp;'.
       </para>
 
       <!--
@@ -2676,6 +2677,544 @@ default: statement;
   
   <sect1>
     <!-- Specifying storage allocation -->
+    <title> Especificar la ubicación del espacio</title>
+
+    <!--
+    When creating a variable, you have a number of options to specify
+    the lifetime of the variable, how the storage is allocated for that
+    variable, and how the variable is treated by the compiler.
+    -->
+    
+    <para>
+      Al crear una variable, hay un número de opciones para especificar
+      la vida de dicha variable, como el espacio de ésta es ubicado, y
+      como la variable es tratada por el compilador.
+    </para>
+    
+    <sect2>
+      <!-- Global variables -->
+      <title> Variables globales</title>
+
+      <!--
+      Global variables are defined outside all function bodies and are
+      available to all parts of the program (even code in other
+      files). Global variables are unaffected by scopes and are always
+      available ( i.e., the lifetime of a global variable lasts until
+      the program ends). If the existence of a global variable in one
+      file is declared using the  extern keyword in another file, the
+      data is available for use by the second file. Here's an example of
+      the use of global variables:
+      -->
+
+      <para>
+      Las variables globales se definen fuera de todos los cuerpos de
+      las funciones y están disponibles para todas las partes del
+      programa (incluso el código de otros ficheros). Las variables
+      globales no están afectadas por ámbitos y están siempre
+      disponibles ( p.e, la vida de una variable global dura hasta la
+      finalización del programa). Si la existencia de una variable
+      global en un fichero es declarada usando la palabra clave extern
+      en otro fichero, la información está disponible para su
+      utilización en el segundo fichero. A continuación un ejemplo del
+      uso de variables globales:
+      </para>
+
+//: C03:Global.cpp
+
+      <!--
+      Here's a file that accesses globe as an extern:
+      -->
+
+      <para>
+      Y el fichero que accede a globe como un extern:
+      </para>
+
+//: C03:Global2.cpp {O}
+
+      <!--
+      Storage for the variable globe is created by the definition in
+      Global.cpp, and that same variable is accessed by the code in
+      Global2.cpp. Since the code in Global2.cpp is compiled separately
+      from the code in Global.cpp, the compiler must be informed that
+      the variable exists elsewhere by the declaration
+      -->
+
+      <para>
+      El espacio para la variable globe se crea mediante la definición
+      en Global.cpp, y esa misma variable es accedida por el código de
+      Global2.cpp. Ya que el código de Global2.cpp se compila separado
+      del código de Global.cpp, el compilador debe ser informado de que
+      la variable existe en cualquier sitio mediante la declaración
+      </para>
+
+      <programlisting>
+extern 
+int globe;
+</programlisting>
+
+
+      <!--
+      When you run the program, you'll see that the call to func( ) does
+      indeed affect the single global instance of globe.
+      -->
+
+      <para>
+      Cuando se ejecute el programa, se observará que la llamada a fun()
+      de hecho afecta la instancia global individual de globe.
+      </para>
+
+
+      <!--
+      In Global.cpp, you can see the special comment tag (which is my
+      own design):
+      -->
+
+
+//{L} Global2
+
+      <!--
+      This says that to create the final program, the object file with
+      the name Global2 must be linked in (there is no extension because
+      the extension names of object files differ from one system to the
+      next). In Global2.cpp, the first line has another special comment
+      tag {O}, which says "Don't try to create an executable out of this
+      file, it's being compiled so that it can be linked into some other
+      executable." The ExtractCode.cpp program in Volume 2 of this book
+      (downloadable at www.BruceEckel.com) reads these tags and creates
+      the appropriate makefile so everything compiles properly (you'll
+      learn about makefiles at the end of this chapter).
+      -->
+
+      <para>
+      Eso indica que para crear el programa final, el fichero object con
+      el nombre Global2 debe estar enlazado (no hay extensión ya que los
+      nombres de las extensiones de los ficheros object difieren de un
+      sistema a otro). En Global2.cpp, la primera linea tiene otro tag
+      de comentario especial {O}, el cual dice "No intentar crear un
+      ejecutable de este fichero, se compila para que pueda enlazarse
+      dentro de algún otro ejecutable". El programa ExtractCode.cpp en e
+      l Volumen 2 de este libro (se puede descargar en
+      www.BruceEckel.com) lee estos tags y crea el makefile apropiado de
+      modo que todo se compila correctamente (se aprenderá sobre
+      makefiles al final de este capítulo).
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- Local variables -->
+      <title>Variables locales</title>
+
+      <!--
+      Local variables occur within a scope; they are "local" to a
+      function. They are often called automatic variables because they
+      automatically come into being when the scope is entered and
+      automatically go away when the scope closes. The keyword auto
+      makes this explicit, but local variables default to auto so it is
+      never necessary to declare something as an auto. 
+      -->
+
+      <para>
+      Las variables locales se encuentran dentro de un ámbito; son
+      "locales" de una función. A menudo son llamadas variables
+      automáticas porque aparecen automáticamente cuando se entra en un
+      ámbito y automáticamente desaparecen cuando el ámbito se acaba. La
+      palabra clave auto hace esto explícito, pero las variables locales
+      llevan auto por defecto, de modo que nunca es necesario declarar
+      algo como auto.
+      </para>
+
+
+      <sect3>
+        <!-- Register variables -->
+        <title>Variables de registro</title>
+
+        A register variable is a type of local variable. The register
+        keyword tells the compiler "Make accesses to this variable as
+        fast as possible." Increasing the access speed is implementation
+        dependent, but, as the name suggests, it is often done by
+        placing the variable in a register. There is no guarantee that
+        the variable will be placed in a register or even that the
+        access speed will increase. It is a hint to the compiler.
+
+        <para>
+        Una variable de registro es un tipo de variable local. La
+        palabra clave registro indica al compilador "Has los accesos a
+        esta variable lo mas rápidos posible". Aumentar la velocidad de
+        acceso depende de la implementación, pero,   como el nombre lo
+        sugiere, a menudo se hace situando la variable en un
+        registro. No hay garantía alguna de que la variable será ubicada
+        en un registro y tampoco de que la velocidad de acceso
+        aumente. Es una ayuda para el compilador.
+        </para>
+
+
+        There are restrictions to the use of register variables. You
+        cannot take or compute the address of a register variable. A
+        register variable can be declared only within a block (you
+        cannot have global or static register variables). You can,
+        however, use a register variable as a formal argument in a
+        function ( i.e., in the argument list).
+        
+        <para>
+        Hay restricciones a la hora de utilizar variables de
+        registro. No se puede tomar o calcular la dirección de una
+        variable de registro. Una variable de registro puede ser
+        declarada solo dentro de un bloque (no se puede tener variables
+        de registro globales o estáticas). De todos modos, se las puede
+        utilizar como un argumento formal en una función (p.e, en la
+        lista de argumentos).
+        </para>
+
+        In general, you shouldn't try to second-guess the compiler's optimizer,
+        since it will probably do a better job than you can. Thus, the
+        register keyword is best avoided.
+
+        <para>
+        En general, no se debería contradecir el optimizador del
+        compilador, ya que este probablemente haría mejor el
+        trabajo. Así, es mejor evitar la palabra clave register.
+        </para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <title>Static</title>
+
+      <!--
+        The static keyword has several distinct meanings. Normally,
+        variables defined local to a function disappear at the end of
+        the function scope. When you call the function again, storage
+        for the variables is created anew and the values are
+        re-initialized. If you want a value to be extant throughout the
+        life of a program, you can define a function's local variable to
+        be static and give it an initial value. The initialization is
+        performed only the first time the function is called, and the
+        data retains its value between function calls. This way, a
+        function can "remember" some piece of information between
+        function calls.
+      -->
+      
+        <para>
+        La palabra clave static tiene diversos
+        significados. Normalmente, las variables definidas localmente en
+        una función desaparecen al final del ámbito de ésta. Cuando se
+        llama de nuevo a la función, el espacio de las variables se
+        vuelve a pedir y las variables son re-inicializadas. Si se
+        desear que un valor se conserve durante la vida de un programa,
+        se puede definir una variable local de una función como static
+        (estática) y darle un valor inicial. La inicialización se
+        realiza solo la primera vez que la función es llamada, y la
+        información se conserva entre llamada y llamada a la función. De
+        este modo, una función puede "recordar" una cierta información
+        entre una llamada y otra.
+        </para>
+
+        You may wonder why a global variable isn't used instead. The
+        beauty of a static variable is that it is unavailable outside
+        the scope of the function, so it can't be inadvertently
+        changed. This localizes errors.
+
+        <para>
+        Puede surgir la duda de por qué no se utiliza una variable
+        global en este caso. El encanto de una variable static es que no
+        está disponible fuera del ámbito de la función, de modo que no
+        puede ser modificada accidentalmente. Esto reduce los errores.
+        </para>
+
+
+        Here's an example of the use of static variables:
+
+        <para>
+        A continuación un ejemplo del uso de variables static:
+        </para>
+ 
+
+//: C03:Static.cpp
+
+        Each time func() is called in the for loop, it prints a
+        different value. If the keyword static is not used, the value
+        printed will always be '1'.
+
+      <para>
+        Cada vez que se llama a func( ) dentro del bucle, se imprime un
+        valor diferente. Si la palabra clave static no se utilizara, el
+        valor mostrado sería siempre '1'.
+      </para>
+
+        The second meaning of static is related to the first in the
+        "unavailable outside a certain scope" sense. When static is
+        applied to a function name or to a variable that is outside of
+        all functions, it means "This name is unavailable outside of
+        this file." The function name or variable is local to the file;
+        we say it has  file scope. As a demonstration, compiling and
+        linking the following two files will cause a linker error: 
+
+      <para>
+        El segundo significado de static está relacionado al primero en
+        el sentido de que "no está disponible fuera de cierto
+        ámbito". Cuando static se aplica al nombre de una función o de
+        una variable que está fuera de todas las funciones, significa
+        "Este nombre no está disponible fuera de este fichero". El
+        nombre de la función o de la variable es local al fichero; se
+        llama a esto ámbito de fichero. Como demostración, al compilar y
+        enlazar los dos ficheros siguientes se causa un error de enlace:
+      </para>
+
+
+//: C03:FileStatic.cpp
+
+        Even though the variable fs is claimed to exist as an extern  in
+        the following file, the linker won't find it because it has been
+        declared static in FileStatic.cpp.
+
+      <para>
+        Aunque la variable fs está destinada a existir como un extern en
+        el siguiente fichero, el enlazador  no la encontraría porque ha
+        sido declarada static en FileStatic.cpp.
+      </para>
+
+//: C03:FileStatic2.cpp {O}
+
+        The static specifier may also be used inside a class. This
+        explanation will be delayed until you learn to create classes,
+        later in the book.
+
+      <para>
+        El especificador static también se puede usar dentro de una
+        class (clase). Esta explicación  se dará mas adelante en este
+        libro, cuando se aprenda a crear clases.
+      </para>
+    </sect2>
+
+    <sect2>
+      <title>extern</title>
+
+      <!--
+        The extern keyword has already been briefly described and
+        demonstrated. It tells the compiler that a variable or a
+        function exists, even if the compiler hasn't yet seen it in the
+        file currently being compiled. This variable or function may be
+        defined in another file or further down in the current file. As
+        an example of the latter:
+      -->
+
+      <para>
+      La palabra clave extern ya ha sido brevemente descripta y
+      demostrada. Le dice al compilador que una variable o una función
+      existe, incluso si el compilado aún no la ha visto en el fichero
+      que está siendo compilado en ese momento. Esta variable o función
+      puede definirse en otro fichero o más abajo en el fichero
+      actual. A modo de ejemplo de lo anterior:
+      </para>
+
+//: C03:Forward.cpp
+
+      When the compiler encounters the declaration 'extern int i', it
+      knows that the definition for i must exist somewhere as a global
+      variable. When the compiler reaches the definition of i, no other
+      declaration is visible, so it knows it has found the same i
+      declared earlier in the file. If you were to define i as static,
+      you would be telling the compiler that i is defined globally (via
+      the extern), but it also has file scope (via the static), so the
+      compiler will generate an error.
+
+
+      Cuando el compilador encuentra la declaración 'extern int i' sabe
+      que la definición para i debe existir en algún sitio como una
+      variable global. Cuando el compilador alcanza la definición de i,
+      ninguna otra declaración es visible, de modo que sabe que ha
+      encontrado la misma i declarada anteriormente en el fichero. Si se
+      fuese a definir i como static, se estaría indicando al compilador
+      que i se define globalmente (via extern), pero también tiene el
+      ámbito del fichero (via static ), de modo que el compilador
+      generará un error.
+
+
+      <sect3>
+        <!--Linkage-->
+
+        <title>Enlazado</title>
+
+        <!--
+      To understand the behavior of C and C++ programs, you need to know
+      about linkage. In an executing program, an identifier is
+      represented by storage in memory that holds a variable or a
+      compiled function body. Linkage describes this storage as it is
+      seen by the linker. There are two types of linkage: internal
+      linkage and external linkage.
+        -->
+
+        <para>
+      Para comprender el comportamiento de los programas en C y C++, es
+      necesario saber sobre enlaces. En un programa en ejecución, un
+      identificador se representa como espacio en memoria que aloja una
+      variable o un cuerpo de función compilada. El enlace describe este
+      espacio como es visto por el enlazador. Hay dos formas  de
+      enlazar:  enlace interno y enlace externo.
+        </para>
+
+      Internal linkage means that storage is created to represent the
+      identifier only for the file being compiled. Other files may use
+      the same identifier name with internal linkage, or for a global
+      variable, and no conflicts will be found by the linker - separate
+      storage is created for each identifier. Internal linkage is
+      specified by the keyword static in C and C++.
+
+        <para>
+      Enlace interno significa que el espacio se pide para representar
+      al identificador sólo mientras el fichero está siendo
+      compilado. Otros ficheros pueden utilizar el mismo nombre de
+      identificador con un enlace interno, o para una variable global, y
+      el enlazador no encontraría conflictos - se pide un espacio
+      separado para cada identificador. El enlace interno se especifica
+      mediante la palabra clave static en C y C++.
+        </para>
+
+      External linkage means that a single piece of storage is created
+      to represent the identifier for all files being compiled. The
+      storage is created once, and the linker must resolve all other
+      references to that storage. Global variables and function names
+      have external linkage. These are accessed from other files by
+      declaring them with the keyword extern. Variables defined outside
+      all functions (with the exception of const in C++) and function
+      definitions default to external linkage. You can specifically
+      force them to have internal linkage using the static keyword. You
+      can explicitly state that an identifier has external linkage by
+      defining it with the extern keyword. Defining a variable or
+      function with extern is not necessary in C, but it is sometimes
+      necessary for const in C++.
+
+        
+      Enlace externo significa que se pide un solo espacio para
+      representar el identificador para todos los ficheros que se estén
+      compilando. El espacio se pide una vez, y el enlazador debe
+      resolver todas las demás referencias en ese espacio. Las variables
+      globales y los nombres de función tienen enlace externo. Estas son
+      accedidas desde otros ficheros declarándolas con la palabra clave
+      extern. Las variables se definen fuera de todas las funciones (con
+      la excepción de const en C++)   y las definiciones de las
+      funciones acarrean por defecto el enlace externo. Se pueden forzar
+      específicamente a tener enlace interno utilizando static. Se puede
+      establecer explícitamente que un identificador tiene enlace
+      externo definiéndolo como extern. No es necesario definir una
+      variable o una función como extern en C, pero a veces es necesario
+      para const en C++.
+        
+
+      Automatic (local) variables exist only temporarily, on the stack,
+      while a function is being called. The linker doesn't know about
+      automatic variables , and so these have no linkage.
+
+
+      Las variables automáticas (locales) existen sólo temporalmente, en
+      la pila, mientras una función es llamada. El enlazador no entiende
+      de variables automáticas, de modo que no tienen enlace.
+
+
+
+Constants
+Constantes
+
+      In old (pre-Standard) C, if you wanted to make a constant, you had to use the preprocessor :
+
+En el antiguo C (pre-Standard),  si se deseaba crear una constante, se debía utilizar el preprocesador:
+
+#define PI 3.14159
+
+Everywhere you used PI, the value 3.14159 was substituted by the preprocessor (you can still use this method in C and C++).
+
+En cualquier sitio en el que se utilizase PI, el valor 3.14159 se sustituía por el preprocesador (aun se puede utilizar este método en C y C++).
+
+When you use the preprocessor to create constants, you place control of those constants outside the scope of the compiler. No type checking  is performed on the name PI and you can't take the address of PI (so you can't pass a pointer or a reference to PI). PI cannot be a variable of a user-defined type. The meaning of PI lasts from the point it is defined to the end of the file; the preprocessor doesn't recognize scoping.
+
+Cuando se utiliza el preprocesador para crear constantes, se da el control de éstas fuera del ámbito del compilador. Ninguna comprobación sintáctica se aplica a PI y no se puede obtener la dirección de PI (de modo que no se puede pasar un puntero o una referencia a PI). PI no puede ser una variable de un tipo definido por el usuario. El significado de PI dura desde el punto en que es definida, hasta el final del fichero; el preprocesador no reconoce el ámbito.
+
+C++ introduces the concept of a named constant that is just like a variable, except that its value cannot be changed. The modifier const tells the compiler that a name represents a constant. Any data type, built-in or user-defined, may be defined as const. If you define something as const and then attempt to modify it, the compiler will generate an error.
+
+You must specify the type of a const, like this:
+
+C++ introduce el concepto de una constante nombrada que es igual que una variable, excepto que su valor no se puede cambiar. El modificador const le indica al compilador que un nombre representa una constante. Cualquier tipo de datos,  predefinido o definido por el usuario, puede ser definido como const. Si se define algo como const y luego se intenta modificarlo, el compilador generara un error.
+
+Se debe especificar el tipo de un const, de este modo:
+
+const
+ int x = 10;
+
+In Standard C and C++, you can use a named constant in an argument list, even if the argument it fills is a pointer or a reference ( i.e., you can take the address of a const). A const has a scope, just like a regular variable, so you can "hide" a const inside a function and be sure that the name will not affect the rest of the program.
+
+En Standard C y C++, se puede usar una constante en una lista de argumentos, incluso si el argumento que ocupa es un puntero o una referencia (p.e, se puede obtener la direccion de una const). Una const tiene un ámbito, al igual que una variable ordinaria, de modo que se puede "esconder" una const dentro de una función y estar seguro de que ésta no afectará al resto del programa.
+
+The const was taken from C++ and incorporated into Standard C, albeit quite differently. In C, the compiler treats a const just like a variable that has a special tag attached that says "Don't change me." When you define a const in C, the compiler creates storage for it, so if you define more than one const with the same name in two different files (or put the definition in a header file), the linker will generate error messages about conflicts. The intended use of const in C is quite different from its intended use in C++ (in short, it's nicer in C++).
+
+Const ha sido tomado de C++ e incorporado en Standard C, pero un poco distinto. En C, el compilador trata a const del mismo modo que a una variable que tiene el adjunto un tag especial que dice "No me cambies". Cuando se define un const en C, el compilador pide espacio para el, de modo que si se define más de un const con el mismo nombre en dos ficheros distintos (o se ubica la definición en un fichero de cabeceras), el enlazador generará mensajes de error acerca de conflictos. El concepto de utilizar const en C es diferente de su utilización en C++ (para abreviar, es mas bonito en C++).
+
+
+Constant values
+Valores de las constantes
+In C++, a const must always have an initialization value (in C, this is not true). Constant values for built-in types are expressed as decimal, octal, hexadecimal, or floating-point numbers (sadly, binary numbers were not considered important), or as characters.
+
+En C++, una constante siempre debe tener un valor inicial (En C, esto no es cierto). Los valores de las constantes para tipos predefinidos se expresan en decimal, octal, hexadecimal, o números con punto flotante (desgraciadamente, los números binarios no fueron considerados importantes, o como caracteres.
+
+In the absence of any other clues, the compiler assumes a constant value is a decimal number. The numbers 47, 0, and 1101 are all treated as decimal numbers.
+
+En ausencia de ninguna otra pista, el compilador assume que el valor de una constante es un número decimal. Los numeros 47, . y 1101 serán tratados como números decimales.
+
+A constant value with a leading 0 is treated as an octal number (base 8). Base 8 numbers can contain only digits 0-7; the compiler flags other digits as an error. A legitimate octal number is 017 (15 in base 10).
+
+A constant value with a leading 0x is treated as a hexadecimal number (base 16). Base 16 numbers contain the digits 0-9 and a-f or A-F. A legitimate hexadecimal number is 0x1fe (510 in base 10).
+
+Un valor de una constante con un cero al principio se trata como un número octal (base 8). Los números con base 8 pueden contener únicamente dígitos del 0 al 7; el compilador interpreta otros dígitos como un error. Un número octal legítimo es 017 (15 en base 10).
+
+Un valor de una constante con 0x al principio se trata como un número hexadecimal (base 16). Los números con base 16 pueden contener dígitos del 0 al 9 y letras de la 'a' a la 'f' o "A' a 'F'. Un número hexadecimal legítimo es 0x1fe (510 en base 10).
+
+Floating point numbers can contain decimal points and exponential powers (represented by e, which means "10 to the power of"). Both the decimal point and the e are optional. If you assign a constant to a floating-point variable, the compiler will take the constant value and convert it to a floating-point number (this process is one form of what's called implicit type conversion). However, it is a good idea to use either a decimal point or an e to remind the reader that you are using a floating-point number; some older compilers also need the hint.
+
+Los números con punto flotante pueden contener comas decimales y potencias exponenciales (representadas mediante 'e', lo que significa "10 elevado a"). Tanto el punto decimal como la e son opcionales. Si se asigna una constante a una variable de punto flotante, el compilador tomara el valor de la constante y la convertirá a un número en punto flotante (este proceso es una manera de que se conoce como conversión implícita de tipo). De todos modos, es una buena idea el usar el punto decimal o una e para recordar al lector que se esta utilizando un número en punto flotante; algunos compiladores incluso necesitan esta pista.
+
+Legitimate floating-point constant values are: 1e4, 1.0001, 47.0, 0.0, and -1.159e-77. You can add suffixes to force the type of floating-point number: f or F forces a float, L or l forces a long double; otherwise the number will be a double.
+
+Los valores legítimos de una constante con punto flotante son: 1e4, 1.0001, 47.0, 0.0 y 1.159e-77. Se pueden añadir sufijos para forzar el tipo de número de punto flotante: f o F fuerza a que sea flota, L o l fuerza a que sea un long double; de lo contrario, el número será un double.
+
+Character constants are characters surrounded by single quotes, as: 'A', '0', ' '. Notice there is a big difference between the character '0' (ASCII 96) and the value 0. Special characters are represented with the "backslash escape": ' \n' (newline), '\t' (tab), '\\' (backslash), '\r' (carriage return), '\"' (double quotes), '\'' (single quote), etc. You can also express char constants in octal: '\17 ' or hexadecimal: '\xff'.
+
+Las constantes de tipo char son caracteres rodeados de comillas simples, tales como: 'A', 'o', ''. Notar que hay una gran diferencia entre el carácter 'o' (ASCII 96) y el valor 0. Los caracteres especiales se representan con la "barra invertida": '\ n' (nueva línea), '\t' (tabulación), '\\' (barra invertida), '\r' (retorno de carro), '\"' (comillas dobles), '\'' (comilla simple), etc. Incluso se puede expresar constantes de tipo char en octal: '\17' o hexadecimal: '\ xff'.
+
+
+Volatile
+Whereas the qualifier const tells the compiler "This never changes" (which allows the compiler to perform extra optimizations), the qualifier volatile tells the compiler "You never know when this will change," and prevents the compiler from performing any optimizations based on the stability of that variable. Use this keyword when you read some value outside the control of your code, such as a register in a piece of communication hardware. A volatile variable is always read whenever its value is required, even if it was just read the line before.
+
+Mientras que el calificador const le indica al compilador "Esto nunca cambia" (lo que permite al compilador realizar optimizaciones extra), el calificador volatile le indica al compilador "Nunca se sabe cuando esto cambiará", y previente al compilador de realizar ninguna optimización basada en la estabilidad de esa variable. Se utiliza esta palabra clave cuando se lee algún valor fuera del control del código, algo así como un registro en un hardware de comunicación. Una variable volatile se lee siempre que su valor sea requerido, incluso si se ha leído en la línea anterior.
+
+A special case of some storage being "outside the control of your code" is in a multithreaded program. If you're watching a particular flag that is modified by another thread or process, that flag should be volatile so the compiler doesn't make the assumption that it can optimize away multiple reads of the flag.
+
+Note that volatile may have no effect when a compiler is not optimizing, but may prevent critical bugs when you start optimizing the code (which is when the compiler will begin looking for redundant reads).
+
+The const and volatile keywords will be further illuminated in a later chapter.
+
+Un caso especial de un cierto espacio que está "fuera del control del código" es en un programa multi-hilo. Si se ve un flan particular que se modifica por otro hilo o proceso, este flan debería ser volatile de modo que el compilador no asume que puede optimizar múltiples lecturas del flan.
+
+Notar que volatile puede no tener efecto cuando un compilador no está optimizando, pero puede prevenir errores críticos cuando se comienza a optimizar el código (que es cuando el compilador comenzara a buscar lecturas redundantes). 
+
+Las palabras clave const y volatile serán profundizadas en un capítulo posterior.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <sect1>
+    <!-- Specifying storage allocation -->
     <title>Especificación del almacenamiento</title>
     <para>
     </para>
@@ -2691,9 +3230,9 @@ default: statement;
       <para>
       </para>
       <sect3>
-	<title>Varibles-registro</title>
-	<para>
-	</para>
+        <title>Varibles-registro</title>
+        <para>
+        </para>
       </sect3>
     </sect2>
 
@@ -2732,6 +3271,17 @@ default: statement;
     </sect2>
   </sect1>
 
+
+
+
+
+
+
+
+
+
+
+
   <sect1>
     <title>Los operadores y su uso</title>
     <para>
@@ -2766,7 +3316,7 @@ default: statement;
       </para>
     </sect2>
 
-    <sect2
+    <sect2>
       <!-- Bitwise operators -->
       <title>Operadores para bits</title>
       <para>
