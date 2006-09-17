@@ -14,31 +14,32 @@ FILES=$(wildcard *.xml)
 MAIN=PensarEnC++
 
 
-all: htmls
+all: html
 
-htmls: generated/filtered.xml
-	-mkdir htmls
+html: generated/filtered.xml
+	-mkdir html
 	xsltproc  --xinclude \
 	-stringparam chunker.output.encoding ISO-8859-1 \
 	-stringparam chunker.output.indent yes \
-	-stringparam base.dir htmls/ \
+	-stringparam base.dir html/ \
 	--output  $@  $(XSL_HTML)  $<
-	cp stylesheets/*.css htmls/
+	cp stylesheets/*.css html/
 
 
 pdf: pdf/$(MAIN).pdf
 
+
 pdf/$(MAIN).pdf: generated/$(MAIN).tex
-	echo '-- Building PDF'
+	@echo '-- Building PDF'
 	-mkdir pdf
-	cd pdf
-	pdflatex ../$< 
+	cd generated
+	pdflatex  $<
 	makeindex $(MAIN).idx
-	pdflatex ../$< 
+	pdflatex $<
 
 
 generated/$(MAIN).tex: generated/filtered.xml
-	echo '-- Building LaTeX '
+	@echo '-- Building LaTeX '
 	cd generated
 	xsltproc --nonet --noout -o generated/$(MAIN).tex --xinclude \
 	--stringparam l10n.gentext.default.language es \
@@ -64,7 +65,6 @@ validate:
 
 
 
-
 # Para Descomprimir y arreglar los ficheros de código
 VOL1_ALL=../original/TICPP-2nd-ed-Vol-one.zip
 VOL1_CODE=TICPP-2nd-ed-Vol-one-code.zip
@@ -81,9 +81,9 @@ $(VOL1_CODE): $(VOL1_ALL)
 # Limpieza
 clean:
 	$(RM) generated/*
-	$(RM) htmls/*
-	-rmdir generated htmls pdfs
-	$(RM) *.ok_sgml
+	$(RM) html/*
+	$(RM) pdf/*
+	-rmdir generated html pdf
 	$(RM) *~
 
 
@@ -91,5 +91,5 @@ vclean: clean
 
 # Otras tareas
 install: 
-	scp htmls/* arco:public_html/pensar_en_C++/
+	scp html/* arco:public_html/pensar_en_C++/
 
