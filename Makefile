@@ -86,7 +86,7 @@ clean:
 	$(RM) html/*
 	$(RM) pdf/*
 	-rmdir generated html pdf
-	$(RM) *~
+	$(RM) *~ *.log
 
 
 vclean: clean
