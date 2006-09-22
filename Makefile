@@ -38,14 +38,17 @@ pdf/$(MAIN).pdf: generated/$(MAIN).tex
 	pdflatex $<
 
 
-generated/$(MAIN).tex: generated/filtered.xml
+generated/$(MAIN).tex: generated/raw.tex
+	python utils/latex_filter.py $< $@
+
+
+generated/raw.tex: generated/filtered.xml
 	@echo '-- Building LaTeX '
 	cd generated
-	xsltproc --nonet --noout -o generated/$(MAIN).tex --xinclude \
+	xsltproc --nonet --noout -o generated/raw.tex --xinclude \
 	--stringparam l10n.gentext.default.language es \
 	--stringparam profile.lang es \
 	$(XSL_PDF) generated/filtered.xml
-
 
 generated/filtered.xml: generated/join.xml
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" $< |\
@@ -84,7 +87,8 @@ clean:
 	$(RM) html/*
 	$(RM) pdf/*
 	-rmdir generated html pdf
-	$(RM) *~ *.log
+	$(RM) *~ 
+	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc
 
 
 vclean: clean
