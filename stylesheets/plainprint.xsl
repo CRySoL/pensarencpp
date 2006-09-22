@@ -567,4 +567,17 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
+  
+  <xsl:template match="filename">
+    <xsl:text>\texttt{</xsl:text>
+    <xsl:value-of select="."/>
+    <xsl:text>}</xsl:text>
+  </xsl:template>
+
+  <xsl:template match="literal">
+    <xsl:text>\texttt{</xsl:text>
+    <xsl:value-of select="."/>
+    <xsl:text>}</xsl:text>
+  </xsl:template>
+
 </xsl:stylesheet>

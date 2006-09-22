@@ -45,8 +45,6 @@ generated/$(MAIN).tex: generated/filtered.xml
 	--stringparam l10n.gentext.default.language es \
 	--stringparam profile.lang es \
 	$(XSL_PDF) generated/filtered.xml
-	sed -e "s/}}/}/g" $@ |\
-	sed -e "s/{{/{/g"  > $@	
 
 
 generated/filtered.xml: generated/join.xml
