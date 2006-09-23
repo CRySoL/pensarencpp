@@ -16,56 +16,50 @@ MAIN=PensarEnC++
 
 all: html
 
-html: generated/filtered.xml
-	-mkdir html
+html: filtered.xml
+	@-mkdir html
 	xsltproc  --xinclude \
-	-stringparam chunker.output.encoding ISO-8859-1 \
-	-stringparam chunker.output.indent yes \
-	-stringparam base.dir html/ \
-	--output  $@  $(XSL_HTML)  $<
+	  --stringparam chunker.output.encoding ISO-8859-1 \
+	  --stringparam chunker.output.indent yes \
+	  --stringparam base.dir html/ \
+	  --output  $@  $(XSL_HTML)  $<
 	cp stylesheets/*.css html/
 
 
 pdf: pdf/$(MAIN).pdf
 
 
-pdf/$(MAIN).pdf: generated/$(MAIN).tex
+pdf/$(MAIN).pdf: $(MAIN).tex
 	@echo '-- Building PDF'
 	-mkdir pdf
-	cd generated
 	pdflatex  $<
 	makeindex $(MAIN).idx
 	pdflatex $<
 
 
-generated/$(MAIN).tex: generated/raw.tex
+$(MAIN).tex: raw.tex
 	python utils/latex_filter.py $< $@
 
 
-generated/raw.tex: generated/filtered.xml
+raw.tex: filtered.xml
 	@echo '-- Building LaTeX '
-	cd generated
-	xsltproc --nonet --noout -o generated/raw.tex --xinclude \
-	--stringparam l10n.gentext.default.language es \
-	--stringparam profile.lang es \
-	$(XSL_PDF) generated/filtered.xml
+	xsltproc --nonet --noout -o raw.tex --xinclude \
+	  --stringparam l10n.gentext.default.language es \
+	  --stringparam profile.lang es \
+	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
+	$(XSL_PDF) filtered.xml
 
-generated/filtered.xml: generated/join.xml
+filtered.xml: join.xml
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" $< |\
-	sed -e "s/<kw>/<literal role=\"keyword\">/g" |\
-	sed -e "s/<\/kw>/<\/literal>/g" |\
-	sed -e "s/<oper>/<literal role=\"operator\">/g" |\
-	sed -e "s/<\/oper>/<\/literal>/g" > $@
+	python utils/db_filter.py > $@
 
-generated/join.xml: $(FILES)
-	-mkdir generated
-	xsltproc --xinclude \
-	   stylesheets/profile.xsl \
-           $(MAIN).xml > $@
+join.xml: $(FILES)
+	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > aux1.xml
+	python utils/code_includes.py aux1.xml > aux2.xml
+	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > $@
 
 validate:
-	xsltproc  --xinclude --noout stylesheet/profile.xsl $(MAIN)
-
+	xsltproc --xinclude --noout stylesheet/profile.xsl $(MAIN)
 
 
 # Para Descomprimir y arreglar los ficheros de código
@@ -83,12 +77,12 @@ $(VOL1_CODE): $(VOL1_ALL)
 
 # Limpieza
 clean:
-	$(RM) generated/*
 	$(RM) html/*
 	$(RM) pdf/*
-	-rmdir generated html pdf
+	-rmdir html pdf
+	$(RM) join.xml aux?.xml filtered.xml
 	$(RM) *~ 
-	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc
+	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 
 
 vclean: clean
