@@ -3,9 +3,9 @@
 import sys, re
 
 regex = [
-    ('\n\n\s*//:\sC(\d{2}):([\w\d\.]+)\s*', '<programlisting>\n' +\
+    ('\n\s*\n\s*//:\s*C(\d{2}):([\w\d\.]+)\s*[\{\}OL]*', '\n\n<programlisting>\n' +\
      '<xi:include parse="text" href="./code/C\\1/\\2"/>\n' +\
-     '</programlisting>\n'),
+     '</programlisting>'),
     ]
 
 if len(sys.argv) > 1: 
@@ -16,7 +16,7 @@ else:
 data = f1.read()
 
 for i in regex:
-    data = re.compile(i[0]).sub(i[1], data)
+    data = re.compile(i[0], re.M).sub(i[1], data)
 
 if len(sys.argv) > 2:
     f2 = open(sys.argv[2], 'w')

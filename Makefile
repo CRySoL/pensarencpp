@@ -16,7 +16,7 @@ MAIN=PensarEnC++
 
 all: html
 
-html: filtered.xml
+html: final.xml
 	@-mkdir html
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
@@ -41,15 +41,15 @@ $(MAIN).tex: raw.tex
 	python utils/latex_filter.py $< $@
 
 
-raw.tex: filtered.xml
+raw.tex: final.xml
 	@echo '-- Building LaTeX '
 	xsltproc --nonet --noout -o raw.tex --xinclude \
 	  --stringparam l10n.gentext.default.language es \
 	  --stringparam profile.lang es \
 	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
-	$(XSL_PDF) filtered.xml
+	$(XSL_PDF) final.xml
 
-filtered.xml: join.xml
+final.xml: join.xml
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" $< |\
 	python utils/db_filter.py > $@
 
@@ -80,7 +80,7 @@ clean:
 	$(RM) html/*
 	$(RM) pdf/*
 	-rmdir html pdf
-	$(RM) join.xml aux?.xml filtered.xml
+	$(RM) join.xml aux?.xml final.xml
 	$(RM) *~ 
 	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 
