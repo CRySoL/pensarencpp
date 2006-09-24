@@ -23,6 +23,7 @@ html: final.xml
 	  --stringparam chunker.output.indent yes \
 	  --stringparam base.dir html/ \
 	  --output  $@  $(XSL_HTML)  $<
+	cp -r images/web html/images
 	cp stylesheets/*.css html/
 
 
