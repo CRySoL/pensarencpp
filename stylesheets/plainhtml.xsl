@@ -3,6 +3,7 @@
      (C) 2002, 2003, 2004, 2005, 2006 Daniel Egger, Róman Joost
      You may use this file in accordance to the GNU Free Documentation License
      Version 1.1 which is available from http://www.gnu.org. -->
+
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
   <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/profile-chunk.xsl" />
   <xsl:param name="html.stylesheet">gimp-help-plain.css
@@ -10,8 +11,8 @@
   <xsl:param name="generate.index">1</xsl:param>
   <xsl:param name="use.id.as.filename">1</xsl:param>
   <xsl:param name="admon.graphics" select="1" />
-  <xsl:param name="admon.graphics.path">../images/</xsl:param>
-  <xsl:param name="callout.graphics.path">../images/callouts/</xsl:param>
+  <xsl:param name="admon.graphics.path">./images/</xsl:param>
+  <xsl:param name="callout.graphics.path">./images/callouts/</xsl:param>
   <xsl:param name="section.autolabel" select="1" />
   <xsl:param name="make.valid.html" select="1" />
   <xsl:param name="collect.xref.targets" select="'yes'" />
@@ -26,7 +27,7 @@
   <xsl:param name="navig.showtitles" select="1" />
   <xsl:param name="navig.graphics" select="1" />
   <xsl:param name="navig.graphics.extension">.png</xsl:param>
-  <xsl:param name="navig.graphics.path">../images/</xsl:param>
+  <xsl:param name="navig.graphics.path">./images/</xsl:param>
 
   <!-- Add NotInToc role to simplesect, which is using in fdl.xml to
        deal with FDL-In-TOC issue.
@@ -46,12 +47,15 @@
       <xsl:with-param name="prev" select="$prev" />
       <xsl:with-param name="next" select="$next" />
       <xsl:with-param name="nav.context" select="$nav.context" />
+      <xsl:with-param name="gen_row2" select="'no'"/>
     </xsl:call-template>
+
   </xsl:template>
   <xsl:template name="footer.navigation">
     <xsl:param name="prev" select="/foo"/>
     <xsl:param name="next" select="/foo"/>
     <xsl:param name="nav.context"/>
+    <xsl:param name="gen_row2" select="'yes'"/>
 
     <xsl:variable name="home" select="/*[1]"/>
     <xsl:variable name="up" select="parent::*"/>
@@ -59,12 +63,13 @@
     <xsl:variable name="row1" select="count($prev) &gt; 0                                                             or count($up) &gt; 0
                                       or count($next) &gt; 0"/>
 
-    <xsl:variable name="row2" select="($prev and $navig.showtitles != 0)
+    <xsl:variable name="row2" select="$gen_row2 = 'yes'
+                              and (($prev and $navig.showtitles != 0)
                               or (generate-id($home) != generate-id(.)
                               or $nav.context = 'toc')
                               or ($chunk.tocs.and.lots != 0                   
                               and $nav.context != 'toc')                      
-                              or ($next and $navig.showtitles != 0)"/>
+                              or ($next and $navig.showtitles != 0))"/>
 
     <xsl:if test="$suppress.navigation = '0' and $suppress.footer.navigation = '0'">
       <div class="navfooter">
@@ -90,6 +95,19 @@
                     </a>
                   </xsl:if>
                   <xsl:text>&#160;</xsl:text>
+
+                  <xsl:if test="$navig.showtitles != 0 and count($prev)&gt;0">
+                    <a accesskey="p">
+                      <xsl:attribute name="href">
+                        <xsl:call-template name="href.target">
+                          <xsl:with-param name="object" select="$prev"/>
+                        </xsl:call-template>
+                      </xsl:attribute>
+                    <xsl:apply-templates select="$prev" mode="object.title.markup"/>
+                    </a>
+                  </xsl:if>
+                  <xsl:text>&#160;</xsl:text>
+
                 </td>
                 <td width="20%" align="center">
                   <xsl:choose>
@@ -109,6 +127,19 @@
                   </xsl:choose>
                 </td>
                 <td width="40%" align="right">
+
+                 <xsl:text>&#160;</xsl:text>
+                  <xsl:if test="$navig.showtitles != 0 and count($next) &gt; 0">
+                    <a accesskey="n">
+                      <xsl:attribute name="href">
+                        <xsl:call-template name="href.target">
+                          <xsl:with-param name="object" select="$next"/>
+                        </xsl:call-template>
+                      </xsl:attribute>
+                    <xsl:apply-templates select="$next" mode="object.title.markup"/>
+                    </a>
+                  </xsl:if>
+
                   <xsl:text>&#160;</xsl:text>
                   <xsl:if test="count($next)&gt;0">
                     <a accesskey="n">
@@ -129,17 +160,7 @@
             <xsl:if test="$row2">
               <tr>
                 <td width="40%" align="left" valign="top">
-                  <xsl:if test="$navig.showtitles != 0 and count($prev)&gt;0">
-                    <a accesskey="p">
-                      <xsl:attribute name="href">
-                        <xsl:call-template name="href.target">
-                          <xsl:with-param name="object" select="$prev"/>
-                        </xsl:call-template>
-                      </xsl:attribute>
-                    <xsl:apply-templates select="$prev" mode="object.title.markup"/>
-                    </a>
-                  </xsl:if>
-                  <xsl:text>&#160;</xsl:text>
+		  <!-- prev -->
                 </td>
                 <td width="20%" align="center">
                   <xsl:choose>
@@ -175,17 +196,7 @@
                   </xsl:if>
                 </td>
                 <td width="40%" align="right" valign="top">
-                  <xsl:text>&#160;</xsl:text>
-                  <xsl:if test="$navig.showtitles != 0 and count($next) &gt; 0">
-                    <a accesskey="n">
-                      <xsl:attribute name="href">
-                        <xsl:call-template name="href.target">
-                          <xsl:with-param name="object" select="$next"/>
-                        </xsl:call-template>
-                      </xsl:attribute>
-                    <xsl:apply-templates select="$next" mode="object.title.markup"/>
-                    </a>
-                  </xsl:if>
+		  <!-- next -->
                 </td>
               </tr>
             </xsl:if>

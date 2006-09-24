@@ -17,13 +17,13 @@ MAIN=PensarEnC++
 all: html
 
 html: final.xml
-	@-mkdir html
+	@-mkdir -p html/images
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
 	  --stringparam chunker.output.indent yes \
 	  --stringparam base.dir html/ \
 	  --output  $@  $(XSL_HTML)  $<
-	cp -r images/web html/images
+	cp images/web/* html/images/
 	cp stylesheets/*.css html/
 
 
@@ -78,9 +78,10 @@ $(VOL1_CODE): $(VOL1_ALL)
 
 # Limpieza
 clean:
-	$(RM) html/*
+	$(RM) html/images/*
+	-rmdir html/images
 	$(RM) pdf/*
-	-rmdir html pdf
+	-rmdir -p html pdf
 	$(RM) join.xml aux?.xml final.xml
 	$(RM) *~ 
 	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
