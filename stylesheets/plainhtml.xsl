@@ -79,9 +79,10 @@
 
         <xsl:if test="$row1 or $row2">
           <table width="100%" summary="Navigation footer">
+
             <xsl:if test="$row1">
               <tr>
-                <td width="40%" align="left">
+                <td class="navititle"> <!-- flecha prev -->
                   <xsl:if test="count($prev)&gt;0">
                     <a accesskey="p">
                       <xsl:attribute name="href">
@@ -94,8 +95,11 @@
                       </xsl:call-template>
                     </a>
                   </xsl:if>
-                  <xsl:text>&#160;</xsl:text>
+		  <xsl:text>&#160;</xsl:text>
+		</td>
 
+		<td class="navititle" width="40%" align="left"> 
+		  <!-- nombre prev -->
                   <xsl:if test="$navig.showtitles != 0 and count($prev)&gt;0">
                     <a accesskey="p">
                       <xsl:attribute name="href">
@@ -106,13 +110,13 @@
                     <xsl:apply-templates select="$prev" mode="object.title.markup"/>
                     </a>
                   </xsl:if>
-                  <xsl:text>&#160;</xsl:text>
-
+		  <xsl:text>&#160;</xsl:text>
                 </td>
-                <td width="20%" align="center">
+
+                <td width="10%" align="center">
                   <xsl:choose>
                     <xsl:when test="count($up)&gt;0 and generate-id($up) != generate-id($home)">
-          <a accesskey="u">
+		      <a accesskey="u">
                         <xsl:attribute name="href">
                           <xsl:call-template name="href.target">
                             <xsl:with-param name="object" select="$up"/>
@@ -126,9 +130,10 @@
                     <xsl:otherwise>&#160;</xsl:otherwise>
                   </xsl:choose>
                 </td>
-                <td width="40%" align="right">
 
-                 <xsl:text>&#160;</xsl:text>
+                <td class="navititle" width="40%" align="right"> 
+		  <!-- nombre next -->
+		  <xsl:text>&#160;</xsl:text>
                   <xsl:if test="$navig.showtitles != 0 and count($next) &gt; 0">
                     <a accesskey="n">
                       <xsl:attribute name="href">
@@ -139,8 +144,10 @@
                     <xsl:apply-templates select="$next" mode="object.title.markup"/>
                     </a>
                   </xsl:if>
+		</td>
 
-                  <xsl:text>&#160;</xsl:text>
+		<td class="navititle"> <!-- flecha next -->
+		  <xsl:text>&#160;</xsl:text>
                   <xsl:if test="count($next)&gt;0">
                     <a accesskey="n">
                       <xsl:attribute name="href">
@@ -159,10 +166,14 @@
 
             <xsl:if test="$row2">
               <tr>
-                <td width="40%" align="left" valign="top">
+                <td valign="top">
 		  <!-- prev -->
+                  <xsl:text>&#160;</xsl:text>
                 </td>
-                <td width="20%" align="center">
+		<td>
+                  <xsl:text>&#160;</xsl:text>
+		</td>
+                <td width="10%" align="center">
                   <xsl:choose>
                     <xsl:when test="$home != . or $nav.context = 'toc'">
                       <a accesskey="h">
@@ -195,8 +206,12 @@
                     </a>
                   </xsl:if>
                 </td>
-                <td width="40%" align="right" valign="top">
+		<td>
+                  <xsl:text>&#160;</xsl:text>
+		</td>
+                <td valign="top">
 		  <!-- next -->
+                  <xsl:text>&#160;</xsl:text>
                 </td>
               </tr>
             </xsl:if>
