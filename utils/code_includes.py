@@ -3,9 +3,10 @@
 import sys, re
 
 regex = [
+    ('\s*(<xi:include.*)', '\\1\n'),
     ('\n\s*\n\s*//:\s*C(\d{2}):([\w\d\.]+)\s*[\{\}OL]*', '\n\n<programlisting>\n' +\
      '<xi:include parse="text" href="./code/C\\1/\\2"/>\n' +\
-     '</programlisting>'),
+     '</programlisting>\n\n'),
     ]
 
 if len(sys.argv) > 1: 
@@ -24,4 +25,6 @@ else:
     f2 = sys.stdout
     
 f2.write(data)
+
+if f2 != sys.stdout: f2.close()
 
