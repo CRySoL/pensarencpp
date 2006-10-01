@@ -7,7 +7,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
   <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/profile-chunk.xsl" />
   <xsl:param name="html.stylesheet">gimp-help-plain.css
-    gimp-help-screen.css gimp-help-custom.css</xsl:param>
+    gimp-help-screen.css gimp-help-custom.css highlight.css</xsl:param>
   <xsl:param name="generate.index">1</xsl:param>
   <xsl:param name="use.id.as.filename">1</xsl:param>
   <xsl:param name="admon.graphics" select="1" />
