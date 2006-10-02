@@ -10,9 +10,8 @@ XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 XSL_HTML=stylesheets/plainhtml.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
-FILES=$(wildcard *.xml)
 MAIN=PensarEnC++
-
+FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
 all: html
 
@@ -25,6 +24,8 @@ html: final.xml
 	  --output  $@  $(XSL_HTML)  $<
 	cp images/web/* html/images/
 	cp stylesheets/*.css html/
+
+	ls html/*.html | xargs python utils/html_colorize.py 
 
 
 pdf: pdf/$(MAIN).pdf
@@ -50,14 +51,21 @@ raw.tex: final.xml
 	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
 	$(XSL_PDF) final.xml
 
-final.xml: join.xml
-	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" $< |\
+
+final.xml: $(FILES)
+	@echo "--- Montando el documento"
+	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > aux1.xml
+	@echo "--- Rutas a los listados"
+	python utils/fix_includes.py aux1.xml > aux2.xml
+	@echo "--- Incluyendo listados"
+	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > join.xml
+	@echo "--- Poniendo marcas en listados para coloreado"
+	python utils/xml_tag_codes.py join.xml > wtags.xml
+	@echo "--- Eliminando xmlns y traducción de tags extra"
+	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" wtags.xml |\
 	python utils/db_filter.py > $@
 
-join.xml: $(FILES)
-	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > aux1.xml
-	python utils/code_includes.py aux1.xml > aux2.xml
-	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > $@
+
 
 validate:
 	xsltproc --xinclude --noout stylesheet/profile.xsl $(MAIN)
