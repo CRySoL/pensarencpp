@@ -27,6 +27,9 @@ html: final.xml
 
 	ls html/*.html | xargs python utils/html_colorize.py 
 
+	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null
+	mv highlight.css html/
+
 
 pdf: pdf/$(MAIN).pdf
 
@@ -88,7 +91,7 @@ $(VOL1_CODE): $(VOL1_ALL)
 clean:
 	$(RM) html/images/*
 	-rmdir html/images
-	$(RM) pdf/*
+	$(RM) html/*
 	-rmdir -p html pdf
 	$(RM) join.xml aux?.xml final.xml wtags.xml
 	$(RM) *~ 
