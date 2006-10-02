@@ -4,8 +4,6 @@ import sys, re
 
 regex = [
     ('\s*(<xi:include.*)', '\n\\1'),
-    ('\n?\s*(<programlisting>)\s*\n*', '\n\n\\1\n'),
-    ('\n?\s*(</programlisting>)\s*\n', '\n\\1\n\n'),
     ('\n\s*\n\s*//:\s*C(\d{2}):([\w\d\.]+)\s*[\{\}OL]*\n', '\n\n<programlisting>\n' +\
      '<xi:include parse="text" href="./code/C\\1/\\2"/>\n' +\
      '</programlisting>\n\n'),
