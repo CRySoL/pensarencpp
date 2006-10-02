@@ -90,9 +90,9 @@ clean:
 	-rmdir html/images
 	$(RM) pdf/*
 	-rmdir -p html pdf
-	$(RM) join.xml aux?.xml final.xml
+	$(RM) join.xml aux?.xml final.xml wtags.xml
 	$(RM) *~ 
-	$(RM) *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
+	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 
 
 vclean: clean
