@@ -584,4 +584,9 @@
     <xsl:text>}</xsl:text>
   </xsl:template>
 
+  <xsl:template name="latex.hyperref.preamble">
+    <xsl:text>\usepackage[pdftex,bookmarksnumbered,colorlinks,linkcolor=blue,urlcolor=blue,backref,bookmarks,breaklinks,linktocpage,plainpages=false,pdfstartview=FitH]{hyperref} &#10;</xsl:text>
+  </xsl:template>
+
+
 </xsl:stylesheet>
