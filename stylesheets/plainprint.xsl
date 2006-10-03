@@ -215,6 +215,27 @@
         </xsl:choose>
         <xsl:text>}{\typeout{WARNING: truncate.sty wasn't available and functionality was skipped.}}&#10;</xsl:text>
       </xsl:if>
+
+      <xsl:text><![CDATA[
+% --- PEC++ ---
+
+\fancyhf{}
+\fancyhead[EL]{\nouppercase{\leftmark}}
+\fancyhead[OR]{\hfill\nouppercase{\rightmark}}
+\fancyfoot[EL,OR]{\thepage}
+\parskip=5pt
+
+\fancypagestyle{plain}{%
+\fancyhf{}%
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0.4pt}}
+
+\addtolength{\headwidth}{20pt}
+
+% --- end ---
+]]></xsl:text>
+
       <xsl:choose>
         <xsl:when test="$latex.fancyhdr.style='natural'">
           <xsl:text><![CDATA[
@@ -385,6 +406,15 @@
         </xsl:if>
       </xsl:otherwise>
     </xsl:choose>
+
+    <xsl:text><![CDATA[
+\AfterBeginDocument{
+% --- PEC++ ---
+\renewcommand{\chaptermark}[1]{%
+\markboth{\thechapter.\ #1}{}}
+% --- end ---
+}
+]]></xsl:text>
   </xsl:template>
   
   <!-- biblio format -->

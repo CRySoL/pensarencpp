@@ -13,30 +13,33 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=PensarEnC++
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: html
+all: html $(MAIN).pdf
+	@-mkdir products
+	mv html products/
+	mv $(MAIN).pdf products/
 
-html: final.xml
+
+html: tagged.xml
 	@-mkdir -p html/images
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
 	  --stringparam chunker.output.indent yes \
 	  --stringparam base.dir html/ \
 	  --output  $@  $(XSL_HTML)  $<
+
 	cp images/web/* html/images/
 	cp stylesheets/*.css html/
 
 	ls html/*.html | xargs python utils/html_colorize.py 
+	$(RM) html/*.code
 
 	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null
 	mv highlight.css html/
 
 
-pdf: pdf/$(MAIN).pdf
 
-
-pdf/$(MAIN).pdf: $(MAIN).tex
+$(MAIN).pdf: $(MAIN).tex
 	@echo '-- Building PDF'
-	-mkdir pdf
 	pdflatex  $<
 	makeindex $(MAIN).idx
 	pdflatex $<
@@ -55,6 +58,10 @@ raw.tex: final.xml
 	$(XSL_PDF) final.xml
 
 
+tagged.xml: final.xml
+	@echo "--- Poniendo marcas en listados para coloreado"
+	python utils/xml_tag_codes.py $< > $@
+
 final.xml: $(FILES)
 	@echo "--- Montando el documento"
 	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > aux1.xml
@@ -62,10 +69,8 @@ final.xml: $(FILES)
 	python utils/fix_includes.py aux1.xml > aux2.xml
 	@echo "--- Incluyendo listados"
 	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > join.xml
-	@echo "--- Poniendo marcas en listados para coloreado"
-	python utils/xml_tag_codes.py join.xml > wtags.xml
 	@echo "--- Eliminando xmlns y traducción de tags extra"
-	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" wtags.xml |\
+	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	python utils/db_filter.py > $@
 
 
@@ -89,11 +94,12 @@ $(VOL1_CODE): $(VOL1_ALL)
 
 # Limpieza
 clean:
+	$(RM) -r products
 	$(RM) html/images/*
 	-rmdir html/images
 	$(RM) html/*
 	-rmdir -p html pdf
-	$(RM) join.xml aux?.xml final.xml wtags.xml
+	$(RM) join.xml aux?.xml final.xml tagged.xml
 	$(RM) *~ 
 	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 
