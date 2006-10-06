@@ -4515,7 +4515,7 @@ int i, j, k;
 
     <sect2>
       <title>
-	Combinación de variables por medio de  <kw>struct</kw>
+	Usar <kw>struct</kw> para combinar variables
       </title>
       <para>
       </para>
@@ -4541,7 +4541,7 @@ int i, j, k;
 
 
     <sect2>
-      <title>Cómo Ahorrar memoria con <kw>union</kw></title>
+      <title>Cómo ahorrar memoria con <kw>union</kw></title>
       <para>
       </para>
     </sect2>
@@ -4909,6 +4909,11 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  Un <filename>makefile</filename> puede contener macros (tenga
+	  en cuenta que estas macros no tienen nada que ver con las del
+	  preprocesador de C/C++). La macros permiten reemplazar cadenas
+	  de texto. Los <filename>makefiles</filename> del libro usan
+	  una macro para invocar el compilador de C++. Por ejemplo,
 	</para>
 
 <programlisting language="Make">
@@ -4926,9 +4931,16 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  El = se usa para indicar que <function>CPP</function> es una
+	  macro, y el $ y los paréntesis expanden la macro. En este
+	  caso, la expansión significa que la llamada a la macro $(CPP)
+	  será reemplazada con la cadena
+	  <literal>mycompiler</literal>. Con esta macro, si quiere
+	  utilizar un compilador diferente llamado
+	  <command>cpp</command>, sólo tiene que cambiar la macro a:
 	</para>
 
-	<programlisting>
+<programlisting>
     CPP = cpp
 </programlisting>
 
@@ -4938,11 +4950,14 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  También puede añadir a la macro opciones del compilador, etc.,
+	  o usar otras macros para añadir dichas opciones.
 	</para>
       </sect3>
 
 
       <sect3>
+	<!-- Suffix Rules -->
 	<title>Reglas de sufijo</title>
 	<!--
 	It becomes tedious to tell make how to invoke the compiler for
@@ -4961,6 +4976,25 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  Es algo tedioso tener que decir a <command>make</command> que
+	  invoque al compiladore para cada fichero
+	  <filename>cpp</filename> del proyecto, cuando se sabe que
+	  básicamente siempre es el mismo proceso. Como
+	  <command>make</command> está diseñado para ahorrar tiempo,
+	  también tiene un modo de abreviar acciones, siempre que
+	  dependan del sufijo de los ficheros. Estar abreviaturas se
+	  llaman reglas de sufijo. Una regla de sufijo es la la forma de
+	  indicar a <command>make</command> cómo convertir un fichero
+	  con cierta extensión (<filename>.cpp</filename> por ejemplo)
+	  en un fichero con otra extensión (<filename>.obj</filename> o
+	  <filename>.exe</filename>). Una vez que le haya indicado a
+	  <command>make</command> las reglas pra producir un tipo de
+	  fichero a partir de otro, lo único que tiene que hacer es
+	  decirle a <command>make</command> cuales son las dependencias
+	  respecto a otros ficheros. Cuando <command>make</command>
+	  encuentra un fichero con una fecha previa a otro fichero del
+	  que depende, usa la rella para crear al versión actualizada
+	  del fichero objetivo.
 	</para>
 
 	<!--
@@ -4973,6 +5007,13 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  La regla de sufijo le dice a <command>make</command> que no se
+	  necesitan reglas explícitas para construir cada cosa, en
+	  cambio le explica cómo contruir cosas en base a la
+	  extensión del fichero. En este caso dice <quote>Para contruir
+	    un fichero con extensión <filename>.exe</filename> a partir
+	    de uno con extensión <filename>.cpp</filename>, invocar el
+	  siguiente comando</quote>. Así sería para ese ejemplo:
 	</para>
 
 <programlisting language="Make">
@@ -4998,6 +5039,26 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  La directiva <literal>.SUFFIXES</literal> le dice a
+	  <command>make</command> que debe vigilar las extensiones que
+	  se indican porque tiene un significado especial para este
+	  <filename>makefile</filename> en particular. Lo siguiente que
+	  aparece es la regla de sufijo <literal>.cpp.exe</literal>, que
+	  dice <quote>cómo convertir cualquier fichero con extensión
+	  <filename>.cpp</filename> a uno con extensión
+	  <filename>.exe</filename></quote> (cuando el fichero
+	  <filename>.cpp</filename> es más reciente que el fichero
+	  .<filename>.exe</filename>). Como antes, se usa la macro
+	  <literal>$(CPP)</literal>, pero aquí aparece algo nuevo:
+	  <literal>$&lt;</literal>. Como empieza con un '$' es que es
+	  una macro, pero esta es una de las macros especiales
+	  predefinidas por <command>make</command>. El
+	  <literal>$&lt;</literal> se puede usar sólo en reglas de
+	  sufijom y significa <quote>cualquier prerrequisito que dispare
+	  la regla</quote> (a veces llamado
+	  <emphasis>dependencia</emphasis>), que en este caso se refiere
+	  al <quote>fichero <filename>.cpp</filename> que necesita ser
+	  compilado</quote>.
 	</para>
 
 	<!--
@@ -5008,6 +5069,11 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
 	-->
 
 	<para>
+	  Una ver que las reglas de sufijo se han fijado, puede indicar
+	  por ejemplo algo tan simple como <command>make
+	  Union.exe</command> y se aplicará la regla sufijo, incluso
+	  aunque no se mencione <quote>Union</quote> en ninguna parte
+	  del <filename>makefile</filename>.
 	</para>
 
       </sect3>
@@ -5290,13 +5356,374 @@ A partir de aquí hay marcado DocBook. Traducido por David Villa
       <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
     </para>
   </sect1>
-
+ 
   <sect1>
     <title>Ejercicios</title>
     <xi:include parse="xml" href="./ejercicios.xml"/>
 
-    <para>
-    </para>
+    <orderedlist>
+      <listitem>
+	<!--
+	1. Create a header file (with an extension of '.h'). In this
+	file, declare a group of functions by varying the argument lists
+	and return values from among the following: void, char, int, and
+	float. Now create a .cpp file that includes your header file and
+	creates definitions for all of these functions. Each definition
+	should simply print out the function name, argument list, and
+	return type so you know it's been called. Create a second .cpp
+	file that includes your header file and defines int main( ),
+	containing calls to all of your functions. Compile and run your
+	program.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	2. Write a program that uses two nested for loops and the
+	modulus operator (%) to detect and print prime numbers (integral
+	numbers that are not evenly divisible by any other numbers
+	except for themselves and 1).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	3. Write a program that uses a while loop to read words from
+	standard input (cin) into a string. This is an "infinite"
+	while loop, which you break out of (and exit the program) using
+	a break statement. For each word that is read, evaluate it by
+	first using a sequence of if statements to "map" an integral
+	value to the word, and then use a switch statement that uses
+	that integral value as its selector (this sequence of events is
+	not meant to be good programming style; it's just supposed to
+	give you exercise with control flow). Inside each case, print
+	something meaningful. You must decide what the "interesting"
+	words are and what the meaning is. You must also decide what
+	word will signal the end of the program. Test the program by
+	redirecting a file into the program's standard input (if you
+	want to save typing, this file can be your program's source
+	file).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	4. Modify Menu.cpp to use switch statements instead of if
+	statements.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	5. Write a program that evaluates the two expressions in the
+	section labeled "precedence."
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	6. Modify YourPets2.cpp so that it uses various different data
+	types (char, int, float, double, and their variants). Run the
+	program and create a map of the resulting memory layout. If you
+	have access to more than one kind of machine, operating system,
+	or compiler, try this experiment with as many variations as you
+	can manage.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	7. Create two functions, one that takes a string* and one that
+	takes a string&. Each of these functions should modify the
+	outside string object in its own unique way. In main( ), create
+	and initialize a string object, print it, then pass it to each
+	of the two functions, printing the results.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	8. Write a program that uses all the trigraphs to see if your
+	compiler supports them.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	9. Compile and run Static.cpp. Remove the static keyword from
+	the code, compile and run it again, and explain what happens.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	10. Try to compile and link FileStatic.cpp with
+	FileStatic2.cpp. What does the resulting error message mean?
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	11. Modify Boolean.cpp so that it works with double values
+	instead of ints.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	12. Modify Boolean.cpp and Bitwise.cpp so they use the explicit
+	operators (if your compiler is conformant to the C++ Standard it
+	will support these).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	13. Modify Bitwise.cpp to use the functions from
+	Rotation.cpp. Make sure you display the results in such a way
+	that it's clear what's happening during rotations.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	14. Modify Ifthen.cpp to use the ternary if-else operator (?:).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+        15. Create a struct that holds two string objects and one
+	int. Use a typedef for the struct name. Create an instance of
+	the struct, initialize all three values in your instance, and
+	print them out. Take the address of your instance and assign it
+	to a pointer to your struct type. Change the three values in
+	your instance and print them out, all using the pointer.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	16. Create a program that uses an enumeration of colors. Create
+	a variable of this enum type and print out all the numbers that
+	correspond with the color names, using a for loop.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	17. Experiment with Union.cpp by removing various union elements
+	to see the effects on the size of the resulting union. Try
+	assigning to one element (thus one type) of the union and
+	printing out a via a different element (thus a different type)
+	to see what happens.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	18. Create a program that defines two int arrays, one right
+	after the other. Index off the end of the first array into the
+	second, and make an assignment. Print out the second array to
+	see the changes cause by this. Now try defining a char variable
+	between the first array definition and the second, and repeat
+	the experiment. You may want to create an array printing
+	function to simplify your coding.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	19. Modify ArrayAddresses.cpp to work with the data types char,
+	long int, float, and double.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	20. Apply the technique in ArrayAddresses.cpp to print out the
+	size of the struct and the addresses of the array elements in
+	StructArray.cpp.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	21. Create an array of string objects and assign a string to
+	each element. Print out the array using a for loop.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	22. Create two new programs starting from ArgsToInts.cpp so they
+	use atol( ) and atof( ), respectively.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	23. Modify PointerIncrement2.cpp so it uses a union instead of a
+	struct.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	24. Modify PointerArithmetic.cpp to work with long and long
+	double.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	25. Define a float variable. Take its address, cast that address
+	to an unsigned char, and assign it to an unsigned char
+	pointer. Using this pointer and [ ], index into the float
+	variable and use the printBinary( ) function defined in this
+	chapter to print out a map of the float (go from 0 to
+	sizeof(float)). Change the value of the float and see if you can
+	figure out what's going on (the float contains encoded data).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	26. Define an array of int. Take the starting address of that
+	array and use static_cast to convert it into an void*. Write a
+	function that takes a void*, a number (indicating a number of
+	bytes), and a value (indicating the value to which each byte
+	should be set) as arguments. The function should set each byte
+	in the specified range to the specified value. Try out the
+	function on your array of int.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	27. Create a const array of double and a volatile array of
+	double. Index through each array and use const_cast to cast each
+	element to non-const and non-volatile, respectively, and assign
+	a value to each element.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	28. Create a function that takes a pointer to an array of double
+	and a value indicating the size of that array. The function
+	should print each element in the array. Now create an array of
+	double and initialize each element to zero, then use your
+	function to print the array. Next use reinterpret_cast to cast
+	the starting address of your array to an unsigned char*, and set
+	each byte of the array to 1 (hint: you'll need to use sizeof to
+	calculate the number of bytes in a double). Now use your
+	array-printing function to print the results. Why do you think
+	each element was not set to the value 1.0?
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	29. (Challenging) Modify FloatingAsBinary.cpp so that it prints
+	out each part of the double as a separate group of bits. You'll
+	have to replace the calls to printBinary( ) with your own
+	specialized code (which you can derive from printBinary( )) in
+	order to do this, and you'll also have to look up and
+	understand the floating-point format along with the byte
+	ordering for your compiler (this is the challenging part).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	30. Create a makefile that not only compiles YourPets1.cpp and
+	YourPets2.cpp (for your particular compiler) but also executes
+	both programs as part of the default target behavior. Make sure
+	you use suffix rules.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	31. Modify StringizingExpressions.cpp so that P(A) is
+	conditionally #ifdefed to allow the debugging code to be
+	automatically stripped out by setting a command-line flag. You
+	will need to consult your compiler's documentation to see how
+	to define and undefine preprocessor values on the compiler
+	command line.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--	
+	32. Define a function that takes a double argument and returns
+	an int. Create and initialize a pointer to this function, and
+	call the function through your pointer.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	33. Declare a pointer to a function taking an int argument and
+	returning a pointer to a function that takes a char argument and
+	returns a float.
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	34. Modify FunctionTable.cpp so that each function returns a
+	string (instead of printing out a message) and so that this
+	value is printed inside of main( ).
+	-->
+	<para>
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	35. Create a makefile for one of the previous exercises (of your
+	choice) that allows you to type make for a production build of
+	the program, and make debug for a build of the program including
+	debugging information.
+	-->
+	<para>
+	</para>
+      </listitem>
+    </orderedlist>
   </sect1>
 </chapter>
 
