@@ -27,6 +27,7 @@ html: tagged.xml
 	  --stringparam base.dir html/ \
 	  --output  $@  $(XSL_HTML)  $<
 
+	cp images/*.gif html/images/
 	cp images/web/* html/images/
 	cp stylesheets/*.css html/
 

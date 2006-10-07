@@ -618,5 +618,10 @@
     <xsl:text>\usepackage[pdftex,bookmarksnumbered,colorlinks,linkcolor=blue,urlcolor=blue,backref,bookmarks,breaklinks,linktocpage,plainpages=false,pdfstartview=FitH]{hyperref} &#10;</xsl:text>
   </xsl:template>
 
+  <xsl:template match="imagedata">
+    <xsl:text>
+      [[- IMAGEN NO DISPONIBLE AÚN -]]
+    </xsl:text>
+  </xsl:template>
 
 </xsl:stylesheet>
