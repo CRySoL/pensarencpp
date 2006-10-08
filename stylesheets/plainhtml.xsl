@@ -82,7 +82,7 @@
 
             <xsl:if test="$row1">
               <tr>
-                <td class="navititle"> <!-- flecha prev -->
+                <td class="navititle" width="1%"> <!-- flecha prev -->
 		  <xsl:choose>
 		    <xsl:when test="count($prev)&gt;0">
                     <a accesskey="p">
@@ -156,7 +156,7 @@
                   </xsl:choose>
 		</td>
 
-		<td class="navititle" align="right"> <!-- flecha next -->
+		<td class="navititle" width="1%" align="right"> <!-- flecha next -->
 		  <xsl:choose>
                   <xsl:when test="count($next)&gt;0">
                     <a accesskey="n">
@@ -319,5 +319,10 @@
     </b>
   </xsl:template>
 
+  <xsl:template match="type">
+    <tt>
+      <xsl:apply-templates/>
+    </tt>
+  </xsl:template>
 
 </xsl:stylesheet>
