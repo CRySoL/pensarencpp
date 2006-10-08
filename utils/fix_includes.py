@@ -7,6 +7,8 @@ regex = [
     ('\n\s*\n\s*//:\s*C(\d{2}):([\w\d\.]+)\s*[\{\}OL]*\n', '\n\n<programlisting>\n' +\
      '<xi:include parse="text" href="./code/C\\1/\\2"/>\n' +\
      '</programlisting>\n\n'),
+    ('\$Date:\s(\d{4}-\d{2}-\d{2}).*\$', '\\1'),
+    ('\$Revision:\s(\d+).*\$','\\1'),
     ]
 
 if len(sys.argv) > 1: 
