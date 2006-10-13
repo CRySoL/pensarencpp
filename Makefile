@@ -31,7 +31,7 @@ html: tagged.xml
 	cp images/web/* html/images/
 	cp stylesheets/*.css html/
 
-	ls html/*.html | xargs python utils/html_colorize.py 
+	grep -l BEGINCODE html/*.html | xargs python utils/html_colorize.py 
 	$(RM) html/*.code
 
 	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null

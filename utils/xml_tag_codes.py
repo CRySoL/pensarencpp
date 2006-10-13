@@ -3,7 +3,7 @@
 import sys, re
 
 regex = [
-    ('\n?\s*(<programlisting[\s\w\"=]*>)\s*\n*', '\n\n\\1\n [BEGINCODE] \n'),
+    ('\n?\s*(<programlisting(?:\s[\s\w\"=]*)?>)\s*\n*', '\n\n\\1\n [BEGINCODE] \n'),
     ('\n?\s*(</programlisting>)\s*\n', '\n [ENDCODE] \n\\1\n\n'),
     ]
 
