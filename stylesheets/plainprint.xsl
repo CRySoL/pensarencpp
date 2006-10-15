@@ -219,12 +219,13 @@
       <xsl:text><![CDATA[
 % --- PEC++ ---
 
+%-- headings
 \fancyhf{}
 \fancyhead[EL]{\nouppercase{\leftmark}}
 \fancyhead[OR]{\hfill\nouppercase{\rightmark}}
 \fancyfoot[EL,OR]{\thepage}
-\parskip=5pt
 
+% para las páginas de título
 \fancypagestyle{plain}{%
 \fancyhf{}%
 \fancyfoot[R]{\thepage}
@@ -232,6 +233,30 @@
 \renewcommand{\footrulewidth}{0.4pt}}
 
 \addtolength{\headwidth}{20pt}
+
+
+\parskip=5pt
+
+%-- títulos
+\usepackage{titlesec}
+\titleformat{\chapter}
+	{}
+	{\Huge \thechapter{}:}
+	{10pt}
+	{\Huge}
+
+\titlespacing{\chapter}
+	{-0.5cm}{3cm}{0pt}
+
+\titleformat{\section}
+	{}
+	{\LARGE \thesection}
+	{10pt}
+	{\LARGE}
+
+\titlespacing{\section}
+	{-0.5cm}{.5cm}{0pt}
+
 
 % --- end ---
 ]]></xsl:text>
@@ -411,7 +436,7 @@
 \AfterBeginDocument{
 % --- PEC++ ---
 \renewcommand{\chaptermark}[1]{%
-\markboth{\thechapter.\ #1}{}}
+\markboth{\thechapter:\ #1}{}}
 % --- end ---
 }
 ]]></xsl:text>
@@ -602,7 +627,7 @@
   </xsl:template>
   
 
-<!-- PROPIAS -->
+<!-- PEC++ -->
 
 
   <xsl:template match="literal|filename|para/code">
@@ -622,6 +647,12 @@
     <xsl:text>
       [[- IMAGEN NO DISPONIBLE AÚN -]]
     </xsl:text>
+  </xsl:template>
+
+  <xsl:template match="highlights">
+    <xsl:text>{\fontsize{13}{18pt} \selectfont\textbf{</xsl:text>
+    <xsl:apply-templates/>
+    <xsl:text>}}\\ \par</xsl:text>
   </xsl:template>
 
 </xsl:stylesheet>

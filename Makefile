@@ -14,10 +14,12 @@ MAIN=PensarEnC++
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
 all: html $(MAIN).pdf
+
+install: all
 	@-mkdir products
 	mv html products/
 	mv $(MAIN).pdf products/
-
+	scp html/* arco:public_html/pensar_en_C++/
 
 html: tagged.xml
 	@-mkdir -p html/images
@@ -50,7 +52,7 @@ $(MAIN).tex: raw.tex
 	python utils/latex_filter.py $< $@
 
 
-raw.tex: final.xml
+raw.tex: final.xml stylesheets/plainprint.xsl
 	@echo '-- Building LaTeX '
 	xsltproc --nonet --noout -o raw.tex --xinclude \
 	  --stringparam l10n.gentext.default.language es \
@@ -108,6 +110,6 @@ clean:
 vclean: clean
 
 # Otras tareas
-install: 
-	scp html/* arco:public_html/pensar_en_C++/
+
+
 
