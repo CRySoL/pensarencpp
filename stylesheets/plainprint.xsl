@@ -650,7 +650,7 @@
   </xsl:template>
 
   <xsl:template match="highlights">
-    <xsl:text>{\fontsize{13}{18pt} \selectfont\textbf{</xsl:text>
+    <xsl:text>{\fontsize{13}{13pt} \selectfont\textbf{</xsl:text>
     <xsl:apply-templates/>
     <xsl:text>}}\\ \par</xsl:text>
   </xsl:template>
