@@ -74,6 +74,7 @@ final.xml: $(FILES)
 	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > join.xml
 	@echo "--- Eliminando xmlns y traducción de tags extra"
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
+	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
 
 
