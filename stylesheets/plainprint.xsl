@@ -643,10 +643,15 @@
     <xsl:text>\usepackage[pdftex,bookmarksnumbered,colorlinks,linkcolor=blue,urlcolor=blue,backref,bookmarks,breaklinks,linktocpage,plainpages=false,pdfstartview=FitH]{hyperref} &#10;</xsl:text>
   </xsl:template>
 
-  <xsl:template match="imagedata">
-    <xsl:text>
-      [[- IMAGEN NO DISPONIBLE AÚN -]]
-    </xsl:text>
+  <xsl:template match="imagedata[@format='PNG']">
+      <xsl:text>
+\vspace{0.5cm}
+\begin{center}
+\includegraphics[scale=0.75]{</xsl:text>
+      <xsl:value-of select="@fileref"/>
+      <xsl:text>}
+\end{center}
+</xsl:text>
   </xsl:template>
 
   <xsl:template match="highlights">
