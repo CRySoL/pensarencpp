@@ -13,7 +13,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=PensarEnC++
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: html $(MAIN).pdf
+all: html $(MAIN).pdf make_images
 
 install: all
 	@-mkdir products
@@ -77,6 +77,9 @@ final.xml: $(FILES)
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
 
+
+make_images:
+	$(MAKE) -C images
 
 
 validate:
