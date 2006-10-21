@@ -258,6 +258,10 @@
 	{-0.5cm}{.5cm}{0pt}
 
 
+
+\usepackage{listings}
+
+
 % --- end ---
 ]]></xsl:text>
 
@@ -643,14 +647,15 @@
     <xsl:text>\usepackage[pdftex,bookmarksnumbered,colorlinks,linkcolor=blue,urlcolor=blue,backref,bookmarks,breaklinks,linktocpage,plainpages=false,pdfstartview=FitH]{hyperref} &#10;</xsl:text>
   </xsl:template>
 
-  <xsl:template match="imagedata[@format='PNG']">
-      <xsl:text>
-\vspace{0.5cm}
+  <xsl:template match="imagedata">
+    <xsl:text>
+\vspace{0.4cm}
 \begin{center}
-\includegraphics[scale=0.75]{</xsl:text>
-      <xsl:value-of select="@fileref"/>
-      <xsl:text>}
+\includegraphics[scale=.8]{</xsl:text>
+    <xsl:value-of select="@fileref"/>
+    <xsl:text>}
 \end{center}
+\vspace{0.4cm}
 </xsl:text>
   </xsl:template>
 
@@ -660,4 +665,10 @@
     <xsl:text>}}\\ \par</xsl:text>
   </xsl:template>
 
+  <xsl:template match="programlisting">
+    <xsl:text>&#10;\begin{lstlisting}&#10;</xsl:text>
+    <xsl:apply-templates mode="latex.verbatim"/>
+    <xsl:text>&#10;\end{lstlisting}&#10;</xsl:text>
+  </xsl:template>
+  
 </xsl:stylesheet>
