@@ -25,9 +25,9 @@
   <!-- PEC++ -->
   <xsl:variable name="latex.admonition.path">/usr/share/xml/docbook/stylesheet/db2latex/latex/figures</xsl:variable>
 
-  <xsl:output encoding="UTF-8"/>
+  <xsl:output encoding="iso-8859-1"/>
 
-  <xsl:variable name="latex.inputenc">utf8x</xsl:variable>
+<!--   <xsl:variable name="latex.inputenc">utf8x</xsl:variable> -->
 
   <xsl:variable name="latex.use.ucs">1</xsl:variable>
   <xsl:variable name="latex.ucs.options">postscript</xsl:variable>
@@ -257,9 +257,26 @@
 \titlespacing{\section}
 	{-0.5cm}{.5cm}{0pt}
 
-
-
+\usepackage{color}
+\definecolor{grisclaro}{gray}{0.95}
 \usepackage{listings}
+%\lstdefinestyle{default}{frame=l}
+\lstset{%style=default,
+	frame=Ltb,
+	framerule=0pt,
+	%aboveskip=3cm,
+	framextopmargin=6pt,
+	framexbottommargin=6pt,
+	framexleftmargin=12pt,
+	framesep=0pt,
+	rulesep=.4pt,
+	backgroundcolor=\color{grisclaro},
+	%fillcolor=\color{blue},
+	%rulecolor=\color{red},
+	rulesepcolor=\color{black},
+	language=C++,
+	stringstyle=\ttfamily,
+	showstringspaces = false} 
 
 
 % --- end ---
@@ -666,9 +683,9 @@
   </xsl:template>
 
   <xsl:template match="programlisting">
-    <xsl:text>&#10;\begin{lstlisting}&#10;</xsl:text>
+    <xsl:text>&#10;\begin{lstlisting}</xsl:text>
     <xsl:apply-templates mode="latex.verbatim"/>
-    <xsl:text>&#10;\end{lstlisting}&#10;</xsl:text>
+    <xsl:text>\end{lstlisting}&#10;</xsl:text>
   </xsl:template>
   
 </xsl:stylesheet>
