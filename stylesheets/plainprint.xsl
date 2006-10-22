@@ -248,35 +248,60 @@
 \titlespacing{\chapter}
 	{-0.5cm}{3cm}{0pt}
 
+
 \titleformat{\section}
 	{}
-	{\LARGE \thesection}
+	{\LARGE \thesection.}
 	{10pt}
 	{\LARGE}
 
 \titlespacing{\section}
 	{-0.5cm}{.5cm}{0pt}
 
+
+\titleformat{\subsection}
+	{}
+	{\Large \thesubsection.}
+	{7pt}
+	{\Large}
+
+\titlespacing{\subsection}
+	{0cm}{.5cm}{0pt}
+
+
+\titleformat{\subsubsection}
+	{\bfseries}
+	{\large}
+	{0pt}
+	{\large}
+
+\titlespacing{\subsubsection}
+	{0cm}{.3cm}{0pt}
+
+
+
 \usepackage{color}
-\definecolor{grisclaro}{gray}{0.95}
+\definecolor{grisfondo}{gray}{0.97}
+\definecolor{lstcomment}{gray}{.45}
 \usepackage{listings}
-%\lstdefinestyle{default}{frame=l}
-\lstset{%style=default,
-	frame=Ltb,
+\lstset{frame=Ltb,
 	framerule=0pt,
-	%aboveskip=3cm,
+	aboveskip=0.5cm,
 	framextopmargin=6pt,
 	framexbottommargin=6pt,
-	framexleftmargin=12pt,
+	framexleftmargin=0.5cm,
 	framesep=0pt,
 	rulesep=.4pt,
-	backgroundcolor=\color{grisclaro},
-	%fillcolor=\color{blue},
-	%rulecolor=\color{red},
+	backgroundcolor=\color{grisfondo},
 	rulesepcolor=\color{black},
+	%
 	language=C++,
 	stringstyle=\ttfamily,
-	showstringspaces = false} 
+	showstringspaces = false,
+	basicstyle=\small\ttfamily,
+	commentstyle=\color{lstcomment},
+	keywordstyle=\bfseries,
+	} 
 
 
 % --- end ---
