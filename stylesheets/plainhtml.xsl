@@ -4,8 +4,14 @@
      You may use this file in accordance to the GNU Free Documentation License
      Version 1.1 which is available from http://www.gnu.org. -->
 
-<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/profile-chunk.xsl" />
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+  version="1.0">
+
+<!--
+  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/profile-chunk.xsl"/>
+-->
+  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/chunk.xsl"/>
+
   <xsl:param name="html.stylesheet">gimp-help-plain.css
     gimp-help-screen.css gimp-help-custom.css highlight.css</xsl:param>
   <xsl:param name="generate.index">1</xsl:param>
@@ -43,14 +49,19 @@
   
   <!-- custom header and footer navigation -->
   <xsl:template name="header.navigation">
+    <xsl:param name="prev" select="/foo"/>
+    <xsl:param name="next" select="/foo"/>
+    <xsl:param name="nav.context"/>
+
     <xsl:call-template name="footer.navigation">
-      <xsl:with-param name="prev" select="$prev" />
-      <xsl:with-param name="next" select="$next" />
-      <xsl:with-param name="nav.context" select="$nav.context" />
+      <xsl:with-param name="prev" select="$prev"/>
+      <xsl:with-param name="next" select="$next"/>
+      <xsl:with-param name="nav.context" select="$nav.context"/>
       <xsl:with-param name="gen_row2" select="'no'"/>
     </xsl:call-template>
-
   </xsl:template>
+
+
   <xsl:template name="footer.navigation">
     <xsl:param name="prev" select="/foo"/>
     <xsl:param name="next" select="/foo"/>
