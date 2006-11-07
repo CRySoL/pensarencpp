@@ -15,7 +15,7 @@ FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
 all: html $(MAIN).pdf make_images
 
-install: all
+pack: all
 	@-mkdir products
 	mv html products/
 	mv $(MAIN).pdf products/
@@ -98,6 +98,8 @@ code:   $(VOL1_CODE)
 
 $(VOL1_CODE): $(VOL1_ALL)
 	unzip $< $@
+
+
 
 # Limpieza
 clean:
