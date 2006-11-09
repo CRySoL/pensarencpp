@@ -5210,7 +5210,6 @@ int i, j, k;
       <!--
       If your compiler complies with Standard C++, it will support these
       keywords.
-
       -->
 
       <para>
@@ -5221,85 +5220,1458 @@ int i, j, k;
   </sect1>
 
 
-
-
-
-
   <sect1>
+    <!-- Composite type creation -->
     <title>Creación de tipos compuestos</title>
+
+    <!--
+    The fundamental data types and their variations are essential, but
+    rather primitive. C and C++ provide tools that allow you to compose
+    more sophisticated data types from the fundamental data types. As
+    you'll see, the most important of these is struct, which is the
+    foundation for class in C++. However, the simplest way to create
+    more sophisticated types is simply to alias a name to another name
+    via typedef.
+    -->
+
     <para>
+      Los tipos de datos fundamentales y sus variaciones son esenciales,
+      pero más bien primitivos. C y C++ incorporan herramientas que
+      permiten construir tipos de datos más sofisticados a partir de los
+      tipos de datos fundamentales. Como se verá, el más importante de
+      estos es struct, el cual es el cimiento de las class en C++.  Sin
+      embargo, la manera más simple de crear tipos más sofisticados es
+      simplemente dando un alias a otro nombre mediante typedef.
     </para>
-    
-    <sect2>
-      <title>Operadores explícitos</title>
-      <para>
-      </para>
-    </sect2>
 
     <sect2>
+      <!-- Aliasing names with typedef  -->
       <title>Creación de alias usando <kw>typedef</kw></title>
+
+      <!--
+      This keyword promises more than it delivers: typedef suggests
+      "type definition" when "alias" would probably have been a more
+      accurate description, since that's what it really does. The syntax
+      is:
+      -->
+
       <para>
+        Esta palabra reservada promete más de lo que da: typedef sugiere
+        "definición de tipo" cuando "alias" habría sido una descripción
+        más acertada probablemente, ya que es lo que realmente hace. La
+        sintaxis es:
+      </para>
+
+      <!--
+      typedef existing-type-description alias-name
+      -->
+
+      <para>
+      typedef descripcion-de-tipo-existente nombre-alias
+      </para>
+
+      <!--
+      People often use typedef when data types get slightly complicated,
+      just to prevent extra keystrokes. Here is a commonly-used typedef:
+      -->
+
+      <para>
+      La gente a menudo se utiliza typedef cuando los tipos de datos se
+      complican un poco, simplemente para evitar enredos de claves
+      extra. A continuación una forma común de utilizar typedef:
+      </para>
+
+
+<programlisting>
+typedef
+ unsigned long ulong; 
+</programlisting> 
+
+
+      <!--
+      Now if you say ulong the compiler knows that you mean unsigned
+      long. You might think that this could as easily be accomplished
+      using preprocessor substitution, but there are key situations in
+      which the compiler must be aware that you're treating a name as if
+      it were a type, so typedef is essential.
+
+      One place where typedef comes in handy is for pointer types. As
+      previously mentioned, if you say:
+      -->
+
+      <para>
+        Ahora si se dice ulong el compilador sabe de lo que a lo que se
+        está haciendo referencia a unsigned long. Se puede pensar que
+        esto puede lograrse fácilmente utilizando sustitución en el
+        preprocesador, pero hay situaciones clave en las cuales el
+        compilador debe estar advertido de que se está tratando un
+        nombre como si fuese un tipo, de ahí que typedef sea esencial.
+      </para>
+
+
+<programlisting>
+int
+* x, y;
+</programlisting>
+
+ 
+      <!--
+      This actually produces an int* which is x and an int (not an int*)
+      which is y. That is, the '*' binds to the right, not the
+      left. However, if you use a typedef:
+      -->
+
+      <para>
+      Esto genera en realidad un int* que es la x, y un int (no un int*)
+      que es la y. Esto significa que el '*' añade a la derecha, no a la
+      izquierda. De todos modos, si se utiliza un typedef:
+      </para>
+
+
+<programlisting>
+typedef
+ int* IntPtr;
+IntPtr x, y;
+</programlisting>
+
+ 
+      <!--
+      Then both x and y are of type int* .
+      -->
+
+      <para>
+        Entonces ambos, x e y son del tipo int*.
+      </para>
+
+      <!--
+      You can argue that it's more explicit and therefore more readable
+      to avoid typedefs for primitive types, and indeed programs rapidly
+      become difficult to read when many typedefs are used. However,
+      typedefs become especially important in C when used with struct.
+      -->
+
+      <para>
+        Se puede discutir esto y decir que es mas explícito y por
+        consiguiente mas legible evitar typedefs para los tipos
+        primitivos, y de hecho los programas se hacen dificultosos de
+        leer cuando se utilizan demasiados typedefs. De todos modos, los
+        typedefs se vuelven especialmente importantes en C cuando se
+        utilizan con un struct.
       </para>
     </sect2>
 
+
     <sect2>
+      <!-- Combinar variables con struct -->
       <title>
-	Usar <kw>struct</kw> para combinar variables
+        Usar <kw>struct</kw> para combinar variables
       </title>
-      <para>
-      </para>
-      <sect3>
-	<title>Punteros y estructuras</title>
-	<para>
-	</para>
-      </sect3>
+         
+      <!--
+      A struct is a way to collect a group of variables into a
+      structure. Once you create a struct, then you can make many
+      instances of this "new" type of variable you've invented. For
+      example:
+      -->
 
+      <para>
+        Un struct es una manera de juntar un grupo de variables en una
+        estructura. Cuando se crea un struct, se pueden crear varias
+        instancias de este "nuevo" tipo de variable que se ha
+        inventado. Por ejemplo:
+      </para>
+
+
+//: C03:SimpleStruct.cpp
+ 
+     
+      <!--
+      The struct declaration must end with a semicolon. In main( ), two
+      instances of Structure1 are created: s1 and s2. Each of these has
+      their own separate versions of c, i, f, and d. So s1 and s2
+      represent clumps of completely independent variables. To select
+      one of the elements within s1 or s2, you use a '.', syntax you've
+      seen in the previous chapter when using C++ class objects - since
+      classes evolved from structs, this is where that syntax arose
+      from. 
+      -->
+
+      <para>
+        La declaración de struct debe acabar con una llave.  En main(),
+        se crean dos instancias de Structure1: s1 y s2.  Cada una de
+        ellas tiene su versión propia y separada de c, I, f y d. De modo
+        que s1 y s2 representan bloques de variables completamente
+        independientes. Para seleccionar uno de estos elementos dentro
+        de s1 o s2, se utiliza un '.', sintaxis que se ha visto en el
+        cápitulo previo cuando se utilizaban objectos del tipo class de
+        C++ - ya que las classes surgían de structs, es a partir de allí
+        de donde sale esta sintaxis.
+      </para>
+
+      <!--
+      One thing you'll notice is the awkwardness of the use of
+      Structure1 (as it turns out, this is only required by C, not
+      C++). In C, you can't just say Structure1 when you're defining
+      variables, you must say struct Structure1. This is where typedef
+      becomes especially handy in C:
+      -->
+
+      <para>
+        Una cosa a tener en cuenta es la torpeza de utilizar Structure1
+        (como salta a la vista, esto solo es requerido en C, y no en
+        C++). En C, no se puede decir Structure1 cuando se definen
+        variables, se debe decir struct Structure1. Aquí es donde
+        typedef se vuelve especialmente util en C:
+      </para>
+
+
+//: C03:SimpleStruct2.cpp
+ 
+     
+      <!--
+      By using typedef in this way, you can pretend (in C; try removing
+      the typedef for C++) that Structure2 is a built-in type, like int
+      or float, when you define s1 and s2 (but notice it only has data -
+      characteristics - and does not include behavior, which is what we
+      get with real objects in C++). You'll notice that the struct
+      identifier has been left off at the beginning, because the goal is
+      to create the typedef. However, there are times when you might
+      need to refer to the struct during its definition. In those cases,
+      you can actually repeat the name of the struct as the struct name
+      and as the typedef:
+      -->
+
+      <para>
+        Mediante esta manera de utilizar typedef, se puede simular (en
+        C; intentar remover el typedef para C++) que Structure2 es un
+        tipo definido por defecto, como int o float, cuando se define s1
+        y s2 (pero se ha de tener en cuenta de que solo tiene
+        información- características - y no incluye comportamiento, que
+        es lo que se obtiene con los objetos reales en C++). Observar
+        que el struct se ha declarado al principio, porque la meta es
+        crear el typedef. En cualquier caso, hay veces en las que sería
+        necesario referirse a struct durante esta definición. En estos
+        casos, se puede repetir el nombre del struct como tal y como
+        typedef.
+      </para>
+
+
+//: C03:SelfReferential.cpp
+
+ 
+      <!--
+      If you look at this for awhile, you'll see that sr1 and sr2 point
+      to each other, as well as each holding a piece of data.
+      -->
+
+      <para>
+        Si se observa esto detenidamente, se puede ver que sr1 y sr2
+        apuntan el uno al otro, así como cada uno aloja una información.
+     </para>
+      
+      <!--
+      Actually, the struct name does not have to be the same as the
+      typedef name, but it is usually done this way as it tends to keep
+      things simpler.
+      -->
+
+      <para>
+        En realidad, el nombre struct no tiene que ser lo mismo que el
+        nombre typedef, pero se hace normalmente de esta manera ya que
+        tiene a simplificar las cosas.
+      </para>
+
+
+      <sect3>
+        <!-- Pointers and structs -->
+        <title>Punteros y estructuras</title>
+
+        <!--
+        In the examples above, all the structs are manipulated as
+        objects. However, like any piece of storage, you can take the
+        address of a struct object (as seen in SelfReferential.cpp
+        above). To select the elements of a particular struct object,
+        you use a '.', as seen above. However, if you have a pointer to
+        a struct object, you must select an element of that object using
+        a different operator: the ' ->'. Here's an example:
+        -->
+
+        <para>
+          En el ejemplo anterior, todos los structs se manipulan como
+          objetos. De todos modos como en cualquier elemento de
+          almacenaje, se puede tomar la dirección de un objeto struct
+          (como se ha visto en SelfReferential.cpp anteriormente). Para
+          seleccionar los elementos de un objeto struct en particular,
+          se utiliza un '.', como se ha visto anteriormente. En
+          cualquier caso, si se tiene un puntero a un objeto struct, se
+          debe seleccionar un elemento de dicho objeto utilizando un
+          operador distinto: el '->'. A continuación un ejemplo:
+        </para>
+        
+
+//: C03:SimpleStruct3.cpp
+ 
+     
+        <!--
+        In main( ), the struct pointer sp is initially pointing to s1,
+        and the members of s1 are initialized by selecting them with the
+        '->' (and you use this same operator in order to read those
+        members). But then sp is pointed to s2, and those variables are
+        initialized the same way. So you can see that another benefit of
+        pointers is that they can be dynamically redirected to point to
+        different objects; this provides more flexibility in your
+        programming, as you will learn.
+        -->
+
+        <para>
+          En main(), el puntero a struct sp está apuntando inicialmente
+          a s1, y los miembros de s1 se inicializan seleccionándolos con
+          el '->' (y se utiliza este mismo operador para leer estos
+          miembros). Pero luego sp apunta a s2, y estas variables se
+          inicializan del mismo modo. Por lo que se puede ver otro
+          beneficio en el uso de punteros, ya que pueden ser redirigidos
+          dinámicamente para apuntar a diferentes objetos, esto otorga
+          más flexibilidad en la programación, como se verá.
+        </para>
+
+        <!--
+        For now, that's all you need to know about structs, but you'll
+        become much more comfortable with them (and especially their
+        more potent successors, classes) as the book progresses.
+        -->
+
+        <para>
+          De momento, es todo lo que se debe saber de structs, pero se
+          estará mucho más cómodo con ellos (y especialmente con sus
+          sucesores mas potentes, classes) a medida que se progrese en
+          este libro.
+        </para>
+      </sect3>
     </sect2>
 
     <sect2>
+      <!-- Clarifying programs with enum -->
       <title>Programas más claros gracias a <kw>enum</kw></title>
+      
+      <!--
+      An enumerated data type is a way of attaching names to numbers,
+      thereby giving more meaning to anyone reading the code. The enum
+      keyword (from C) automatically enumerates any list of identifiers
+      you give it by assigning them values of 0, 1, 2, etc. You can
+      declare enum variables (which are always represented as integral
+      values). The declaration of an enum looks similar to a struct
+      declaration.
+      -->
+
       <para>
+        Un tipo de datos enumerado es una manera de adjuntar nombres a
+        números, y por consiguiente de dar más significado a alguien que
+        lea el código. La palabra clave enum (de C) enumera
+        automáticamente cualquier lista de identificadores que se le
+        pase, asignándoles valores de 0, 1, 2, etc. Se pueden declarer
+        variables enum (las cuales siempre se representan como valores
+        enteros). La declaración de un enum se parece a la declaración
+        de un struct.
+     </para>
+
+      <!--
+      An enumerated data type is useful when you want to keep track of
+      some sort of feature:
+      -->
+
+      <para>
+        Un tipo de datos enumerado es útil cuando se quiere tener la
+        pista de alguna característica:
+      </para>
+
+
+//: C03:Enum.cpp
+
+     
+      <!--
+      shape is a variable of the ShapeType enumerated data type, and its
+      value is compared with the value in the enumeration. Since shape
+      is really just an int, however, it can be any value an int can
+      hold (including a negative number). You can also compare an int
+      variable with a value in the enumeration.
+      -->
+
+      <para>
+        shape es una variable del tipo de datos enumerado ShapeType, y
+        su valor se compara con el valor en la enumeración. Ya que shape
+        es realmente un int, de todos modos, puede ser cualquier valor
+        que un int pueda alojar (incluyendo un número negativo). Se
+        puede comparar también una variable int con un valor en la
+        enumeración.
+      </para>
+
+      <!--
+      You should be aware that the example above of switching on type
+      turns out to be a problematic way to program. C++ has a much
+      better way to code this sort of thing, the explanation of which
+      must be delayed until much later in the book.
+      -->
+
+      <para>
+        Se ha de tener en cuenta que el ejemplo anterior de intercambiar
+        los tipos tiende a ser una manera problemática de programar. C++
+        tiene un modo mucho mejor de codificar este tipo de cosas, cuya
+        explicación se pospondrá para mucho mas adelante en este libro.
+     </para>
+
+      <!--
+      If you don't like the way the compiler assigns values, you can do
+      it yourself, like this:
+      -->
+
+      <para>
+        Si el modo en que el compilador asigna los valores no es de
+        agrado, se puede hacer manualmente, como sigue:
+      </para>
+
+
+<programlisting>
+enum
+ ShapeType { 
+
+  circle = 10, square = 20, rectangle = 50
+
+}; 
+</programlisting>
+
+      
+      <!--
+      If you give values to some names and not to others, the compiler
+      will use the next integral value. For example,
+      -->
+
+      <para>
+      Si se dan valores a algunos nombres y no a otros, el compilador
+      utilizará el siguiente valor entero. Por ejemplo,
+      </para>
+
+
+<programlisting>
+enum
+ snap { crackle = 25, pop };
+</programlisting>
+     
+
+      <!--
+      The compiler gives pop the value 26.
+      -->
+
+      <para>
+        El compilador le da a pop el valor 26.
+     </para>
+
+      <!--
+      You can see how much more readable the code is when you use
+      enumerated data types. However, to some degree this is still an
+      attempt (in C) to accomplish the things that we can do with a
+      class in C++, so you'll see enum used less in C++.
+      -->
+
+      <para>
+        Se puede ver cuanto más legible es el código cuando se utilizan
+        tipos de datos enumerados. En cualquier caso, en cierto grado
+        esto sigue siendo un intento (en C) de lograr las cosas que se
+        pueden lograr con una class en C++, por lo que se verá que enum
+        se utiliza menos en C++.
       </para>
 
       <sect3>
-	<title>Comprobación de tipos para las enumeraciones</title>
-	<para>
-	</para>
+        <!-- Type checking for enumerations -->
+        <title>Comprobación de tipos para enumerados</title>
+     
+        <!--
+        C's enumerations are fairly primitive, simply associating
+        integral values with names, but they provide no type
+        checking. In C++, as you may have come to expect by now, the
+        concept of type is fundamental, and this is true with
+        enumerations. When you create a named enumeration, you
+        effectively create a new type just as you do with a class: The
+        name of your enumeration becomes a reserved word for the
+        duration of that translation unit.
+        -->
+
+        <para>
+          Las enumeraciones en C son bastante primitives, simplemente
+          asocial valores enteros con nombres, pero no aportan la
+          comprobación de tipos. En C++, como se puede esperar a esta
+          altura, el concepto de tipos es fundamental, y esto es así con
+          las enumeraciones. Cuando se crea una enumeración nombrada, se
+          crea efectivamente un Nuevo tipo, tal como se hace con una
+          clase: El nombre de la enumeración se convierte en una palabra
+          reservada durante la traducción de esta unidad.
+        </para>
+     
+
+        <!--
+        In addition, there's stricter type checking for enumerations in
+        C++ than in C. You'll notice this in particular if you have an
+        instance of an enumeration color called a. In C you can say a++,
+        but in C++ you can't. This is because incrementing an
+        enumeration is performing two type conversions, one of them
+        legal in C++ and one of them illegal. First, the value of the
+        enumeration is implicitly cast from a color to an int, then the
+        value is incremented, then the int is cast back into a color. In
+        C++ this isn't allowed, because color is a distinct type and not
+        equivalent to an int. This makes sense, because how do you know
+        the increment of blue will even be in the list of colors? If you
+        want to increment a color, then it should be a class (with an
+        increment operation) and not an enum, because the class can be
+        made to be much safer. Any time you write code that assumes an
+        implicit conversion to an enum type, the compiler will flag this
+        inherently dangerous activity.
+        -->
+
+        <para>
+          En adición, hay una comprobación de tipos mas estricta para la
+          enumeración en C++ que en C. Se evidencia esto en particular
+          si se tiene una instancia de la enumeración color llamada
+          a. en C se puede decir a++, pero en C++ no se puede. Esto es
+          debido a que el incrementar una enumeración es realizar dos
+          conversiones de tipo, uno de ellos es legal en C++ y el otro
+          es ilegal. Primero, el valor de la enumeración es simplemente
+          un molde del tipo color a un int, luego el valor es
+          incrementado, y finalmente el int se vuelve a moldear a un
+          tipo color. En C++ esto no está permitido, porque color es un
+          tipo diferente de int. Esto tiene sentido, porque ¿cómo se
+          sabe si el incremento de blue siquiera estará en la lista de
+          colores? Si se quiere incrementar un color, entonces debería
+          ser una clase (con una operación de incremento) y no un enum,
+          porque la clase se puede hacer de modo que sea mucho mas
+          segura. En cualquier caso que se escriba código que asuma una
+          conversión implícita aun tipo enum, el compilador alertará de
+          esta intrínseca y peligrosa actividad.
+        </para>
+
+        <!--
+        Unions (described next) have similar additional type checking in
+        C++.
+        -->
+
+        <para>
+          Las uniones (descriptas a continuación) tienen una comprobación
+          adicional de tipos similar en C++.
+        </para>
       </sect3>
     </sect2>
 
-
     <sect2>
+      <!-- Saving memory with union -->
       <title>Cómo ahorrar memoria con <kw>union</kw></title>
+ 
+     
+      <!--
+      Sometimes a program will handle different types of data using the
+      same variable. In this situation, you have two choices: you can
+      create a struct containing all the possible different types you
+      might need to store, or you can use a union. A union piles all the
+      data into a single space; it figures out the amount of space
+      necessary for the largest item you've put in the union, and makes
+      that the size of the union. Use a union to save memory.
+      -->
+
       <para>
+        A veces un programa trabajará con diferentes tipos de datos
+        utilizando la misma variable. En esta situación, se tienen dos
+        elecciones: se puede crear un struct que contenga todos los
+        posibles tipos que se puedan necesitar almacenar, o se puede
+        utilizar una union. Una union apila toda la información en un
+        solo espacio; calcula la cantidad de espacio necesaria para el
+        elemento mas grande que se coloca en la union, y hace de ello el
+        tamaño de la union. Se ha de utilizar union para ahorrar
+        memoria.
+      </para>
+     
+
+      <!--
+      Anytime you place a value in a union, the value always starts in
+      the same place at the beginning of the union, but only uses as
+      much space as is necessary. Thus, you create a "super-variable"
+      capable of holding any of the union variables. All the addresses
+      of the union variables are the same (in a class or struct, the
+      addresses are different).
+      -->
+
+      <para>
+        Cuando se coloca un valor en una union, el valor siempre
+        comienza en el mismo sitio al principio de la union, pero solo
+        utiliza el espacio necesario. Así, se crea una "super-variable"
+        capaz de alojar cualquiera de las variables de la union. Todas
+        las direcciones de las variables de la union son la misma (en
+        una clase o struct, las direcciones son diferentes).
+     </para>
+
+      <!--
+      Here's a simple use of a union. Try removing various elements and
+      see what effect it has on the size o f the union. Notice that it
+      makes no sense to declare more than one instance of a single data
+      type in a union (unless you're just doing it to use a different
+      name).
+      -->
+
+      <para>
+        A continuación un uso simple de una union. Intentar eliminar
+        varios elementos y observar que efecto tiene en el tamaño de la
+        union. Notar que no tiene sentido declarar mas de una instancia
+        de un solo tipo de datos en una union (a menos que se haga para
+        darle un nombre distinto).
+      </para>
+
+
+//: C03:Union.cpp
+ 
+     
+      <!--
+      The compiler performs the proper assignment according to the union
+      member you select.
+      -->
+
+      <para>
+        El compilador realiza la asignación apropiada para el miembro de
+        la union seleccionado.
+     </para>
+
+      <!--
+      Once you perform an assignment, the compiler doesn't care what you
+      do with the union. In the example above, you could assign a
+      floating-point value to x:
+      -->
+
+      <para>
+        Una vez que se realiza una asignación, al compilador le da igual
+        lo que se haga con la unión. En el ejemplo anterior, se puede
+        asignar un valor de punto-flotante a x:
+      </para>
+
+
+<programlisting>
+x.f = 2.222;
+</programlisting>
+
+      
+      <!--
+      and then send it to the output as if it were an int :
+      -->
+
+      <para>
+      Y luego enviarlo a la salida como si fuese un int:
+      </para>
+
+
+<programlisting>
+cout &lt;&lt; x.i;
+</programlisting>
+
+     
+      <!--
+      This would produce garbage.
+      -->
+
+      <para>
+        Esto generaría basura.
       </para>
     </sect2>
 
     <sect2>
       <title>Arrays</title>
+      
+      <!--
+      Arrays are a kind of composite type because they allow you to
+      clump a lot of variables together, one right after the other,
+      under a single identifier name. If you say:
+      -->
+
       <para>
+      Los vectores son una clase de tipo compuesto porque permiten
+      agrupar muchas variables juntas, una a continuación de la otra,
+      bajo un solo nombre identificador. Si se dice:
       </para>
 
+
+<programlisting>
+int
+ a[10];
+</programlisting>
+
+     
+      <!--
+      You create storage for 10 int variables stacked on top of each
+      other, but without unique identifier names for each
+      variable. Instead, they are all lumped under the name a.
+      -->
+
+      <para>
+        Se crea espacio para 10 variables int apiladas una encima de la
+        otra, pero sin identificadores únicos para cada variable. En su
+        lugar, todas responden al nombre a.
+     </para>
+
+      <!--
+      To access one of these array elements, you use the same
+      square-bracket syntax that you use to define an array:
+      -->
+
+      <para>
+        Para acceder a cualquiera de los elementos del vector, se utiliza
+        la misma sintaxis de corchetes que se utiliza para definir el
+        vector:
+      </para>
+
+
+<programlisting>
+a[5] = 47;
+</programlisting> 
+
+     
+      <!--
+      However, you must remember that even though the size of a is 10,
+      you select array elements starting at zero (this is sometimes
+      called zero indexing), so you can select only the array elements
+      0-9, like this:
+      -->
+
+      <para>
+        En cualquier caso, se debe recordar que aunque el tamaño de a es
+        10, se seleccionan los elementos del vector comenzando por cero
+        (esto se llama a veces indexado a cero), de modo que solo se
+        pueden seleccionar los elementos del vector de 0 a 9, como
+        sigue:
+      </para>
+
+
+//: C03:Arrays.cpp
+ 
+     
+      <!--
+      Array access is extremely fast. However, if you index past the end
+      of the array, there is no safety net - you'll step on other
+      variables. The other drawback is that you must define the size of
+      the array at compile time; if you want to change the size at
+      runtime you can't do it with the syntax above (C does have a way
+      to create an array dynamically, but it's significantly
+      messier). The C++ vector, introduced in the previous chapter,
+      provides an array-like object that automatically resizes itself,
+      so it is usually a much better solution if your array size cannot
+      be known at compile time.
+      -->
+
+      <para>
+        Los accesos a vectores son extremadamente rápidos, De todos
+        modos, si se indexa mas allá del final del vector, no hay
+        ninguna red de seguridad - se entrará en otras variables. La
+        otra desventaja es que se debe definir el tamaño del vector en
+        tiempo de compilación; si se quiere cambiar el tamaño en tiempo
+        de ejecución no se puede hacer con la sintaxis anterior (C tiene
+        una manera de crear un vector dinámicamente, pero es
+        significativamente mas desordenada). El vector de C++ presentado
+        en el capítulo anterior, aporta un objeto símil-vector que
+        automáticamente se redimensiona, de modo que es una solución
+        mucho mejor si el tamaño del vector no puede saberse en tiempo
+        de compilación.
+     </para>
+
+      <!--
+      You can make an array of any type, even of structs:
+      -->
+
+      <para>
+        Se puede hacer un vector de cualquier tipo, incluso de structs:
+      </para>
+
+
+//: C03:StructArray.cpp
+     
+
+      <!--
+      Notice how the struct identifier i is independent of the for
+      loop's i.
+      -->
+
+      <para>
+        Notar como el identificador struct i es independiente del i del
+        bucle for.
+     </para>
+
+      <!--
+      To see that each element of an array is contiguous with the next,
+      you can print out the addresses like this:
+      -->
+
+      <para>
+        Para ver que cada elemento del vector es contiguo con el
+        siguiente, se puede imprimir la dirección de la siguiente manera:
+      </para>
+
+
+//: C03:ArrayAddresses.cpp
+
+ 
+      <!--
+      When you run this program, you'll see that each element is one int
+      size away from the previous one. That is, they are stacked one on
+      top of the other.
+      -->
+
+      <para>
+      Cuando se ejecuta este programa, se ve que cada elemento está
+      separado por el tamaño de un int del anterior. Esto significa, que
+      están apilados uno encima del otro.
+      </para>
+
+
       <sect3>
+        <!-- Pointers and arrays -->
         <title>Punteros y arrays</title>
+
+        <!--
+        The identifier of an array is unlike the identifiers for
+        ordinary variables. For one thing, an array identifier is not an
+        lvalue; you cannot assign to it. It's really just a hook into
+        the square-bracket syntax, and when you give the name of an
+        array, without square brackets, what you get is the starting
+        address of the array:
+        -->
+
         <para>
+        El identificador de un vector es diferente de los
+        identificadores de las variables communes. Por una razón, un
+        identificador de un vector no es un lvalue; no se le puede
+        asignar algo. Es realmente un gancho dentro de la sintaxis de
+        corchetes-paréntesis, y cuando se da el nombre de un vector, sin
+        los corchetes, lo que se obtiene es la dirección inicial del
+        vector:
+        </para>
+
+
+//: C03:ArrayIdentifier.cpp
+ 
+     
+        <!--
+        When you run this program you'll see that the two addresses
+        (which will be printed in hexadecimal, since there is no cast to
+        long) are the same.
+        -->
+
+        <para>
+          Cuando se ejecuta este programa, se ve que las dos direcciones
+          (las cuales serán impresas en hexadecimal, ya que no se moldea
+          a long) son las mismas.
+        </para>
+
+        <!--
+        So one way to look at the array identifier is as a read-only
+        pointer to the beginning of an array. And although we can't
+        change the array identifier to point somewhere else, we can
+        create another pointer and use that to move around in the
+        array. In fact, the square-bracket syntax works with regular
+        pointers as well:
+        -->
+
+        <para>
+          De modo que una manera de ver el identificador de un vector es
+          como un puntero de solo lectura al principio de este. Y aunque
+          no se pueda cambiar el identificador del vector para apuntar a
+          cualquier otro sitio, se puede crear otro puntero y utilizarlo
+          para moverse dentro del vector. De hecho, la sintaxis de
+          corchetes-paréntesis trabaja con punteros regulares:
+        </para>
+
+
+//: C03:PointersAndBrackets.cpp
+
+      
+        <!--
+        The fact that naming an array produces its starting address
+        turns out to be quite important when you want to pass an array
+        to a function. If you declare an array as a function argument,
+        what you're really declaring is a pointer. So in the following
+        example, func1( ) and func2( ) effectively have the same
+        argument lists:
+        -->
+
+        <para>
+          El hecho de que nombrar un vector produzca su dirección de
+          inicio resulta ser bastante importante cuando se quiere pasar
+          un vector a una función. Si se declara un vector como un
+          argumento de una función, lo que realmente se está declarando
+          es un puntero. De modo que en el próximo ejemplo, fun1() y
+          func2() efectivamente tienen la misma lista de argumentos:
+        </para>
+
+
+//: C03:ArrayArguments.cpp
+
+ 
+        <!--
+        Even though func1( ) and func2( ) declare their arguments
+        differently, the usage is the same inside the function. There
+        are some other issues that this example reveals: arrays cannot
+        be passed by value[32], that is, you never automatically get a
+        local copy of the array that you pass into a function. Thus,
+        when you modify an array, you're always modifying the outside
+        object. This can be a bit confusing at first, if you're
+        expecting the pass-by-value provided with ordinary arguments.
+        -->
+
+        <para>
+          A pesar de que func1() y func2() declaran sus argumentos de
+          diferente modo, el uso es el mismo dentro de la función. Hay
+          otros hechos que este ejemplo revela: los vectores no pueden
+          se pasados por valor[32], esto significa, que nunca se puede
+          obtener una copia del vector que se pasa a una función
+          automáticamente. Así, cuando se modifica un vector, siempre se
+          está modificando el objeto exterior. Esto puede ser un poco
+          confuso al principio, si se espera el paso-por-valor
+          disponible con los argumentos ordinarios.
+        </para>
+
+        <!--
+        You'll notice that print( ) uses the square-bracket syntax for
+        array arguments. Even though the pointer syntax and the
+        square-bracket syntax are effectively the same when passing
+        arrays as arguments, the square-bracket syntax makes it clearer
+        to the reader that you mean for this argument to be an array.
+        -->
+
+        <para>
+          Notar que print() utiliza la sintaxis de corchetes-paréntesis
+          para los argumentos del tipo vector. Aunque la sintaxis del
+          puntero y la sintaxis de corchetes-paréntesis son
+          efectivamente lo mismo cuando se están pasando vectores como
+          argumentos, la sintaxis de corchetes-paréntesis hace mas clara
+          al lector que se quiere decir que dicho argumento es un
+          vector.
+        </para>
+
+        <!--
+        Also note that the size argument is passed in each case. Just
+        passing the address of an array isn't enough information; you
+        must always be able to know how big the array is inside your
+        function, so you don't run off the end of that array.
+        -->
+
+        <para>
+          Observar también que el argumento size se pasa en cada
+          caso. No es suficiente información pasar simplemente la
+          dirección de un vector; siempre se debe ser capaz de saber que
+          tan grande es el vector dentro de la función, de manera que no
+          se salga de los límites de dicho vector.
+        </para>
+
+        <!--
+        Arrays can be of any type, including arrays of pointers. In
+        fact, when you want to pass command-line arguments into your
+        program, C and C++ have a special argument list for main( ),
+        which looks like this:
+        -->
+
+        <para>
+          los vectores pueden ser de cualquier tipo, incluyendo vectores
+          de punteros. De hecho, cuando se quiere pasar argumentos de
+          tipo línea de comandos dentro del programa, C y C++ tienen una
+          lista de argumentos especial para main(), que se ve de esta
+          manera:
+        </para>
+
+
+<programlisting>
+int
+ main(int argc, char* argv[]) { 
+// ...
+</programlisting>      
+
+        
+        <!--
+        The first argument is the number of elements in the array, which
+        is the second argument. The second argument is always an array
+        of char*, because the arguments are passed from the command line
+        as character arrays (and remember, an array can be passed only
+        as a pointer). Each whitespace-delimited cluster of characters
+        on the command line is turned into a separate array
+        argument. The following program prints out all its command-line
+        arguments by stepping through the array:
+        -->
+
+        <para>
+          El primer argumento es el número de elementos en el vector, el
+          cual es el segundo argumento. El segundo argumento es siempre
+          un vector de char*, porque los argumentos se pasan desde la
+          línea de comandos como vectores de caracteres (y recordar, un
+          vector puede ser pasado solo como un puntero). Cada bloque de
+          caracteres delimitado por un espacio en blanco en la línea de
+          comandos se aloja en una sección separada del vector. El
+          programa a continuación imprime todos los argumentos de línea
+          de comandos recorriendo el vector:
+        </para>
+
+
+//: C03:CommandLineArgs.cpp
+     
+
+        <!--
+        You'll notice that argv[0] is the path and name of the program
+        itself. This allows the program to discover information about
+        itself. It also adds one more to the array of program arguments,
+        so a common error when fetching command-line arguments is to
+        grab argv[0] when you want argv[1].
+        -->
+
+        <para>
+          Observar que argv[0] es la ruta y el nombre del programa en sí
+          mismo. Esto permite al programa descubrir información de sí
+          mismo. También añade un argumento mas al vector de argumentos
+          del programa, de modo que un error común al recoger argumentos
+          de línea de comandos es tomar argv[0] cuando se necesita
+          argv[1].
+        </para>
+
+        <!--
+        You are not forced to use argc and argv as identifiers in main(
+        ); those identifiers are only conventions (but it will confuse
+        people if you don't use them). Also, there is an alternate way
+        to declare argv:
+        -->
+
+        <para>
+          No es obligatorio utilizar argc y argv como identificadores en
+          main(); estos identificadores solo con convenciones (pero
+          pueden confundir a la gente si no se utilizan). Además, hay un
+          modo alternativo de declarar argv:
+        </para>
+
+
+<programlisting>
+int main(int argc, char** argv) { 
+// ...
+</programlisting> 
+
+
+        <!--
+        Both forms are equivalent, but I find the version used in this
+        book to be the most intuitive when reading the code, since it
+        says, directly, "This is an array of character pointers."
+        -->
+
+        <para>
+          Ambas formas son equivalentes, pero la versión utilizada en
+          este libro es la más intuitiva al leer el código, ya que dice,
+          directamente, "Esto es un vector de punteros de caracteres."
+        </para>
+
+        <!--
+        All you get from the command-line is character arrays; if you
+        want to treat an argument as some other type, you are
+        responsible for converting it inside your program. To facilitate
+        the conversion to numbers, there are some helper functions in
+        the Standard C library, declared in &lt;cstdlib>. The simplest ones
+        to use are atoi( ), atol( ), and atof( ) to convert an ASCII
+        character array to an int, long, and double floating-point
+        value, respectively. Here's an example using atoi( ) (the other
+        two functions are called the same way):
+        -->
+
+        <para>
+          Todo lo que se obtiene de la línea de comandos son vectores de
+          caracteres; si se quiere tratar un argumento como algún otro
+          tipo, se ha de convertir dentro del programa. Para facilitar
+          la conversión a números, hay otras funciones de ayuda en la
+          librería de C Standard, declaradas en &lt;cstdlib>. Las más
+          simples de utilizar son atoi(), atol(), y atof() para
+          convertir un vector de caracteres ASCII a un int, long y al
+          valor punto-flotante double, respectivamente. A continuación
+          un ejemplo utilizando atoi() (las otras dos funciones se
+          llaman del mismo modo):
+        </para>
+
+
+//: C03:ArgsToInts.cpp
+
+ 
+        <!--
+        In this program, you can put any number of arguments on the
+        command line. You'll notice that the for loop starts at the
+        value 1 to skip over the program name at argv[0]. Also, if you
+        put a floating-point number containing a decimal point on the
+        command line, atoi( ) takes only the digits up to the decimal
+        point. If you put non-numbers on the command line, these come
+        back from atoi( ) as zero.
+        -->
+
+        <para>
+          En este programa, se puede poner cualquier número de
+          argumentos en la línea de comandos. Notas que el bucle for
+          comienza en el valor 1 para saltear el nombre del programa en
+          argv[0]. También, si se pone un numero punto-flotante que
+          contenga un punto decimal en la línea de comandos, atoi() solo
+          toma los dígitos hasta el punto decimal. Si se ponen valores
+          no numéricos en la línea de comandos, estos vuelven de atoi()
+          como ceros.
         </para>
       </sect3>
 
       <sect3>
-	<!-- Exploring floating-point format -->
-	<title>El formato de punto flotante</title>
+        <!-- Exploring floating-point format -->
+        <title>El formato de punto flotante</title>
 
-	<para>
-	</para>
+        <!--
+        The printBinary( ) function introduced earlier in this chapter
+        is handy for delving into the internal structure of various data
+        types. The most interesting of these is the floating-point
+        format that allows C and C++ to store numbers representing very
+        large and very small values in a limited amount of
+        space. Although the details can't be completely exposed here,
+        the bits inside of floats and doubles are divided into three
+        regions: the exponent, the mantissa, and the sign bit; thus it
+        stores the values using scientific notation. The following
+        program allows you to play around by printing out the binary
+        patterns of various floating point numbers so you can deduce for
+        yourself the scheme used in your compiler's floating-point
+        format (usually this is the IEEE standard for floating point
+        numbers, but your compiler may not follow that):
+        -->
+
+        <para>
+          La función printBinary() presentada anteriormente en este
+          capítulo es útil para indagar en la estructura interna de
+          varios tipos de datos. La mas interesante de ellas es el
+          formato de punto-flotante que permite a C y C++ almacenar
+          números que representan valores muy grandes y muy pequeños en
+          un limitado espacio. Aunque los detalles no pueden ser
+          completamente expuestos aquí, los bits dentro de los flotas y
+          doubles son divididos en tres regiones: el exponente, la
+          mantisa, y el signo bit; así almacena los valores utilizando
+          notación científica. El siguiente programa permite jugar con
+          esto imprimiendo los patrones binarios de varios números en
+          punto-flotante lo que se puede deducir de la plantilla
+          personal utilizada en formato de punto-flotante del compilador
+          (normalmente es el Standard IEEE para números en
+          punto-flotante, pero el puede que el compilador no aplique
+          esto):
+        </para>
+
+
+//: C03:FloatingAsBinary.cpp
+      
+
+        <!--
+        First, the program guarantees that you've given it an argument
+        by checking the value of argc, which is two if there's a single
+        argument (it's one if there are no arguments, since the program
+        name is always the first element of argv). If this fails, a
+        message is printed and the Standard C Library function exit( )
+        is called to terminate the program.
+        -->
+
+        <para>
+          En principio, el programa garantiza que se le haya pasado un
+          argumento comprobando el valor de argc, el cual es dos si hay
+          un solo argumento (es uno si no hay argumentos, ya que el
+          nombre del programa siempre es el primer elemento de argv). Si
+          esto falla, se imprime un mensaje y la función exit() de la
+          librería Standard de C es invocada para finalizar el programa.
+        </para>
+
+        <!--
+        The program grabs the argument from the command line and
+        converts the characters to a double using atof( ). Then the
+        double is treated as an array of bytes by taking the address and
+        casting it to an unsigned char*. Each of these bytes is passed
+        to printBinary( ) for display.
+        -->
+
+        <para>
+          El programa toma el argumento de la línea de comandos y
+          convierte los caracteres a double utilizando atof(). Luego el
+          double es tratado como un vector de bytes tomando la dirección
+          y moldeándola a un unsigned char*. Cada uno de estos bytes se
+          pasa a printBinary() para mostrarlos.
+        </para>
+
+        <!--
+        This example has been set up to print the bytes in an order such
+        that the sign bit appears first - on my machine. Yours may be
+        different, so you might want to re-arrange the way things are
+        printed. You should also be aware that floating-point formats
+        are not trivial to understand; for example, the exponent and
+        mantissa are not generally arranged on byte boundaries, but
+        instead a number of bits is reserved for each one and they are
+        packed into the memory as tightly as possible. To truly see
+        what's going on, you'd need to find out the size of each part of
+        the number (sign bits are always one bit, but exponents and
+        mantissas are of differing sizes) and print out the bits in each
+        part separately.
+        -->
+
+        <para>
+          Este ejemplo se ha creado para imprimir los bytes en un orden
+          tal que el signo bit aparece al principio - en esta
+          máquina. En otras máquinas puede ser diferente, por lo que se
+          puede querer re-organizar el modo en que los bytes son
+          impresos. Se debería también tener cuidado de que los formatos
+          en punto-flotante no son tan triviales de entender; por
+          ejemplo, el exponente y la mantisa no se organizan
+          generalmente entre los límites de los bytes, en su lugar un
+          número de bits se reserva para cada uno y son empaquetados en
+          la memoria tan apretados como se pueda. Para verdaderamente
+          ver lo que esta pasando, se necesitaría averiguar el tamaño de
+          cada parte del número (los signos bit miden siempre un bit,
+          pero los exponentes y las mantisas son de diferentes tamaños)
+          e imprimir los bits de cada parte separados.
+        </para>
       </sect3>
 
      <sect3>
-	<title>Aritmética de punteros</title>
-	<para>
-	</para>
-      </sect3>
+        <title>Aritmética de punteros</title>
 
+        <!--
+        If all you could do with a pointer that points at an array is
+        treat it as if it were an alias for that array, pointers into
+        arrays wouldn't be very interesting. However, pointers are more
+        flexible than this, since they can be modified to point
+        somewhere else (but remember, the array identifier cannot be
+        modified to point somewhere else).
+        -->
+
+        <para>
+          Si todo lo que se pudiese hacer con un puntero que apunta a un
+          vector fuese tratarlo como si fuera un alias para ese vector,
+          los punteros a vectores no serían muy interesantes. En
+          cualquier caso, los punteros son mucho mas flexibles que esto,
+          ya que pueden ser modificados para apuntar a cualquier otro
+          sitio (pero recordar, el identificador del vector no puede ser
+          modificado para apuntar a cualquier otro sitio).
+        </para>
+     
+
+        <!--
+        Pointer arithmetic refers to the application of some of the
+        arithmetic operators to pointers. The reason pointer arithmetic
+        is a separate subject from ordinary arithmetic is that pointers
+        must conform to special constraints in order to make them behave
+        properly. For example, a common operator to use with pointers is
+        ++, which "adds one to the pointer." What this actually means is
+        that the pointer is changed to move to "the next value,"
+        whatever that means. Here's an example:
+        -->
+
+        <para>
+          La aritmética de punteros se refiere a la aplicación de alguno
+          de los operadores aritméticos a los punteros. Las razón por la
+          cual la aritmética de punteros es un tema separado de la
+          aritmética ordinaria es que los punteros deben ajustarse a
+          cláusulas especiales de modo que se comporten
+          apropiadamente. Por ejemplo, un operador común para utilizar
+          con punteros es ++, lo que "añade uno al puntero." Lo que de
+          hecho significa esto es que el puntero se cambia para moverse
+          al "siguiente valor," Lo que sea que ello signifique. A
+          continuación un ejemplo:
+        </para>
+
+
+//: C03:PointerIncrement.cpp
+ 
+     
+        <!--
+        For one run on my machine, the output is:
+        -->
+
+        <para>
+          En una ejecución en ésta máquina, la salida es:
+        </para>
+
+
+<programlisting>
+ip = 6684124
+ip = 6684128
+dp = 6684044
+dp = 6684052
+</programlisting>     
+
+
+        <!--
+        What's interesting here is that even though the operation ++
+        appears to be the same operation for both the int* and the
+        double*, you can see that the pointer has been changed only 4
+        bytes for the int* but 8 bytes for the double*. Not
+        coincidentally, these are the sizes of int and double on my
+        machine. And that's the trick of pointer arithmetic: the
+        compiler figures out the right amount to change the pointer so
+        that it's pointing to the next element in the array (pointer
+        arithmetic is only meaningful within arrays). This even works
+        with arrays of structs:
+        -->
+
+        <para>
+          Lo interesante de esto es que aunque la operación ++ aparenta
+          ser la misma operación tanto para el int* y el double*, se
+          puede ver que el puntero ha sido cambiado solo por 4 bytes
+          para el int* y 8 bytes para el double*. No es coincidencia,
+          que estos sean los tamaños de int y double en ésta máquina. Y
+          ese es el truco de la aritmética de punteros: el compilador
+          calcula la cantidad apropiada para cambiar el puntero de modo
+          que apunte al siguiente elemento en el vector (la aritmética
+          de punteros sólo tiene sentido dentro de los vectores). Esto
+          incluso funciona con los vectores de structs:
+        </para>
+
+
+//: C03:PointerIncrement2.cpp
+    
+
+        <!--
+        The output for one run on my machine was:
+        -->
+
+        <para>
+          La salida en esta máquina es:
+        </para>
+
+
+<programlisting>
+sizeof
+(Primitives) = 40
+
+pp = 6683764
+
+pp = 6683804
+</programlisting> 
+
+
+        <!--
+        So you can see the compiler also does the right thing for
+        pointers to structs (and classes and unions).
+        -->
+
+        <para>
+          Por lo que se puede ver que el compilador también hace lo
+          adecuado para punteros a structs (y classes y uniones).
+        </para>
+        
+        <!--
+        Pointer arithmetic also works with the operators - -, +, and -,
+        but the latter two operators are limited: you cannot add two
+        pointers, and if you subtract pointers the result is the number
+        of elements between the two pointers. However, you can add or
+        subtract an integral value and a pointer. Here's an example
+        demonstrating the use of pointer arithmetic:
+        -->
+
+        <para>
+          La aritmética de punteros también funciona con los operadores
+          --, +, y -, pero los dos últimos son limitados: no se puede
+          añadir dos punteros, y si se substraen punteros el resultado
+          es el número de elementos entre los dos punteros. De cualquier
+          modo, se puede añadir o substraer un valor entero y un
+          puntero. A continuación un ejemplo demostrando el uso de la
+          aritmética de punteros:
+        </para>
+
+
+//: C03:PointerArithmetic.cpp
+ 
+     
+        <!--
+        It begins with another macro, but this one uses a preprocessor
+        feature called stringizing (implemented with the '#' sign before
+        an expression) that takes any expression and turns it into a
+        character array. This is quite convenient, since it allows the
+        expression to be printed, followed by a colon, followed by the
+        value of the expression. In main( ) you can see the useful
+        shorthand that is produced.
+        -->
+
+        <para>
+          Comienza con otra macro, pero esta utiliza una característica
+          del preprocesador llamada stringizing (implementada mediante
+          el signo '#' antes de una expresión) que toma cualquier
+          expresión y la convierte a un vector de caracteres. Esto es
+          bastante conveniente, ya que permite a la expresión ser
+          impresa, seguida de dos puntos, seguida del valor de la
+          expresión. En main() se puede ver el útil atajo que esto ha
+          producido.
+        </para>
+
+        <!--
+        Although pre- and postfix versions of ++ and - - are valid with
+        pointers, only the prefix versions are used in this example
+        because they are applied before the pointers are dereferenced in
+        the expressions above, so they allow us to see the effects of
+        the operations. Note that only integral values are being added
+        and subtracted; if two pointers were combined this way the
+        compiler would not allow it.
+        -->
+
+        <para>
+          Aunque tanto la versión prefijo como sufijo de ++ y -- son
+          válidas para los punteros, solo las versiones prefijo se
+          utilizan en este ejemplo, porque se aplican antes de
+          referenciar el puntero en las expresiones anteriores, de modo
+          que permite ver los efectos en las operaciones. Observar que
+          solo están siendo añadidos y substraídos valores enteros; si
+          dos punteros se combinasen de este modo, el compilador no lo
+          permitiría.
+        </para>
+
+        <!--
+        Here is the output of the program above:
+        -->
+
+        <para>
+          Aquí se ve la salida del programa anterior:
+        </para>
+
+
+<programlisting>
+*ip: 0
+
+*++ip: 1
+*(ip + 5): 6
+*ip2: 6
+*(ip2 - 4): 2
+
+*--ip2: 5
+</programlisting>
+
+ 
+        <!--
+        In all cases, the pointer arithmetic results in the pointer
+        being adjusted to point to the "right place," based on the size
+        of the elements being pointed to.
+        -->
+
+        <para>
+          En todos los casos, la aritmética de punteros se refleja en
+          que el puntero está siendo ajustado para apuntar al "sitio
+          correcto," basándose en el tamaño de los elementos a los que
+          está siendo apuntado.
+        </para>
+
+        <!--
+        If pointer arithmetic seems a bit overwhelming at first, don't
+        worry. Most of the time you'll only need to create arrays and
+        index into them with [ ], and the most sophisticated pointer
+        arithmetic you'll usually need is ++ and - -. Pointer arithmetic
+        is generally reserved for more clever and complex programs, and
+        many of the containers in the Standard C++ library hide most of
+        these clever details so you don't have to worry about them.
+        -->
+
+        <para>
+          Si la aritmética de punteros parece un poco aplastante al
+          principio, no hay por qué preocuparse. La mayoría de las veces
+          solo se necesitará para crear vectores e indexarlos dentro con
+          [ ], y la aritmética de punteros más sofisticada que
+          normalmente se necesitará es ++ y -- . La aritmética de
+          punteros se reserva generalmente para programas más complejos
+          e inteligentes, y muchos de los contenedores en la librería de
+          Standard C++ esconden muchos de estos inteligentes detalles,
+          por lo que no habrá que preocuparse de ellos.
+        </para>
+      </sect3>
     </sect2>
   </sect1>
 
