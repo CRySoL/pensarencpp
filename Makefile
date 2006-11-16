@@ -15,11 +15,6 @@ FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
 all: html $(MAIN).pdf make_images
 
-pack: all
-	@-mkdir products
-	mv html products/
-	mv $(MAIN).pdf products/
-	scp html/* arco:public_html/pensar_en_C++/
 
 html: tagged.xml
 	@-mkdir -p html/images
@@ -80,6 +75,15 @@ final.xml: $(FILES)
 
 make_images:
 	$(MAKE) -C images
+
+
+install: pack
+	$(MAKE) -f Makeinstall
+
+pack:
+	@-mkdir products
+	mv html products/
+	mv $(MAIN).pdf products/
 
 
 validate:
