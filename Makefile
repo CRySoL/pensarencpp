@@ -13,7 +13,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=PensarEnC++
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: html $(MAIN).pdf make_images
+all: make_images html $(MAIN).pdf 
 
 
 html: tagged.xml
@@ -62,11 +62,11 @@ tagged.xml: final.xml
 
 final.xml: $(FILES)
 	@echo "--- Montando el documento"
-	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > aux1.xml
+	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > fase1.xml
 	@echo "--- Rutas a los listados"
-	python utils/fix_includes.py aux1.xml > aux2.xml
+	python utils/fix_includes.py fase1.xml > fase2.xml
 	@echo "--- Incluyendo listados"
-	xsltproc --xinclude stylesheets/profile.xsl aux2.xml > join.xml
+	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
 	@echo "--- Eliminando xmlns y traducción de tags extra"
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	sed -e "s/\/\/\/:~//" |\
@@ -107,19 +107,20 @@ $(VOL1_CODE): $(VOL1_ALL)
 
 # Limpieza
 clean:
+	$(RM) join.xml fase?.xml final.xml tagged.xml
+	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
+	$(RM) *~ 
+
+
+vclean: clean
 	$(RM) -r products
 	$(RM) html/images/*
 	-rmdir html/images
 	$(RM) html/*
-	-rmdir -p html pdf
-	$(RM) join.xml aux?.xml final.xml tagged.xml
-	$(RM) *~ 
-	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
+	-rmdir -p html
+	$(MAKE) -C images clean
 
 
-vclean: clean
-
-# Otras tareas
 
 
 
