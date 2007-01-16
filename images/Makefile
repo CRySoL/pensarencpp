@@ -17,7 +17,6 @@ all: $(PNG) $(PDF)
 %.pdf: %.ps
 	$(EPS2PDF) < $< > $@
 
-
 clean::
 	$(RM) $(PNG) $(PDF)
 
