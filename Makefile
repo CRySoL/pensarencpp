@@ -13,7 +13,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=PensarEnC++
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: make_images html $(MAIN).pdf 
+all: make_images html $(MAIN).pdf final.pdf
 
 
 html: tagged.xml
@@ -34,6 +34,9 @@ html: tagged.xml
 	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null
 	mv highlight.css html/
 
+
+final.pdf: final.xml
+	dblatex -T dblatex/pec $<
 
 
 $(MAIN).pdf: $(MAIN).tex
@@ -87,7 +90,7 @@ pack:
 
 
 validate:
-	xsltproc --xinclude --noout stylesheet/profile.xsl $(MAIN)
+	xsltproc --xinclude --noout stylesheets/profile.xsl $(MAIN).xml
 
 
 # Para Descomprimir y arreglar los ficheros de código

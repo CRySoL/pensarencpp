@@ -22,12 +22,20 @@
   <xsl:param name="latex.class.book">book</xsl:param>
 
 
-
   <xsl:template match="highlights">
     <xsl:text>{\fontsize{13}{13pt} \selectfont \bfseries </xsl:text>
     <xsl:apply-templates/>
     <xsl:text>} \medskip </xsl:text>
   </xsl:template>
+
+  <xsl:template match="code">
+    <xsl:call-template name="inline.monoseq"/>
+<!--
+    <xsl:text>\texttt{</xsl:text><xsl:value-of select="."/><xsl:text>}</xsl:text>
+-->
+  </xsl:template>
+
+
 
   <xsl:template match="*[@role='html']"/>
 
