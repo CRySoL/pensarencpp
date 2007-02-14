@@ -10,7 +10,7 @@ XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 XSL_HTML=stylesheets/plainhtml.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
-MAIN=PensarEnC++
+MAIN=Volumen1
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
 all: make_images html $(MAIN).pdf final.pdf
