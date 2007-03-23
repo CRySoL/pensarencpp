@@ -13,10 +13,10 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=Volumen1
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: make_images html $(MAIN).pdf final.pdf
+all: make_images html Volumen1.pdf
 
 
-html: tagged.xml
+html: Volumen1-tagged.xml
 	@-mkdir -p html/images
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
@@ -35,35 +35,35 @@ html: tagged.xml
 	mv highlight.css html/
 
 
-final.pdf: final.xml
+Volumen1.pdf: Volumen1-final.xml
 	dblatex -T dblatex/pec $<
 
 
-$(MAIN).pdf: $(MAIN).tex
-	@echo '-- Building PDF'
-	pdflatex  $<
-	makeindex $(MAIN).idx
-	pdflatex $<
+#$(MAIN).pdf: $(MAIN).tex
+#	@echo '-- Building PDF'
+#	pdflatex  $<
+#	makeindex $(MAIN).idx
+#	pdflatex $<
+#
+#
+#$(MAIN).tex: raw.tex
+#	python utils/latex_filter.py $< $@
+#
+#
+#raw.tex: Volumen1-final.xml stylesheets/plainprint.xsl
+#	@echo '-- Building LaTeX '
+#	xsltproc --nonet --noout -o raw.tex --xinclude \
+#	  --stringparam l10n.gentext.default.language es \
+#	  --stringparam profile.lang es \
+#	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
+#	$(XSL_PDF) Volumen1-final.xml
+#
 
-
-$(MAIN).tex: raw.tex
-	python utils/latex_filter.py $< $@
-
-
-raw.tex: final.xml stylesheets/plainprint.xsl
-	@echo '-- Building LaTeX '
-	xsltproc --nonet --noout -o raw.tex --xinclude \
-	  --stringparam l10n.gentext.default.language es \
-	  --stringparam profile.lang es \
-	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
-	$(XSL_PDF) final.xml
-
-
-tagged.xml: final.xml
-	@echo "--- Poniendo marcas en listados para coloreado"
+Volumen1-tagged.xml: Volumen1-final.xml
+	@echo "--- Añadiendo marcas en listados para coloreado"
 	python utils/xml_tag_codes.py $< > $@
 
-final.xml: $(FILES)
+Volumen1-final.xml: $(FILES)
 	@echo "--- Montando el documento"
 	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > fase1.xml
 	@echo "--- Rutas a los listados"
