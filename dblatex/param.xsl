@@ -36,8 +36,27 @@
   </xsl:template>
 
 
-
   <xsl:template match="*[@role='html']"/>
 
+
+
+
+<xsl:template match="formalpara">
+  <xsl:text>&#10;{\bf </xsl:text>
+<!--
+  <xsl:call-template name="normalize-scape">
+    <xsl:with-param name="string" select="title"/>
+  </xsl:call-template>
+-->
+  <xsl:text>} </xsl:text>
+  <xsl:apply-templates/>
+  <xsl:text>&#10;</xsl:text>
+  <xsl:text>&#10;</xsl:text>
+</xsl:template>
+
+
+  <xsl:template match="formalpara/title">
+    <xsl:apply-templates/>
+  </xsl:template>
 
 </xsl:stylesheet>

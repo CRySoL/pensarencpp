@@ -13,7 +13,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 MAIN=Volumen1
 FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
 
-all: make_images html Volumen1.pdf
+all: make_images html Volumen1-final.pdf
 
 
 html: Volumen1-tagged.xml
@@ -35,7 +35,7 @@ html: Volumen1-tagged.xml
 	mv highlight.css html/
 
 
-Volumen1.pdf: Volumen1-final.xml
+%.pdf: %.xml
 	dblatex -T dblatex/pec $<
 
 
@@ -110,7 +110,8 @@ $(VOL1_CODE): $(VOL1_ALL)
 
 # Limpieza
 clean:
-	$(RM) join.xml fase?.xml final.xml tagged.xml
+	$(RM) join.xml fase?.xml 
+	$(RM) *-final.xml *-tagged.xml
 	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 	$(RM) *~ 
 
