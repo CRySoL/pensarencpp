@@ -1,19 +1,13 @@
 
-
-#XSLSTYLE=http://docbook.sourceforge.net/release/xsl/current/html/docbook.xsl
-#XSLSTYLE=/usr/share/sgml/docbook/stylesheet/xsl/ldp/ldp-html.xsl
-#XSLSTYLE=/usr/share/sgml/docbook/stylesheet/xsl/ldp/ldp-html-chunk.xsl
-##XSLSTYLE=/usr/share/xml/docbook/stylesheet/ldp/html/tldp-sections.xsl
-#XSLSTYLE=/usr/share/xml/docbook/stylesheet/nwalsh/html/docbook.xsl
 XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 
 XSL_HTML=stylesheets/plainhtml.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
 MAIN=Volumen1
-FILES=$(wildcard Capitulo*.xml Apendice*.xml) $(MAIN).xml
+FILES=$(wildcard Capitulo*.xml Apendice*.xml) Volumen?-master.xml
 
-all: make_images html Volumen1-final.pdf
+all: make_images html $(MAIN).pdf
 
 
 html: Volumen1-tagged.xml
@@ -59,13 +53,13 @@ html: Volumen1-tagged.xml
 #	$(XSL_PDF) Volumen1-final.xml
 #
 
-Volumen1-tagged.xml: Volumen1-final.xml
+Volumen1-tagged.xml: Volumen1.xml
 	@echo "--- Añadiendo marcas en listados para coloreado"
 	python utils/xml_tag_codes.py $< > $@
 
-Volumen1-final.xml: $(FILES)
+Volumen1.xml: $(FILES)
 	@echo "--- Montando el documento"
-	xsltproc --xinclude stylesheets/profile.xsl $(MAIN).xml > fase1.xml
+	xsltproc --xinclude stylesheets/profile.xsl $(basename $@)-master.xml > fase1.xml
 	@echo "--- Rutas a los listados"
 	python utils/fix_includes.py fase1.xml > fase2.xml
 	@echo "--- Incluyendo listados"
@@ -111,7 +105,7 @@ $(VOL1_CODE): $(VOL1_ALL)
 # Limpieza
 clean:
 	$(RM) join.xml fase?.xml 
-	$(RM) *-final.xml *-tagged.xml
+	$(RM) Volumen?.xml *-tagged.xml
 	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 	$(RM) *~ 
 
