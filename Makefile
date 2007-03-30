@@ -77,11 +77,14 @@ make_images:
 install: pack
 	$(MAKE) -f Makeinstall
 
-pack:
+pack: Volumen1-html.bz2
 	@-mkdir products
 	mv html products/
+	mv $^ products/ 
 	mv $(MAIN).pdf products/
 
+Volumen1-html.bz2: html
+	tar cfj $@ html
 
 validate:
 	xsltproc --xinclude --noout stylesheets/profile.xsl $(MAIN).xml

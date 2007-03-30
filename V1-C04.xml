@@ -6,22 +6,13 @@
                        David Villa <dvilla@gmx.net>
   Formateado DocBook:  Sebastián Gurin <sgurin@motevideo.com.uy>
                        David Villa <dvilla@gmx.net>
-  1ª Revisión:
+  1ª Revisión:         
   2ª Revisión
 -->
 
-<!--
-
-Traductor: Sebastián Gurin <cancerbero_sgx@users.sourceforge.net>
-
-cosas por hacer:
-
-  glosario de este capítulo: en el fichero TRADUCCION
--->
 
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
                  "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-
 
 <chapter 
   xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -72,7 +63,6 @@ cosas por hacer:
   factors that will be examined in this book.
   -->
 
-
   <para>
     En términos de programación, productividad significa que menos
     personas, en menos tiempo, puedan realizar programas más complejos y
@@ -88,6 +78,18 @@ cosas por hacer:
     factores importantes que serán examinados en este libro. 
   </para>
 
+  <!--
+  But raw productivity means a program that formerly took three of you a
+  week to write now takes one of you a day or two. This touches several
+  levels of economics. You??re happy because you get the rush of power
+  that comes from building something, your client (or boss) is happy
+  because products are produced faster and with fewer people, and the
+  customers are happy because they get products more cheaply. The only way
+  to get massive increases in productivity is to leverage off other
+  people??s code. That is, to use libraries.
+  -->
+  
+
   <para>
     Hablando más toscamente, productividad significa que un programa que
     antiguamente les costaba a tres de ustedes una semana de trabajo en
@@ -102,6 +104,18 @@ cosas por hacer:
     usando librerías.  
   </para>
 
+ <!--
+  A library is simply a bunch of code that someone else has written and
+  packaged together. Often, the most minimal package is a file with an
+  extension like lib and one or more header files to tell your compiler
+  what??s in the library. The linker knows how to search through the
+  library file and extract the appropriate compiled code. But that??s only
+  one way to deliver a library. On platforms that span many architectures,
+  such as Linux/Unix, often the only sensible way to deliver a library is
+  with source code, so it can be reconfigured and recompiled on the new
+  target.
+  -->
+  
   <para>
     Una librería es simplemente un montón de código que alguien ha
     escrito y empaquetado todo junto. Muchas veces, el paquete mínimo es
@@ -116,6 +130,15 @@ cosas por hacer:
     el nuevo objetivo. 
   </para>
 
+
+  <!--
+  Thus, libraries are probably the most important way to improve
+  productivity, and one of the primary design goals of C++ is to make
+  library use easier. This implies that there??s something hard about
+  using libraries in C. Understanding this factor will give you a first
+  insight into the design of C++, and thus insight into how to use it.  A
+  tiny C-like library
+  -->
   <para>
     De esta forma, las librerías probablemente sean las formas más
     importantes de progresar en términos de productividad y uno de los
@@ -156,6 +179,15 @@ cosas por hacer:
       cosa.
     </para>
     
+  <!--
+  Thus, most C libraries have a set of structs and a set of functions that
+  act on those structs. As an example of what such a system looks like,
+  consider a programming tool that acts like an array, but whose size can
+  be established at runtime, when it is created. I??ll call it a
+  CStash. Although it??s written in C++, it has the style of what you??d
+  write in C:
+  -->
+
     <para>
       Así, la mayoría de las librerías en C constan de un conjunto de
       estructuras y un conjunto de funciones las cuales actúan sobre las
@@ -176,6 +208,17 @@ cosas por hacer:
 <xi:include parse="text" href="./code/C04/CLib.h"/>
 </programlisting>
 
+  <!--
+  A tag name like CStashTag is generally used for a struct in case you
+  need to reference the struct inside itself. For example, when creating a
+  linked list (each element in your list contains a pointer to the next
+  element), you need a pointer to the next struct variable, so you need a
+  way to identify the type of that pointer within the struct body. Also,
+  you'll almost universally see the typedef as shown above for every
+  struct in a C library. This is done so you can treat the struct as if it
+  were a new type and define variables of that struct like this:
+  -->
+
     <para>
       Una etiqueta como <varname>CStashTag</varname> casi siempre se usa
       en aquellas estructuras que necesitan ser referenciadas dentro de
@@ -195,7 +238,15 @@ cosas por hacer:
 CStash A, B, C;
 </programlisting>
 
-
+  <!--
+  The storage pointer is an unsigned char*. An unsigned char is the
+  smallest piece of storage a C compiler supports, although on some
+  machines it can be the same size as the largest. It??s implementation
+  dependent, but is often one byte long. You might think that because the
+  CStash is designed to hold any type of variable, a void* would be more
+  appropriate here. However, the purpose is not to treat this storage as a
+  block of some unknown type, but rather as a block of contiguous bytes.
+  -->
     <para>
       El puntero <varname>storage</varname> es un <type>unsigned
       char*</type>. Un <type>unsigned char</type> es la menor pieza de
@@ -210,6 +261,11 @@ CStash A, B, C;
       como un bloque de bytes contiguos.
     </para>
 
+  <!--
+  The source code for the implementation file (which you may not get if
+  you buy a library commercially ? you might get only a compiled obj or
+  lib or dll, etc.) looks like this:
+  -->
     <para>
       El archivo de código fuente para la implementación luce del
       siguiente modo (tener en cuenta que si la librería fuera
@@ -223,6 +279,12 @@ CStash A, B, C;
 <xi:include parse="text" href="./code/C04/CLib.cpp"/>
 </programlisting>
 
+  <!--
+  initialize( ) performs the necessary setup for struct CStash by setting
+  the internal variables to appropriate values. Initially, the storage
+  pointer is set to zero ? no initial storage is allocated.
+  -->
+
     <para>
       <function>initialize()</function> realiza las disposiciones
       iniciales necesarias para la <type>struct CStash</type>, poniendo
@@ -230,6 +292,13 @@ CStash A, B, C;
       puntero <varname>storage</varname> es puesto a cero dado que aún
       no se ha almacenado nada.
     </para>
+
+  <!--
+  The add( ) function inserts an element into the CStash at the next
+  available location. First, it checks to see if there is any available
+  space left. If not, it expands the storage using the inflate( )
+  function, described later.
+  -->
 
     <para>
       La función <function>add()</function> inserta un elemento en el
@@ -422,6 +491,10 @@ CStash A, B, C;
 	vieja de bytes (<varname>quantity</varname>).
       </para>
 
+  <!--
+  The actual storage allocation occurs in the new-expression, which is the
+  expression involving the new keyword:
+  -->
       <para>
 	La asignación de memoria ocurre en la
 	<emphasis>expresión-new</emphasis> la cual involucra la palabra
@@ -432,13 +505,22 @@ CStash A, B, C;
 new unsigned char[newBytes];
 </programlisting>
 
+  <!-- The general form of the new-expression is: -->
       <para>
 	La forma general de una <emphasis>expresión-new</emphasis>
 	es
       </para>
 
-<programlisting>new Type;</programlisting>
+<programlisting>
+new Type;
+</programlisting>
 
+  <!--
+  in which Type describes the type of variable you want allocated on the
+  heap. In this case, we want an array of unsigned char that is newBytes
+  long, so that is what appears as the Type. You can also allocate
+  something as simple as an int by saying:
+  -->
       <para>
 	donde <literal>Type</literal> describe el tipo de variable para
 	la cual deseamos asignar memoria en el
@@ -450,14 +532,29 @@ new unsigned char[newBytes];
 	expresión
       </para>
 
-<programlisting>new int;</programlisting>
+<programlisting>
+new int;
+</programlisting>
 
+  <!--
+  and although this is rarely done, you can see that the form is
+  consistent.
+  -->
       <para>
 	y aunque esto no sea muy útil muestra que la forma
 	de la <emphasis>expresión-new</emphasis> es
 	consistente. 
       </para>
 
+
+  <!--
+  A new-expression returns a pointer to an object of the exact type that
+  you asked for. So if you say new Type, you get back a pointer to a
+  Type. If you say new int, you get back a pointer to an int. If you want
+  a new unsigned char array, you get back a pointer to the first element
+  of that array. The compiler will ensure that you assign the return value
+  of the new-expression to a pointer of the correct type.
+  -->
       <para>
 	Una <emphasis>expresión-new</emphasis> devuelve un puntero a un
 	objeto de tipo (Type) igual al especificado por nosotros. Así,
@@ -472,6 +569,11 @@ new unsigned char[newBytes];
 	tipo correcto.
       </para>
 
+  <!--
+  Of course, any time you request memory it??s possible for the request to
+  fail, if there is no more memory. As you will learn, C++ has mechanisms
+  that come into play if the memory-allocation operation is unsuccessful.
+  -->
       <para>
 	Por supuesto, es posible que al pedir memoria, la petición
 	falle, por ejemplo, si no hay más memoria libre en el
@@ -480,6 +582,21 @@ new unsigned char[newBytes];
 	de memoria no fue exitosa.
       </para>
 
+  <!--
+  Once the new storage is allocated, the data in the old storage must be
+  copied to the new storage; this is again accomplished with array
+  indexing, copying one byte at a time in a loop. After the data is
+  copied, the old storage must be released so that it can be used by other
+  parts of the program if they need new storage. The delete keyword is the
+  complement of new, and must be applied to release any storage that is
+  allocated with new (if you forget to use delete, that storage remains
+  unavailable, and if this so-called memory leak happens enough, you??ll
+  run out of memory). In addition, there??s a special syntax when you??re
+  deleting an array. It??s as if you must remind the compiler that this
+  pointer is not just pointing to one object, but to an array of objects:
+  you put a set of empty square brackets in front of the pointer to be
+  deleted:
+  -->
       <para>
 	Sigamos con nuestro código. Una vez que hemos asignado memoria
 	para el nuevo espacio de almacenamiento (variable
@@ -508,6 +625,11 @@ new unsigned char[newBytes];
 
       <programlisting>delete []myArray;</programlisting>
 
+  <!--
+  Once the old storage has been deleted, the pointer to the new storage
+  can be assigned to the storage pointer, the quantity is adjusted, and
+  inflate( ) has completed its job.
+  -->
       <para>
 	Luego de liberar el viejo espacio de almacenamiento se asigna el
         nuevo (en el cual ya hicimos la copia del viejo) al puntero
@@ -521,6 +643,23 @@ new unsigned char[newBytes];
       "defragmentador del heap".
       -->
 
+
+  <!--
+  Note that the heap manager is fairly primitive. It gives you chunks of
+  memory and takes them back when you delete them. There??s no inherent
+  facility for heap compaction, which compresses the heap to provide
+  bigger free chunks. If a program allocates and frees heap storage for a
+  while, you can end up with a fragmented heap that has lots of memory
+  free, but without any pieces that are big enough to allocate the size
+  you??re looking for at the moment. A heap compactor complicates a
+  program because it moves memory chunks around, so your pointers won??t
+  retain their proper values. Some operating environments have heap
+  compaction built in, but they require you to use special memory handles
+  (which can be temporarily converted to pointers, after locking the
+  memory so the heap compactor can??t move it) instead of pointers. You
+  can also build your own heap-compaction scheme, but this is not a task
+  to be undertaken lightly.
+  -->
       <para>
 	A este punto es bueno notar que el administrador de memoria del
 	heap es una primitiva del lenguaje. Nos provee de trozos de
@@ -545,6 +684,19 @@ new unsigned char[newBytes];
 	estos artilugios, aunque no es una tarea liviana.
       </para>
 
+  <!--
+  When you create a variable on the stack at compile-time, the storage for
+  that variable is automatically created and freed by the compiler. The
+  compiler knows exactly how much storage is needed, and it knows the
+  lifetime of the variables because of scoping. With dynamic memory
+  allocation, however, the compiler doesn??t know how much storage you??re
+  going to need, and it doesn??t know the lifetime of that storage. That
+  is, the storage doesn??t get cleaned up automatically. Therefore,
+  you??re responsible for releasing the storage using delete, which tells
+  the heap manager that storage can be used by the next call to new. The
+  logical place for this to happen in the library is in the cleanup( )
+  function because that is where all the closing-up housekeeping is done.
+  -->
       <para>
 	Cuando creamos una variable en el stack en tiempo de compilación
 	el mismo compilador es quien se encarga de crearla y liberar la
@@ -565,6 +717,10 @@ new unsigned char[newBytes];
 	objeto. 
       </para>
 
+  <!--
+  To test the library, two CStashes are created. The first holds ints and
+  the second holds arrays of 80 chars:
+  -->
       <para>
 	Para testear la librería creamos dos Cstash, una que almacene
         enteros y otra para cadenas de 80 caracteres:
@@ -574,7 +730,21 @@ new unsigned char[newBytes];
 <xi:include parse="text" href="./code/C04/CLibTest.cpp"/>
 </programlisting>
 
-
+  <!--
+  Following the form required by C, all the variables are created at the
+  beginning of the scope of main( ). Of course, you must remember to
+  initialize the CStash variables later in the block by calling
+  initialize( ). One of the problems with C libraries is that you must
+  carefully convey to the user the importance of the initialization and
+  cleanup functions. If these functions aren??t called, there will be a
+  lot of trouble. Unfortunately, the user doesn??t always wonder if
+  initialization and cleanup are mandatory. They know what they want to
+  accomplish, and they??re not as concerned about you jumping up and down
+  saying, ??Hey, wait, you have to do this first!?? Some users have even
+  been known to initialize the elements of a structure
+  themselves. There??s certainly no mechanism in C to prevent it (more
+  foreshadowing).
+  -->
       <para>
 	Dado que debemos respetar la sintaxis de C, todas las variables
         se deben declarar al comienzo de
@@ -598,6 +768,13 @@ new unsigned char[newBytes];
         conductas (más presagios de los temás que vendrán...).
       </para>
 
+  <!--
+  The intStash is filled up with integers, and the stringStash is filled
+  with character arrays. These character arrays are produced by opening
+  the source code file, CLibTest.cpp, and reading the lines from it into a
+  string called line, and then producing a pointer to the character
+  representation of line using the member function c_str( ).
+  -->
       <para>La <varname>intStash</varname> se va llenando con enteros
         mientras que el <varname>stringStash</varname> se va llenando
         con arrays de caracteres. Estos arrays de caracteres son
@@ -608,6 +785,12 @@ new unsigned char[newBytes];
         caracter" de <varname>line</varname> con la función miembro
         <function>c_str()</function>. </para>
 
+  <!--
+  After each Stash is loaded, it is displayed. The intStash is printed
+  using a for loop, which uses count( ) to establish its limit. The
+  stringStash is printed with a while, which breaks out when fetch( )
+  returns zero to indicate it is out of bounds.
+  -->
       <para>
 	Luego de cargadas las <type>Stash</type> ambas se muestran en
 	pantalla. La <varname>intStash</varname> se imprime usando un
@@ -621,6 +804,7 @@ new unsigned char[newBytes];
 	los límites de la estructura. 
       </para>
 
+  <!-- You??ll also notice an additional cast in -->
       <para>
 	El lector también pudo haber visto un moldeado adicional en la
 	línea:
@@ -632,6 +816,11 @@ cp = (char*)fetch(&amp;stringStash,i++)
 </programlisting>
 
 
+  <!--
+  This is due to the stricter type checking in C++, which does not allow
+  you to simply assign a void* to any other type (C allows this).  Bad
+  guesses
+  -->
       <para>
 	Esto se debe a la comprobación estricta de tipos en C++ lo cual
 	no nos permite asignar un <type>void *</type> a una variable de
@@ -667,6 +856,17 @@ cp = (char*)fetch(&amp;stringStash,i++)
       </para>
 
 
+  <!--
+  Although you should always declare functions by including a header file,
+  function declarations aren??t essential in C. It??s possible in C (but
+  not in C++) to call a function that you haven??t declared. A good
+  compiler will warn you that you probably ought to declare a function
+  first, but it isn??t enforced by the C language standard. This is a
+  dangerous practice, because the C compiler can assume that a function
+  that you call with an int argument has an argument list containing int,
+  even if it may actually contain a float. This can produce bugs that are
+  very difficult to find, as you will see.
+  -->
       <para>
 	Aunque debería siempre declarar las funciones incluyendo un
 	archivo de cabecera, en C las declaraciones de funciones no son
@@ -683,6 +883,23 @@ cp = (char*)fetch(&amp;stringStash,i++)
 	de depurar.
       </para>
 
+
+  <!--
+  Each separate C implementation file (with an extension of .c) is a
+  translation unit. That is, the compiler is run separately on each
+  translation unit, and when it is running it is aware of only that
+  unit. Thus, any information you provide by including header files is
+  quite important because it determines the compiler??s understanding of
+  the rest of your program. Declarations in header files are particularly
+  important, because everywhere the header is included, the compiler will
+  know exactly what to do. If, for example, you have a declaration in a
+  header file that says void func(float), the compiler knows that if you
+  call that function with an integer argument, it should convert the int
+  to a float as it passes the argument (this is called promotion). Without
+  the declaration, the C compiler would simply assume that a function
+  func(int) existed, it wouldn??t do the promotion, and the wrong data
+  would quietly be passed into func( ).
+  -->
       <para>
 	Se dice que cada archivo de implementación C (los archivos de
 	extensión <filename>.c</filename>) es una unidad de traducción
@@ -708,6 +925,21 @@ cp = (char*)fetch(&amp;stringStash,i++)
 	función.
       </para>
 
+
+  <!--
+  For each translation unit, the compiler creates an object file, with an
+  extension of .o or .obj or something similar. These object files, along
+  with the necessary start-up code, must be collected by the linker into
+  the executable program. During linking, all the external references must
+  be resolved. For example, in CLibTest.cpp, functions such as initialize(
+  ) and fetch( ) are declared (that is, the compiler is told what they
+  look like) and used, but not defined. They are defined elsewhere, in
+  CLib.cpp. Thus, the calls in CLib.cpp are external references. The
+  linker must, when it puts all the object files together, take the
+  unresolved external references and find the addresses they actually
+  refer to. Those addresses are put into the executable program to replace
+  the external references.
+  -->
       <para>
 	Para cada unidad de traducción el compilador crea un archivo
 	objeto, de extensión <filename>.o</filename>,
@@ -730,6 +962,22 @@ cp = (char*)fetch(&amp;stringStash,i++)
 	correspondiente dirección.
       </para>
 
+  <!--
+  It??s important to realize that in C, the external references that the
+  linker searches for are simply function names, generally with an
+  underscore in front of them. So all the linker has to do is match up the
+  function name where it is called and the function body in the object
+  file, and it??s done. If you accidentally made a call that the compiler
+  interpreted as func(int) and there??s a function body for func(float) in
+  some other object file, the linker will see _func in one place and _func
+  in another, and it will think everything??s OK. The func( ) at the
+  calling location will push an int onto the stack, and the func( )
+  function body will expect a float to be on the stack. If the function
+  only reads the value and doesn??t write to it, it won??t blow up the
+  stack. In fact, the float value it reads off the stack might even make
+  some kind of sense. That??s worse because it??s harder to find the bug.
+  What's wrong?
+  -->
       <para>
 	Es importante destacar que en C, estas referencias externas que
 	el enlazador busca son simples nombres de funciones,
@@ -760,8 +1008,19 @@ cp = (char*)fetch(&amp;stringStash,i++)
 
 
   <sect1>
+    <!-- What's wrong? -->
     <title>¿Qué está mal?</title>
     
+  <!--
+  We are remarkably adaptable, even in situations in which perhaps we
+  shouldn??t adapt. The style of the CStash library has been a staple for
+  C programmers, but if you look at it for a while, you might notice that
+  it??s rather . . . awkward. When you use it, you have to pass the
+  address of the structure to every single function in the library. When
+  reading the code, the mechanism of the library gets mixed with the
+  meaning of the function calls, which is confusing when you??re trying to
+  understand what??s going on.
+  -->
     <para>
       Somos seres realmente destinados a la adaptación: nos adaptamos a
       situaciones en las que, quizá, <emphasis>no
@@ -777,6 +1036,13 @@ cp = (char*)fetch(&amp;stringStash,i++)
       programa.
     </para>
 
+  <!--
+  One of the biggest obstacles, however, to using libraries in C is the
+  problem of name clashes. C has a single name space for functions; that
+  is, when the linker looks for a function name, it looks in a single
+  master list. In addition, when the compiler is working on a translation
+  unit, it can work only with a single function with a given name.
+  -->
     <para>
       Sin embargo, uno de los mayores obstáculos de trabajar con
       librerías en C es el problema llamado <emphasis>conflicto de
@@ -788,6 +1054,22 @@ cp = (char*)fetch(&amp;stringStash,i++)
       hacer referencia a una única función con ese nombre.
     </para>
 
+
+  <!--
+  Now suppose you decide to buy two libraries from two different vendors,
+  and each library has a structure that must be initialized and cleaned
+  up. Both vendors decided that initialize( ) and cleanup( ) are good
+  names. If you include both their header files in a single translation
+  unit, what does the C compiler do? Fortunately, C gives you an error,
+  telling you there??s a type mismatch in the two different argument lists
+  of the declared functions. But even if you don??t include them in the
+  same translation unit, the linker will still have problems. A good
+  linker will detect that there??s a name clash, but some linkers take the
+  first function name they find, by searching through the list of object
+  files in the order you give them in the link list. (This can even be
+  thought of as a feature because it allows you to replace a library
+  function with your own version.)
+  -->
     <para>
       Supongamos que compramos dos librerías de diferentes proveedores y
       que cada librería consta de una estructura que debe ser
@@ -810,6 +1092,15 @@ cp = (char*)fetch(&amp;stringStash,i++)
       funciones de las librerías ajenas con nuestras propias funciones.)
     </para>
     
+  <!--
+  In either event, you can??t use two C libraries that contain a function
+  with the identical name. To solve this problem, C library vendors will
+  often prepend a sequence of unique characters to the beginning of all
+  their function names. So initialize( ) and cleanup( ) might become
+  CStash_initialize( ) and CStash_cleanup( ). This is a logical thing to
+  do because it ??decorates?? the name of the struct the function works on
+  with the name of the function.
+  -->
     <para>
       En cualquiera de los dos casos, llegamos a la conclusión de que en
       C es imposible usar dos bibliotecas en las cuales existan
@@ -824,6 +1115,13 @@ cp = (char*)fetch(&amp;stringStash,i++)
       estructura sobre la cual éstas trabajan.
     </para>
 
+  <!--
+  Now it??s time to take the first step toward creating classes in
+  C++. Variable names inside a struct do not clash with global variable
+  names. So why not take advantage of this for function names, when those
+  functions operate on a particular struct? That is, why not make
+  functions members of structs? 
+  -->
     <para>
       Este es el momento de dirigir nuestros pasos a las primeras
       nociones de construcción de clases en C++. Como el lector ha de
@@ -838,8 +1136,15 @@ cp = (char*)fetch(&amp;stringStash,i++)
 
 
   <sect1>
+    <!-- The basic object -->
     <title>El objeto básico</title>
 
+
+  <!--
+  Step one is exactly that. C++ functions can be placed inside structs as
+  ??member functions.?? Here??s what it looks like after converting the C
+  version of CStash to the C++ Stash:
+  -->
     <para>
       Nuestro primer paso será exactamente lo mencionado anteriormente:
       Meter las funciones C++ dentro de las estructuras como
@@ -853,6 +1158,12 @@ cp = (char*)fetch(&amp;stringStash,i++)
 <xi:include parse="text" href="./code/C04/CppLib.h"/>
 </programlisting>
 
+  <!--
+  First, notice there is no typedef. Instead of requiring you to create a
+  typedef, the C++ compiler turns the name of the structure into a new
+  type name for the program (just as int, char, float and double are type
+  names).
+  -->
     <para>
       La primera diferencia que puede notarse es que no se usa
       <kw>typedef</kw>. A diferencia de C que requiere el uso de
@@ -863,6 +1174,16 @@ cp = (char*)fetch(&amp;stringStash,i++)
       <type>float</type> y <type>double</type>).
     </para>
     
+  <!--
+  All the data members are exactly the same as before, but now the
+  functions are inside the body of the struct. In addition, notice that
+  the first argument from the C version of the library has been
+  removed. In C++, instead of forcing you to pass the address of the
+  structure as the first argument to all the functions that operate on
+  that structure, the compiler secretly does this for you. Now the only
+  arguments for the functions are concerned with what the function does,
+  not the mechanism of the function??s operation.
+  -->
     <para>
       Todos los datos miembros de la estructura están declarados igual
       que antes; sin embargo, ahora las funciones están declaradas
@@ -876,6 +1197,15 @@ cp = (char*)fetch(&amp;stringStash,i++)
       internos de funcionamiento de la función.
     </para>
 
+
+  <!--
+  It??s important to realize that the function code is effectively the
+  same as it was with the C version of the library. The number of
+  arguments is the same (even though you don??t see the structure address
+  being passed in, it??s still there), and there??s only one function body
+  for each function. That is, just because you say
+  -->
+  
     <para>
       Es importante saber que el código generado por estas funciones es
       el mismo que el de las funciones de la librería al estilo C. El
@@ -884,13 +1214,37 @@ cp = (char*)fetch(&amp;stringStash,i++)
       se hace) y sigue existiendo un único cuerpo (definición) de cada
       función. Esto último quiere decir que, aunque declaremos múltiples
       variables
-
+    </para>
       <programlisting>Stash A, B, C;</programlisting> 
-
+  
+<!-- doesn??t mean you get a different add( ) function for each variable. -->
+  
+    <para>
       no existirán múltiples definiciones de, por ejemplo, la
       función <function>add()</function>, una para cada variable. 
     </para>
 
+  <!--
+  So the code that??s generated is almost identical to what you would have
+  written for the C version of the library. Interestingly enough, this
+  includes the ??name decoration?? you probably would have done to produce
+  Stash_initialize( ), Stash_cleanup( ), and so on. When the function name
+  is inside the struct, the compiler effectively does the same
+  thing. Therefore, initialize( ) inside the structure Stash will not
+  collide with a function named initialize( ) inside any other structure,
+  or even a global function named initialize( ). Most of the time you
+  don??t have to worry about the function name decoration ? you use the
+  undecorated name. But sometimes you do need to be able to specify that
+  this initialize( ) belongs to the struct Stash, and not to any other
+  struct. In particular, when you??re defining the function you need to
+  fully specify which one it is. To accomplish this full specification,
+  C++ has an operator (::) called the scope resolution operator (named so
+  because names can now be in different scopes: at global scope or within
+  the scope of a struct). For example, if you want to specify initialize(
+  ), which belongs to Stash, you say Stash::initialize(int size). You can
+  see how the scope resolution operator is used in the function
+  definitions:
+  -->
     <para>
       Como ya dijimos, el código generado es casi idéntico al que
       hubiésemos escrito para una versión en C de la librería,
@@ -927,6 +1281,22 @@ cp = (char*)fetch(&amp;stringStash,i++)
 <xi:include parse="text" href="./code/C04/CppLib.cpp"/>
 </programlisting>
 
+  <!--
+  There are several other things that are different between C and
+  C++. First, the declarations in the header files are required by the
+  compiler. In C++ you cannot call a function without declaring it
+  first. The compiler will issue an error message otherwise. This is an
+  important way to ensure that function calls are consistent between the
+  point where they are called and the point where they are defined. By
+  forcing you to declare the function before you call it, the C++ compiler
+  virtually ensures that you will perform this declaration by including
+  the header file. If you also include the same header file in the place
+  where the functions are defined, then the compiler checks to make sure
+  that the declaration in the header and the function definition match
+  up. This means that the header file becomes a validated repository for
+  function declarations and ensures that functions are used consistently
+  throughout all translation units in the project.
+  -->
     <para>
       Hay muchas otras cosas que son diferentes entre C y C++. Para
       empezar, el compilador <emphasis>requiere</emphasis> que
@@ -948,6 +1318,15 @@ cp = (char*)fetch(&amp;stringStash,i++)
       todas las unidades de traducción del proyecto. 
     </para>
 
+
+  <!--
+  Of course, global functions can still be declared by hand every place
+  where they are defined and used. (This is so tedious that it becomes
+  very unlikely.) However, structures must always be declared before they
+  are defined or used, and the most convenient place to put a structure
+  definition is in a header file, except for those you intentionally hide
+  in a file.
+  -->
     <para>
       Obviamente, las funciones globales se pueden seguir declarando a
       mano en aquellos lugares en las que son definidas y usadas. (Sin
@@ -958,6 +1337,26 @@ cp = (char*)fetch(&amp;stringStash,i++)
       intencionalmente en otro archivo. 
     </para>
 
+  <!--
+  You can see that all the member functions look almost the same as when
+  they were C functions, except for the scope resolution and the fact that
+  the first argument from the C version of the library is no longer
+  explicit. It??s still there, of course, because the function has to be
+  able to work on a particular struct variable. But notice, inside the
+  member function, that the member selection is also gone! Thus, instead
+  of saying s?>size = sz; you say size = sz; and eliminate the tedious
+  s?>, which didn??t really add anything to the meaning of what you were
+  doing anyway. The C++ compiler is apparently doing this for you. Indeed,
+  it is taking the ??secret?? first argument (the address of the structure
+  that we were previously passing in by hand) and applying the member
+  selector whenever you refer to one of the data members of a struct. This
+  means that whenever you are inside the member function of another
+  struct, you can refer to any member (including another member function)
+  by simply giving its name. The compiler will search through the local
+  structure??s names before looking for a global version of that
+  name. You??ll find that this feature means that not only is your code
+  easier to write, it??s a lot easier to read.
+  -->
     <para>
       Se puede ver que todas las funciones miembros tienen casi la misma
       forma que sus versiones respectivas en C. Las únicas diferencias
@@ -987,6 +1386,15 @@ cp = (char*)fetch(&amp;stringStash,i++)
       tribial.
     </para>
     
+  <!--
+  But what if, for some reason, you want to be able to get your hands on
+  the address of the structure? In the C version of the library it was
+  easy because each function??s first argument was a CStash* called s. In
+  C++, things are even more consistent. There??s a special keyword, called
+  this, which produces the address of the struct. It??s the equivalent of
+  the ??s?? in the C version of the library. So we can revert to the C
+  style of things by saying
+  -->
     <para>
       Pero qué pasaría si, por alguna razón,
       <emphasis>deseáramos</emphasis> hacer referencia a la dirección de
@@ -999,8 +1407,19 @@ cp = (char*)fetch(&amp;stringStash,i++)
       librería. Así, podremos volver al estilo de C escribiendo
     </para>
 
-    <programlisting>this->size = Size;</programlisting>
+<programlisting>
+this->size = Size;
+</programlisting>
 
+
+  <!--
+  The code generated by the compiler is exactly the same, so you don??t
+  need to use this in such a fashion; occasionally, you??ll see code where
+  people explicitly use this-> everywhere but it doesn??t add anything to
+  the meaning of the code and often indicates an inexperienced
+  programmer. Usually, you don??t use this often, but when you need it,
+  it??s there (some of the examples later in the book will use this).
+  -->
     <para>
       El código generado por el compilador será exactamente el mismo por
       lo que no es necesario usar <literal>this</literal>
@@ -1013,6 +1432,10 @@ cp = (char*)fetch(&amp;stringStash,i++)
       posteriores del libro se verá más sobre su uso).
     </para>
 
+  <!--
+  There??s one last item to mention. In C, you could assign a void* to any
+  other pointer like this:
+  -->
     <para>
       Queda aún un último tema que tocar. En C, se puede asignar un
       <type>void *</type> a cualquier otro puntero, algo como esto:
@@ -1024,6 +1447,24 @@ void* vp = &amp;i; // OK tanto en C como en C++
 int* ip = vp; // Sólo aceptable en C
 </programlisting>
 
+  <!--
+  and there was no complaint from the compiler. But in C++, this statement
+  is not allowed. Why? Because C is not so particular about type
+  information, so it allows you to assign a pointer with an unspecified
+  type to a pointer with a specified type. Not so with C++. Type is
+  critical in C++, and the compiler stamps its foot when there are any
+  violations of type information. This has always been important, but it
+  is especially important in C++ because you have member functions in
+  structs. If you could pass pointers to structs around with impunity in
+  C++, then you could end up calling a member function for a struct that
+  doesn??t even logically exist for that struct! A real recipe for
+  disaster. Therefore, while C++ allows the assignment of any type of
+  pointer to a void* (this was the original intent of void*, which is
+  required to be large enough to hold a pointer to any type), it will not
+  allow you to assign a void pointer to any other type of pointer. A cast
+  is always required to tell the reader and the compiler that you really
+  do want to treat it as the destination type.
+  -->
     <para>
       y no habrá ningún tipo de queja por parte de compilador. Sin
       embargo, en C++, lo anterior no estará permitido. ¿Por qué? Porque
@@ -1048,6 +1489,22 @@ int* ip = vp; // Sólo aceptable en C
       destino.
     </para>
 
+  <!--
+  This brings up an interesting issue. One of the important goals for C++
+  is to compile as much existing C code as possible to allow for an easy
+  transition to the new language. However, this doesn??t mean any code
+  that C allows will automatically be allowed in C++. There are a number
+  of things the C compiler lets you get away with that are dangerous and
+  error-prone. (We??ll look at them as the book progresses.) The C++
+  compiler generates warnings and errors for these situations. This is
+  often much more of an advantage than a hindrance. In fact, there are
+  many situations in which you are trying to run down an error in C and
+  just can??t find it, but as soon as you recompile the program in C++,
+  the compiler points out the problem! In C, you??ll often find that you
+  can get the program to compile, but then you have to get it to work. In
+  C++, when the program compiles correctly, it often works, too! This is
+  because the language is a lot stricter about type.
+  -->
     <para>
       Y esto nos lleva a discutir un asunto interesante. Uno de los
       objetivos importantes de C++ es poder compilar la mayor cantidad
@@ -1072,6 +1529,10 @@ int* ip = vp; // Sólo aceptable en C
       comprobación de tipos de información.
     </para>
 
+  <!--
+  You can see a number of new things in the way the C++ version of Stash
+  is used in the following test program:
+  -->
     <para>
       En el siguiente programa test se podrá apreciar nuevas cosas con
       respecto a cómo se utiliza la nueva versión de la
@@ -1082,7 +1543,12 @@ int* ip = vp; // Sólo aceptable en C
 <xi:include parse="text" href="./code/C04/CppLibTest.cpp"/>
 </programlisting>
 
-
+  <!--
+  One thing you??ll notice is that the variables are all defined ??on the
+  fly?? (as introduced in the previous chapter). That is, they are defined
+  at any point in the scope, rather than being restricted ? as in C ? to
+  the beginning of the scope.
+  -->
     <para>
       Una de las cosas que el lector habrá podido observar en el código
       anterior es que las variables se definen <quote>al vuelo</quote>,
@@ -1091,6 +1557,14 @@ int* ip = vp; // Sólo aceptable en C
       de los mismos. 
     </para>
 
+  <!--
+  The code is quite similar to CLibTest.cpp, but when a member function is
+  called, the call occurs using the member selection operator ??.??
+  preceded by the name of the variable. This is a convenient syntax
+  because it mimics the selection of a data member of the structure. The
+  difference is that this is a function member, so it has an argument
+  list.
+  -->
     <para>
       El código es bastante similar al visto en
       <filename>CLibTest.cpp</filename> con la diferencia de que, cuando
@@ -1103,6 +1577,21 @@ int* ip = vp; // Sólo aceptable en C
       argumentos.
     </para>
 
+  <!--
+  Of course, the call that the compiler actually generates looks much more
+  like the original C library function. Thus, considering name decoration
+  and the passing of this, the C++ function call
+  intStash.initialize(sizeof(int), 100) becomes something like
+  Stash_initialize(&intStash, sizeof(int), 100). If you ever wonder
+  what??s going on underneath the covers, remember that the original C++
+  compiler cfront from AT&T produced C code as its output, which was then
+  compiled by the underlying C compiler. This approach meant that cfront
+  could be quickly ported to any machine that had a C compiler, and it
+  helped to rapidly disseminate C++ compiler technology. But because the
+  C++ compiler had to generate C, you know that there must be some way to
+  represent C++ syntax in C (some compilers still allow you to produce C
+  code).
+  -->
     <para>
       Tal y cómo lo hemos dicho antes, la llamada que el compilador hace
       <emphasis>realmente</emphasis> es en realidad mucho más parecida a
@@ -1126,6 +1615,22 @@ int* ip = vp; // Sólo aceptable en C
       aún permiten generar código C).
     </para>
 
+  <!--
+  There??s one other change from ClibTest.cpp, which is the introduction
+  of the require.h header file. This is a header file that I created for
+  this book to perform more sophisticated error checking than that
+  provided by assert( ). It contains several functions, including the one
+  used here called assure( ), which is used for files. This function
+  checks to see if the file has successfully been opened, and if not it
+  reports to standard error that the file could not be opened (thus it
+  needs the name of the file as the second argument) and exits the
+  program. The require.h functions will be used throughout the book, in
+  particular to ensure that there are the right number of command-line
+  arguments and that files are opened properly. The require.h functions
+  replace repetitive and distracting error-checking code, and yet they
+  provide essentially useful error messages. These functions will be fully
+  explained later in the book.  
+  -->
     <para>
       Comparando con <filename>CLibTest.cpp</filename> observamos un
       cambio: la introducción del archivo de cabecera
@@ -1153,9 +1658,23 @@ int* ip = vp; // Sólo aceptable en C
 
 
   <sect1>
+    <!-- What's an object? -->
     <title>¿Qué es un objeto?</title>
 
-    <para>
+
+    <para>  <!--
+  Now that you??ve seen an initial example, it??s time to step back and
+  take a look at some terminology. The act of bringing functions inside
+  structures is the root of what C++ adds to C, and it introduces a new
+  way of thinking about structures: as concepts. In C, a struct is an
+  agglomeration of data, a way to package data so you can treat it in a
+  clump. But it??s hard to think about it as anything but a programming
+  convenience. The functions that operate on those structures are
+  elsewhere. However, with functions in the package, the structure becomes
+  a new creature, capable of describing both characteristics (like a C
+  struct does) and behaviors. The concept of an object, a free-standing,
+  bounded entity that can remember and act, suggests itself.
+  -->
       Ahora que ya se ha visto y discutido un ejemplo incial es hora de
       retroceder para definir la terminología. El acto de meter
       funciones dentro de las estructuras es el eje central del cambio
@@ -1175,6 +1694,15 @@ int* ip = vp; // Sólo aceptable en C
       definición.
     </para>
 
+
+  <!--
+  In C++, an object is just a variable, and the purest definition is ??a
+  region of storage?? (this is a more specific way of saying, ??an object
+  must have a unique identifier,?? which in the case of C++ is a unique
+  memory address). It??s a place where you can store data, and it??s
+  implied that there are also operations that can be performed on this
+  data.
+  -->
     <para>
       En C++ un objeto es simplemente una variable, y la definición más
       pura es <quote>una región de almacenamiento</quote> (esto último
@@ -1185,6 +1713,17 @@ int* ip = vp; // Sólo aceptable en C
       operaciones sobre esos datos.
     </para>
 
+  <!--
+  Unfortunately, there??s not complete consistency across languages when
+  it comes to these terms, although they are fairly well-accepted. You
+  will also sometimes encounter disagreement about what an object-oriented
+  language is, although that seems to be reasonably well sorted out by
+  now. There are languages that are object-based, which means that they
+  have objects like the C++ structures-with-functions that you??ve seen so
+  far. This, however, is only part of the picture when it comes to an
+  object-oriented language, and languages that stop at packaging functions
+  inside data structures are object-based, not object-oriented.  
+    -->
     <para>
       Desafortunadamente no existe una completa consistencia entre los
       distintos lenguajes cuando se habla de estos términos aunque son
@@ -1209,6 +1748,15 @@ int* ip = vp; // Sólo aceptable en C
     <!-- "Tipado de datos abstracto" no me gustó-->
     <title>Tipos abstractos de datos</title>
 
+  <!--
+  The ability to package data with functions allows you to create a new
+  data type. This is often called encapsulation[33]. An existing data type
+  may have several pieces of data packaged together. For example, a float
+  has an exponent, a mantissa, and a sign bit. You can tell it to do
+  things: add to another float or to an int, and so on. It has
+  characteristics and behavior.
+  -->
+
     <para>
       El ser capaces de empaquetar datos junto con funciones nos permite
       la creación de nuevos tipos de datos. Esto es muchas veces llamado
@@ -1230,6 +1778,19 @@ int* ip = vp; // Sólo aceptable en C
       <type>int</type>, etc. Así, podemos decir que tiene
       características y comportamiento.
     </para>
+
+  <!--
+  The definition of Stash creates a new data type. You can add( ), fetch(
+  ), and inflate( ). You create one by saying Stash s, just as you create
+  a float by saying float f. A Stash also has characteristics and
+  behavior. Even though it acts like a real, built-in data type, we refer
+  to it as an abstract data type, perhaps because it allows us to abstract
+  a concept from the problem space into the solution space. In addition,
+  the C++ compiler treats it like a new data type, and if you say a
+  function expects a Stash, the compiler makes sure you pass a Stash to
+  that function. So the same level of type checking happens with abstract
+  data types (sometimes called user-defined types) as with built-in types.
+  -->
 
     <para>
       La definición de un <type>Stash</type> crea un nuevo tipo de
@@ -1253,6 +1814,19 @@ int* ip = vp; // Sólo aceptable en C
       usuario</emphasis>) como para los tipos predefinidos.
     </para>
 
+  <!--
+  You can immediately see a difference, however, in the way you perform
+  operations on objects. You say object.memberFunction(arglist). This is
+  ??calling a member function for an object.?? But in object-oriented
+  parlance, this is also referred to as ??sending a message to an
+  object.?? So for a Stash s, the statement s.add(&i) ??sends a message to
+  s?? saying, ??add( ) this to yourself.?? In fact, object-oriented
+  programming can be summed up in a single phrase: sending messages to
+  objects. Really, that??s all you do ? create a bunch of objects and send
+  messages to them. The trick, of course, is figuring out what your
+  objects and messages are, but once you accomplish this the
+  implementation in C++ is surprisingly straightforward.
+  -->
     <para>
       Sin embargo, se notará inmediatamente una diferencia en cómo se
       realizan las operaciones sobre los objetos. Hacemos
@@ -1280,6 +1854,7 @@ Hasta aquí tradujo Sebastián Gurin
 
 
   <sect1>
+    <!-- Object details -->
     <title>Detalles del objeto</title>
     
     <!--
