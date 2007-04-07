@@ -15,8 +15,9 @@
   <xsl:param name="latex.babel.use">0</xsl:param>
   <xsl:param name="latex.hyperparam">colorlinks,linkcolor=blue,urlcolor=blue,</xsl:param>
   
-<!--
+
   <xsl:param name="latex.babel.language">spanish</xsl:param>
+<!--
   <xsl:param name="draft.mode">yes</xsl:param>
 -->
   <xsl:param name="latex.class.book">book</xsl:param>
