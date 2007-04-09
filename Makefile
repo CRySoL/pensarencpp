@@ -4,29 +4,38 @@ XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 XSL_HTML=stylesheets/plainhtml.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
-MAIN=Volumen1
-FILES=$(wildcard Capitulo*.xml Apendice*.xml) Volumen?-master.xml
-
-all: make_images html $(MAIN).pdf
+FILES=$(wildcard V1-*.xml V2-*.xml Volumen*-master.xml)
 
 
-html: Volumen1-tagged.xml
-	@-mkdir -p html/images
+ad:
+	echo $(FILES)
+
+all: make_images vol1 Volumen1.pdf
+
+Volumen%-html.bz2: vol%
+	tar cfj $@ $<
+
+vol1: Volumen1-tagged.xml
+	@-mkdir -p vol1/images
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
 	  --stringparam chunker.output.indent yes \
-	  --stringparam base.dir html/ \
+	  --stringparam base.dir vol1/ \
 	  --output  $@  $(XSL_HTML)  $<
 
-	cp images/*.png html/images
-	cp images/web/* html/images/
-	cp stylesheets/*.css html/
+	cp images/*.png vol1/images
+	cp images/web/* vol1/images/
+	cp stylesheets/*.css vol1/
 
-	grep -l BEGINCODE html/*.html | xargs python utils/html_colorize.py 
-	$(RM) html/*.code
+	grep -l BEGINCODE vol1/*.html | xargs python utils/html_colorize.py 
+	$(RM) vol1/*.code
 
 	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null
-	mv highlight.css html/
+	mv highlight.css vol1/
+
+Volumen1-tagged.xml: Volumen1.xml
+	@echo "--- Añadiendo marcas en listados para coloreado"
+	python utils/xml_tag_codes.py $< > $@
 
 
 %.pdf: %.xml
@@ -53,10 +62,6 @@ html: Volumen1-tagged.xml
 #	$(XSL_PDF) Volumen1-final.xml
 #
 
-Volumen1-tagged.xml: Volumen1.xml
-	@echo "--- Añadiendo marcas en listados para coloreado"
-	python utils/xml_tag_codes.py $< > $@
-
 Volumen1.xml: $(FILES)
 	@echo "--- Montando el documento"
 	xsltproc --xinclude stylesheets/profile.xsl $(basename $@)-master.xml > fase1.xml
@@ -69,56 +74,34 @@ Volumen1.xml: $(FILES)
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
 
-
 make_images:
 	$(MAKE) -C images
 
+install: products
+	scp -r products repo:public_html/pensar_en_C++/
 
-install: pack
-	$(MAKE) -f Makeinstall
-
-pack: Volumen1-html.bz2
+products: Volumen1-html.bz2 vol1 Volumen1.pdf
 	@-mkdir products
-	mv html products/
-	mv $^ products/ 
-	mv $(MAIN).pdf products/
+	cp -r $^ products/ 
 
-Volumen1-html.bz2: html
-	tar cfj $@ html
 
 validate:
-	xsltproc --xinclude --noout stylesheets/profile.xsl $(MAIN).xml
-
-
-# Para Descomprimir y arreglar los ficheros de código
-VOL1_ALL=../original/TICPP-2nd-ed-Vol-one.zip
-VOL1_CODE=TICPP-2nd-ed-Vol-one-code.zip
-
-.INTERMEDIATE: $(VOL1_CODE)
-
-code:   $(VOL1_CODE)
-	unzip $< -d $@
-	python ./PatchSources.py code
-
-$(VOL1_CODE): $(VOL1_ALL)
-	unzip $< $@
-
+	xsltproc --xinclude --noout stylesheets/profile.xsl Volumen1.xml
 
 
 # Limpieza
 clean:
-	$(RM) join.xml fase?.xml 
+	$(RM) fase?.xml join.xml 
 	$(RM) Volumen?.xml *-tagged.xml
 	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
 	$(RM) *~ 
-
+	$(RM) -r products
+	$(RM) vol1/images/*
+	-rmdir vol1/images
+	$(RM) vol1/*
+	-rmdir -p vol1
 
 vclean: clean
-	$(RM) -r products
-	$(RM) html/images/*
-	-rmdir html/images
-	$(RM) html/*
-	-rmdir -p html
 	$(MAKE) -C images clean
 
 
