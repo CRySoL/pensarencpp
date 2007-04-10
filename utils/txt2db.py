@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+'''
+Transforma ficheros de texto plano en DB listo para traducir. El original debe tener los títulos de las secciones delimitados con:
+
+:SECT:1: Título de la sección
+
+palabrería bla bla bla
+
+:SECT:2: Título de subsección
+
+'''
 
 import sys
 

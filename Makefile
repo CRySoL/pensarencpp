@@ -7,9 +7,6 @@ XSL_PDF=stylesheets/plainprint.xsl
 FILES=$(wildcard V1-*.xml V2-*.xml Volumen*-master.xml)
 
 
-ad:
-	echo $(FILES)
-
 all: make_images vol1 Volumen1.pdf
 
 Volumen%-html.bz2: vol%
@@ -93,7 +90,7 @@ validate:
 clean:
 	$(RM) fase?.xml join.xml 
 	$(RM) Volumen?.xml *-tagged.xml
-	$(RM) *.tex *.log *.glo *.aux *.idx *.out *.pdf *.toc *.ilg *.ind
+	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
 	$(RM) *~ 
 	$(RM) -r products
 	$(RM) vol1/images/*
