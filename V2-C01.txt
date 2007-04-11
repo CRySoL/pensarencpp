@@ -20,7 +20,7 @@ engineer. We also introduce a simple framework to support unit testing.
 
  
 
-1: Exception Handling
+Exception Handling
 
 Improving error recovery is one of the most powerful ways you can
 increase the robustness of your code.
@@ -58,7 +58,9 @@ terminates because there was no handler to catch that type of exception.
 This chapter examines C's approach to error handling (such as it is),
 discusses why it did not work well for C, and explains why it won't work
 at all for C++. This chapter also covers try, throw, and catch, the C++
-keywords that support exception handling.  Traditional error handling
+keywords that support exception handling.  
+
+:SECT:1 Traditional error handling
 
 In most of the examples in these volumes, we use assert( ) as it was
 intended: for debugging during development with code that can be
@@ -137,7 +139,9 @@ Destructor calls are essential, so this approach won't work with C++. In
 fact, the C++ Standard states that branching into a scope with goto
 (effectively bypassing constructor calls), or branching out of a scope
 with longjmp( ) where an object on the stack has a destructor,
-constitutes undefined behavior.  Throwing an exception
+constitutes undefined behavior.  
+
+:SECT:1 Throwing an exception
 
 If you encounter an exceptional situation in your code-that is, if you
 don't have enough information in the current context to decide what to
@@ -190,12 +194,15 @@ In addition, you can throw as many different types of objects as you
 want. Typically, you'll throw a different type for each category of
 error. The idea is to store the information in the object and in the
 name of its class so that someone in a calling context can figure out
-what to do with your exception.  Catching an exception
+what to do with your exception.  
+
+:SECT:1 Catching an exception
 
 As mentioned earlier, one of the advantages of C++ exception handling is
 that you can concentrate on the problem you're trying to solve in one
 place, and then deal with the errors from that code in another place.
-The try block
+
+:SECT:2 The try block
 
 If you're inside a function and you throw an exception (or a called
 function throws an exception), the function exits because of the thrown
@@ -216,7 +223,9 @@ and test code, even if you call the same function several times. With
 exception handling, you put everything in a try block and handle
 exceptions after the try block. Thus, your code is a lot easier to write
 and to read because the goal of the code is not confused with the error
-handling.  Exception handlers
+handling.  
+
+:SECT:2 Exception handlers
 
 Of course, the thrown exception must end up some place. This place is
 the exception handler, and you need one exception handler for every
@@ -272,7 +281,9 @@ until it finds the catch clause that takes an int parameter. Execution
 resumes with the body of that catch clause. The most important
 difference between this program and Nonlocal.cpp is that the destructor
 for the object rb is called when the throw statement causes execution to
-leave the function oz( ).  Termination and resumption
+leave the function oz( ).  
+
+:SECT:2 Termination and resumption
 
 There are two basic models in exception-handling theory: termination and
 resumption. In termination (which is what C++ supports), you assume the
@@ -299,8 +310,9 @@ first, it seems it isn't quite so useful in practice. One reason may be
 the distance that can occur between the exception and its handler. It is
 one thing to terminate to a handler that's far away, but to jump to that
 handler and then back again may be too conceptually difficult for large
-systems where the exception is generated from many points.  Exception
-matching
+systems where the exception is generated from many points.  
+
+:SECT:1 Exception matching
 
 When an exception is thrown, the exception-handling system looks through
 the "nearest" handlers in the order they appear in the source code. When
@@ -348,7 +360,8 @@ these classes it isn't important because there are no additional members
 in the derived classes, and there are no argument identifiers in the
 handlers anyway. You'll usually want to use reference arguments rather
 than value arguments in your handlers to avoid slicing off information.
-Catching any exception
+
+:SECT:2 Catching any exception
 
 Sometimes you want to create a handler that catches any type of
 exception. You do this using the ellipsis in the argument list:
@@ -364,7 +377,9 @@ end of your list of handlers to avoid pre-empting any that follow it.
 The ellipsis gives you no possibility to have an argument, so you can't
 know anything about the exception or its type. It's a "catchall." Such a
 catch clause is often used to clean up some resources and then rethrow
-the exception.  Rethrowing an exception
+the exception.  
+
+:SECT:2 Rethrowing an exception
 
 You usually want to rethrow an exception when you have some resource
 that needs to be released, such as a network connection or heap memory
@@ -391,7 +406,9 @@ throw causes the exception to go to the exception handlers in the
 next-higher context. In addition, everything about the exception object
 is preserved, so the handler at the higher context that catches the
 specific exception type can extract any information the object may
-contain.  Uncaught exceptions
+contain.  
+
+:SECT:2 Uncaught exceptions
 
 As we explained in the beginning of this chapter, exception handling is
 considered better than the traditional return-an-error-code technique
@@ -454,7 +471,9 @@ objects on the stack to handle one exception, the Botch destructor is
 called, and that generates a second exception, forcing a call to
 terminate( ). Thus, a destructor that throws an exception or causes one
 to be thrown is usually a sign of poor design or sloppy coding.
-Cleaning up
+
+
+:SECT:1 Cleaning up
 
 Part of the magic of exception handling is that you can pop from normal
 program flow into the appropriate exception handler. Doing so wouldn't
@@ -497,7 +516,9 @@ constructor for the fourth element, an exception is thrown. Because the
 fourth construction in main( ) (for array[2]) never completes, only the
 destructors for objects array[1] and array[0] are called. Finally,
 object n1 is destroyed, but not object n2, because it was never created.
-Resource management
+
+
+:SECT:2 Resource management
 
 When writing code with exceptions, it's particularly important that you
 always ask, "If an exception occurs, will my resources be properly
@@ -532,7 +553,9 @@ out-of-memory error). Suddenly, you end up inside the handler, without
 the UseResources destructor being called. This is correct because the
 UseResources constructor was unable to finish, but it also means the Cat
 objects that were successfully created on the heap were never destroyed.
-Making everything an object
+
+
+:SECT:2 Making everything an object
 
 To prevent such resource leaks, you must guard against these "raw"
 resource allocations in one of two ways:
@@ -586,7 +609,9 @@ inside handler
 
 Again, the storage allocation for Dog throws an exception, but this time
 the array of Cat objects is properly cleaned up, so there is no memory
-leak.  auto_ptr
+leak.  
+
+:SECT:2 auto_ptr
 
 Since dynamic memory is the most frequent resource used in a typical C++
 program, the standard provides an RAII wrapper for pointers to heap
@@ -618,7 +643,9 @@ output verifies: Allocating TraceHeap object on the heap at address
 The auto_ptr class template is also handy for pointer data
 members. Since class objects contained by value are always destructed,
 auto_ptr members always delete the raw pointer they wrap when the
-containing object is destructed.[6] Function-level try blocks
+containing object is destructed.[6] 
+
+:SECT:2 Function-level try blocks
 
 Since constructors can routinely throw exceptions, you might want to
 handle exceptions that occur when an object's member or base subobjects
@@ -649,7 +676,9 @@ blocks for any function, as the following example illustrates:
 In this case, the catch block can return in the same manner that the
 function body normally returns. Using this type of function-level try
 block isn't much different from inserting a try-catch around the code
-inside of the function body.  Standard exceptions
+inside of the function body.  
+
+:SECT:1 Standard exceptions
 
 The exceptions used with the Standard C++ library are also available for
 your use. Generally it's easier and faster to start with a standard
@@ -762,7 +791,9 @@ bad_alloc
 	
 
 Reports a failure to allocate storage.
-Exception specifications
+
+
+:SECT:1 Exception specifications
 
 You're not required to inform the people using your function what
 exceptions you might throw. However, failure to do so can be considered
@@ -888,7 +919,7 @@ terminate handler. Here's the output: caught an A from f caught a
 bad_exception from g terminate called
 
  
-Better exception specifications?
+:SECT:2 Better exception specifications?
 
 You may feel that the existing exception specification rules aren't very
 safe, and that void f();
@@ -913,7 +944,7 @@ means, "Maybe I'll throw an exception, maybe I won't." This ambiguity is
 necessary to avoid hindering code evolution. If you want to specify that
 f throws no exceptions, use the empty list, as in: void f() throw();
  
-Exception specifications and inheritance
+:SECT:2 Exception specifications and inheritance
 
 Each public function in a class essentially forms a contract with the
 user; if you pass it certain arguments, it will perform certain
@@ -946,8 +977,9 @@ exception specifications and return values with DerivedException. This
 behavior is called covariance (since both sets of classes vary down
 their respective hierarchies together). (Reminder from Volume 1:
 parameter types are not covariant-you are not allowed to change the
-signature of an overridden virtual function.)  When not to use exception
-specifications
+signature of an overridden virtual function.)  
+
+:SECT:2 When not to use exception specifications
 
 If you peruse the function declarations throughout the Standard C++
 library, you'll find that not a single exception specification occurs
@@ -969,7 +1001,9 @@ what exceptions might occur, don't use exception specifications. That's
 why template classes, which constitute the majority of the Standard C++
 library, do not use exception specifications-they specify the exceptions
 they know about in documentation and leave the rest to you. Exception
-specifications are mainly for non-template classes.  Exception safety
+specifications are mainly for non-template classes.  
+
+:SECT:1 Exception safety
 
 In Chapter 7 we'll take an in-depth look at the containers in the
 Standard C++ library, including the stack container. One thing you'll
@@ -1059,12 +1093,15 @@ destructor is called. It turns out to be practically impossible to
 design exception-safe code without assuming that destructors don't throw
 exceptions. Don't let destructors throw exceptions. (We're going to
 remind you about this once more before this chapter is done).[8]
-Programming with exceptions
+
+
+:SECT:1 Programming with exceptions
 
 For most programmers, especially C programmers, exceptions are not
 available in their existing language and require some adjustment. Here
-are guidelines for programming with exceptions.  When to avoid
-exceptions
+are guidelines for programming with exceptions.  
+
+:SECT:2 When to avoid exceptions
 
 Exceptions aren't the answer to all problems; overuse can cause
 trouble. The following sections point out situations where exceptions
@@ -1134,7 +1171,9 @@ It's truly important to think about exceptions when you're creating a
 library for someone else to use, especially if you can't know how they
 need to respond to critical error conditions (recall the earlier
 discussions on exception safety and why there are no exception
-specifications in the Standard C++ Library).  Typical uses of exceptions
+specifications in the Standard C++ Library).  
+
+:SECT:2 Typical uses of exceptions
 
 Do use exceptions to do the following:
 
@@ -1269,7 +1308,9 @@ vulnerability in the constructor if resources are allocated for that
 pointer. A pointer doesn't have a destructor, so those resources aren't
 released if an exception is thrown in the constructor. Use auto_ptr or
 other smart pointer types[10] for pointers that reference heap memory.
-Overhead
+
+
+:SECT:1 Overhead
 
 When an exception is thrown, there's considerable runtime overhead (but
 it's good overhead, since objects are cleaned up automatically!). For
@@ -1368,7 +1409,9 @@ each function, but not in each ARI. You essentially remove exception
 overhead from each ARI and thus avoid the extra time to push them onto
 the stack. This approach is called the zero-cost model[13] of exception
 handling, and the optimized storage mentioned earlier is known as the
-shadow stack.[14] Summary
+shadow stack.[14] 
+
+:SECT:1 Summary
 
 Error recovery is a fundamental concern for every program you
 write. It's especially important in C++ when creating program components
@@ -1384,7 +1427,10 @@ with low impact on existing code.
 Basic exceptions are not terribly difficult to learn; begin using them
 in your programs as soon as you can. Exceptions are one of those
 features that provide immediate and significant benefits to your
-project.  Exercises
+project.  
+
+
+:SECT:1 Exercises
 
 Solutions to selected exercises can be found in the electronic document
 The Thinking in C++ Volume 2 Annotated Solution Guide, available for a

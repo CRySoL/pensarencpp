@@ -11,8 +11,8 @@
   2ª Revisión
 -->
 
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
 
 <chapter 
   xmlns:xi="http://www.w3.org/2001/XInclude"
@@ -36,6 +36,13 @@
     </para>
   </highlights>
 
+  <!--
+  putting the function declarations inside the scope of the struct,
+  changing the way functions are called for the struct, eliminating the
+  passing of the structure address as the first argument, and adding a new
+  type name to the program (so you don??t have to create a typedef for the
+  struct tag).
+  -->
   <para>
     poniendo la declaración de la función dentro del dominio de la
     estructura, cambiando la forma en que se invoca a las funciones
@@ -45,6 +52,12 @@
     para la estructura).
   </para>
 
+  <!--
+  These are all convenient ? they help you organize your code and make it
+  easier to write and read. However, there are other important issues when
+  making libraries easier in C++, especially the issues of safety and
+  control. This chapter looks at the subject of boundaries in structures.
+  -->
   <para>
     Todo esto son mejoras - Le ayuda a organizar su código haciéndolo
     más fácil de escribir y leer. Sin embargo, hay otros aspectos
@@ -55,8 +68,15 @@
 
 
   <sect1>
+    <!-- Setting limits -->
     <title>Establecer los límites</title>
 
+    <!--
+    In any relationship it??s important to have boundaries that are
+    respected by all parties involved. When you create a library, you
+    establish a relationship with the client programmer who uses that
+    library to build an application or another library.
+    -->
     <para>
       En toda relación es importante tener fronteras que todas las
       partes respeten. Cuando crea una librería, establece una relación
@@ -64,6 +84,17 @@
       crear un programa u otra librería.
     </para>
 	
+    <!--
+    In a C struct, as with most things in C, there are no rules. Client
+    programmers can do anything they want with that struct, and there??s no
+    way to force any particular behaviors. For example, even though you saw
+    in the last chapter the importance of the functions named initialize( )
+    and cleanup( ), the client programmer has the option not to call those
+    functions. (We??ll look at a better approach in the next chapter.) And
+    even though you would really prefer that the client programmer not
+    directly manipulate some of the members of your struct, in C there??s no
+    way to prevent it. Everything??s naked to the world.
+    -->
     <para>
       En una estructura de C, como casi todo en C, no hay regla. Los
       programadores cliente pueden hacer lo que quieran con esa
@@ -78,6 +109,16 @@
       de evitarlo. Todo esta desnudo ante el mundo
     </para>
     
+
+    <!--
+    There are two reasons for controlling access to members. The first is to
+    keep the client programmer??s hands off tools they shouldn??t touch,
+    tools that are necessary for the internal machinations of the data type,
+    but not part of the interface the client programmer needs to solve their
+    particular problems. This is actually a service to client programmers
+    because they can easily see what??s important to them and what they can
+    ignore.
+    -->
     <para>
       Hay dos razones para controlar el acceso a los miembros. La
       primera es no dejar que el programador cliente ponga las manos
@@ -89,6 +130,16 @@
       importante para ellos y que pueden ignorar.
     </para>
 
+    <!--
+    The second reason for access control is to allow the library designer to
+    change the internal workings of the structure without worrying about how
+    it will affect the client programmer. In the Stack example in the last
+    chapter, you might want to allocate the storage in big chunks, for
+    speed, rather than creating new storage each time an element is
+    added. If the interface and implementation are clearly separated and
+    protected, you can accomplish this and require only a relink by the
+    client programmer.
+    -->
     <para>
       La segunda razón para el control de acceso es permitir al
       diseñador de la librería cambiar su funcionamiento interno sin
@@ -105,8 +156,17 @@
     
     
   <sect1>
+    <!-- C++ access control -->
     <title>Control de acceso en C++</title>
 
+    <!--
+    C++ introduces three new keywords to set the boundaries in a structure:
+    public, private, and protected. Their use and meaning are remarkably
+    straightforward. These access specifiers are used only in a structure
+    declaration, and they change the boundary for all the declarations that
+    follow them. Whenever you use an access specifier, it must be followed
+    by a colon.
+    -->
     <para>
       C++ introduce tres nuevas palabras clave para establecer las
       fronteras de una estructura: <kw>public</kw>, <kw>private</kw> y
@@ -117,6 +177,11 @@
       acceso, debe ir seguido de <quote>:</quote>
     </para>
 
+    <!--
+    public means all member declarations that follow are available to
+    everyone. public members are like struct members. For example, the
+    following struct declarations are identical:
+    -->
     <para>
       <kw>public</kw> significa que todas las declaraciones de
       miembros que siguen están accesibles para cualquiera. Los miembros
@@ -129,6 +194,15 @@
 //: C05:Public.cpp
 
 	
+    <!--
+    The private keyword, on the other hand, means that no one can access
+    that member except you, the creator of the type, inside function members
+    of that type. private is a brick wall between you and the client
+    programmer; if someone tries to access a private member, they??ll get a
+    compile-time error. In struct B in the example above, you may want to
+    make portions of the representation (that is, the data members) hidden,
+    accessible only to you:
+    -->
     <para>
       La palabra clave <kw>private</kw>, por otro lado,
       significa que nadie podrá acceder a ese miembro excepto usted, el
@@ -144,7 +218,15 @@
 
 //: C05:Private.cpp
 
-	
+
+    <!--
+    Although func( ) can access any member of B (because func( ) is a member
+    of B, thus automatically granting it permission), an ordinary global
+    function like main( ) cannot. Of course, neither can member functions of
+    other structures. Only the functions that are clearly stated in the
+    structure declaration (the ??contract??) can have access to private
+    members.
+    -->
     <para>
       Aunque <function>func()</function> puede acceder a cualquier miembro
       de <classname>B</classname> (pues <function>func()</function> en un
@@ -156,6 +238,12 @@
       <kw>private</kw>.
     </para>
 
+
+    <!--
+    There is no required order for access specifiers, and they may appear
+    more than once. They affect all the members declared after them and
+    before the next access specifier.
+    -->
     <para>
       No hay un orden fijo para los especificadores de acceso, y pueden
       aparecer más de una vez. Afectan a todos los miembros declarados
@@ -164,8 +252,17 @@
 
   
     <sect2>
-      <!-- se deja la palabra reservada-->
-      <title>protected</title>
+      <!-- protected -->
+      <title><kw>protected</kw></title>
+
+      <!--
+      The last access specifier is protected. protected acts just like
+      private, with one exception that we can??t really talk about right now:
+      ??Inherited?? structures (which cannot access private members) are
+      granted access to protected members. This will become clearer in Chapter
+      14 when inheritance is introduced. For current purposes, consider
+      protected to be just like private.
+      -->
       <para>
 	Es el ultimo que nos queda por ver, <kw>protected</kw>
 	actúa como <kw>private</kw>, con una excepción de la
@@ -180,7 +277,19 @@
   </sect1>
     
   <sect1>
+    <!-- Friends -->
     <title>Friends</title>
+
+    <!--
+    What if you want to explicitly grant access to a function that isn??t a
+    member of the current structure? This is accomplished by declaring that
+    function a friend inside the structure declaration. It??s important that
+    the friend declaration occurs inside the structure declaration because
+    you (and the compiler) must be able to read the structure declaration
+    and see every rule about the size and behavior of that data type. And a
+    very important rule in any relationship is, ??Who can access my private
+    implementation???
+    -->
     <para>
       ¿Que pasa si explícitamente se quiere dar acceso a una función que
       no es miembro de la estructura? Esto se consigue declarando la
@@ -194,6 +303,12 @@
       privada?"
     </para>
 
+    <!--
+    The class controls which code has access to its members. There??s no
+    magic way to ??break in?? from the outside if you aren??t a friend; you
+    can??t declare a new class and say, ??Hi, I??m a friend of Bob!?? and
+    expect to see the private and protected members of Bob.
+    -->
     <para>
       La clase controla que código tiene acceso a sus miembros. No hay ninguna
       manera mágica de "colarse" desde el exterior si no eres
@@ -203,6 +318,11 @@
       <kw>protected</kw> de Bob.
     </para>
 
+    <!--
+    You can declare a global function as a friend, and you can also declare
+    a member function of another structure, or even an entire structure, as
+    a friend. Here??s an example :
+    -->
     <para>
       Puede declarar una función global como <kw>friend</kw>,
       también puede declarar una función miembro de otra estructura, o
@@ -214,6 +334,14 @@
 //: C05:Friend.cpp
 
 
+    <!--
+    struct Y has a member function f( ) that will modify an object of type
+    X. This is a bit of a conundrum because the C++ compiler requires you to
+    declare everything before you can refer to it, so struct Y must be
+    declared before its member Y::f(X*) can be declared as a friend in
+    struct X. But for Y::f(X*) to be declared, struct X must be declared
+    first!
+    -->
     <para>
       <literal>struct Y</literal> tiene una función miembro
       <function>f()</function> que modifica un objeto de tipo
@@ -226,6 +354,15 @@
       <literal>struct X</literal> debe estar declarada antes!
     </para>
 	
+    <!--
+    Here??s the solution. Notice that Y::f(X*) takes the address of an X
+    object. This is critical because the compiler always knows how to pass
+    an address, which is of a fixed size regardless of the object being
+    passed, even if it doesn??t have full information about the size of the
+    type. If you try to pass the whole object, however, the compiler must
+    see the entire structure definition of X, to know the size and how to
+    pass it, before it allows you to declare a function such as Y::g(X).
+    -->
     <para>
       Aquí vemos la solución. Dese cuenta de que
       <function>Y::f(X*)</function> coge como argumento la dirección de un
@@ -239,6 +376,11 @@
       <function>Y::g(X)</function>.
     </para>
 
+    <!--
+    By passing the address of an X, the compiler allows you to make an
+    incomplete type specification of X prior to declaring Y::f(X*). This is
+    accomplished in the declaration:
+    -->
     <para>
       Pasando la dirección de un <classname>X</classname>, el compilador le
       permite hacer una <emphasis>identificación de tipo
@@ -251,13 +393,24 @@
 struct X;
 </programlisting>
 
-
+    
+    <!--
+    This declaration simply tells the compiler there??s a struct by that
+    name, so it??s OK to refer to it as long as you don??t require any more
+    knowledge than the name.
+    -->
     <para>
       Esta declaración simplemente le dice al compilador que hay una
       estructura con ese nombre, así que se acepte referencias a ella
       siempre que no se necesite nada más que el nombre.
     </para>
     
+    <!--
+    Now, in struct X, the function Y::f(X*) can be declared as a friend with
+    no problem. If you tried to declare it before the compiler had seen the
+    full specification for Y, it would have given you an error. This is a
+    safety feature to ensure consistency and eliminate bugs.
+    -->
     <para>
       Ahora, en <literal>struct X</literal>, la función
       <function>Y::f(X*)</function> puede ser declarada como
@@ -267,6 +420,13 @@ struct X;
       una restricción para asegurar consistencia y eliminar errores.
     </para>
 	
+    <!--
+    Notice the two other friend functions. The first declares an ordinary
+    global function g( ) as a friend. But g( ) has not been previously
+    declared at the global scope! It turns out that friend can be used this
+    way to simultaneously declare the function and give it friend
+    status. This extends to entire structures:
+    -->
     <para>
       Fíjese en las otras dos funciones <kw>friend</kw>. La
       primera declara una función global ordinaria
@@ -283,14 +443,27 @@ friend struct Z;
 </programlisting>
 
 	
+    <!--
+    is an incomplete type specification for Z, and it gives the entire
+    structure friend status.
+    -->
     <para>
       es una especificación incompleta del tipo <classname>Z</classname>, y
       da a toda la estructura el estado de <kw>friend</kw>.
     </para>
 
     <sect2>
+      <!-- Nested friends -->
       <title>Amigas anidadas</title>
       
+      <!--
+      Making a structure nested doesn??t automatically give it access to
+      private members. To accomplish this, you must follow a particular form:
+      first, declare (without defining) the nested structure, then declare it
+      as a friend, and finally define the structure. The structure definition
+      must be separate from the friend declaration, otherwise it would be seen
+      by the compiler as a non-member. Here??s an example:
+      -->
       <para>
 	Hacer una estructura anidada no le da acceso a los miembros
 	privados. Para conseguir esto, se debe: primero, declare (sin
@@ -305,6 +478,10 @@ friend struct Z;
 //: C05:NestFriend.cpp
 
       
+      <!--
+      Once Pointer is declared, it is granted access to the private members of
+      Holder by saying:
+      -->
       <para>
 	Una vez que <classname>Pointer</classname> está declarado, se le
 	da acceso a los miembros privados de
@@ -316,7 +493,15 @@ friend struct Z;
 friend Pointer;
 </programlisting>
 
-
+      <!--
+      The struct Holder contains an array of ints and the Pointer allows you
+      to access them. Because Pointer is strongly associated with Holder, it??
+      s sensible to make it a member structure of Holder. But because Pointer
+      is a separate class from Holder, you can make more than one of them in
+      main( ) and use them to select different parts of the array. Pointer is
+      a structure instead of a raw C pointer, so you can guarantee that it
+      will always safely point inside the Holder.
+      -->
       <para>
 	La estructura<classname>Holder</classname> contiene un array de
 	enteros y <classname>Pointer</classname> le permite acceder a
@@ -331,6 +516,16 @@ friend Pointer;
 	que siempre apuntara dentro de <classname>Holder</classname>.
       </para>
 
+     <!--
+      The Standard C library function memset( ) (in <cstring>) is used for
+      convenience in the program above. It sets all memory starting at a
+      particular address (the first argument) to a particular value (the
+      second argument) for n bytes past the starting address (n is the third
+      argument). Of course, you could have simply used a loop to iterate
+      through all the memory, but memset( ) is available, well-tested (so it??
+      s less likely you??ll introduce an error), and probably more efficient
+      than if you coded it by hand.
+      -->
       <para>
 	La función de la librería estándar de C
 	<function>memset()</function> (en
@@ -349,7 +544,17 @@ friend Pointer;
     </sect2>
 
     <sect2>
+      <!-- Is it pure? -->
       <title>¿Es eso puro?</title>
+
+      <!--
+      The class definition gives you an audit trail, so you can see from
+      looking at the class which functions have permission to modify the
+      private parts of the class. If a function is a friend, it means that it
+      isn??t a member, but you want to give permission to modify private data
+      anyway, and it must be listed in the class definition so everyone can
+      see that it??s one of the privileged functions.
+      -->
       <para>
 	La definición de la clase le da la pista, mirando la clase se
 	puede saber qué funciones tienen permiso para modificar su parte
@@ -360,6 +565,12 @@ friend Pointer;
 	pueda ver que esa es una de las funciones privilegiadas.
       </para>
 
+      <!--
+      C++ is a hybrid object-oriented language, not a pure one, and friend was
+      added to get around practical problems that crop up. It??s fine to point
+      out that this makes the language less ??pure,?? because C++ is designed
+      to be pragmatic, not to aspire to an abstract ideal.
+      -->
       <para>
 	C++ es un lenguaje orientado a objetos híbrido, no es puro, y
 	<kw>friend</kw> fue añadido para solucionar algunos
@@ -371,7 +582,18 @@ friend Pointer;
   </sect1>
 
   <sect1>
+    <!-- Object layout -->
     <title>Capa de objetos</title>
+
+    <!--
+    Chapter 4 stated that a struct written for a C compiler and later
+    compiled with C++ would be unchanged. This referred primarily to the
+    object layout of the struct, that is, where the storage for the
+    individual variables is positioned in the memory allocated for the
+    object. If the C++ compiler changed the layout of C structs, then any C
+    code you wrote that inadvisably took advantage of knowledge of the
+    positions of variables in the struct would break.
+    -->
     <para>
       En el capítulo 4 se dijo que una <kw>struct</kw>
       escrita para un compilador C y más tarde compilada en uno de C++
@@ -384,6 +606,19 @@ friend Pointer;
       fallaría.
     </para>
 
+    <!--
+    When you start using access specifiers, however, you??ve moved
+    completely into the C++ realm, and things change a bit. Within a
+    particular ??access block?? (a group of declarations delimited by access
+    specifiers), the variables are guaranteed to be laid out contiguously,
+    as in C. However, the access blocks may not appear in the object in the
+    order that you declare them. Although the compiler will usually lay the
+    blocks out exactly as you see them, there is no rule about it, because a
+    particular machine architecture and/or operating environment may have
+    explicit support for private and protected that might require those
+    blocks to be placed in special memory locations. The language
+    specification doesn??t want to restrict this kind of advantage.
+    -->
     <para>
       Cuando se empiezan a usar los especificadores de acceso, se
       cambia al universo del C++, y las cosas cambian un poco. Dentro
@@ -401,6 +636,16 @@ friend Pointer;
       ventajas.
     </para>
 
+    <!--
+    Access specifiers are part of the structure and don??t affect the
+    objects created from the structure. All of the access specification
+    information disappears before the program is run; generally this happens
+    during compilation. In a running program, objects become ??regions of
+    storage?? and nothing more. If you really want to, you can break all the
+    rules and access the memory directly, as you can in C. C++ is not
+    designed to prevent you from doing unwise things. It just provides you
+    with a much easier, highly desirable alternative.
+    -->
     <para>
       Los especificadores de acceso son parte de la estructura y
       no afectan a los objetos creados desde esta. Toda la información
@@ -413,6 +658,12 @@ friend Pointer;
       una alternativa mucho más fácil, y deseable.
     </para>
 
+    <!--
+    In general, it??s not a good idea to depend on anything that??s
+    implementation-specific when you??re writing a program. When you must
+    have implementation-specific dependencies, encapsulate them inside a
+    structure so that any porting changes are focused in one place.
+    -->
     <para>
       En general, no es una buena idea hacer uso de nada que
       dependa de la implementación cuando se escribe un
@@ -424,7 +675,19 @@ friend Pointer;
   </sect1>
 
   <sect1>
+      <!-- The class -->
     <title>La clase</title>
+
+      <!--
+      Access control is often referred to as implementation hiding. Including
+      functions within structures (often referred to as encapsulation[36])
+      produces a data type with characteristics and behaviors, but access
+      control puts boundaries within that data type, for two important
+      reasons. The first is to establish what the client programmers can and
+      can??t use. You can build your internal mechanisms into the structure
+      without worrying that client programmers will think that these
+      mechanisms are part of the interface they should be using.
+      -->
     <para>
       El control de acceso se suele llamar también <emphasis>ocultación
       de la implementación</emphasis>. Incluir funciones dentro de las
@@ -439,6 +702,13 @@ friend Pointer;
       parte de la interfaz que debe usar
     </para>
     
+      <!--
+      This feeds directly into the second reason, which is to separate the
+      interface from the implementation. If the structure is used in a set of
+      programs, but the client programmers can??t do anything but send
+      messages to the public interface, then you can change anything that??s
+      private without requiring modifications to their code.
+      -->
     <para>
       Esto nos lleva directamente a la segunda razón, que es separar
       la interfaz de la implementación. Si la estructura es usada en
@@ -448,6 +718,15 @@ friend Pointer;
       cliente.
     </para>
     
+      <!--
+      Encapsulation and access control, taken together, invent something more
+      than a C struct. We??re now in the world of object-oriented programming,
+      where a structure is describing a class of objects as you would describe
+      a class of fishes or a class of birds: Any object belonging to this
+      class will share these characteristics and behaviors. That??s what the
+      structure declaration has become, a description of the way all objects
+      of this type will look and act.
+      -->
     <para>
       La encapsulación y el control de acceso, juntos,  crean algo más
       que una estructura de C. Estamos ahora en el mundo de la
@@ -459,6 +738,14 @@ friend Pointer;
       en la que los objetos de este tipo serán y actuarán.
     </para>
     
+      <!--
+      In the original OOP language, Simula-67, the keyword class was used to
+      describe a new data type. This apparently inspired Stroustrup to choose
+      the same keyword for C++, to emphasize that this was the focal point of
+      the whole language: the creation of new data types that are more than
+      just C structs with functions. This certainly seems like adequate
+      justification for a new keyword.
+      -->
     <para>
       En el lenguaje OOP original, Simula-67, la palabra clave
       <kw>class</kw> fue usada para describir un nuevo tipo
@@ -469,6 +756,12 @@ friend Pointer;
       suficiente justificación para una nueva palabra clave.
     </para>
 
+      <!--
+      However, the use of class in C++ comes close to being an unnecessary
+      keyword. It??s identical to the struct keyword in absolutely every way
+      except one: class defaults to private, whereas struct defaults to
+      public. Here are two structures that produce the same result:
+      -->
     <para>
       De todas formas, el uso de <kw>class</kw> en C++ es
       casi innecesario. Es idéntico a <kw>struct</kw> en
@@ -482,6 +775,14 @@ friend Pointer;
 //: C05:Class.cpp
 
     
+    <!--
+      The class is the fundamental OOP concept in C++. It is one of the
+      keywords that will not be set in bold in this book ? it becomes annoying
+      with a word repeated as often as ??class.?? The shift to classes is so
+      important that I suspect Stroustrup??s preference would have been to
+      throw struct out altogether, but the need for backwards compatibility
+      with C wouldn??t allow that.
+      -->
     <para>
       La clase (<kw>class</kw>) en un concepto  OOP
       fundamental en C++. Es una de la palabras clave que no se
@@ -492,6 +793,11 @@ friend Pointer;
       con C no lo hubiese permitido.
     </para>
     
+      <!--
+      Many people prefer a style of creating classes that is more struct-like
+      than class-like, because you override the ??default-to-private??
+      behavior of the class by starting out with public elements:
+      -->
     <para>
       Mucha gente prefiere crear clases a la manera
       <kw>struct</kw> en vez de a la mánera class, pues
@@ -511,6 +817,13 @@ private:
 </programlisting>
 
 
+      <!--
+      The logic behind this is that it makes more sense for the reader to see
+      the members of interest first, then they can ignore anything that says
+      private. Indeed, the only reasons all the other members must be declared
+      in the class at all are so the compiler knows how big the objects are
+      and can allocate them properly, and so it can guarantee consistency.
+      -->
     <para>
       El porqué de esto es que tiene más sentido ver primero lo que
       más interesa, el programador cliente puede ignorar todo lo que
@@ -520,6 +833,11 @@ private:
       colocarlos correctamente, garantizando así la consistencia.
     </para>
 
+
+      <!--
+      The examples in this book, however, will put the private members first,
+      like this:
+      -->
     <para>
       De todas formas, los ejemplos en este libro pondrán los miembros
       privados primero, así:
@@ -535,7 +853,10 @@ public:
 }; 
 </programlisting>
 
-
+      <!--
+      Some people even go to the trouble of decorating their own private
+      names:
+      -->
       <para>
 	Alguna gente incluso decora sus nombres privados
       </para>
@@ -550,7 +871,13 @@ private:
 }; 
 </programlisting>
 
-    
+    <!--
+      Because mX is already hidden in the scope of Y, the m (for ??member??)
+      is unnecessary. However, in projects with many global variables
+      (something you should strive to avoid, but which is sometimes inevitable
+      in existing projects), it is helpful to be able to distinguish inside a
+      member function definition which data is global and which is a member.
+      -->
     <para>
       Como <varname>mX</varname> esta ya oculto para
       <classname>Y</classname>, la <emphasis>m</emphasis> (de "miembro") es
@@ -562,8 +889,17 @@ private:
     </para>
     
     <sect2>
+      <!-- Modifying Stash to use access control -->
       <title>Modificaciones en Stash para usar control de
 	acceso</title>
+
+      <!--
+      It makes sense to take the examples from Chapter 4 and modify them to
+      use classes and access control. Notice how the client programmer portion
+      of the interface is now clearly distinguished, so there??s no
+      possibility of client programmers accidentally manipulating a part of
+      the class that they shouldn??t.
+      -->
       <para>
 	Tiene sentido coger el ejemplo del capítulo 4 y modificarlo
 	para usar clases y control de acceso. Dese cuenta de como la
@@ -577,6 +913,13 @@ private:
 //: C05:Stash.h
 
 
+      <!--
+      The inflate( ) function has been made private because it is used only by
+      the add( ) function and is thus part of the underlying implementation,
+      not the interface. This means that, sometime later, you can change the
+      underlying implementation to use a different system for memory
+      management.
+      -->
       <para>
 	La función <function>inflate()</function> ha sido hecha
 	<kw>private</kw> porque solo es usada por la función
@@ -585,6 +928,12 @@ private:
 	más tarde, puede cambiar la implementación interna para usar
 	un sistema de gestión de memoria diferente.
       </para>
+
+      <!--
+      Other than the name of the include file, the header above is the only
+      thing that??s been changed for this example. The implementation file and
+      test file are the same.
+      -->
       <para>
 	Aparte del nombre del archivo include, la cabecera de antes es
 	lo único que ha sido cambiado para este ejemplo. El fichero de
@@ -593,8 +942,15 @@ private:
     </sect2>
 
     <sect2>
+      <!-- Modifying Stack to use access control -->
       <title>Modificar Stack para usar control de acceso</title>
 
+      <!--
+      As a second example, here??s the Stack turned into a class. Now the
+      nested data structure is private, which is nice because it ensures that
+      the client programmer will neither have to look at it nor be able to
+      depend on the internal representation of the Stack:
+      -->
       <para>
 	Como un segundo ejemplo, aquí esta
 	<literal>Stack</literal>convertido en clase. Ahora la
@@ -608,6 +964,17 @@ private:
 //: C05:Stack2.h
 
 
+      <!--
+      As before, the implementation doesn??t change and so it is not repeated
+      here. The test, too, is identical. The only thing that??s been changed
+      is the robustness of the class interface. The real value of access
+      control is to prevent you from crossing boundaries during
+      development. In fact, the compiler is the only thing that knows about
+      the protection level of class members. There is no access control
+      information mangled into the member name that carries through to the
+      linker. All the protection checking is done by the compiler; it has
+      vanished by runtime.
+      -->
       <para>
 	Como antes, la implementación no cambia por lo que no la
 	repetimos aquí. El programa de prueba es también idéntico. La
@@ -622,6 +989,13 @@ private:
 	ejecución.
       </para>
       
+      <!--
+      Notice that the interface presented to the client programmer is now
+      truly that of a push-down stack. It happens to be implemented as a
+      linked list, but you can change that without affecting what the client
+      programmer interacts with, or (more importantly) a single line of client
+      code.
+      -->
       <para>
 	Dese cuenta de que la interfaz presentada al programador
 	cliente es ahora realmente el de una pila hacia abajo. Sucede
@@ -634,7 +1008,23 @@ private:
   </sect1>
 
   <sect1>
+    <!-- Handle classes -->
     <title>Manejo de clases</title>
+
+    <!--
+    Access control in C++ allows you to separate interface from
+    implementation, but the implementation hiding is only partial. The
+    compiler must still see the declarations for all parts of an object in
+    order to create and manipulate it properly. You could imagine a
+    programming language that requires only the public interface of an
+    object and allows the private implementation to be hidden, but C++
+    performs type checking statically (at compile time) as much as
+    possible. This means that you??ll learn as early as possible if there??s
+    an error. It also means that your program is more efficient. However,
+    including the private implementation has two effects: the implementation
+    is visible even if you can??t easily access it, and it can cause
+    needless recompilation.
+    -->
     <para>
       El control de acceso en C++ le permite separar la interfaz de la
       implementación, pero la ocultación de la implementación es solo
@@ -653,7 +1043,22 @@ private:
     </para>
     
     <sect2>
+      <!-- Hiding the implementation -->
       <title>Ocultar la implementación</title>
+
+      <!--
+      Some projects cannot afford to have their implementation visible to the
+      client programmer. It may show strategic information in a library header
+      file that the company doesn??t want available to competitors. You may be
+      working on a system where security is an issue ? an encryption
+      algorithm, for example ? and you don??t want to expose any clues in a
+      header file that might help people to crack the code. Or you may be
+      putting your library in a ??hostile?? environment, where the programmers
+      will directly access the private components anyway, using pointers and
+      casting. In all these situations, it??s valuable to have the actual
+      structure compiled inside an implementation file rather than exposed in
+      a header file.
+      -->
       <para>
 	Algunos proyectos no pueden permitirse tener visible su
 	implementación al publico. Puede dejar a la vista información
@@ -673,7 +1078,22 @@ private:
     </sect2>
 
     <sect2>
+      <!-- Reducing recompilation -->
       <title>Reducir la recompilación</title>
+
+      <!--
+      The project manager in your programming environment will cause a
+      recompilation of a file if that file is touched (that is, modified) or
+      if another file it??s dependent upon ? that is, an included header file
+      ? is touched. This means that any time you make a change to a class,
+      whether it??s to the public interface or to the private member
+      declarations, you??ll force a recompilation of anything that includes
+      that header file. This is often referred to as the fragile base-class
+      problem. For a large project in its early stages this can be very
+      unwieldy because the underlying implementation may change often; if the
+      project is very big, the time for compiles can prohibit rapid
+      turnaround.
+      -->
       <para>
 	Su entorno de programación provocara una recompilación de un
 	fichero si este se modifica, o si se modifica otro fichero del
@@ -690,6 +1110,16 @@ private:
 	un gran problema.
       </para>
 
+      <!--
+      The technique to solve this is sometimes called handle classes or the
+      ??Cheshire cat??[37] ? everything about the implementation disappears
+      except for a single pointer, the ??smile.?? The pointer refers to a
+      structure whose definition is in the implementation file along with all
+      the member function definitions. Thus, as long as the interface is
+      unchanged, the header file is untouched. The implementation can change
+      at will, and only the implementation file needs to be recompiled and
+      relinked with the project.
+      -->
       <para>
 	La técnica para resolver esto se llama a veces
 	<emphasis>manejando clases</emphasis> o el "gato de Chesire"
@@ -707,6 +1137,11 @@ private:
 	deberá ser recompilado y reenlazado con el proyecto.
       </para>
       
+      <!--
+      Here??s a simple example demonstrating the technique. The header file
+      contains only the public interface and a single pointer of an
+      incompletely specified class:
+      -->
       <para>
 	Aquí hay un ejemplo que demuestra como usar esta técnica. El
 	archivo de cabecera contiene solo la interfaz publica y un
@@ -716,7 +1151,7 @@ private:
 
 //: C05:Handle.h
 
-
+      <!-- This is all the client programmer is able to see. The line -->
       <para>
 	Esto es todo lo que el programador cliente puede ver. La linea 
       </para>
@@ -726,7 +1161,15 @@ private:
 struct Cheshire;
 </programlisting>
 
-      
+      <!--
+      is an incomplete type specification or a class declaration (A class
+      definition includes the body of the class.) It tells the compiler that
+      Cheshire is a structure name, but it doesn??t give any details about the
+      struct. This is only enough information to create a pointer to the
+      struct; you can??t create an object until the structure body has been
+      provided. In this technique, that structure body is hidden away in the
+      implementation file:
+      -->
       <para>
 	es una especificación incompleta de tipo o una declaración de
 	clase (una definición de clase debe incluir el cuerpo de la
@@ -742,15 +1185,30 @@ struct Cheshire;
 //: C05:Handle.cpp {O}
 
 
+     <!--
+      Cheshire is a nested structure, so it must be defined with scope
+      resolution:
+      -->
       <para>
 	<emphasis>Chesire</emphasis> es una estructura anidada, así que
 	se debe definir con resolución de dominio:
       </para>
       
+
 <programlisting>
 struct Handle::Cheshire {
 </programlisting>
       
+
+      <!--
+      In Handle::initialize( ), storage is allocated for a Cheshire structure,
+      and in Handle::cleanup( ) this storage is released. This storage is used
+      in lieu of all the data elements you??d normally put into the private
+      section of the class. When you compile Handle.cpp, this structure
+      definition is hidden away in the object file where no one can see it. If
+      you change the elements of Cheshire, the only file that must be
+      recompiled is Handle.cpp because the header file is untouched.
+      -->
       <para>
 	En <function>Handle::initialize()</function>, se coge espacio de
 	almacenamiento para una estructura <emphasis>Chesire</emphasis>,
@@ -765,6 +1223,10 @@ struct Handle::Cheshire {
 	de cabecera permanece inalterado.
       </para>
 
+      <!--
+      The use of Handle is like the use of any class: include the header,
+      create objects, and send messages.
+      -->
       <para>
 	El uso de<classname>Handle</classname> es como el usa de cualquier
 	clase: incluir la cabecera, crear objetos, y mandar mensajes.
@@ -773,7 +1235,13 @@ struct Handle::Cheshire {
 
 //: C05:UseHandle.cpp
 
-	
+
+      <!--
+      The only thing the client programmer can access is the public interface,
+      so as long as the implementation is the only thing that changes, the
+      file above never needs recompilation. Thus, although this isn??t perfect
+      implementation hiding, it??s a big improvement.
+      -->
       <para>
 	La única cosa a la que el programador cliente puede
 	acceder es a la interfaz publica, así que mientras la
@@ -787,6 +1255,17 @@ struct Handle::Cheshire {
   
   <sect1>
     <title>Resumen</title>
+
+    <!--
+    Access control in C++ gives valuable control to the creator of a
+    class. The users of the class can clearly see exactly what they can use
+    and what to ignore. More important, though, is the ability to ensure
+    that no client programmer becomes dependent on any part of the
+    underlying implementation of a class. If you know this as the creator of
+    the class, you can change the underlying implementation with the
+    knowledge that no client programmer will be affected by the changes
+    because they can??t access that part of the class.
+    -->
     <para>
       El control de acceso en C++ da un gran control al creador de la
       clase. Los usuarios de la clase pueden ver claramente lo que
@@ -799,6 +1278,14 @@ struct Handle::Cheshire {
       pueden acceder a esa parte de la clase.
     </para>
     
+    <!--
+    When you have the ability to change the underlying implementation, you
+    can not only improve your design at some later time, but you also have
+    the freedom to make mistakes. No matter how carefully you plan and
+    design, you??ll make mistakes. Knowing that it??s relatively safe to
+    make these mistakes means you??ll be more experimental, you??ll learn
+    faster, and you??ll finish your project sooner.
+    -->
     <para>
       Cuando tiene la posibilidad de cambiar la implementación
       subyacente, no solo puede mejorar su diseño más tarde, si no que
@@ -808,6 +1295,14 @@ struct Handle::Cheshire {
       aprenderá más rápido, y acabara su proyecto antes.
     </para>
     
+    <!--
+    The public interface to a class is what the client programmer does see,
+    so that is the most important part of the class to get ??right?? during
+    analysis and design. But even that allows you some leeway for change. If
+    you don??t get the interface right the first time, you can add more
+    functions, as long as you don??t remove any that client programmers have
+    already used in their code.
+    -->
     <para>
       La interfaz publica de una clase es lo que <emphasis>realmente
       ve</emphasis> el programador cliente, así que es la parte de la
@@ -826,6 +1321,12 @@ struct Handle::Cheshire {
     
     <orderedlist>
       <listitem>
+    <!--
+    1. Create a class with public, private, and protected data members
+    and function members. Create an object of this class and see what
+    kind of compiler messages you get when you try to access all the
+    class members.
+    -->
 	<para>
 	  Cree una clase con datos miembro y funciones miembro
 	  <kw>public</kw>, <kw>private</kw> y
@@ -834,7 +1335,19 @@ struct Handle::Cheshire {
 	  acceder a los diferentes miembros de la clase.
 	</para>
       </listitem>
-      <listitem>
+      <listitem>    
+	<!--
+    2. Write a struct called Lib that contains three string objects a, b,
+    and c. In main( ) create a Lib object called x and assign to x.a,
+    x.b, and x.c. Print out the values. Now replace a, b, and c with an
+    array of string s[3]. Show that your code in main( ) breaks as a
+    result of the change. Now create a class called Libc, with private
+    string objects a, b, and c, and member functions seta( ), geta( ),
+    setb( ), getb( ), setc( ), and getc( ) to set and get the
+    values. Write main( ) as before. Now change the private string
+    objects a, b, and c to a private array of string s[3]. Show that the
+    code in main( ) does not break as a result of the change.
+    -->
 	<para>
 	  Escriba una estructura llamada <classname>Lib</classname>
 	  que contenga tres objetos <literal>string a, b</literal> y
@@ -861,12 +1374,22 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    3. Create a class and a global friend function that manipulates the
+    private data in the class.
+    -->
 	<para>
 	  Cree una clase y una función <kw>friend</kw>
 	  global que manipule los  datos privados de la clase.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    4. Write two classes, each of which has a member function that takes
+    a pointer to an object of the other class. Create instances of both
+    objects in main( ) and call the aforementioned member function in
+    each class.
+    -->
 	<para>
 	  Escriba dos clases, cada una de ellas con una función
 	  miembro que reciba como argumento un puntero a un objeto de
@@ -876,6 +1399,12 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    5. Create three classes. The first class contains private data, and
+    grants friendship to the entire second class and to a member function
+    of the third class. In main( ), demonstrate that all of these work
+    correctly.
+    -->
 	<para>
 	  Cree tres clases. La primera contiene miembros privados, y
 	  declara como <kw>friend</kw> a toda la segunda
@@ -885,6 +1414,12 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    6. Create a Hen class. Inside this, nest a Nest class. Inside Nest,
+    place an Egg class. Each class should have a display( ) member
+    function. In main( ), create an instance of each class and call the
+    display( ) function for each one.
+    -->
 	<para>
 	  Cree una clase <classname>Hen</classname>. Dentro de esta,
 	  inserte una clase <classname>Nest</classname>. Y dentro de
@@ -896,6 +1431,11 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    7. Modify Exercise 6 so that Nest and Egg each contain private
+    data. Grant friendship to allow the enclosing classes access to this
+    private data.
+    -->
 	<para>
 	  Modifique el ejercicio 6 para que <classname>Nest</classname> y
 	  <classname>Egg</classname> contengan datos privados. De accesos
@@ -905,6 +1445,14 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    8. Create a class with data members distributed among numerous
+    public, private, and protected sections. Add a member function
+    showMap( ) that prints the names of each of these data members and
+    their addresses. If possible, compile and run this program on more
+    than one compiler and/or computer and/or operating system to see if
+    there are layout differences in the object.
+    -->
 	<para>
 	  Cree una clase con datos miembro diseminados por numerosas
 	  secciones <kw>public</kw>, <kw>private</kw> y
@@ -918,6 +1466,10 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    9. Copy the implementation and test files for Stash in Chapter 4 so
+    that you can compile and test Stash.h in this chapter.
+    -->
 	<para>
 	  Copie la implementación y ficheros de prueba de
 	  <literal>Stash</literal> del capítulo 4 para así poder
@@ -926,6 +1478,11 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    10. Place objects of the Hen class from Exercise 6 in a Stash. Fetch
+    them out and print them (if you have not already done so, you will
+    need to add Hen::print( )).
+    -->
 	<para>
 	  Ponga objetos de la clase <classname>Hern</classname> definidos
 	  en el ejercicio 6 en un <literal>Stash</literal>. Apunte a
@@ -934,6 +1491,10 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    11. Copy the implementation and test files for Stack in Chapter 4 so
+    that you can compile and test Stack2.h in this chapter.
+    -->
 	<para>
 	  Copie los ficheros de implementación y prueba de
 	  <literal>Stack</literal> del capítulo 4 y compile y pruebe
@@ -941,6 +1502,11 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    12. Place objects of the Hen class from Exercise 6 in a Stack. Fetch
+    them out and print them (if you have not already done so, you will
+    need to add Hen::print( )).
+    -->
 	<para>
 	  Ponga objetos de la clase <classname>Hen</classname> del
 	  ejercicio 6 dentro de <literal>Stack</literal>. Apunte a
@@ -949,6 +1515,11 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+    <!--
+    13. Modify Cheshire in Handle.cpp, and verify that your project
+    manager recompiles and relinks only this file, but doesn??t recompile
+    UseHandle.cpp.
+    -->
 	<para>
 	  Modifique <literal>Chesire</literal> en
 	  <filename>Handle.cpp</filename>, y verifique que su entorno de
@@ -957,6 +1528,16 @@ struct Handle::Cheshire {
 	</para>
       </listitem>
       <listitem>
+	<!-- 
+	15. Create a StackOfInt class (a stack that holds ints)
+	using the "Cheshire cat" technique that hides the low-level
+	data structure you use to store the elements in a class called
+	StackImp. Implement two versions of StackImp: one that uses a
+	fixed-length array of int, and one that uses a vector<int>. Have
+	a preset maximum size for the stack so you don't have to worry
+	about expanding the array in the first version. Note that the
+	StackOfInt.h class doesn't have to change with StackImp.  
+	-->
 	<para>
 	  Cree una clase <classname>StackOfInt</classname> (una pila
 	  que guarda enteros) usando la técnica "Gato de Chesire" que
