@@ -88,7 +88,7 @@ validate:
 
 # Limpieza
 clean:
-	$(RM) fase?.xml join.xml 
+	$(RM) fase?.xml join.xml *.bz2
 	$(RM) Volumen?.xml *-tagged.xml
 	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
 	$(RM) *~ 
