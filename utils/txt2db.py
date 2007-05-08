@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: latin-1 -*-
 '''
 Transforma ficheros de texto plano en DB listo para traducir. El original debe tener los títulos de las secciones delimitados con:
 
@@ -10,7 +11,7 @@ palabrería bla bla bla
 
 '''
 
-import sys
+import sys, os
 
 OUTPAR = 0
 INPAR = 1
@@ -56,7 +57,7 @@ def print_par(fd, par):
 
 
 src = open(sys.argv[1])
-dst = open('salida', 'w')
+dst = open(os.path.splitext(sys.argv[1])[0] + '.xml', 'w')
 
 status = OUTPAR
 level = 0
