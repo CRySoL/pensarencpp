@@ -9,7 +9,11 @@
 -->
 <!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
-<chapter id="C3" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+<chapter id="C3" 
+  xmlns:xi="http://www.w3.org/2001/XInclude">
+  
+  <!-- Strings in depth -->
   <title>Las cadenas a fondo</title>
 
   <!--
@@ -22,7 +26,12 @@
 
   <highlights>
     <para>
-      El procesamiento de cadenas de caracteres es una de las mayores perdidas de tiempo en C. Las cadenas de caracteres requieren que el programador tenga en cuenta las diferencias entre cadenas estáticas y las cadenas creadas en la pila y en el montón, además del hecho que a veces usamos un <type>char*</type> y a veces debemos copiar el arreglo entero.
+      El procesamiento de cadenas de caracteres en C es una de las
+      mayores pérdidas de tiempo. Las cadenas de caracteres requieren
+      que el programador tenga en cuenta las diferencias entre cadenas
+      estáticas y las cadenas creadas en la pila y en el montón,
+      además del hecho que a veces pasa como argumento un
+      <type>char*</type> y a veces hay que copiar el arreglo entero.
     </para>
   </highlights>
 
@@ -37,7 +46,15 @@
   -->
 
   <para>
-    Especialmente porque la manipulación de cadenas es tan común, las cadenas de caracteres son una gran fuente de confusiones y errores. Es por esto que la creación de clases de cadenas sigue siendo desde hace años un ejercicio común para programadores novatos. La clase <classname>string</classname> de la biblioteca estándar de C++ resuelve el problema de la manipulación de caracteres de una vez por todas, gestionando la memoria incluso durante las asignaciones y las construcciones de copia.  Simplemente no necesita pensar en ello.
+    Precisamente porque la manipulación de cadenas es muy común, las
+    cadenas de caracteres son una gran fuente de confusiones y
+    errores. Es por ello que la creación de clases de cadenas sigue
+    siendo desde hace años un ejercicio común para programadores
+    novatos. La clase <classname>string</classname> de la biblioteca
+    estándar de C++ resuelve el problema de la manipulación de
+    caracteres de una vez por todas, gestionando la memoria incluso
+    durante las asignaciones y las construcciones de
+    copia. Simplemente no tiene que preocuparse por ello.
   </para>
 
   <!--
@@ -51,9 +68,16 @@
   <para>
     Este capítulo<footnote>
       <para>
-	Algunos materiales de este capítulo fueron creados originalmente por Nancy Nicolaisen
+	Algunos materiales de este capítulo fueron creados
+	originalmente por Nancy Nicolaisen
       </para>
-    </footnote> examina la clase <classname>string</classname> del estándar C++; se empieza observando de qué están compuestas los <classname>string</classname> de C++ y como la versión de C++ difiere del tradicional arreglo de caracteres de C. Aprenderá sobre las operaciones y la manipulación usando objetos <classname>string</classname>, y verá como estas se acomodan a la variación de conjuntos de caracteres y conversión de datos.
+    </footnote> examina la clase <classname>string</classname> del
+    Estándar C++; empieza con un vistazo a la composición de las
+    <classname>string</classname> de C++ y como la versión de C++
+    difiere del tradicional arreglo de caracteres de C. Aprenderá
+    sobre las operaciones y la manipulación usando objetos
+    <classname>string</classname>, y verá como éstas se FIXME[acomodan
+    a la variación] de conjuntos de caracteres y conversión de datos.
   </para>
 
   <!--
@@ -66,14 +90,21 @@
   -->
 
   <para>
-    Manipular texto es una de las aplicaciones más antiguas de la programación, luego no es sorprendente que los <classname>string</classname> de C++ estén fuertemente inspiradas en las ideas y la terminología que ha usado continuamente en C y otros lenguajes. Tal como vaya aprendiendo sobre los <classname>string</classname> de C++, este hecho se debería ir viendo más claramente. Da igual el lenguaje de programación que escoja, existen tres cosas comunes que desea hacer con las cadenas:
+    Manipular texto es una de las aplicaciones más antiguas de la
+    programación, por eso no resulta sorprendente que las
+    <classname>string</classname> de C++ estén fuertemente inspiradas
+    en las ideas y la terminología que ha usado continuamente en C y
+    otros lenguajes. Conforme vaya aprendiendo sobre los
+    <classname>string</classname> de C++, este hecho se debería ir
+    viendo más claramente. Da igual el lenguaje de programación que
+    escoja, hay tres cosas comunes que querrá hacer con las cadenas:
   </para>
 
-  <!-- · Create or modify the sequence of characters stored in the string. -->
-
-  <!-- · Detect the presence or absence of elements within the string. -->
-
-  <!-- · Translate between various schemes for representing string characters. -->
+  <!-- 
+  · Create or modify the sequence of characters stored in the string.
+  · Detect the presence or absence of elements within the string.
+  · Translate between various schemes for representing string characters. 
+  -->
 
   <para>
     <itemizedlist>
@@ -81,15 +112,13 @@
         <para>Crear o modificar secuencias de caracteres almacenados en una
         cadena</para>
       </listitem>
-
       <listitem>
         <para>Detectar la presencia o ausencia de elementos dentro de la
         cadena</para>
       </listitem>
-
       <listitem>
         <para>Traducir entre diversos esquemas para representar cadenas de
-        caracteres</para>
+	  caracteres</para>
       </listitem>
     </itemizedlist>
   </para>
@@ -128,8 +157,32 @@
     -->
 
     <para>
-      En C, una cadena es simplemente un arreglo de caracteres que siempre incluye un 0 binario (frecuentemente llamado terminador nulo) como elemento final del arreglo. Existen diferencias significativas entre los <classname>string</classname> de C++ y sus progenitoras en C. Primero, y más importante, los <classname>string</classname> de C++ esconden la implementación física de la secuencia de caracteres que contiene. No debe preocuparse acerca de las dimensiones del arreglo o del terminador nulo. Un <classname>string</classname> también contiene cierta información para uso interno sobre el tamaño y la localización en memoria de los datos.  Específicamente, un objeto <classname>string</classname> de C++ conoce su localización en memoria, su contenido, su longitud en caracteres, y la longitud en caracteres que puede crecer antes de que el objeto <classname>string</classname> deba redimensionar su buffer interno de datos.  Los <classname>string</classname> de C++, por tanto, reducen enormemente las probabilidades de cometer uno de los tres errores de programación en C más comunes y destructivos: sobrescribir los límites del arreglo, intentar acceder a un arreglo no inicializado o con valores de puntero incorrectos, y dejar punteros colgando después de que el arreglo deje de ocupar el almacenamiento que estaba ocupando.
+      En C, una cadena es simplemente un arreglo de caracteres que
+      siempre incluye un 0 binario (frecuentemente llamado terminador
+      nulo) como elemento final del arreglo. Existen diferencias
+      significativas entre los <classname>string</classname> de C++ y
+      sus progenitoras en C. Primero, y más importante, los
+      <classname>string</classname> de C++ esconden la implementación
+      física de la secuencia de caracteres que contiene. No debe
+      preocuparse de las dimensiones del arreglo o del terminador
+      nulo. Un <classname>string</classname> también contiene cierta
+      información para uso interno sobre el tamaño y la localización
+      en memoria de los datos.  Específicamente, un objeto
+      <classname>string</classname> de C++ conoce su localización en
+      memoria, su contenido, su longitud en caracteres, y la cantidad
+      de caracteres que puede crecer antes de que el objeto
+      <classname>string</classname> deba redimensionar su buffer
+      interno de datos.  Las <classname>string</classname> de C++, por
+      tanto, reducen enormemente las probabilidades de cometer uno de
+      los tres errores de programación en C más comunes y
+      destructivos: sobrescribir los límites del arreglo, intentar
+      acceder a un arreglo no inicializado o con valores de puntero
+      incorrectos, y dejar punteros colgando después de que el arreglo
+      deje de ocupar el espacio que estaba ocupando.
     </para>
+
+
+<!-- Revisando: David Villa -->
 
     <!-- 
     The exact implementation of memory layout for the string class
@@ -1408,7 +1461,7 @@ Capacity = 511
   </sect1>
   <sect1>
     <!-- : Summary -->
-    <title>Sumario</title>
+    <title>Resumen</title>
 
     <!--
     C++ string objects provide developers with a number of great advantages
@@ -1454,24 +1507,20 @@ Capacity = 511
   <sect1>
     <!-- : Exercises -->
     <title>Ejercicios</title>
+    <xi:include parse="xml" href="./V2-ejercicios.xml"/>
 
-    <!--
-    Solutions to selected exercises can be found in the electronic document
-    The Thinking in C++ Volume 2 Annotated Solution Guide, available for a
-    small fee from www.MindView.net.
-    -->
-    <para>
-		Las soluciones de los ejercicios seleccionados pueden encontrarse en el documento electronico <foreignphrase>"The Thinking in C++ Volume 2 Annotated Solution Guide"</foreignphrase> /en inglés), disponible por una pequeña suma en www.MindView.net.
-    </para>
-
+    <orderedlist>
+      <listitem>
     <!--
     1.  Write and test a function that reverses the order of the characters
     in a string.
     -->
     <para>
-		1.	Escriba y pruebe una función que invierta el orden de los caracteres en una cadena.
+      Escriba y pruebe una función que invierta el orden de los
+      caracteres en una cadena.
     </para>
-
+     </listitem>
+      <listitem>
     <!--
     2.  A palindrome is a word or group of words that read the same forward
     and backward. For example ??madam?? or ??wow.?? Write a program that
@@ -1479,78 +1528,106 @@ Capacity = 511
     from the previous exercise, prints whether the string was a palindrome
     or not.
     -->
-    <para>
-		2.	Un palindromo es una palabra o grupo de palabras que tanto hacia delante hacia atrás se leen igual. Por ejemplo <emphasis>"madam"</emphasis> o <emphasis>"wow"</emphasis>. Escriba un programa que tome un string como argumento desde la línea de comandos y, usando la función del ejercicio anterior, escriba si el string es un palíndromo o no.
-    </para>
-
+	<para>
+	  2. Un palindromo es una palabra o grupo de palabras que
+	  tanto hacia delante hacia atrás se leen igual. Por ejemplo
+	  <emphasis>"madam"</emphasis> o
+	  <emphasis>"wow"</emphasis>. Escriba un programa que tome un
+	  string como argumento desde la línea de comandos y, usando
+	  la función del ejercicio anterior, escriba si el string es
+	  un palíndromo o no.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     3.  Make your program from Exercise 2 return true even if symmetric
     letters differ in case. For example, ??Civic?? would still return true
     although the first letter is capitalized.
     -->
-    <para>
-		3.	Haga que el programa del Ejercicio 2 retorne verdadero incluso si las letras simetricas difieren en mayúsculas/minúsculas. Por ejemplo, <foreignphrase>"Civic"</foreignphrase> debería retornar verdadero aunque la primera letra sea mayúscula.
-    </para>
-
+	<para>
+	  3. Haga que el programa del Ejercicio 2 retorne verdadero
+	  incluso si las letras simetricas difieren en
+	  mayúsculas/minúsculas. Por ejemplo,
+	  <foreignphrase>"Civic"</foreignphrase> debería retornar
+	  verdadero aunque la primera letra sea mayúscula.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     4.  Change your program from Exercise 3 to ignore punctuation and spaces
     as well. For example ??Able was I, ere I saw Elba.?? would report true.
     -->
-    <para>
-		4.	Cambie el programa del Ejercicio 3 para ignorar la puntuación y los espacios también. Por ejemplo <foreignphrase>"Able was I, ere I saw Elba."</foreignphrase> debería retornar verdadero.
-    </para>
-
+	<para>
+	  4. Cambie el programa del Ejercicio 3 para ignorar la
+	  puntuación y los espacios también. Por ejemplo
+	  <foreignphrase>"Able was I, ere I saw Elba."</foreignphrase>
+	  debería retornar verdadero.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     5.  Using the following string declarations and only chars (no string
     literals or magic numbers):
     -->
-    <para>
-		5.	Usando las siguientes declaraciones de string y solo char (no literales de cadena o números mágicos):
-    </para>
-
+	<para>
+	  5. Usando las siguientes declaraciones de string y solo char
+	  (no literales de cadena o números mágicos):
+	</para>
     <!--
     string one("I walked down the canyon with the moving mountain bikers.");
     string two("The bikers passed by me too close for comfort.");
     string three("I went hiking instead.");
     -->
-    <para>
-		<code>string one("I walked down the canyon with the moving mountain bikers.");
-    string two("The bikers passed by me too close for comfort.");
-    string three("I went hiking instead.");</code>
-    </para>
+	<para>
+	  <code>string one("I walked down the canyon with the moving
+	    mountain bikers."); string two("The bikers passed by me too close
+	    for comfort."); string three("I went hiking instead.");</code>
+	</para>
 
     <!-- produce the following sentence: -->
-    <para>
-		produzca la siguiente frase:
-    </para>
-
+	<para>
+	  produzca la siguiente frase:
+	</para>
     <!--
     I moved down the canyon with the mountain bikers. The mountain bikers
     passed by me too close for comfort. So I went hiking instead.
     -->
-    <para>
-		<foreignphrase>I moved down the canyon with the mountain bikers. The mountain bikers
-    passed by me too close for comfort. So I went hiking instead.</foreignphrase>
-    </para>
-
+	<para>
+	  <foreignphrase>I moved down the canyon with the mountain
+	    bikers. The mountain bikers passed by me too close for
+	    comfort. So I went hiking instead.
+	  </foreignphrase>
+	</para>
+     </listitem>
+      <listitem>
     <!--
     6.  Write a program named replace that takes three command-line
     arguments representing an input text file, a string to replace (call it
     from), and a replacement string (call it to). The program should write a
     new file to standard output with all occurrences of from replaced by to.
     -->
-    <para>
-		6.	Escriba un programa llamado "reemplazo" que tome tres argumentos de la línea de comandos representando un fichero de texto de entrada, una frase para reemplazar (llámela <varname>from</varname>), y una cadena de reemplazo (llámela <varname>to</varname>). El programa debería escribir un nuevo fichero en la salida estandar con todas las ocurrencias de <varname>from</varname> reemplazadas por <varname>to</varname>.
-    </para>
-
+	<para>
+	  6. Escriba un programa llamado "reemplazo" que tome tres
+	  argumentos de la línea de comandos representando un fichero
+	  de texto de entrada, una frase para reemplazar (llámela
+	  <varname>from</varname>), y una cadena de reemplazo (llámela
+	  <varname>to</varname>). El programa debería escribir un
+	  nuevo fichero en la salida estandar con todas las
+	  ocurrencias de <varname>from</varname> reemplazadas por
+	  <varname>to</varname>.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     7.  Repeat the previous exercise but replace all instances of from
     regardless of case.
     -->
-    <para>
-		7.	Repetir el ejercicio anterior pero reemplazando todas las instancias pero ignorando las mayúsculas/minúsculas.
-    </para>
-
+	<para>
+	  7. Repetir el ejercicio anterior pero reemplazando todas las
+	  instancias pero ignorando las mayúsculas/minúsculas.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     8.  Make your program from Exercise 3 take a filename from the
     command-line, and then display all words that are palindromes (ignoring
@@ -1558,20 +1635,33 @@ Capacity = 511
     differs). Do not try to look for palindromes that are larger than a word
     (unlike in Exercise 4).
     -->
-    <para>
-		8.	Haga su programa a partir del Ejercicio 3 tomando un nombre de fichero de la linea de comandos, y despues mostrando todas las palabras que son palíndromos (ignorando las mayúsculas/minúsculas) en el fichero. No intente buscar palabras para palíndromos que son mas largos que una palabra (a diferencia del ejercicio 4).
-    </para>
-
+	<para>
+	  8. Haga su programa a partir del Ejercicio 3 tomando un
+	  nombre de fichero de la linea de comandos, y despues
+	  mostrando todas las palabras que son palíndromos (ignorando
+	  las mayúsculas/minúsculas) en el fichero. No intente buscar
+	  palabras para palíndromos que son mas largos que una palabra
+	  (a diferencia del ejercicio 4).
+	</para>
+     </listitem>
+      <listitem>
     <!--
     9.  Modify HTMLStripper.cpp so that when it encounters a tag, it
     displays the tag's name, then displays the file's contents between the
     tag and the file's ending tag. Assume no nesting of tags, and that all
     tags have ending tags (denoted with </TAGNAME>).
     -->
-    <para>
-		9.	Modifique <emphasis>HTMLStripper.cpp</emphasis> para que cuando encuentre una etiqueta, muestre el nombre de la etiqueta, entonces muestre el contenido del fichero entre la etiqueta y la etiqueta de finalización de fichero. Asuma que no existen etiquetas anidadas, y que todas las etiquetas tienen etiquetas de finalizacion (denotadas con &lt;/TAGNAME&gt;).
-    </para>
-
+	<para>
+	  9. Modifique <emphasis>HTMLStripper.cpp</emphasis> para que
+	  cuando encuentre una etiqueta, muestre el nombre de la
+	  etiqueta, entonces muestre el contenido del fichero entre la
+	  etiqueta y la etiqueta de finalización de fichero. Asuma que
+	  no existen etiquetas anidadas, y que todas las etiquetas
+	  tienen etiquetas de finalizacion (denotadas con
+	  &lt;/TAGNAME&gt;).
+	</para>
+     </listitem>
+      <listitem>
     <!--
     10.  Write a program that takes three command-line arguments (a filename
     and two strings) and displays to the console all lines in the file that
@@ -1582,10 +1672,20 @@ Capacity = 511
     (*) at the beginning and end of each string's occurrence when it is
     displayed.
     -->
-    <para>
-		10.	Escriba un programa que tome tres argumentos de la línea de comandos (un nombre de fichero y dos cadenas) y muestre en la consola todas la líneas en el fichero que tengan las dos cadenas en la línea, alguna cadena, solo una cadena o ninguna de ellas, basándose en la entreada de un usuario al principio del programa (el usuario elegirá que modo de búsqueda usar). Para todo excepto para la opción "ninguna cadena", destaque la cadena(s) de entrada colocando un asterisco (*) al principio y al final de cada cadena que coincida cuando sea mostrada.
-    </para>
-
+	<para>
+	  10. Escriba un programa que tome tres argumentos de la línea
+	  de comandos (un nombre de fichero y dos cadenas) y muestre
+	  en la consola todas la líneas en el fichero que tengan las
+	  dos cadenas en la línea, alguna cadena, solo una cadena o
+	  ninguna de ellas, basándose en la entreada de un usuario al
+	  principio del programa (el usuario elegirá que modo de
+	  búsqueda usar). Para todo excepto para la opción "ninguna
+	  cadena", destaque la cadena(s) de entrada colocando un
+	  asterisco (*) al principio y al final de cada cadena que
+	  coincida cuando sea mostrada.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     11.  Write a program that takes two command-line arguments (a filename
     and a string) and counts the number of times the string occurs in the
@@ -1597,10 +1697,24 @@ Capacity = 511
     occurred. (If the string occurs more than once in a word, only count the
     word once in figuring the average.)
     -->
-    <para>
-		11.	Escriba un programa que tome dos argumentos de la linea de comandos (un nombre de fichero y una cadena) y cuente el numero de veces que la cadena esta en el fichero, incluso si es una subcadena (pero ignorando los solapamientos). Por ejemplo, una cadena de entrada de <emphasis>"ba"</emphasis> debería coincidir dos veces en la palabra <foreignphrase>"basquetball"</foreignphrase>, pero la cadena de entrada <emphasis>"ana"</emphasis> solo deberia coincidir una vez en <foreignphrase>"banana"</foreignphrase>. Muestre por la consola el número de  veces que la cadena coincide en el fichero, igual que la longitud media de las palabras donde la cadena coincide. (Si la cadena coincide más de una vez en una palabra, cuente solamente la palabra una vez en el cálculo de la media).
-    </para>
-
+	<para>
+	  11. Escriba un programa que tome dos argumentos de la linea
+	  de comandos (un nombre de fichero y una cadena) y cuente el
+	  numero de veces que la cadena esta en el fichero, incluso si
+	  es una subcadena (pero ignorando los solapamientos). Por
+	  ejemplo, una cadena de entrada de <emphasis>"ba"</emphasis>
+	  debería coincidir dos veces en la palabra
+	  <foreignphrase>"basquetball"</foreignphrase>, pero la cadena
+	  de entrada <emphasis>"ana"</emphasis> solo deberia coincidir
+	  una vez en <foreignphrase>"banana"</foreignphrase>. Muestre
+	  por la consola el número de veces que la cadena coincide en
+	  el fichero, igual que la longitud media de las palabras
+	  donde la cadena coincide. (Si la cadena coincide más de una
+	  vez en una palabra, cuente solamente la palabra una vez en
+	  el cálculo de la media).
+	</para>
+     </listitem>
+      <listitem>
     <!--
     12.  Write a program that takes a filename from the command line and
     profiles the character usage, including punctuation and spaces (all
@@ -1612,23 +1726,34 @@ Capacity = 511
     ??Space?? instead of the character ' '. A sample run might look
     something like this:
     -->
-    <para>
-		12.	Escriba un programa que tome un nombre de fichero de la línea de comandos y perfile el uso del  carácter, incluyendo la puntuación y los espacios (todos los valores de caracteres desde el 0x21 [33] hasta el 0x7E [126], además del carácter de espacio). Esto es, cuente el numero de ocurrencias para cada carácter en el fichero, después muestre los resultados ordenados secuencialmente (espacio, despues !, ", #, etc.) o por frecuencia descendente o ascendente basado en una entrada de usuario al principio del programa. Para el espacio, muestre la palabra "espacio" en vez del carácter ' '. Una ejecución de ejemplo debe mostrarse como esto:
-    </para>
-
+	<para>
+	  12. Escriba un programa que tome un nombre de fichero de la
+	  línea de comandos y perfile el uso del carácter, incluyendo
+	  la puntuación y los espacios (todos los valores de
+	  caracteres desde el 0x21 [33] hasta el 0x7E [126], además
+	  del carácter de espacio). Esto es, cuente el numero de
+	  ocurrencias para cada carácter en el fichero, después
+	  muestre los resultados ordenados secuencialmente (espacio,
+	  despues !, ", #, etc.) o por frecuencia descendente o
+	  ascendente basado en una entrada de usuario al principio del
+	  programa. Para el espacio, muestre la palabra "espacio" en
+	  vez del carácter ' '. Una ejecución de ejemplo debe
+	  mostrarse como esto:
+	</para>
     <!--
     Format sequentially, ascending, or descending (S/A/D): D
     t: 526
     r: 490
     etc.
     -->
-    <para>
+	<para>
     Formato secuencial, ascendente o descendente (S/A/D): D
     t: 526
     r: 490
     etc.
-    </para>
-
+	</para>
+     </listitem>
+      <listitem>
     <!--
     13.  Using find( ) and rfind( ), write a program that takes two
     command-line arguments (a filename and a string) and displays the first
@@ -1636,20 +1761,34 @@ Capacity = 511
     the indexes of the first and last instances of the string. Display ??Not
     Found?? if any of the searches fail.
     -->
-    <para>
-		13.	Usando <function>find()</function> y <function>rfind()</function>, escriba un programa que tome dos argumentos de lánea de comandos (un nombre de fichero y una cadena) y muestre la primera y la última palapra (y sus indices) que no coinciden con la cadena, asi como los indice de la primera y la última instancia de la cadena. Muestre <emphasis>"No Encontrado"</emphasis> si alguna de las busquedas fallan.
-    </para>
-
+	<para>
+	  13. Usando <function>find()</function> y
+	  <function>rfind()</function>, escriba un programa que tome
+	  dos argumentos de lánea de comandos (un nombre de fichero y
+	  una cadena) y muestre la primera y la última palapra (y sus
+	  indices) que no coinciden con la cadena, asi como los indice
+	  de la primera y la última instancia de la cadena. Muestre
+	  <emphasis>"No Encontrado"</emphasis> si alguna de las
+	  busquedas fallan.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     14.  Using the find_first_of ??family?? of functions (but not
     exclusively), write a program that will remove all non-alphanumeric
     characters except spaces and periods from a file, then capitalize the
     first letter following a period.
     -->
-    <para>
-		14.	Usando la familia de fuciones <function>find_first_of</function> (pero no exclusivamente), escriba un programa que borrará todos los caracteres no alfanuméricos excepto los espacios y los puntos de un fichero. Despues convierta a mayúsculas la primera letra que siga a un punto.
-    </para>
-
+	<para>
+	  14. Usando la familia de fuciones
+	  <function>find_first_of</function> (pero no exclusivamente),
+	  escriba un programa que borrará todos los caracteres no
+	  alfanuméricos excepto los espacios y los puntos de un
+	  fichero. Despues convierta a mayúsculas la primera letra que
+	  siga a un punto.
+	</para>
+     </listitem>
+      <listitem>
     <!--
     15.  Again using the find_first_of ??family?? of functions, write a
     program that accepts a filename as a command-line argument and then
@@ -1657,11 +1796,17 @@ Capacity = 511
     the first until a non-numeric character is found, and round to the
     nearest hundredth. For example, the string 12.399abc29.00.6a would be
     formatted (in the USA) to $12.40abc$29.01a.
-    -->
-    <para>
-		15.	Otra vez, usando la familia de funciones <function>find_first_of</function>, escriba un programa que acepte un nombre de fichero como argumentod elinea de comandos y después formatee todos los números en un fichero de moneda. Ignore los puntos decimales después del primero despues de un carácter no mumérico, e redondee al 
-    </para>
-
+	-->
+	<para>
+	  15. Otra vez, usando la familia de funciones
+	  <function>find_first_of</function>, escriba un programa que
+	  acepte un nombre de fichero como argumentod elinea de
+	  comandos y después formatee todos los números en un fichero
+	  de moneda. Ignore los puntos decimales después del primero
+	  despues de un carácter no mumérico, e redondee al
+	</para>
+     </listitem>
+      <listitem>
     <!--
     16.  Write a program that accepts two command-line arguments (a filename
     and a number) and scrambles each word in the file by randomly switching
@@ -1671,18 +1816,33 @@ Capacity = 511
     pair of randomly-chosen letters should be swapped, for an input of 2,
     two random pairs should be swapped, etc.).
     -->
-    <para>
-		16.	Escriba un programa que acepte dos argumentos por línea de comandos (un nombre de fichero y un numero) y mezcle cada paralabra en el fichero cambiando aleatoriamente dos de sus letras el número de veces especificado en el segundo parametro. (Esto es, si le pasamos 0 a su programa desde la línea de comandos, las palabras no serán mezcladas; si le pasamos un 1, un par de letras aleatoriamente elegidas deben ser cambiadas, para una entrada de 2, dos parejas aleatorias deben ser intercambiadas, etc.).
-    </para>
-
+	<para>
+	  16. Escriba un programa que acepte dos argumentos por línea
+	  de comandos (un nombre de fichero y un numero) y mezcle cada
+	  paralabra en el fichero cambiando aleatoriamente dos de sus
+	  letras el número de veces especificado en el segundo
+	  parametro. (Esto es, si le pasamos 0 a su programa desde la
+	  línea de comandos, las palabras no serán mezcladas; si le
+	  pasamos un 1, un par de letras aleatoriamente elegidas deben
+	  ser cambiadas, para una entrada de 2, dos parejas aleatorias
+	  deben ser intercambiadas, etc.).
+	</para>
+     </listitem>
+      <listitem>
     <!--
     17.  Write a program that accepts a filename from the command line and
     displays the number of sentences (defined as the number of periods in
     the file), average number of characters per sentence, and the total
     number of characters in the file.
     -->
-    <para>
-		17. Escriba un programa que acepte un nombre de fichero desde la línea de comandos y muestre el numero de frases (definido como el numero de puntos en el fichero), el número medio de caracteres por frase, y el número total de caracteres en el fichero.
-    </para>
+	<para>
+	  17.  Escriba un  programa que  acepte un  nombre  de fichero
+	  desde la  línea de  comandos y muestre  el numero  de frases
+	  (definido como el numero de puntos en el fichero), el número
+	  medio  de  caracteres  por  frase,  y  el  número  total  de
+	  caracteres en el fichero.
+	</para>
+     </listitem>
+    </orderedlist>
   </sect1>
 </chapter>
