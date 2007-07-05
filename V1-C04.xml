@@ -409,8 +409,6 @@ CStash A, B, C;
     </para>
 
 
-<!-- Revisando por aquí: David Villa -->
-
     <sect2>
       <!-- Dynamic storage allocation -->
       <title>Asignación dinámica de memoria</title>
@@ -430,25 +428,30 @@ CStash A, B, C;
       via the keywords new and delete.  -->
 
       <para>
-	Dado que nunca conoceremos la cantidad máxima de almacenamiento
-	que necesitaremos para una <type>CStash</type>, la memoria a la
-	que apuntan los elementos de <varname>storage</varname> es
-	asignada desde el <emphasis>heap</emphasis>
+	Nunca se puede saber la cantidad máxima de almacenamiento que se
+	necesitará par una <type>CStash</type>, por eso la memoria a la
+	que apuntan los elementos de <varname>storage</varname> se
+	asigna desde el <emphasis>montículo</emphasis>
+	(<foreignphrase>heap</foreignphrase>)
 	<footnote>
-	  <para><emphasis>heap</emphasis> puede traducirse al español
-	    como "montón" o "montículo". </para>
-	</footnote>.  El heap es un gran montón de memoria usado para
-	asignar pequeñas piezas en tiempo de ejecución. Usamos el heap
-	cuando no sabemos de antemano la cantidad de memoria que
-	necesitará el programa que estamos escribiendo. Por ejemplo,
-	esto se da en un programa en el que sólo en tiempo de ejecución
-	sabremos si necesitamos memoria para 200 variables
-	<type>Avion</type> o para 20. En C stándar, las funciones para
-	asignación de memoria dinámica incluyen a
+	  <para>N. de T.: <foreignphrase>heap</foreignphrase> se suele
+	    traducir al castellano como <quote>montón</quote> o
+	    <quote>montículo</quote>.
+	  </para>
+	</footnote>.
+
+	El montículo es un gran bloque de memoria que se utiliza para
+	asignar en pequeños trozos en tiempo de ejecución. Se usa el
+	heap cuando no se conoce de antemano la cantidad de memoria que
+	necesitará el programa que está escribiendo. Por ejemplo, eso
+	ocurre en un programa en el que sólo en el momento de la
+	ejecución se sabe si se necesia memoria para 200 variables
+	<type>Avión</type> o para 20. En C Estándar, las funciones para
+	asignación dinámica de memoria incluyen 
 	<function>malloc()</function>, <function>calloc()</function>,
 	<function>realloc()</function> y <function>free()</function>. En
 	lugar de llamadas a librerías, C++ cuenta con una técnica más
-	sofisticada (y por lo tanto más fácil de usar) para tratar con
+	sofisticada (y por lo tanto más fácil de usar) para tratar la
 	memoria dinámica. Esta técnica está integrada en el lenguaje por
 	medio de las palabras reservadas <kw>new</kw> y <kw>delete</kw>.
       </para>
@@ -466,37 +469,36 @@ CStash A, B, C;
 
       <para>
 	La función <function>inflate()</function> usa <kw>new</kw> para
-	obtener más memoria para la <type>CStash</type>. En este caso
-	sólo expandiremos el espaciode memoria y nunca lo
-	achicaremos. <function>assert()</function> garantizará que no se
-	pase un número negativo como argumento a
+	obtener más memoria para la <type>CStash</type>. En este caso el
+	espacio de memoria sólo se amplia y nunca lo
+	reduce. <function>assert()</function> garantiza que no se pase
+	un número negativo como argumento a
 	<function>inflate()</function> como valor de incremento. La
 	nueva cantidad de elmentos que se podrán almacenar (una vez se
-	halla completado <function>inflate()</function> se determina en
-	la variable <varname>newQuantity</varname> la cual es
-	multiplicada por el número de bytes que ocupa cada elemento para
-	obtener el nuevo número de bytes totales de la asignación en la
-	variable <varname>newBytes</varname>. Dado que conocemos cuántos
-	bytes copiar desde la ubicación anterios,
-	<varname>oldBytes</varname> es calculado usando la cantidad
-	vieja de bytes (<varname>quantity</varname>).
+	haya terminado <function>inflate()</function> se determina en la
+	variable <varname>newQuantity</varname> que se multiplicada por
+	el número de bytes que ocupa cada elemento, para obtener el
+	nuevo número total de bytes de la asignación en la variable
+	<varname>newBytes</varname>. Dado que se sabe cuántos bytes hay
+	que copiar desde la ubicación anterior,
+	<varname>oldBytes</varname> se calcula usando la cantidad
+	antigua de bytes (<varname>quantity</varname>).
       </para>
 
-  <!--
-  The actual storage allocation occurs in the new-expression, which is the
-  expression involving the new keyword:
-  -->
+      <!-- 
+      The actual storage allocation occurs in the new-expression,
+      which is the expression involving the new keyword: -->
       <para>
-	La asignación de memoria ocurre en la
-	<emphasis>expresión-new</emphasis> la cual involucra la palabra
-	clave <kw>new</kw>:
+	La petición de memoria ocurre realmente en la
+	<emphasis>expresión-new</emphasis> que involucra la palabra
+	reservada <kw>new</kw>:
       </para>
 
 <programlisting>
 new unsigned char[newBytes];
 </programlisting>
 
-  <!-- The general form of the new-expression is: -->
+      <!-- The general form of the new-expression is: -->
       <para>
 	La forma general de una <emphasis>expresión-new</emphasis>
 	es
@@ -506,88 +508,90 @@ new unsigned char[newBytes];
 new Type;
 </programlisting>
 
-  <!--
-  in which Type describes the type of variable you want allocated on the
-  heap. In this case, we want an array of unsigned char that is newBytes
-  long, so that is what appears as the Type. You can also allocate
-  something as simple as an int by saying:
-  -->
+      <!--
+      in which Type describes the type of variable you want allocated on
+      the heap. In this case, we want an array of unsigned char that is
+      newBytes long, so that is what appears as the Type. You can also
+      allocate something as simple as an int by saying:
+      -->
       <para>
-	donde <literal>Type</literal> describe el tipo de variable para
-	la cual deseamos asignar memoria en el
-	<emphasis>heap</emphasis>. Dado que en este caso, deseamos
+	donde <type>Type</type> describe el tipo de variable para la
+	cual se solicita memoria en el
+	<emphasis>montículo</emphasis>. Dado que en este caso, se desea
 	asignar memoria para un array de <type>unsigned char</type> de
-	<varname>newBytes</varname> elementos, eso es lo que ponemos
-	como <literal>Type</literal>. De igual forma podemos asignar
-	memoria para algo más simple como un <type>int</type> con la
-	expresión
+	<varname>newBytes</varname> elementos, eso es lo que pone como
+	<type>Type</type>. Del mismo modo, se puede asignar memoria para
+	algo más simple como un <type>int</type> con la expresión
       </para>
 
 <programlisting>
 new int;
 </programlisting>
 
-  <!--
-  and although this is rarely done, you can see that the form is
-  consistent.
-  -->
+      <!--
+      and although this is rarely done, you can see that the form is
+      consistent.
+      -->
       <para>
-	y aunque esto no sea muy útil muestra que la forma
-	de la <emphasis>expresión-new</emphasis> es
-	consistente. 
+	y aunque esto se utiliza muy poco, demuestra que la sintaxis es
+	consistente,
       </para>
 
 
-  <!--
-  A new-expression returns a pointer to an object of the exact type that
-  you asked for. So if you say new Type, you get back a pointer to a
-  Type. If you say new int, you get back a pointer to an int. If you want
-  a new unsigned char array, you get back a pointer to the first element
-  of that array. The compiler will ensure that you assign the return value
-  of the new-expression to a pointer of the correct type.
-  -->
+      <!-- 
+      A new-expression returns a pointer to an object of the exact
+      type that you asked for. So if you say new Type, you get back a
+      pointer to a Type. If you say new int, you get back a pointer to
+      an int. If you want a new unsigned char array, you get back a
+      pointer to the first element of that array. The compiler will
+      ensure that you assign the return value of the new-expression to a
+      pointer of the correct type.
+      -->
       <para>
-	Una <emphasis>expresión-new</emphasis> devuelve un puntero a un
-	objeto de tipo (Type) igual al especificado por nosotros. Así,
-	si pedimos <literal>new Type</literal> obtendremos un puntero a
-	un objeto de tipo <literal>Type</literal>, si decimos
-	<literal>new int</literal> obtendremos un puntero a un
-	entero. Si queremos un nuevo array de <type>unsigned char</type>
-	(a <literal>new unsigned char </literal>array, en inglés) la
-	expresión nos devolverá un puntero al primer elemento de dicho
-	array. El compilador verificará que se asigne lo que devuelve
-	una <emphasis>expresión-new</emphasis> a una variable puntero de
-	tipo correcto.
+	Una <emphasis>expresión-new</emphasis> devuelve un
+	<emphasis>puntero</emphasis> a un objeto del tipo exacto que se
+	le pidió. De modo que con <code>new Type</code> se obtendrá un
+	puntero a un objeto de tipo <type>Type</type>, y con <code>new
+	int</code> obtendrá un puntero a un <type>int</type>. Si quiere
+	un nuevo array de <type>unsigned char</type> la expresión
+	devolverá un puntero al primer elemento de dicho array. El
+	compilador verificará que se asigne lo que devuelve la
+	<emphasis>expresión-new</emphasis> a una variable puntero del
+	tipo adecuado.
       </para>
 
-  <!--
-  Of course, any time you request memory it??s possible for the request to
-  fail, if there is no more memory. As you will learn, C++ has mechanisms
-  that come into play if the memory-allocation operation is unsuccessful.
-  -->
+      <!-- Of course, any time you request memory it??s possible for the
+      request to fail, if there is no more memory. As you will learn,
+      C++ has mechanisms that come into play if the memory-allocation
+      operation is unsuccessful.  -->
       <para>
 	Por supuesto, es posible que al pedir memoria, la petición
 	falle, por ejemplo, si no hay más memoria libre en el
-	sistema. Como se aprenderá más adelante, C++ cuenta con
-	mecanismos que entran en juego cuando la operación de asignación
-	de memoria no fue exitosa.
+	sistema. Como verá más adelante, C++ cuenta con mecanismos que
+	entran en juego cuando la operación de asignación de memoria no
+	se puede satisfacer.
       </para>
 
-  <!--
-  Once the new storage is allocated, the data in the old storage must be
-  copied to the new storage; this is again accomplished with array
-  indexing, copying one byte at a time in a loop. After the data is
-  copied, the old storage must be released so that it can be used by other
-  parts of the program if they need new storage. The delete keyword is the
-  complement of new, and must be applied to release any storage that is
-  allocated with new (if you forget to use delete, that storage remains
-  unavailable, and if this so-called memory leak happens enough, you??ll
-  run out of memory). In addition, there??s a special syntax when you??re
-  deleting an array. It??s as if you must remind the compiler that this
-  pointer is not just pointing to one object, but to an array of objects:
-  you put a set of empty square brackets in front of the pointer to be
-  deleted:
-  -->
+
+<!-- Revisando por aquí: David Villa -->
+
+
+      <!--
+      Once the new storage is allocated, the data in the old storage
+      must be copied to the new storage; this is again accomplished with
+      array indexing, copying one byte at a time in a loop. After the
+      data is copied, the old storage must be released so that it can be
+      used by other parts of the program if they need new storage. The
+      delete keyword is the complement of new, and must be applied to
+      release any storage that is allocated with new (if you forget to
+      use delete, that storage remains unavailable, and if this
+      so-called memory leak happens enough, you??ll run out of
+      memory). In addition, there??s a special syntax when you??re
+      deleting an array. It??s as if you must remind the compiler that
+      this pointer is not just pointing to one object, but to an array
+      of objects: you put a set of empty square brackets in front of the
+      pointer to be deleted: 
+      -->
       <para>
 	Sigamos con nuestro código. Una vez que hemos asignado memoria
 	para el nuevo espacio de almacenamiento (variable
