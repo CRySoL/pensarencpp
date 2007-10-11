@@ -502,9 +502,9 @@ por la función que lo recibe.
     program shows how to implement a Singleton in C++:
     -->
     <para>
-	Posiblemente, el patrón de diseño más simple del GoF es el Singleton,
+	Posiblemente, el patrón de diseño más simple del GoF es el <kw>Singleton</kw>,
 que es una forma de asegurar una única instancia de una clase. El siguiente programa
-muestra cómo implementar un Singleton en C++:
+muestra cómo implementar un <kw>Singleton</kw> en C++:
     </para>
 
 
@@ -523,7 +523,7 @@ muestra cómo implementar un Singleton en C++:
     <para>
 	La clave para crear un Singleton es evitar que el programador cliente
 tenga control sobre el ciclo de vida del objeto. Para lograrlo, declare todos
-los constructores privados, y evite que el compilador genere implícitamente 
+los constructores privados, y evite que el compilador genere implícitamente
 cualquier constructor. Fíjese que el FIXME: constructor de copia? y el operador
 de asignación (que intencionadamente carecen de implementación alguna, ya que
 nunca van a ser llamados) están declarados como privados, para evitar que se haga
@@ -566,7 +566,10 @@ privada.
     interface.
     -->
     <para>
-
+	  Usted da acceso a través de FIXME (funciones de miembros) públicas. Aquí,
+<kw>instance()</kw> genera una referencia al objeto <kw>Singleton</kw>. El resto
+de la interfaz (<kw>getValue()</kw> y <kw>setValue()</kw>) es la interfaz regular
+de la clase.
     </para>
 
     <!--
@@ -577,12 +580,16 @@ privada.
     involving a check-out and check-in of the shared objects.
     -->
     <para>
-
+	  Fíjese en que no está restringido a crear un único objeto. Esta técnica
+también soporta la creacion de un <kw>pool</kw> limitado de objetos. En este caso,
+sin embargo, puede enfrentarse al problema de compartir objetos del <kw>pool</kw>.
+Si esto supone un problema, puede crear una solución que incluya un <kw>check-out</kw>
+y un <kw>check-in</kw> de los objetos compartidos.
     </para>
 
     <sect2>
       <!-- Variations on Singleton -->
-      <title> </title>
+      <title> Variaciones del Singleton </title>
 
       <!--
       Any static member object inside a class is an expression of Singleton:
@@ -594,7 +601,12 @@ privada.
       initialized in the correct order.
       -->
       <para>
-	Cualquier miembro <kw>static</kw>
+		Cualquier miembro <kw>static</kw> dentro de una clase es una forma de <kw>Singleton>:
+se hará uno y sólo uno. En cierto modo, el lenguaje da soporte directo a esta idea;
+se usa de forma regular. Sin embargo, los objetos estáticos tienen un problema (ya
+miembros o no): el orden de inicialización, tal y como se describe en el volumen 1
+de este libro. Si un objeto <kw>static<kw> depende de otro, es importante que los
+objetos se inicializen en el orden correcto.
       </para>
 
       <!--
@@ -608,7 +620,14 @@ privada.
       that log file. This header file will do the trick:
       -->
       <para>
-
+		En el volumen 1, se mostró cómo controlar el orden de inicialización
+definiendo un objeto estático dentro de una función. Esto retrasa la inicialización
+del objeto hasta la primera vez que se llama a la función. Si la función devuelve
+una referencia al objeto estático, hace las veces de <kw>Singleton</kw> a la vez que
+elimina gran parte de la preocupación de la inicialización estática. Por ejemplo,
+suponga que quiere crear un fichero de <kw>log</kw> en la primera llamada a una
+función que devuelve una referencia a dicho fichero. Basta con este fichero de
+cabecera:
       </para>
 
 
@@ -625,7 +644,13 @@ privada.
       implementation must be separate:
       -->
       <para>
-
+		La implementación no debe FIXME: hacerse en la misma línea, porque eso
+significaría que la función entera, incluída la definición del objeto estático
+que contiene, podría ser duplicada en cualquier unidad de traducción donde se
+incluya, lo que viola la regla de única definición de C++. [137] Con toda seguridad,
+esto frustraría cualquier intento de controlar el orden de inicialización (pero
+potencialmente de una forma sutil y difícil de detectar). De forma que la
+implementación debe separarse:
       </para>
 
 
@@ -637,7 +662,8 @@ privada.
       logfile( ) is called. So if you create a function:
       -->
       <para>
-
+		Ahora el objeto <kw>log</kw> no se inicializará hasta la primera vez
+que se llame a <kw>logfile()</kw>. Así que, si crea una función:
       </para>
 
 
@@ -646,7 +672,7 @@ privada.
 
       <!-- that uses logfile( ) in its implementation: -->
       <para>
-
+		que use <kw>logfile()</kw> en su implementación:
       </para>
 
 
@@ -655,7 +681,7 @@ privada.
 
       <!-- And you use logfile( ) again in another file: -->
       <para>
-
+		y utiliza <kw>logfile()</kw> otra vez en otro fichero:
       </para>
 
 
@@ -664,7 +690,7 @@ privada.
 
       <!-- the log object doesnt get created until the first call to f( ). -->
       <para>
-
+		el objecto <kw>log</kw> no se crea hasta la primera llamada a <kw>f()</kw>.
       </para>
 
       <!--
@@ -673,7 +699,9 @@ privada.
       modified to use this approach:[138]
       -->
       <para>
-
+		Puede combinar fácilmente la creación de objetos estáticos dentro de
+una función miembro con la clase <kw>Singleton</kw>. SingletonPattern.cpp puede
+modificarse para usar esta aproximación:[138]
       </para>
 
 
@@ -685,7 +713,8 @@ privada.
       other, like this:
       -->
       <para>
-
+		Se da un caso especialmente interesante cuando dos <kw>Singletons</kw>
+dependen mutuamente el uno del otro, de esta forma:
       </para>
 
 
@@ -701,7 +730,12 @@ privada.
       over initialization, leading to fewer problems.
       -->
       <para>
-
+		Cuando se llama a <kw>Singleton2::ref()</kw>, hace que se cree su
+único objeto <kw>Singleton2</kw>. En el proceso de esta creación, se llama
+a <kw>Singleton1::ref()</kw>, y esto hace que se cree su objeto único
+<kw>Singleton1</kw>. Como esta técnica no se basa en el orden de linkado
+ni el de carga, el programador tiene mucho mayor control sobre la inicialización,
+lo que redunda en menos problemas.
       </para>
 
       <!--
@@ -710,7 +744,9 @@ privada.
       Curiously Recurring Template Pattern mentioned in Chapter 5:
       -->
       <para>
-
+		Otra variación del <kw>Singleton</kw> separa la unicidad de un objeto
+de su implementación. Esto se logra usando el "Patrón Plantilla Curiosamente
+Recursivo" mencionado en el Capítulo 5:
       </para>
 
 
@@ -719,22 +755,22 @@ privada.
 
       <!-- MyClass is made a Singleton by: -->
       <para>
-
+		<kw>MyClass</kw> se convierte en <kw>Singleton</kw>:
       </para>
 
       <!-- 1.  Making its constructor private or protected. -->
       <para>
-
+		1. Haciendo que su constructor sea <kw>private</kw> o <kw>protected</kw>.
       </para>
 
       <!-- 2.  Making Singleton<MyClass> a friend. -->
       <para>
-
+		2. Haciéndose amigo de <kw>Singleton&lt;MyClass&gt;</kw>.
       </para>
 
       <!-- 3.  Deriving MyClass from Singleton<MyClass>. -->
       <para>
-
+		3. Derivando <kw>MyClass</kw> desde <kw>Singleton&lt;MyClass&gt;</kw>.
       </para>
 
       <!--
@@ -748,7 +784,14 @@ privada.
       has been compiled and its size is known.[139]
       -->
       <para>
-
+		La auto-referencia del paso 3 podría sonar inversímil, pero tal como se
+explicó en el Capítulo 5, funciona porque sólo hay una dependencia estática sobre
+el argumento plantilla de la plantilla <kw>Singleton</kw>. En otras palabras, el
+código de la clase <kw>Singleton&lt;MyClass&gt;</kw> puede ser instanciado por el
+compilador porque no depende del tamaño de <kw>MyClass</kw>. Es después, cuando se
+a <kw>Singleton&lt;MyClass&gt;::instance()</kw>, cuando se necesita el tamaño de
+<kw>MyClass</kw>, y para entonces <kw>MyClass</kw> ya se ha compilado y su tamaño
+se conoce.[139]
       </para>
 
       <!--
@@ -759,7 +802,12 @@ privada.
       replace a global variable.[140]
       -->
       <para>
-
+		Es interesante lo intrincado que un patrón tan simple como el <kw>Singleton</kw>
+puede llegar a ser, y ni siquiera se han tratado todavía asuntos de seguridad de
+hilos. Por último, el patrón <kw>Singleton</kw> debería usarse lo justo
+y necesario. Los verdaderos objetos <kw>Singleton</kw> rara vez aparecen, y la última
+cosa para la que debe usarse un <kw>Singleton</kw> es para remplazar a
+una variable global. [140]
       </para>
 
     </sect2>
