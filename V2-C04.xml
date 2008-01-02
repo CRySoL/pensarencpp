@@ -1,0 +1,3833 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 22/PSGML
+  Traducción original: 
+  Formateado DocBook:  
+-->
+
+<!-- original de referencia en:
+http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc53985673
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C04">
+
+
+  <!-- Iostreams -->
+  <title>Iostreams</title>
+
+  <!--
+  You can do much more with the general I/O problem than just take
+  standard I/O and turn it into a class.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  Wouldn??t it be nice if you could make all the usual ??receptacles??
+  ?standard I/O, files, and even blocks of memory?look the same so that
+  you need to remember only one interface? That??s the idea behind
+  iostreams. They??re much easier, safer, and sometimes even more
+  efficient than the assorted functions from the Standard C stdio library.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  The iostreams classes are usually the first part of the C++ library that
+  new C++ programmers learn to use. This chapter discusses how iostreams
+  are an improvement over C??s stdio facilities and explores the behavior
+  of file and string streams in addition to the standard console streams.
+  -->
+  <para>
+
+  </para>
+
+  <sect1>
+    <!-- : Why iostreams? -->
+    <title> </title>
+
+    <!--
+    You might wonder what??s wrong with the good old C library. Why not
+    ??wrap?? the C library in a class and be done with it? Sometimes this is
+    a fine solution. For example, suppose you want to make sure that the
+    file represented by a stdio FILE pointer is always safely opened and
+    properly closed without having to rely on the user to remember to call
+    the close( ) function. The following program is such an attempt:
+    -->
+    <para>
+
+    </para>
+
+    //: C04:FileClass.h
+
+    <!--
+    When you perform file I/O in C, you work with a naked pointer to a FILE
+    struct, but this class wraps around the pointer and guarantees it is
+    properly initialized and cleaned up using the constructor and
+    destructor. The second constructor argument is the file mode, which
+    defaults to ??r?? for ??read.??
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    To fetch the value of the pointer to use in the file I/O functions, you
+    use the fp( ) access function. Here are the member function definitions:
+    -->
+    <para>
+
+    </para>
+
+
+    <!-- //: C04:FileClass.cpp {O}
+
+
+    <!--
+    The constructor calls fopen( ), as you would normally do, but it also
+    ensures that the result isn??t zero, which indicates a failure upon
+    opening the file. If the file does not open as expected, an exception is
+    thrown.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The destructor closes the file, and the access function fp( ) returns
+    f. Here??s a simple example using FileClass:
+    -->
+    <para>
+
+    </para>
+
+
+    <!-- //: C04:FileClassTest.cpp
+
+
+    <!--
+    You create the FileClass object and use it in normal C file I/O function
+    calls by calling fp( ). When you??re done with it, just forget about it;
+    the file is closed by the destructor at the end of its scope.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Even though the FILE pointer is private, it isn??t particularly safe
+    because fp( ) retrieves it. Since the only effect seems to be guaranteed
+    initialization and cleanup, why not make it public or use a struct
+    instead? Notice that while you can get a copy of f using fp( ), you
+    cannot assign to f?that??s completely under the control of the
+    class. After capturing the pointer returned by fp( ), the client
+    programmer can still assign to the structure elements or even close it,
+    so the safety is in guaranteeing a valid FILE pointer rather than proper
+    contents of the structure.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If you want complete safety, you must prevent the user from directly
+    accessing the FILE pointer. Some version of all the normal file I/O
+    functions must show up as class members so that everything you can do
+    with the C approach is available in the C++ class:
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Fullwrap.h
+
+
+    <!--
+    This class contains almost all the file I/O functions from
+    function.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    File has the same constructor as in the previous example, and it also
+    has a default constructor. The default constructor is important if you
+    want to create an array of File objects or use a File object as a member
+    of another class where the initialization doesn??t happen in the
+    constructor, but some time after the enclosing object is created.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The default constructor sets the private FILE pointer f to zero. But
+    now, before any reference to f, its value must be checked to ensure it
+    isn??t zero. This is accomplished with F( ), which is private because it
+    is intended to be used only by other member functions. (We don??t want
+    to give the user direct access to the underlying FILE structure in this
+    class.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    This approach is not a terrible solution by any means. It??s quite
+    functional, and you could imagine making similar classes for standard
+    (console) I/O and for in-core formatting (reading/writing a piece of
+    memory rather than a file or the console).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The stumbling block is the runtime interpreter used for the variable
+    argument list functions. This is the code that parses your format string
+    at runtime and grabs and interprets arguments from the variable argument
+    list. It??s a problem for four reasons.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Even if you use only a fraction of the functionality of the
+    interpreter, the whole thing gets loaded into your executable. So if you
+    say printf("%c", 'x');, you??ll get the whole package, including the
+    parts that print floating-point numbers and strings. There??s no
+    standard option for reducing the amount of space used by the program.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Because the interpretation happens at runtime, you can??t get rid of
+    a performance overhead. It??s frustrating because all the information is
+    there in the format string at compile time, but it??s not evaluated
+    until runtime. However, if you could parse the arguments in the format
+    string at compile time, you could make direct function calls that have
+    the potential to be much faster than a runtime interpreter (although the
+    printf( ) family of functions is usually quite well optimized).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3.  Because the format string is not evaluated until runtime, there can
+    be no compile-time error checking. You??re probably familiar with this
+    problem if you??ve tried to find bugs that came from using the wrong
+    number or type of arguments in a printf( ) statement. C++ makes a big
+    deal out of compile-time error checking to find errors early and make
+    your life easier. It seems a shame to throw type safety away for an I/O
+    library, especially since I/O is used a lot.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4.  For C++, the most crucial problem is that the printf( ) family of
+    functions is not particularly extensible. They??re really designed to
+    handle only the basic data types in C (char, int, float, double,
+    wchar_t, char*, wchar_t*, and void*) and their variations. You might
+    think that every time you add a new class, you could add overloaded
+    printf( ) and scanf( ) functions (and their variants for files and
+    strings), but remember, overloaded functions must have different types
+    in their argument lists, and the printf( ) family hides its type
+    information in the format string and in the variable argument list. For
+    a language such as C++, whose goal is to be able to easily add new data
+    types, this is an unacceptable restriction.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Iostreams to the rescue -->
+    <title> </title>
+
+    <!--
+    These issues make it clear that I/O is one of the first priorities for
+    the Standard C++ class libraries. Because ??hello, world?? is the first
+    program just about everyone writes in a new language, and because I/O is
+    part of virtually every program, the I/O library in C++ must be
+    particularly easy to use. It also has the much greater challenge that it
+    must accommodate any new class. Thus, its constraints require that this
+    foundation class library be a truly inspired design. In addition to
+    gaining a great deal of leverage and clarity in your dealings with I/O
+    and formatting, you??ll also see in this chapter how a really powerful
+    C++ library can work.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Inserters and extractors -->
+      <title> </title>
+
+      <!--
+      A stream is an object that transports and formats characters of a fixed
+      width. You can have an input stream (via descendants of the istream
+      class), an output stream (with ostream objects), or a stream that does
+      both simultaneously (with objects derived from iostream). The iostreams
+      library provides different types of such classes: ifstream, ofstream,
+      and fstream for files, and istringstream, ostringstream, and
+      stringstream for interfacing with the Standard C++ string class. All
+      these stream classes have nearly identical interfaces, so you can use
+      streams in a uniform manner, whether you??re working with a file,
+      standard I/O, a region of memory, or a string object. The single
+      interface you learn also works for extensions added to support new
+      classes. Some functions implement your formatting commands, and some
+      functions read and write characters without formatting.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The stream classes mentioned earlier are actually template
+      specializations,[41] much like the standard string class is a
+      specialization of the basic_string template. The basic classes in the
+      iostreams inheritance hierarchy are shown in the following figure:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The ios_base class declares everything that is common to all streams,
+      independent of the type of character the stream handles. These
+      declarations are mostly constants and functions to manage them, some of
+      which you??ll see throughout this chapter. The rest of the classes are
+      templates that have the underlying character type as a parameter. The
+      istream class, for example, is defined as follows: typedef
+      basic_istream<char> istream;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      All the classes mentioned earlier are defined via similar type
+      definitions. There are also type definitions for all stream classes
+      using wchar_t (the wide character type discussed in Chapter 3) instead
+      of char. We??ll look at these at the end of this chapter. The basic_ios
+      template defines functions common to both input and output, but that
+      depends on the underlying character type (we won??t use these much). The
+      template basic_istream defines generic functions for input, and
+      basic_ostream does the same for output. The classes for file and string
+      streams introduced later add functionality for their specific stream
+      types.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the iostreams library, two operators are overloaded to simplify the
+      use of iostreams. The operator << is often referred to as an inserter
+      for iostreams, and the operator >> is often referred to as an extractor.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Extractors parse the information that??s expected by the destination
+      object according to its type. To see an example of this, you can use the
+      cin object, which is the iostream equivalent of stdin in C, that is,
+      redirectable standard input. This object is predefined whenever you
+      include the <iostream> header.
+      -->
+      <para>
+
+      </para>
+
+      <!-- int i; cin >> i; -->
+      <para>
+
+      </para>
+
+      <!-- float f; cin >> f; -->
+      <para>
+
+      </para>
+
+      <!-- char c; cin >> c; -->
+      <para>
+
+      </para>
+
+      <!-- char buf[100]; cin >> buf; -->
+      <para>
+
+      </para>
+
+      <!--
+      There??s an overloaded operator >> for every built-in data type. You can
+      also overload your own, as you??ll see later.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To find out what you have in the various variables, you can use the cout
+      object (corresponding to standard output; there??s also a cerr object
+      corresponding to standard error) with the inserter <<:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      cout << "i = "; cout << i; cout << "\n"; cout << "f = "; cout << f;
+      cout << "\n"; cout << "c = "; cout << c; cout << "\n"; cout << "buf =
+      "; cout << buf; cout << "\n";
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This is tedious and doesn??t seem like much of an improvement over
+      printf( ), despite improved type checking. Fortunately, the overloaded
+      inserters and extractors are designed to be chained into a more complex
+      expression that is much easier to write (and read):
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      cout << "i = " << i << endl; cout << "f = " << f << endl; cout << "c =
+      " << c << endl; cout << "buf = " << buf << endl;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Defining inserters and extractors for your own classes is just a matter
+      of overloading the associated operators to do the right things, namely:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      · Make the first parameter a non-const reference to the stream (istream
+      for input, ostream for output).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      · Perform the operation by inserting/extracting data to/from the stream
+      (by processing the components of the object).
+      -->
+      <para>
+
+      </para>
+
+      <!-- · Return a reference to the stream. -->
+      <para>
+
+      </para>
+
+      <!--
+      The stream should be non-const because processing stream data changes
+      the state of the stream. By returning the stream, you allow for chaining
+      stream operations in a single statement, as shown earlier.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As an example, consider how to output the representation of a Date
+      object in MM-DD-YYYY format. The following inserter does the job:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ostream& operator<<(ostream& os, const Date& d) { char fillc =
+      os.fill('0'); os << setw(2) << d.getMonth() << '-' << setw(2) <<
+      d.getDay() << '-' << setw(4) << setfill(fillc) << d.getYear(); return
+      os; }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This function cannot be a member of the Date class because the left
+      operand of the << operator must be the output stream. The fill( ) member
+      function of ostream changes the padding character used when the width of
+      an output field, determined by the manipulator setw( ), is greater than
+      needed for the data. We use a ??0?? character so that months preceding
+      October will display a leading zero, such as ??09?? for September. The
+      fill( ) function also returns the previous fill character (which
+      defaults to a single space) so that we can restore it later with the
+      manipulator setfill( ). We discuss manipulators in depth later in this
+      chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Extractors require a little more care because things can go wrong with
+      input data. The way to signal a stream error is to set the stream??s
+      fail bit, as follows:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      istream& operator>>(istream& is, Date& d) { is >> d.month; char dash; is
+      >> dash; if(dash != '-') is.setstate(ios::failbit); is >> d.day; is >>
+      dash; if(dash != '-') is.setstate(ios::failbit); is >> d.year; return
+      is; }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      When an error bit is set in a stream, all further streams operations are
+      ignored until the stream is restored to a good state (explained
+      shortly). That??s why the code above continues extracting even if
+      ios::failbit gets set. This implementation is somewhat forgiving in that
+      it allows white space between the numbers and dashes in a date string
+      (because the >> operator skips white space by default when reading
+      built-in types). The following are valid date strings for this
+      extractor:
+      -->
+      <para>
+
+      </para>
+
+      <!-- "08-10-2003" "8-10-2003" "08 - 10 - 2003" -->
+      <para>
+
+      </para>
+
+      <!-- but these are not: -->
+      <para>
+
+      </para>
+
+      <!--
+      "A-10-2003" // No alpha characters allowed "08%10/2003" // Only dashes
+      allowed as a delimiter
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      We??ll discuss stream state in more depth in the section ??Handling
+      stream errors?? later in this chapter.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Common usage -->
+      <title> </title>
+
+      <!--
+      As the Date extractor illustrated, you must be on guard for erroneous
+      input. If the input produces an unexpected value, the process is skewed,
+      and it??s difficult to recover. In addition, formatted input defaults to
+      white space delimiters. Consider what happens when we collect the code
+      fragments from earlier in this chapter into a single program:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Iosexamp.cpp {RunByHand}
+
+
+      <!-- and give it the following input: -->
+      <para>
+
+      </para>
+
+      <!-- 12 1.4 c this is a test -->
+      <para>
+
+      </para>
+
+      <!-- We expect the same output as if we gave it -->
+      <para>
+
+      </para>
+
+      <!-- 12 1.4 c this is a test -->
+      <para>
+
+      </para>
+
+      <!-- but the output is, somewhat unexpectedly -->
+      <para>
+
+      </para>
+
+      <!-- i = 12 f = 1.4 c = c buf = this 0xc -->
+      <para>
+
+      </para>
+
+      <!--
+      Notice that buf got only the first word because the input routine looked
+      for a space to delimit the input, which it saw after ??this.?? In
+      addition, if the continuous input string is longer than the storage
+      allocated for buf, we overrun the buffer.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In practice, you??ll usually want to get input from interactive programs
+      a line at a time as a sequence of characters, scan them, and then
+      perform conversions once they??re safely in a buffer. This way you don??
+      t need to worry about the input routine choking on unexpected data.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Another consideration is the whole concept of a command-line
+      interface. This made sense in the past when the console was little more
+      than a glass typewriter, but the world is rapidly changing to one where
+      the graphical user interface (GUI) dominates. What is the meaning of
+      console I/O in such a world? It makes much more sense to ignore cin
+      altogether, other than for simple examples or tests, and take the
+      following approaches:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      1.  If your program requires input, read that input from a file?you??ll
+      soon see that it??s remarkably easy to use files with
+      iostreams. Iostreams for files still works fine with a GUI.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      2.  Read the input without attempting to convert it, as we just
+      suggested. When the input is some place where it can??t foul things up
+      during conversion, you can safely scan it.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      3.  Output is different. If you??re using a GUI, cout doesn??t
+      necessarily work, and you must send it to a file (which is identical to
+      sending it to cout) or use the GUI facilities for data
+      display. Otherwise it often makes sense to send it to cout. In both
+      cases, the output formatting functions of iostreams are highly useful.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Another common practice saves compile time on large projects. Consider,
+      for example, how you would declare the Date stream operators introduced
+      earlier in the chapter in a header file. You only need to include the
+      prototypes for the functions, so it??s not really necessary to include
+      the entire <iostream> header in Date.h. The standard practice is to only
+      declare classes, something like this: class ostream;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This is an age-old technique for separating interface from
+      implementation and is often called a forward declaration (and ostream at
+      this point would be considered an incomplete type, since the class
+      definition has not yet been seen by the compiler).
+      -->
+      <para>
+
+      </para>
+
+      <!-- This will not work as is, however, for two reasons: -->
+      <para>
+
+      </para>
+
+      <!-- 1.  The stream classes are defined in the std namespace. -->
+      <para>
+
+      </para>
+
+      <!-- 2.  They are templates. -->
+      <para>
+
+      </para>
+
+      <!--
+      The proper declaration would be: namespace std { template<class charT,
+      class traits = char_traits<charT> > class basic_ostream; typedef
+      basic_ostream<char> ostream; }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      (As you can see, like the string class, the streams classes use the
+      character traits classes mentioned in Chapter 3). Since it would be
+      terribly tedious to type all that for every stream class you want to
+      reference, the standard provides a header that does it for you:
+      -->
+      <para>
+
+      </para>
+
+      <!-- // Date.h #include <iosfwd> -->
+      <para>
+
+      </para>
+
+      <!--
+      class Date { friend std::ostream& operator<<(std::ostream&, const
+      Date&); friend std::istream& operator>>(std::istream&, Date&); // Etc.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Line?oriented input -->
+      <title> </title>
+
+      <!-- To grab input a line at a time, you have three choices: -->
+      <para>
+
+      </para>
+
+      <!-- · The member function get( ) -->
+      <para>
+
+      </para>
+
+      <!-- · The member function getline( ) -->
+      <para>
+
+      </para>
+
+      <!-- · The global function getline( ) defined in the <string> header -->
+      <para>
+
+      </para>
+
+      <!-- The first two functions take three arguments: -->
+      <para>
+
+      </para>
+
+      <!-- 1.  A pointer to a character buffer in which to store the result. -->
+      <para>
+
+      </para>
+
+      <!-- 2.  The size of that buffer (so it??s not overrun). -->
+      <para>
+
+      </para>
+
+      <!-- 3.  The terminating character, to know when to stop reading input. -->
+      <para>
+
+      </para>
+
+      <!--
+      The terminating character has a default value of '\n', which is what you??
+      ll usually use. Both functions store a zero in the result buffer when
+      they encounter the terminating character in the input.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      So what??s the difference? Subtle, but important: get( ) stops when it
+      sees the delimiter in the input stream, but it doesn??t extract it from
+      the input stream. Thus, if you did another get( ) using the same
+      delimiter, it would immediately return with no fetched
+      input. (Presumably, you either use a different delimiter in the next
+      get( ) statement or a different input function.) The getline( )
+      function, on the other hand, extracts the delimiter from the input
+      stream, but still doesn??t store it in the result buffer.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The getline( ) function defined in <string> is convenient. It is not a
+      member function, but rather a stand-alone function declared in the
+      namespace std. It takes only two non-default arguments, the input stream
+      and the string object to populate. Like its namesake, it reads
+      characters until it encounters the first occurrence of the delimiter
+      ('\n' by default) and consumes and discards the delimiter. The advantage
+      of this function is that it reads into a string object, so you don??t
+      need to worry about buffer size.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Generally, when you??re processing a text file that you read a line at a
+      time, you??ll want to use one of the getline( ) functions.  Overloaded
+      versions of get( )
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The get( ) function also comes in three other overloaded versions: one
+      with no arguments that returns the next character using an int return
+      value; one that stuffs a character into its char argument using a
+      reference; and one that stores directly into the underlying buffer
+      structure of another iostream object. The latter is explored later in
+      the chapter.  Reading raw bytes
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you know exactly what you??re dealing with and want to move the bytes
+      directly into a variable, an array, or a structure in memory, you can
+      use the unformatted I/O function read( ). The first argument for this
+      function is a pointer to the destination memory, and the second is the
+      number of bytes to read. This is especially useful if you??ve previously
+      stored the information to a file, for example, in binary form using the
+      complementary write( ) member function for an output stream (using the
+      same compiler, of course). You??ll see examples of all these functions
+      later.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : andling stream errors -->
+    <title> </title>
+
+    <!--
+    The Date extractor shown earlier sets a stream??s fail bit under certain
+    conditions. How does the user know when such a failure occurs? You can
+    detect stream errors by either calling certain stream member functions
+    to see if an error state has occurred, or if you don??t care what the
+    particular error was, you can just evaluate the stream in a Boolean
+    context. Both techniques derive from the state of a stream??s error
+    bits.  Stream state
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The ios_base class, from which ios derives,[42] defines four flags that
+    you can use to test the state of a stream:
+    -->
+    <para>
+
+    </para>
+
+    <!-- Flag -->
+    <para>
+
+    </para>
+
+    <!-- Meaning -->
+    <para>
+
+    </para>
+
+    <!-- badbit -->
+    <para>
+
+    </para>
+
+    <!--
+    Some fatal (perhaps physical) error occurred. The stream should be
+    considered unusable.
+    -->
+    <para>
+
+    </para>
+
+    <!-- eofbit -->
+    <para>
+
+    </para>
+
+    <!--
+    End-of-input has occurred (either by encountering the physical end of a
+    file stream or by the user terminating a console stream, such as with
+    Ctrl-Z or Ctrl?D).
+    -->
+    <para>
+
+    </para>
+
+    <!-- failbit -->
+    <para>
+
+    </para>
+
+    <!--
+    An I/O operation failed, most likely because of invalid data (e.g.,
+    letters were found when trying to read a number). The stream is still
+    usable. The failbit flag is also set when end-of-input occurs.
+    -->
+    <para>
+
+    </para>
+
+    <!-- goodbit -->
+    <para>
+
+    </para>
+
+    <!-- All is well; no errors. End-of-input has not yet occurred. -->
+    <para>
+
+    </para>
+
+    <!--
+    You can test whether any of these conditions have occurred by calling
+    corresponding member functions that return a Boolean value indicating
+    whether any of these have been set. The good( ) stream member function
+    returns true if none of the other three bits are set. The eof( )
+    function returns true if eofbit is set, which happens with an attempt to
+    read from a stream that has no more data (usually a file). Because
+    end-of-input happens in C++ when trying to read past the end of the
+    physical medium, failbit is also set to indicate that the ??expected??
+    data was not successfully read. The fail( ) function returns true if
+    either failbit or badbit is set, and bad( ) returns true only if the
+    badbit is set.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Once any of the error bits in a stream??s state are set, they remain
+    set, which is not always what you want. When reading a file, you might
+    want to reposition to an earlier place in the file before end-of-file
+    occurred. Just moving the file pointer doesn??t automatically reset
+    eofbit or failbit; you must do it yourself with the clear( ) function,
+    like this: myStream.clear(); // Clears all error bits
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    After calling clear( ), good( ) will return true if called
+    immediately. As you saw in the Date extractor earlier, the setstate( )
+    function sets the bits you pass it. It turns out that setstate( ) doesn??
+    t affect any other bits?if they??re already set, they stay set. If you
+    want to set certain bits but at the same time reset all the rest, you
+    can call an overloaded version of clear( ), passing it a bitwise
+    expression representing the bits you want to set, as in:
+    myStream.clear(ios::failbit | ios::eofbit);
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Most of the time you won??t be interested in checking the stream state
+    bits individually. Usually you just want to know if everything is
+    okay. This is the case when you read a file from beginning to end; you
+    just want to know when the input data is exhausted. You can use a
+    conversion function defined for void* that is automatically called when
+    a stream occurs in a Boolean expression. Reading a stream until
+    end-of-input using this idiom looks like the following:
+    -->
+    <para>
+
+    </para>
+
+    <!-- int i; while(myStream >> i) cout << i << endl; -->
+    <para>
+
+    </para>
+
+    <!--
+    Remember that operator>>( ) returns its stream argument, so the while
+    statement above tests the stream as a Boolean expression. This
+    particular example assumes that the input stream myStream contains
+    integers separated by white space. The function ios_base::operator
+    void*( ) simply calls good( ) on its stream and returns the result.[43]
+    Because most stream operations return their stream, using this idiom is
+    convenient.  Streams and exceptions
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Iostreams existed as part of C++ long before there were exceptions, so
+    checking stream state manually was just the way things were done. For
+    backward compatibility, this is still the status quo, but modern
+    iostreams can throw exceptions instead. The exceptions( ) stream member
+    function takes a parameter representing the state bits for which you
+    want exceptions to be thrown. Whenever the stream encounters such a
+    state, it throws an exception of type std::ios_base::failure, which
+    inherits from std::exception.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although you can trigger a failure exception for any of the four stream
+    states, it??s not necessarily a good idea to enable exceptions for all
+    of them. As Chapter 1 explains, use exceptions for truly exceptional
+    conditions, but end-of-file is not only not exceptional?it??s expected!
+    For that reason, you might want to enable exceptions only for the errors
+    represented by badbit, which you would do like this:
+    myStream.exceptions(ios::badbit);
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You enable exceptions on a stream-by-stream basis, since exceptions( )
+    is a member function for streams. The exceptions( ) function returns a
+    bitmask[44] (of type iostate, which is some compiler-dependent type
+    convertible to int) indicating which stream states will cause
+    exceptions. If those states have already been set, an exception is
+    thrown immediately. Of course, if you use exceptions in connection with
+    streams, you had better be ready to catch them, which means that you
+    need to wrap all stream processing with a try block that has an
+    ios::failure handler. Many programmers find this tedious and just check
+    states manually where they expect errors to occur (since, for example,
+    they don??t expect bad( ) to return true most of the time anyway). This
+    is another reason that having streams throw exceptions is optional and
+    not the default. In any case, you can choose how you want to handle
+    stream errors. For the same reasons that we recommend using exceptions
+    for error handling in other contexts, we do so here.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : File iostreams -->
+    <title> </title>
+
+    <!--
+    Manipulating files with iostreams is much easier and safer than using
+    stdio in C. All you do to open a file is create an object?the
+    constructor does the work. You don??t need to explicitly close a file
+    (although you can, using the close( ) member function) because the
+    destructor will close it when the object goes out of scope. To create a
+    file that defaults to input, make an ifstream object. To create one that
+    defaults to output, make an ofstream object. An fstream object can do
+    both input and output.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The file stream classes fit into the iostreams classes as shown in the
+    following figure:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    As before, the classes you actually use are template specializations
+    defined by type definitions. For example, ifstream, which processes
+    files of char, is defined as
+    -->
+    <para>
+
+    </para>
+
+    <!-- typedef basic_ifstream<char> ifstream; -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : A File-Processing Example -->
+      <title> </title>
+
+      <!--
+      Here??s an example that shows many of the features discussed so
+      far. Notice the inclusion of <fstream> to declare the file I/O
+      classes. Although on many platforms this will also include <iostream>
+      automatically, compilers are not required to do so. If you want portable
+      code, always include both headers.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Strfile.cpp
+
+
+      <!--
+      The creation of both the ifstream and ofstream are followed by an
+      assure( ) to guarantee the file was successfully opened. Here again the
+      object, used in a situation where the compiler expects a Boolean result,
+      produces a value that indicates success or failure.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The first while loop demonstrates the use of two forms of the get( )
+      function. The first gets characters into a buffer and puts a zero
+      terminator in the buffer when either SZ-1 characters have been read or
+      the third argument (defaulted to '\n') is encountered. The get( )
+      function leaves the terminator character in the input stream, so this
+      terminator must be thrown away via in.get( ) using the form of get( )
+      with no argument, which fetches a single byte and returns it as an
+      int. You can also use the ignore( ) member function, which has two
+      default arguments. The first argument is the number of characters to
+      throw away and defaults to one. The second argument is the character at
+      which the ignore( ) function quits (after extracting it) and defaults to
+      EOF.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Next, you see two output statements that look similar: one to cout and
+      one to the file out. Notice the convenience here?you don??t need to
+      worry about the object type because the formatting statements work the
+      same with all ostream objects. The first one echoes the line to standard
+      output, and the second writes the line out to the new file and includes
+      a line number.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To demonstrate getline( ), open the file we just created and strip off
+      the line numbers. To ensure the file is properly closed before opening
+      it to read, you have two choices. You can surround the first part of the
+      program with braces to force the out object out of scope, thus calling
+      the destructor and closing the file, which is done here. You can also
+      call close( ) for both files; if you do this, you can even reuse the in
+      object by calling the open( ) member function.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The second while loop shows how getline( ) removes the terminator
+      character (its third argument, which defaults to '\n') from the input
+      stream when it??s encountered. Although getline( ), like get( ), puts a
+      zero in the buffer, it still doesn??t insert the terminating character.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This example, as well as most of the examples in this chapter, assumes
+      that each call to any overload of getline( ) will encounter a newline
+      character. If this is not the case, the eofbit state of the stream will
+      be set and the call to getline( ) will return false, causing the program
+      to lose the last line of input.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Open modes -->
+      <title> </title>
+
+      <!--
+      You can control the way a file is opened by overriding the constructor??
+      s default arguments. The following table shows the flags that control
+      the mode of the file:
+      -->
+      <para>
+
+      </para>
+
+      <!-- Flag -->
+      <para>
+
+      </para>
+
+      <!-- Function -->
+      <para>
+
+      </para>
+
+      <!-- ios::in -->
+      <para>
+
+      </para>
+
+      <!--
+      Opens an input file. Use this as an open mode for an ofstream to prevent
+      truncating an existing file.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::out -->
+      <para>
+
+      </para>
+
+      <!--
+      Opens an output file. When used for an ofstream without ios::app,
+      ios::ate or ios::in, ios::trunc is implied.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::app -->
+      <para>
+
+      </para>
+
+      <!-- Opens an output file for appending only. -->
+      <para>
+
+      </para>
+
+      <!-- ios::ate -->
+      <para>
+
+      </para>
+
+      <!-- Opens an existing file (either input or output) and seeks to the end. -->
+      <para>
+
+      </para>
+
+      <!-- ios::trunc -->
+      <para>
+
+      </para>
+
+      <!-- Truncates the old file if it already exists. -->
+      <para>
+
+      </para>
+
+      <!-- ios::binary -->
+      <para>
+
+      </para>
+
+      <!-- Opens a file in binary mode. The default is text mode. -->
+      <para>
+
+      </para>
+
+      <!-- You can combine these flags using a bitwise or operation. -->
+      <para>
+
+      </para>
+
+      <!--
+      The binary flag, while portable, only has an effect on some non-UNIX
+      systems, such as operating systems derived from MS-DOS, that have
+      special conventions for storing end-of-line delimiters. For example, on
+      MS-DOS systems in text mode (which is the default), every time you
+      output a newline character ('\n'), the file system actually outputs two
+      characters, a carriage-return/linefeed pair (CRLF), which is the pair of
+      ASCII characters 0x0D and 0x0A. Conversely, when you read such a file
+      back into memory in text mode, each occurrence of this pair of bytes
+      causes a '\n' to be sent to the program in its place. If you want to
+      bypass this special processing, you open files in binary mode. Binary
+      mode has nothing whatsoever to do with whether you can write raw bytes
+      to a file?you always can (by calling write( )) . You should, however,
+      open a file in binary mode when you??ll be using read( ) or write( ),
+      because these functions take a byte count parameter. Having the extra
+      '\r' characters will throw your byte count off in those instances. You
+      should also open a file in binary mode if you??re going to use the
+      stream-positioning commands discussed later in this chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You can open a file for both input and output by declaring an fstream
+      object. When declaring an fstream object, you must use enough of the
+      open mode flags mentioned earlier to let the file system know whether
+      you want to input, output, or both. To switch from output to input, you
+      need to either flush the stream or change the file position. To change
+      from input to output, change the file position. To create a file via an
+      fstream object, use the ios::trunc open mode flag in the constructor
+      call to do both input and output.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Iostream buffering -->
+    <title> </title>
+
+    <!--
+    Good design practice dictates that, whenever you create a new class, you
+    should endeavor to hide the details of the underlying implementation as
+    much as possible from the user of the class. You show them only what
+    they need to know and make the rest private to avoid confusion. When
+    using inserters and extractors, you normally don??t know or care where
+    the bytes are being produced or consumed, whether you??re dealing with
+    standard I/O, files, memory, or some newly created class or device.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A time comes, however, when it is important to communicate with the part
+    of the iostream that produces and consumes bytes. To provide this part
+    with a common interface and still hide its underlying implementation,
+    the standard library abstracts it into its own class, called
+    streambuf. Each iostream object contains a pointer to some kind of
+    streambuf. (The type depends on whether it deals with standard I/O,
+    files, memory, and so on.) You can access the streambuf directly; for
+    example, you can move raw bytes into and out of the streambuf without
+    formatting them through the enclosing iostream. This is accomplished by
+    calling member functions for the streambuf object.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Currently, the most important thing for you to know is that every
+    iostream object contains a pointer to a streambuf object, and the
+    streambuf object has some member functions you can call if
+    necessary. For file and string streams, there are specialized types of
+    stream buffers, as the following figure illustrates:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    To allow you to access the streambuf, every iostream object has a member
+    function called rdbuf( ) that returns the pointer to the object??s
+    streambuf. This way you can call any member function for the underlying
+    streambuf. However, one of the most interesting things you can do with
+    the streambuf pointer is to connect it to another iostream object using
+    the << operator. This drains all the characters from your object into
+    the one on the left side of the <<. If you want to move all the
+    characters from one iostream to another, you don??t need to go through
+    the tedium (and potential coding errors) of reading them one character
+    or one line at a time. This is a much more elegant approach.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Here??s a simple program that opens a file and sends the contents to
+    standard output (similar to the previous example):
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Stype.cpp
+
+
+    <!--
+    An ifstream is created using the source code file for this program as an
+    argument. The assure( ) function reports a failure if the file cannot be
+    opened. All the work really happens in the statement cout << in.rdbuf();
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    which sends the entire contents of the file to cout. This is not only
+    more succinct to code, it is often more efficient than moving the bytes
+    one at a time.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A form of get( ) writes directly into the streambuf of another
+    object. The first argument is a reference to the destination streambuf,
+    and the second is the terminating character (??\n?? by default), which
+    stops the get( ) function. So there is yet another way to print a file
+    to standard output:
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Sbufget.cpp
+
+
+    <!--
+    The rdbuf( ) function returns a pointer, so it must be dereferenced to
+    satisfy the function??s need to see an object. Stream buffers are not
+    meant to be copied (they have no copy constructor), so we define sb as a
+    reference to cout??s stream buffer. We need the calls to fail( ) and
+    clear( ) in case the input file has a blank line (this one does). When
+    this particular overloaded version of get( ) sees two newlines in a row
+    (evidence of a blank line), it sets the input stream??s fail bit, so we
+    must call clear( ) to reset it so that the stream can continue to be
+    read. The second call to get( ) extracts and echoes each newline
+    delimiter. (Remember, the get( ) function doesn??t extract its delimiter
+    like getline( ) does.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You probably won??t need to use a technique like this often, but it??s
+    nice to know it exists.[45]
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Seeking in iostreams -->
+    <title> </title>
+
+    <!--
+    Each type of iostream has a concept of where its ??next?? character will
+    come from (if it??s an istream) or go (if it??s an ostream). In some
+    situations, you might want to move this stream position. You can do so
+    using two models: one uses an absolute location in the stream called the
+    streampos; the second works like the Standard C library functions fseek(
+    ) for a file and moves a given number of bytes from the beginning, end,
+    or current position in the file.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The streampos approach requires that you first call a ??tell?? function:
+    tellp( ) for an ostream or tellg( ) for an istream. (The ??p?? refers to
+    the ??put pointer,?? and the ??g?? refers to the ??get pointer.??) This
+    function returns a streampos you can later use in calls to seekp( ) for
+    an ostream or seekg( ) for an istream when you want to return to that
+    position in the stream.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The second approach is a relative seek and uses overloaded versions of
+    seekp( ) and seekg( ). The first argument is the number of characters to
+    move: it can be positive or negative. The second argument is the seek
+    direction:
+    -->
+    <para>
+
+    </para>
+
+    <!-- ios::beg -->
+    <para>
+
+    </para>
+
+    <!-- From beginning of stream -->
+    <para>
+
+    </para>
+
+    <!-- ios::cur -->
+    <para>
+
+    </para>
+
+    <!-- Current position in stream -->
+    <para>
+
+    </para>
+
+    <!-- ios::end -->
+    <para>
+
+    </para>
+
+    <!-- From end of stream -->
+    <para>
+
+    </para>
+
+    <!--
+    Here??s an example that shows the movement through a file, but remember,
+    you??re not limited to seeking within files as you are with C??s
+    stdio. With C++, you can seek in any type of iostream (although the
+    standard stream objects, such as cin and cout, explicitly disallow it):
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Seeking.cpp
+
+
+    <!--
+    This program writes a poem to a file using a binary output stream. Since
+    we reopen it as an ifstream, we use seekg( ) to position the ??get
+    pointer.?? As you can see, you can seek from the beginning or end of the
+    file or from the current file position. Obviously, you must provide a
+    positive number to move from the beginning of the file and a negative
+    number to move back from the end.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Now that you know about the streambuf and how to seek, you can
+    understand an alternative method (besides using an fstream object) for
+    creating a stream object that will both read and write a file. The
+    following code first creates an ifstream with flags that say it??s both
+    an input and an output file. You can??t write to an ifstream, so you
+    need to create an ostream with the underlying stream buffer: ifstream
+    in("filename", ios::in | ios::out); ostream out(in.rdbuf());
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You might wonder what happens when you write to one of these
+    objects. Here??s an example:
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Iofile.cpp
+
+
+    <!--
+    The first five lines copy the source code for this program into a file
+    called iofile.out and then close the files. This gives us a safe text
+    file to play with. Then the aforementioned technique is used to create
+    two objects that read and write to the same file. In cout << in2.rdbuf(
+    ), you can see the ??get?? pointer is initialized to the beginning of
+    the file. The ??put?? pointer, however, is set to the end of the file
+    because ??Where does this end up??? appears appended to the
+    file. However, if the put pointer is moved to the beginning with a
+    seekp( ), all the inserted text overwrites the existing text. Both
+    writes are seen when the get pointer is moved back to the beginning with
+    a seekg( ), and the file is displayed. The file is automatically saved
+    and closed when out2 goes out of scope and its destructor is called.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : String iostreams -->
+    <title> </title>
+
+    <!--
+    A string stream works directly with memory instead of a file or standard
+    output. It uses the same reading and formatting functions that you use
+    with cin and cout to manipulate bytes in memory. On old computers, the
+    memory was referred to as core, so this type of functionality is often
+    called in-core formatting.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The class names for string streams echo those for file streams. If you
+    want to create a string stream to extract characters from, you create an
+    istringstream. If you want to put characters into a string stream, you
+    create an ostringstream. All declarations for string streams are in the
+    standard header <sstream>. As usual, there are class templates that fit
+    into the iostreams hierarchy, as shown in the following figure:
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Input string streams -->
+      <title> </title>
+
+      <!--
+      To read from a string using stream operations, you create an
+      istringstream object initialized with the string. The following program
+      shows how to use an istringstream object:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Istring.cpp
+
+
+      <!--
+      You can see that this is a more flexible and general approach to
+      transforming character strings to typed values than the standard C
+      library functions such as atof( ) or atoi( ), even though the latter may
+      be more efficient for single conversions.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the expression s >> i >> f, the first number is extracted into i, and
+      the second into f. This isn??t ??the first whitespace-delimited set of
+      characters?? because it depends on the data type it??s being extracted
+      into. For example, if the string were instead, ??1.414 47 This is a
+      test,?? then i would get the value 1 because the input routine would
+      stop at the decimal point. Then f would get 0.414. This could be useful
+      if you want to break a floating-point number into a whole number and a
+      fraction part. Otherwise it would seem to be an error. The second
+      assert( ) calculates the relative error between what we read and what we
+      expected; it??s always better to do this than to compare floating-point
+      numbers for equality. The constant returned by epsilon( ), defined in
+      which is the best tolerance you can expect comparisons of doubles to
+      satisfy.[46]
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As you may already have guessed, buf2 doesn??t get the rest of the
+      string, just the next white-space-delimited word. In general, it??s best
+      to use the extractor in iostreams when you know the exact sequence of
+      data in the input stream and you??re converting to some type other than
+      a character string. However, if you want to extract the rest of the
+      string all at once and send it to another iostream, you can use rdbuf( )
+      as shown.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To test the Date extractor at the beginning of this chapter, we used an
+      input string stream with the following test program:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:DateIOTest.cpp
+
+
+      <!--
+      Each string literal in main( ) is passed by reference to testDate( ),
+      which in turn wraps it in an istringstream so we can test the stream
+      extractor we wrote for Date objects. The function testDate( ) also
+      begins to test the inserter, operator<<( ).
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Output string streams -->
+      <title> </title>
+
+      <!--
+      To create an output string stream, you just create an ostringstream
+      object, which manages a dynamically sized character buffer to hold
+      whatever you insert. To get the formatted result as a string object, you
+      call the str( ) member function. Here??s an example:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Ostring.cpp {RunByHand}
+
+
+
+      <!--
+      This is similar to the Istring.cpp example earlier that fetched an int
+      and a float. A sample execution follows (the keyboard input is in bold
+      type).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      type an int, a float and a string: 10 20.5 the end integer = 10 float =
+      20.5 string = the end
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You can see that, like the other output streams, you can use the
+      ordinary formatting tools, such as the << operator and endl, to send
+      bytes to the ostringstream. The str( ) function returns a new string
+      object every time you call it so the underlying stringbuf object owned
+      by the string stream is left undisturbed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the previous chapter, we presented a program, HTMLStripper.cpp, that
+      removed all HTML tags and special codes from a text file. As promised,
+      here is a more elegant version using string streams.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:HTMLStripper2.cpp {RunByHand}
+
+
+      <!--
+      In this program we read the entire file into a string by inserting a
+      rdbuf( ) call to the file stream into an ostringstream. Now it??s an
+      easy matter to search for HTML delimiter pairs and erase them without
+      having to worry about crossing line boundaries like we had to with the
+      previous version in Chapter 3.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following example shows how to use a bidirectional (that is,
+      read/write) string stream:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:StringSeeking.cpp {-bor}{-dmc}
+
+
+      <!--
+      As always, to move the put pointer, you call seekp( ), and to reposition
+      the get pointer, you call seekg( ). Even though we didn??t show it with
+      this example, string streams are a little more forgiving than file
+      streams in that you can switch from reading to writing or vice-versa at
+      any time. You don??t need to reposition the get or put pointers or flush
+      the stream. This program also illustrates the overload of str( ) that
+      replaces the stream??s underlying stringbuf with a new string.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Output stream formatting -->
+    <title> </title>
+
+    <!--
+    The goal of the iostreams design is to allow you to easily move and/or
+    format characters. It certainly wouldn??t be useful if you couldn??t do
+    most of the formatting provided by C??s printf( ) family of
+    functions. In this section, you??ll learn all the output formatting
+    functions that are available for iostreams, so you can format your bytes
+    the way you want them.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The formatting functions in iostreams can be somewhat confusing at first
+    because there??s often more than one way to control the formatting:
+    through both member functions and manipulators. To further confuse
+    things, a generic member function sets state flags to control
+    formatting, such as left or right justification, to use uppercase
+    letters for hex notation, to always use a decimal point for
+    floating-point values, and so on. On the other hand, separate member
+    functions set and read values for the fill character, the field width,
+    and the precision.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    In an attempt to clarify all this, we??ll first examine the internal
+    formatting data of an iostream, along with the member functions that can
+    modify that data. (Everything can be controlled through the member
+    functions, if desired.) We??ll cover the manipulators separately.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Format flags -->
+      <title> </title>
+
+      <!--
+      The class ios contains data members to store all the formatting
+      information pertaining to a stream. Some of this data has a range of
+      values and is stored in variables: the floating-point precision, the
+      output field width, and the character used to pad the output (normally a
+      space). The rest of the formatting is determined by flags, which are
+      usually combined to save space and are referred to collectively as the
+      format flags. You can find out the value of the format flags with the
+      ios::flags( ) member function, which takes no arguments and returns an
+      object of type fmtflags (usually a synonym for long) that contains the
+      current format flags. All the rest of the functions make changes to the
+      format flags and return the previous value of the format flags.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      fmtflags ios::flags(fmtflags newflags); fmtflags ios::setf(fmtflags
+      ored_flag); fmtflags ios::unsetf(fmtflags clear_flag); fmtflags
+      ios::setf(fmtflags bits, fmtflags field);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The first function forces all the flags to change, which is sometimes
+      what you want. More often, you change one flag at a time using the
+      remaining three functions.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The use of setf( ) can seem somewhat confusing. To know which overloaded
+      version to use, you must know what type of flag you??re changing. There
+      are two types of flags: those that are simply on or off, and those that
+      work in a group with other flags. The on/off flags are the simplest to
+      understand because you turn them on with setf(fmtflags) and off with
+      unsetf(fmtflags). These flags are shown in the following table:
+      -->
+      <para>
+
+      </para>
+
+      <!-- on/off flag -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- ios::skipws -->
+      <para>
+
+      </para>
+
+      <!-- Skip white space. (For input; this is the default.) -->
+      <para>
+
+      </para>
+
+      <!-- ios::showbase -->
+      <para>
+
+      </para>
+
+      <!--
+      Indicate the numeric base (as set, for example, by dec, oct, or hex)
+      when printing an integral value. Input streams also recognize the base
+      prefix when showbase is on.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::showpoint -->
+      <para>
+
+      </para>
+
+      <!-- Show decimal point and trailing zeros for floating-point values. -->
+      <para>
+
+      </para>
+
+      <!-- ios::uppercase -->
+      <para>
+
+      </para>
+
+      <!--
+      Display uppercase A-F for hexadecimal values and E for scientific
+      values.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::showpos -->
+      <para>
+
+      </para>
+
+      <!-- Show plus sign (+) for positive values. -->
+      <para>
+
+      </para>
+
+      <!-- ios::unitbuf -->
+      <para>
+
+      </para>
+
+      <!-- ??Unit buffering.?? The stream is flushed after each insertion. -->
+      <para>
+
+      </para>
+
+      <!--
+      For example, to show the plus sign for cout, you say
+      cout.setf(ios::showpos). To stop showing the plus sign, you say
+      cout.unsetf(ios::showpos).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The unitbuf flag controls unit buffering, which means that each
+      insertion is flushed to its output stream immediately. This is handy for
+      error tracing, so that in case of a program crash, your data is still
+      written to the log file. The following program illustrates unit
+      buffering:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Unitbuf.cpp {RunByHand}
+
+
+      <!--
+      It is necessary to turn on unit buffering before any insertions are made
+      to the stream. When we commented out the call to setf( ), one particular
+      compiler had written only the letter ??o?? to the file log.txt. With
+      unit buffering, no data was lost.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The standard error output stream cerr has unit buffering turned on by
+      default. There is a cost for unit buffering, so if an output stream is
+      heavily used, don??t enable unit buffering unless efficiency is not a
+      consideration.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Format fields -->
+      <title> </title>
+
+      <!--
+      The second type of formatting flags work in a group. Only one of these
+      flags can be set at a time, like the buttons on old car radios?you push
+      one in, the rest pop out. Unfortunately this doesn??t happen
+      automatically, and you must pay attention to what flags you??re setting
+      so that you don??t accidentally call the wrong setf( ) function. For
+      example, there??s a flag for each of the number bases: hexadecimal,
+      decimal, and octal. Collectively, these flags are referred to as the
+      ios::basefield. If the ios::dec flag is set and you call setf(ios::hex),
+      you??ll set the ios::hex flag, but you won??t clear the ios::dec bit,
+      resulting in undefined behavior. Instead, call the second form of setf(
+      ) like this: setf(ios::hex, ios::basefield). This function first clears
+      all the bits in the ios::basefield and then sets ios::hex. Thus, this
+      form of setf( ) ensures that the other flags in the group ??pop out??
+      whenever you set one. The ios::hex manipulator does all this for you,
+      automatically, so you don??t need to concern yourself with the internal
+      details of the implementation of this class or to even care that it??s a
+      set of binary flags. Later you??ll see that there are manipulators to
+      provide equivalent functionality in all the places you would use setf(
+      ).
+      -->
+      <para>
+
+      </para>
+
+      <!-- Here are the flag groups and their effects: -->
+      <para>
+
+      </para>
+
+      <!-- ios::basefield -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- ios::dec -->
+      <para>
+
+      </para>
+
+      <!--
+      Format integral values in base 10 (decimal) (the default radix?no prefix
+      is visible).
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::hex -->
+      <para>
+
+      </para>
+
+      <!-- Format integral values in base 16 (hexadecimal). -->
+      <para>
+
+      </para>
+
+      <!-- ios::oct -->
+      <para>
+
+      </para>
+
+      <!-- Format integral values in base 8 (octal). -->
+      <para>
+
+      </para>
+
+      <!-- ios::floatfield -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- ios::scientific -->
+      <para>
+
+      </para>
+
+      <!--
+      Display floating-point numbers in scientific format. Precision field
+      indicates number of digits after the decimal point.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::fixed -->
+      <para>
+
+      </para>
+
+      <!--
+      Display floating-point numbers in fixed format. Precision field
+      indicates number of digits after the decimal point.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ??automatic?? (Neither bit is set.) -->
+      <para>
+
+      </para>
+
+      <!-- Precision field indicates the total number of significant digits. -->
+      <para>
+
+      </para>
+
+      <!-- ios::adjustfield -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- ios::left -->
+      <para>
+
+      </para>
+
+      <!-- Left-align values; pad on the right with the fill character. -->
+      <para>
+
+      </para>
+
+      <!-- ios::right -->
+      <para>
+
+      </para>
+
+      <!--
+      Right-align values. Pad on the left with the fill character. This is the
+      default alignment.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ios::internal -->
+      <para>
+
+      </para>
+
+      <!--
+      Add fill characters after any leading sign or base indicator, but before
+      the value. (In other words, the sign, if printed, is left-justified
+      while the number is right-justified.)
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Width, fill, and precision -->
+      <title> </title>
+
+      <!--
+      The internal variables that control the width of the output field, the
+      fill character used to pad an output field, and the precision for
+      printing floating-point numbers are read and written by member functions
+      of the same name.
+      -->
+      <para>
+
+      </para>
+
+      <!-- Function -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- int ios::width( ) -->
+      <para>
+
+      </para>
+
+      <!--
+      Returns the current width. Default is 0. Used for both insertion and
+      extraction.
+      -->
+      <para>
+
+      </para>
+
+      <!-- int ios::width(int n) -->
+      <para>
+
+      </para>
+
+      <!-- Sets the width, returns the previous width. -->
+      <para>
+
+      </para>
+
+      <!-- int ios::fill( ) -->
+      <para>
+
+      </para>
+
+      <!-- Returns the current fill character. Default is space. -->
+      <para>
+
+      </para>
+
+      <!-- int ios::fill(int n) -->
+      <para>
+
+      </para>
+
+      <!-- Sets the fill character, returns the previous fill character. -->
+      <para>
+
+      </para>
+
+      <!-- int ios::precision( ) -->
+      <para>
+
+      </para>
+
+      <!-- Returns current floating-point precision. Default is 6. -->
+      <para>
+
+      </para>
+
+      <!-- int ios::precision(int n) -->
+      <para>
+
+      </para>
+
+      <!--
+      Sets floating-point precision, returns previous precision. See
+      ios::floatfield table for the meaning of ??precision.??
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The fill and precision values are fairly straightforward, but width
+      requires some explanation. When the width is zero, inserting a value
+      produces the minimum number of characters necessary to represent that
+      value. A positive width means that inserting a value will produce at
+      least as many characters as the width; if the value has fewer than width
+      characters, the fill character pad the field. However, the value will
+      never be truncated, so if you try to print 123 with a width of two, you??
+      ll still get 123. The field width specifies a minimum number of
+      characters; there??s no way to specify a maximum number.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The width is also distinctly different because it??s reset to zero by
+      each inserter or extractor that could be influenced by its value. It??s
+      really not a state variable, but rather an implicit argument to the
+      inserters and extractors. If you want a constant width, call width( )
+      after each insertion or extraction.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : An exhaustive example -->
+      <title> </title>
+
+      <!--
+      To make sure you know how to call all the functions previously
+      discussed, here??s an example that calls them all:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Format.cpp
+
+      <!--
+      This example uses a trick to create a trace file so that you can monitor
+      what??s happening. The macro D(a) uses the preprocessor ??stringizing??
+      to turn a into a string to display. Then it reiterates a so the
+      statement is executed. The macro sends all the information to a file
+      called T, which is the trace file. The output is
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      int i = 47; float f = 2300114.414159; T.setf(ios::unitbuf);
+      T.setf(ios::showbase); T.setf(ios::uppercase | ios::showpos); T << i <<
+      endl; +47 T.setf(ios::hex, ios::basefield); T << i << endl; 0X2F
+      T.setf(ios::oct, ios::basefield); T << i << endl; 057
+      T.unsetf(ios::showbase); T.setf(ios::dec, ios::basefield);
+      T.setf(ios::left, ios::adjustfield); T.fill('0'); T << "fill char: " <<
+      T.fill() << endl; fill char: 0 T.width(10); +470000000
+      T.setf(ios::right, ios::adjustfield); T.width(10); 0000000+47
+      T.setf(ios::internal, ios::adjustfield); T.width(10); +000000047 T << i
+      = " << T.precision() << endl; prec = 6 T.setf(ios::scientific,
+      ios::floatfield); T << endl << f << endl;
+      -->
+      <para>
+
+      </para>
+
+      <!-- 2.300114E+06 T.unsetf(ios::uppercase); T << endl << f << endl; -->
+      <para>
+
+      </para>
+
+      <!--
+      2.300114e+06 T.setf(ios::fixed, ios::floatfield); T << f << endl;
+      2300114.500000 T.precision(20); T << "prec = " << T.precision() << endl;
+      prec = 20 T << endl << f << endl;
+      -->
+      <para>
+
+      </para>
+
+      <!-- 2300114.50000000000000000000 T.setf(ios::scientific, ios::floatfield); T -->
+      <para>
+
+      </para>
+
+      <!--
+      2.30011450000000000000e+06 T.setf(ios::fixed, ios::floatfield); T << f
+      T.width(40); 0000000000000000000000Is there any more?  T.setf(ios::left,
+      ios::adjustfield); T.width(40); Is there any more?0000000000000000000000
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Studying this output should clarify your understanding of the iostream
+      formatting member functions.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Manipulators -->
+    <title> </title>
+
+    <!--
+    As you can see from the previous program, calling the member functions
+    for stream formatting operations can get a bit tedious. To make things
+    easier to read and write, a set of manipulators is supplied to duplicate
+    the actions provided by the member functions. Manipulators are a
+    convenience because you can insert them for their effect within a
+    containing expression; you don??t need to create a separate
+    function-call statement.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Manipulators change the state of the stream instead of (or in addition
+    to) processing data. When you insert endl in an output expression, for
+    example, it not only inserts a newline character, but it also flushes
+    the stream (that is, puts out all pending characters that have been
+    stored in the internal stream buffer but not yet output). You can also
+    just flush a stream like this:
+    -->
+    <para>
+
+    </para>
+
+    <!-- cout << flush; -->
+    <para>
+
+    </para>
+
+    <!-- which causes a call to the flush( ) member function, as in: -->
+    <para>
+
+    </para>
+
+    <!-- cout.flush(); -->
+    <para>
+
+    </para>
+
+    <!--
+    as a side effect (nothing is inserted into the stream). Additional basic
+    manipulators will change the number base to oct (octal), dec (decimal)
+    or hex (hexadecimal):
+    -->
+    <para>
+
+    </para>
+
+    <!-- cout << hex << "0x" << i << endl; -->
+    <para>
+
+    </para>
+
+    <!--
+    In this case, numeric output will continue in hexadecimal mode until you
+    change it by inserting either dec or oct in the output stream.
+    -->
+    <para>
+
+    </para>
+
+    <!-- There??s also a manipulator for extraction that ??eats?? white space: -->
+    <para>
+
+    </para>
+
+    <!-- cin >> ws; -->
+    <para>
+
+    </para>
+
+    <!--
+    Manipulators with no arguments are provided in <iostream>. These include
+    dec, oct, and hex, which perform the same action as, respectively,
+    setf(ios::dec, ios::basefield), setf(ios::oct, ios::basefield), and
+    setf(ios::hex, ios::basefield), albeit more succinctly. The <iostream>
+    header also includes ws, endl, and flush and the additional set shown
+    here:
+    -->
+    <para>
+
+    </para>
+
+    <!-- Manipulator -->
+    <para>
+
+    </para>
+
+    <!-- Effect -->
+    <para>
+
+    </para>
+
+    <!-- showbase noshowbase -->
+    <para>
+
+    </para>
+
+    <!--
+    Indicate the numeric base (dec, oct, or hex) when printing an integral
+    value.
+    -->
+    <para>
+
+    </para>
+
+    <!-- showpos noshowpos -->
+    <para>
+
+    </para>
+
+    <!-- Show plus sign (+) for positive values. -->
+    <para>
+
+    </para>
+
+    <!-- uppercase nouppercase -->
+    <para>
+
+    </para>
+
+    <!--
+    Display uppercase A-F for hexadecimal values, and display E for
+    scientific values.
+    -->
+    <para>
+
+    </para>
+
+    <!-- showpoint noshowpoint -->
+    <para>
+
+    </para>
+
+    <!-- Show decimal point and trailing zeros for floating-point values. -->
+    <para>
+
+    </para>
+
+    <!-- skipws noskipws -->
+    <para>
+
+    </para>
+
+    <!-- Skip white space on input. -->
+    <para>
+
+    </para>
+
+    <!-- left right internal -->
+    <para>
+
+    </para>
+
+    <!--
+    Left-align, pad on right.  Right-align, pad on left.  Fill between
+    leading sign or base indicator and value.
+    -->
+    <para>
+
+    </para>
+
+    <!-- scientific fixed -->
+    <para>
+
+    </para>
+
+    <!--
+    Indicates the display preference for floating-point output (scientific
+    notation vs. fixed-point decimal).
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Manipulators with arguments -->
+      <title> </title>
+
+      <!--
+      There are six standard manipulators, such as setw( ), that take
+      arguments. These are defined in the header file <iomanip>, and are
+      summarized in the following table:
+      -->
+      <para>
+
+      </para>
+
+      <!-- Manipulator -->
+      <para>
+
+      </para>
+
+      <!-- effect -->
+      <para>
+
+      </para>
+
+      <!-- setiosflags(fmtflags n) -->
+      <para>
+
+      </para>
+
+      <!--
+      Equivalent to a call to setf(n). The setting remains in effect until the
+      next change, such as ios::setf( ).
+      -->
+      <para>
+
+      </para>
+
+      <!-- resetiosflags(fmtflags n) -->
+      <para>
+
+      </para>
+
+      <!--
+      Clears only the format flags specified by n. The setting remains in
+      effect until the next change, such as ios::unsetf( ).
+      -->
+      <para>
+
+      </para>
+
+      <!-- setbase(base n) -->
+      <para>
+
+      </para>
+
+      <!--
+      Changes base to n, where n is 10, 8, or 16. (Anything else results in
+      0.) If n is zero, output is base 10, but input uses the C conventions:
+      10 is 10, 010 is 8, and 0xf is 15. You might as well use dec, oct, and
+      hex for output.
+      -->
+      <para>
+
+      </para>
+
+      <!-- setfill(char n) -->
+      <para>
+
+      </para>
+
+      <!-- Changes the fill character to n, such as ios::fill( ). -->
+      <para>
+
+      </para>
+
+      <!-- setprecision(int n) -->
+      <para>
+
+      </para>
+
+      <!-- Changes the precision to n, such as ios::precision( ). -->
+      <para>
+
+      </para>
+
+      <!-- setw(int n) -->
+      <para>
+
+      </para>
+
+      <!-- Changes the field width to n, such as ios::width( ). -->
+      <para>
+
+      </para>
+
+      <!--
+      If you??re doing a lot of formatting, you can see how using manipulators
+      instead of calling stream member functions can clean up your code. As an
+      example, here??s the program from the previous section rewritten to use
+      the manipulators. (The D( ) macro is removed to make it easier to read.)
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Manips.cpp
+
+
+      <!--
+      You can see that a lot of the multiple statements have been condensed
+      into a single chained insertion. Notice the call to setiosflags( ) in
+      which the bitwise-OR of the flags is passed. This could also have been
+      done with setf( ) and unsetf( ) as in the previous example.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      When using setw( ) with an output stream, the output expression is
+      formatted into a temporary string that is padded with the current fill
+      character if needed, as determined by comparing the length of the
+      formatted result to the argument of setw( ). In other words, setw( )
+      affects the result string of a formatted output operation. Likewise,
+      using setw( ) with input streams only is meaningful when reading
+      strings, as the following example makes clear:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:InputWidth.cpp
+
+
+      <!--
+      If you attempt to read a string, setw( ) will control the number of
+      characters extracted quite nicely?? up to a point. The first extraction
+      gets two characters, but the second only gets one, even though we asked
+      for two. That is because operator>>( ) uses white space as a delimiter
+      (unless you turn off the skipws flag). When trying to read a number,
+      however, such as x, you cannot use setw( ) to limit the characters
+      read. With input streams, use only setw( ) for extracting strings.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Creating manipulators -->
+      <title> </title>
+
+      <!--
+      Sometimes you??d like to create your own manipulators, and it turns out
+      to be remarkably simple. A zero-argument manipulator such as endl is
+      simply a function that takes as its argument an ostream reference and
+      returns an ostream reference. The declaration for endl is
+      -->
+      <para>
+
+      </para>
+
+      <!-- ostream& endl(ostream&); -->
+      <para>
+
+      </para>
+
+      <!-- Now, when you say: -->
+      <para>
+
+      </para>
+
+      <!-- cout << "howdy" << endl; -->
+      <para>
+
+      </para>
+
+      <!--
+      the endl produces the address of that function. So the compiler asks,
+      ??Is there a function that can be applied here that takes the address of
+      a function as its argument??? Predefined functions in <iostream> do
+      this; they??re called applicators (because they apply a function to a
+      stream). The applicator calls its function argument, passing it the
+      ostream object as its argument. You don??t need to know how applicators
+      work to create your own manipulator; you only need to know that they
+      exist. Here??s the (simplified) code for an ostream applicator:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ostream& ostream::operator<<(ostream& (*pf)(ostream&)) { return
+      pf(*this); }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The actual definition is a little more complicated since it involves
+      templates, but this code illustrates the technique. When a function such
+      as *pf (that takes a stream parameter and returns a stream reference) is
+      inserted into a stream, this applicator function is called, which in
+      turn executes the function to which pf points. Applicators for ios_base,
+      basic_ios, basic_ostream, and basic_istream are predefined in the
+      Standard C++ library.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To illustrate the process, here??s a trivial example that creates a
+      manipulator called nl that is equivalent to just inserting a newline
+      into a stream (i.e., no flushing of the stream occurs, as with endl):
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:nl.cpp
+
+
+      <!--
+      When you insert nl into an output stream, such as cout, the following
+      sequence of calls ensues:
+      -->
+      <para>
+
+      </para>
+
+      <!-- cout.operator<<(nl) è nl(cout) -->
+      <para>
+
+      </para>
+
+      <!-- The expression -->
+      <para>
+
+      </para>
+
+      <!-- os << '\n'; -->
+      <para>
+
+      </para>
+
+      <!--
+      inside nl( ) calls ostream::operator(char), which returns the stream,
+      which is what is ultimately returned from nl( ).[47]
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Effectors -->
+      <title> </title>
+
+      <!--
+      As you??ve seen, zero-argument manipulators are easy to create. But what
+      if you want to create a manipulator that takes arguments? If you inspect
+      the <iomanip> header, you??ll see a type called smanip, which is what
+      the manipulators with arguments return. You might be tempted to somehow
+      use that type to define your own manipulators, but don??t do it. The
+      smanip type is implementation-dependent and thus not
+      portable. Fortunately, you can define such manipulators in a
+      straightforward way without any special machinery, based on a technique
+      introduced by Jerry Schwarz, called an effector.[48] An effector is a
+      simple class whose constructor formats a string representing the desired
+      operation, along with an overloaded operator<< to insert that string
+      into a stream. Here??s an example with two effectors. The first outputs
+      a truncated character string, and the second prints a number in binary.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Effector.cpp
+
+
+      <!--
+      The constructor for Fixw creates a shortened copy of its char* argument,
+      and the destructor releases the memory created for this copy. The
+      overloaded operator<< takes the contents of its second argument, the
+      Fixw object, inserts it into the first argument, the ostream, and then
+      returns the ostream so that it can be used in a chained expression. When
+      you use Fixw in an expression like this: cout << Fixw(string, i) <<
+      endl;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      a temporary object is created by the call to the Fixw constructor, and
+      that temporary object is passed to operator<<. The effect is that of a
+      manipulator with arguments. The temporary Fixw object persists until the
+      end of the statement.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The Bin effector relies on the fact that shifting an unsigned number to
+      the right shifts zeros into the high bits. We use
+      numeric_limits<unsigned long>::max( ) (the largest unsigned long value,
+      from the standard header <limits>) to produce a value with the high bit
+      set, and this value is moved across the number in question (by shifting
+      it to the right), masking each bit in turn. We??ve juxtaposed string
+      literals in the code for readability; the separate strings are
+      concatenated into a single string by the compiler.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Historically, the problem with this technique was that once you created
+      a class called Fixw for char* or Bin for unsigned long, no one else
+      could create a different Fixw or Bin class for their type. However, with
+      namespaces, this problem is eliminated. Effectors and manipulators aren??
+      t equivalent, although they can often be used to solve the same
+      problem. If you find that an effector isn??t enough, you will need to
+      conquer the complexity of manipulators.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Iostream examples -->
+    <title> </title>
+
+    <!--
+    In this section you??ll see examples that use what you??ve learned in
+    this chapter. Although many tools exist to manipulate bytes (stream
+    editors such as sed and awk from UNIX are perhaps the most well known,
+    but a text editor also fits this category), they generally have some
+    limitations. Both sed and awk can be slow and can only handle lines in a
+    forward sequence, and text editors usually require human interaction, or
+    at least learning a proprietary macro language. The programs you write
+    with iostreams have none of these limitations: they??re fast, portable,
+    and flexible.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Maintaining class library source code -->
+      <title> </title>
+
+      <!--
+      Generally, when you create a class, you think in library terms: you make
+      a header file Name.h for the class declaration, and then create a file
+      called Name.cpp where the member functions are implemented. These files
+      have certain requirements: a particular coding standard (the program
+      shown here uses the coding format for this book), and preprocessor
+      statements surrounding the code in the header file to prevent multiple
+      declarations of classes. (Multiple declarations confuse the compiler?it
+      doesn??t know which one you want to use. They could be different, so it
+      throws up its hands and gives an error message.)
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This example creates a new header/implementation pair of files or
+      modifies an existing pair. If the files already exist, it checks and
+      potentially modifies the files, but if they don??t exist, it creates
+      them using the proper format.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Cppcheck.cpp
+
+
+      <!--
+      First notice the useful function startsWith( ), which does just what its
+      name says?it returns true if the first string argument starts with the
+      second argument. This is used when looking for the expected comments and
+      include-related statements. Having the array of strings, part, allows
+      for easy looping through the series of expected statements in source
+      code. If the source file doesn??t exist, we merely write the statements
+      to a new file of the given name. If the file does exist, we search a
+      line at a time, verifying that the expected lines occur. If they are not
+      present, they are inserted. Special care must be taken to make sure we
+      don??t drop existing lines (see where we use the Boolean variable
+      lineUsed). Notice that we use a stringstream for an existing file, so we
+      can first write the contents of the file to it and then read from and
+      search it.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The names in the enumeration are BASE, the capitalized base file name
+      without extension; HEADER, the header file name; IMPLEMENT, the
+      implementation file (cpp) name; HLINE1, the skeleton first line of the
+      header file; GUARD1, GUARD2, and GUARD3, the ??guard?? lines in the
+      header file (to prevent multiple inclusion); CPPLINE1, the skeleton
+      first line of the cpp file; and INCLUDE, the line in the cpp file that
+      includes the header file.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you run this program without any arguments, the following two files
+      are created:
+      -->
+      <para>
+
+      </para>
+
+      <!-- // CPPCHECKTEST.h #ifndef CPPCHECKTEST_H #define CPPCHECKTEST_H -->
+      <para>
+
+      </para>
+
+      <!-- #endif // CPPCHECKTEST_H -->
+      <para>
+
+      </para>
+
+      <!-- // CPPCHECKTEST.cpp #include "CPPCHECKTEST.h" -->
+      <para>
+
+      </para>
+
+      <!--
+      (We removed the colon after the double-slash in the first comment lines
+      so as not to confuse the book??s code extractor. It will appear in the
+      actual output produced by cppCheck.)
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You can experiment by removing selected lines from these files and
+      re-running the program. Each time you will see that the correct lines
+      are added back in. When a file is modified, the string ??//@//?? is
+      placed as the first line of the file to bring the change to your
+      attention. You will need to remove this line before you process the file
+      again (otherwise cppcheck will assume the initial comment line is
+      missing).
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Detecting compiler errors -->
+      <title> </title>
+
+      <!--
+      All the code in this book is designed to compile as shown without
+      errors. Lines of code that should generate a compile-time error may be
+      commented out with the special comment sequence ??//!??. The following
+      program will remove these special comments and append a numbered comment
+      to the line. When you run your compiler, it should generate error
+      messages, and you will see all the numbers appear when you compile all
+      the files. This program also appends the modified line to a special file
+      so that you can easily locate any lines that don??t generate errors.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Showerr.cpp {RunByHand}
+
+
+      <!-- You can replace the marker with one of your choice. -->
+      <para>
+
+      </para>
+
+      <!--
+      Each file is read a line at a time, and each line is searched for the
+      marker appearing at the head of the line; the line is modified and put
+      into the error line list and into the string stream, edited. When the
+      whole file is processed, it is closed (by reaching the end of a scope),
+      it is reopened as an output file, and edited is poured into the
+      file. Also notice the counter is saved in an external file. The next
+      time this program is invoked, it continues to increment the counter.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : A simple data logger -->
+      <title> </title>
+
+      <!--
+      This example shows an approach you might take to log data to disk and
+      later retrieve it for processing. It is meant to produce a
+      temperature-depth profile of the ocean at various points. The DataPoint
+      class holds the data:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:DataLogger.h
+
+
+      <!--
+      A DataPoint consists of a time stamp, which is stored as a time_t value
+      as defined in <ctime>, longitude and latitude coordinates, and values
+      for depth and temperature. We use inserters for easy formatting. Here??s
+      the implementation file:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:DataLogger.cpp {O}
+
+
+      <!--
+      The Coord::toString( ) function is necessary because the DataPoint
+      inserter calls setw( ) before it prints the latitude and longitude. If
+      we used the stream inserter for Coord instead, the width would only
+      apply to the first insertion (that is, to Coord::deg), since width
+      changes are always reset immediately. The call to setf( ) causes the
+      floating-point output to be fixed-precision, and precision( ) sets the
+      number of decimal places to four. Notice how we restore the fill
+      character and precision to whatever they were before the inserter was
+      called.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To get the values from the time encoding stored in DataPoint::timestamp,
+      we call the function std::localtime( ), which returns a static pointer
+      to a tm object. The tm struct has the following layout:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      struct tm { int tm_sec; // 0-59 seconds int tm_min; // 0-59 minutes int
+      tm_hour; // 0-23 hours int tm_mday; // Day of month int tm_mon; //
+      0-11 months int tm_year; // Years since 1900 int tm_wday; // Sunday ==
+      0, etc.  int tm_yday; // 0-365 day of year int tm_isdst; // Daylight
+      savings?  };
+      -->
+      <para>
+
+      </para>
+
+      <!-- Generating test data -->
+      <para>
+
+      </para>
+
+      <!--
+      Here??s a program that creates a file of test data in binary form (using
+      write( )) and a second file in ASCII form using the DataPoint
+      inserter. You can also print it out to the screen, but it??s easier to
+      inspect in file form.
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Datagen.cpp 
+
+
+      <!--
+      The file data.txt is created in the ordinary way as an ASCII file, but
+      data.bin has the flag ios::binary to tell the constructor to set it up
+      as a binary file. To illustrate the formatting used for the text file,
+      here is the first line of data.txt (the line wraps because it??s longer
+      than this page will allow): 07\28\2003 12:54:40 Lat:45*20'31",
+      Long:22*34'18", depth: 16.0164, temp: 242.0122
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The Standard C library function time( ) updates the time_t value its
+      argument points to with an encoding of the current time, which on most
+      platforms is the number of seconds elapsed since 00: 00: 00 GMT, January
+      1 1970 (the dawning of the age of Aquarius?). The current time is also a
+      convenient way to seed the random number generator with the Standard C
+      library function srand( ), as is done here.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      After this, the timer is incremented by 55 seconds to give an
+      interesting interval between readings in this simulation.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The latitude and longitude used are fixed values to indicate a set of
+      readings at a single location. Both the depth and the temperature are
+      generated with the Standard C library rand( ) function, which returns a
+      pseudorandom number between zero and a platform-dependent constant,
+      RAND_MAX, defined in <cstdlib> (usually the value of the platform??s
+      largest unsigned integer). To put this in a desired range, use the
+      remainder operator % and the upper end of the range. These numbers are
+      integral; to add a fractional part, a second call to rand( ) is made,
+      and the value is inverted after adding one (to prevent divide-by-zero
+      errors).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In effect, the data.bin file is being used as a container for the data
+      in the program, even though the container exists on disk and not in
+      RAM. write( ) sends the data out to the disk in binary form. The first
+      argument is the starting address of the source block?notice it must be
+      cast to a char* because that??s what write( ) expects for narrow
+      streams. The second argument is the number of characters to write, which
+      in this case is the size of the DataPoint object (again, because we??re
+      using narrow streams). Because no pointers are contained in DataPoint,
+      there is no problem in writing the object to disk. If the object is more
+      sophisticated, you must implement a scheme for serialization, which
+      writes the data referred to by pointers and defines new pointers when
+      read back in later. (We don??t talk about serialization in this
+      volume?most vendor class libraries have some sort of serialization
+      structure built into them.)  Verifying and viewing the data
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To check the validity of the data stored in binary format, you can read
+      it into memory with the read( ) member function for input streams, and
+      compare it to the text file created earlier by Datagen.cpp. The
+      following example just writes the formatted results to cout, but you can
+      redirect this to a file and then use a file comparison utility to verify
+      that it is identical to the original:
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Datascan.cpp
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Internationalization -->
+    <title> </title>
+
+    <!--
+    The software industry is now a healthy, worldwide economic market, with
+    demand for applications that can run in various languages and
+    cultures. As early as the late 1980s, the C Standards Committee added
+    support for non-U.S. formatting conventions with their locale
+    mechanism. A locale is a set of preferences for displaying certain
+    entities such as dates and monetary quantities. In the 1990s, the C
+    Standards Committee approved an addendum to Standard C that specified
+    functions to handle wide characters (denoted by the type wchar_t), which
+    allow support for character sets other than ASCII and its commonly used
+    Western European extensions. Although the size of a wide character is
+    not specified, some platforms implement them as 32-bit quantities, so
+    they can hold the encodings specified by the Unicode Consortium, as well
+    as mappings to multi-byte characters sets defined by Asian standards
+    bodies. C++ has integrated support for both wide characters and locales
+    into the iostreams library.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Wide Streams -->
+      <title> </title>
+
+      <!--
+      A wide stream is a stream class that handles wide characters. All the
+      examples so far (except for the last traits example in Chapter 3) have
+      used narrow streams that hold instances of char. Since stream operations
+      are essentially the same no matter the underlying character type, they
+      are encapsulated generically as templates. So all input streams, for
+      example, are connected to the basic_istream class template:
+      template<class charT, class traits = char_traits<charT> > class
+      basic_istream {...};
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In fact, all input stream types are specializations of this template,
+      according to the following type definitions:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      typedef basic_istream<char> istream; typedef basic_istream<wchar_t>
+      wistream; typedef basic_ifstream<char> ifstream; typedef
+      basic_ifstream<wchar_t> wifstream; typedef basic_istringstream<char>
+      istringstream; typedef basic_istringstream<wchar_t> wistringstream;
+      -->
+      <para>
+
+      </para>
+
+      <!-- All other stream types are defined in similar fashion. -->
+      <para>
+
+      </para>
+
+      <!--
+      In a perfect world, this is all you??d need to create streams of
+      different character types. But things aren??t that simple. The reason is
+      that the character-processing functions provided for char and wchar_t
+      don??t have the same names. To compare two narrow strings, for example,
+      you use the strcmp( ) function. For wide characters, that function is
+      named wcscmp( ). (Remember these originated in C, which does not have
+      function overloading, hence unique names are required.) For this reason,
+      a generic stream can??t just call strcmp( ) in response to a comparison
+      operator. There needs to be a way for the correct low-level functions to
+      be called automatically.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The solution is to factor out the differences into a new
+      abstraction. The operations you can perform on characters have been
+      abstracted into the char_traits template, which has predefined
+      specializations for char and wchar_t, as we discussed at the end of the
+      previous chapter. To compare two strings, then, basic_string just calls
+      traits::compare( ) (remember that traits is the second template
+      parameter), which in turn calls either strcmp( ) or wcscmp( ), depending
+      on which specialization is being used (transparent to basic_string).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You only need to be concerned about char_traits if you access the
+      low-level character processing functions; most of the time you don??t
+      care. Consider, however, making your inserters and extractors more
+      robust by defining them as templates, just in case someone wants to use
+      them on a wide stream.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To illustrate, recall again the Date class inserter from the beginning
+      of this chapter. We originally declared it as: ostream&
+      operator<<(ostream&, const Date&);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This accommodates only narrow streams. To make it generic, we simply
+      make it a template based on basic_ostream:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class charT, class traits> std::basic_ostream<charT, traits>&
+      operator<<(std::basic_ostream<charT, traits>& os, const Date& d) { charT
+      fillc = os.fill(os.widen('0')); charT dash = os.widen('-'); os <<
+      setw(2) << d.month << dash << setw(2) << d.day << dash << setw(4) <<
+      d.year; os.fill(fillc); return os; }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Notice that we also have to replace char with the template parameter
+      charT in the declaration of fillc, since it could be either char or
+      wchar_t, depending on the template instantiation being used.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Since you don??t know when you??re writing the template which type of
+      stream you have, you need a way to automatically convert character
+      literals to the correct size for the stream. This is the job of the
+      widen( ) member function. The expression widen('-'), for example,
+      converts its argument to L??-?? (the literal syntax equivalent to the
+      conversion wchar_t(??-??)) if the stream is a wide stream and leaves it
+      alone otherwise. There is also a narrow( ) function that converts to a
+      char if needed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      We can use widen( ) to write a generic version of the nl manipulator we
+      presented earlier in the chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class charT, class traits> basic_ostream<charT,traits>&
+      nl(basic_ostream<charT,traits>& os) { return os <<
+      charT(os.widen('\n')); }
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Locales -->
+      <title> </title>
+
+      <!--
+      Perhaps the most notable difference in typical numeric computer output
+      from country to country is the punctuator used to separate the integer
+      and fractional parts of a real number. In the United States, a period
+      denotes a decimal point, but in much of the world, a comma is expected
+      instead. It would be quite inconvenient to do all your own formatting
+      for locale-dependent displays. Once again, creating an abstraction that
+      handles these differences solves the problem.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      That abstraction is the locale. All streams have an associated locale
+      object that they use for guidance on how to display certain quantities
+      for different cultural environments. A locale manages the categories of
+      culture-dependent display rules, which are defined as follows:
+      -->
+      <para>
+
+      </para>
+
+      <!-- Category -->
+      <para>
+
+      </para>
+
+      <!-- Effect -->
+      <para>
+
+      </para>
+
+      <!-- collate -->
+      <para>
+
+      </para>
+
+      <!--
+      Allows comparing strings according to different, supported collating
+      sequences.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ctype -->
+      <para>
+
+      </para>
+
+      <!--
+      Abstracts the character classification and conversion facilities found
+      in <cctype>.
+      -->
+      <para>
+
+      </para>
+
+      <!-- monetary -->
+      <para>
+
+      </para>
+
+      <!-- Supports different displays of monetary quantities. -->
+      <para>
+
+      </para>
+
+      <!-- numeric -->
+      <para>
+
+      </para>
+
+      <!--
+      Supports different display formats of real numbers, including radix
+      (decimal point) and grouping (thousands) separators.
+      -->
+      <para>
+
+      </para>
+
+      <!-- time -->
+      <para>
+
+      </para>
+
+      <!-- Supports various international formats for display of date and time. -->
+      <para>
+
+      </para>
+
+      <!-- messages -->
+      <para>
+
+      </para>
+
+      <!--
+      Scaffolding to implement context-dependent message catalogs (such as for
+      error messages in different languages).
+      -->
+      <para>
+
+      </para>
+
+      <!-- The following program illustrates basic locale behavior: -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Locale.cpp {-g++}{-bor}{-edg} {RunByHand}
+
+      <!-- Here??s the output: -->
+      <para>
+
+      </para>
+
+      <!--
+      C C 1234.56 French_France.1252 1234,56 Enter the literal 7890,12:
+      7890,12 7890,12 7890.12
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The default locale is the ??C?? locale, which is what C and C++
+      programmers have been used to all these years (basically, English
+      language and American culture). All streams are initially ??imbued??
+      with the ??C?? locale. The imbue( ) member function changes the locale
+      that a stream uses. Notice that the full ISO name for the ??French??
+      locale is displayed (that is, French used in France vs. French used in
+      another country). This example shows that this locale uses a comma for a
+      radix point in numeric display. We have to change cin to the same locale
+      if we want to do input according to the rules of this locale.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Each locale category is divided into number of facets, which are classes
+      encapsulating the functionality that pertains to that category. For
+      example, the time category has the facets time_put and time_get, which
+      contain functions for doing time and date input and output
+      respectively. The monetary category has facets money_get, money_put, and
+      moneypunct. (The latter facet determines the currency symbol.) The
+      following program illustrates the moneypunct facet. (The time facet
+      requires a sophisticated use of iterators which is beyond the scope of
+      this chapter.)
+      -->
+      <para>
+
+      </para>
+
+      <!-- //: C04:Facets.cpp {-bor}{-g++}{-mwcc}{-edg}
+
+      <!-- The output shows the French currency symbol and decimal separator: -->
+      <para>
+
+      </para>
+
+      <!-- I made Ç12,34 today! -->
+      <para>
+
+      </para>
+
+      <!--
+      You can also define your own facets to construct customized locales.[49]
+      Be aware that the overhead for locales is considerable. In fact, some
+      library vendors provide different ??flavors?? of the Standard C++
+      library to accommodate environments that have limited space.[50]
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Summary -->
+    <title> </title>
+
+    <!--
+    This chapter has given you a fairly thorough introduction to the
+    iostream class library. What you??ve seen here is likely to be all you
+    need to create programs using iostreams. However, be aware that some
+    additional features in iostreams are not used often, but you can
+    discover them by looking at the iostream header files and by reading
+    your compiler??s documentation on iostreams or the references mentioned
+    in this chapter and in the appendices.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Exercises -->
+    <title> </title>
+
+    <!--
+    Solutions to selected exercises can be found in the electronic document
+    The Thinking in C++ Volume 2 Annotated Solution Guide, available for a
+    small fee from www.MindView.net.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Open a file by creating an ifstream object. Make an ostringstream
+    object and read the entire contents into the ostringstream using the
+    rdbuf( ) member function. Extract a string copy of the underlying buffer
+    and capitalize every character in the file using the Standard C toupper(
+    ) macro defined in <cctype>. Write the result out to a new file.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Create a program that opens a file (the first argument on the
+    command line) and searches it for any one of a set of words (the
+    remaining arguments on the command line). Read the input a line at a
+    time, and write out the lines (with line numbers) that match to the new
+    file.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3.  Write a program that adds a copyright notice to the beginning of all
+    source-code files indicated by the program??s command-line arguments.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4.  Use your favorite text-searching program (grep, for example) to
+    output the names (only) of all the files that contain a particular
+    pattern. Redirect the output into a file. Write a program that uses the
+    contents of that file to generate a batch file that invokes your editor
+    on each of the files found by the search program.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    5.  We know that setw( ) allows for a minimum of characters read in, but
+    what if you wanted to read a maximum? Write an effector that allows the
+    user to specify a maximum number of characters to extract. Have your
+    effector also work for output, in such a way that output fields are
+    truncated, if necessary, to stay within width limits.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    6.  Demonstrate to yourself that if the fail or bad bit is set, and you
+    subsequently turn on stream exceptions, that the stream will immediately
+    throw an exception.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    7.  String streams accommodate easy conversions, but they come with a
+    price. Write a program that races atoi( ) against the stringstream
+    conversion system to see the effect of the overhead involved with
+    stringstream.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    8.  Make a Person struct with fields such as name, age, address,
+    etc. Make the string fields fixed-size arrays. The social security
+    number will be the key for each record. Implement the following Database
+    class:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    class DataBase { public: // Find where a record is on disk size_t
+    query(size_t ssn); // Return the person at rn (record number) Person
+    retrieve(size_t rn); // Record a record on disk void add(const Person&
+    p); };
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Write some Person records to disk (do not keep them all in memory). When
+    the user requests a record, read it off the disk and return it. The I/O
+    operations in the DataBase class use read( ) and write( ) to process all
+    Person records.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    9.  Write an operator<< inserter for the Person struct that can be used
+    to display records in a format for easy reading. Demonstrate it by
+    writing data out to a file.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    10.  Suppose the database for your Person structs was lost but that you
+    have the file you wrote from the previous exercise. Recreate your
+    database using this file. Be sure to use error checking.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    11.  Write size_t(-1) (the largest unsigned int on your platform) to a
+    text file 1,000,000 times. Repeat, but write to a binary file. Compare
+    the size of the two files, and see how much room is saved using the
+    binary format. (You may first want to calculate how much will be saved
+    on your platform.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    12.  Discover the maximum number of digits of precision your
+    implementation of iostreams will print by repeatedly increasing the
+    value of the argument to precision( ) when printing a transcendental
+    number such as sqrt(2.0).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    13.  Write a program that reads real numbers from a file and prints
+    their sum, average, minimum, and maximum.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    14.  Determine the output of the following program before it is
+    executed:
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Exercise14.cpp
+
+
+    <!--
+    15.  Suppose you are given line-oriented data in a file formatted as
+    follows:
+    -->
+    <para>
+
+    </para>
+
+    <!-- //: C04:Exercise15.txt
+
+
+    <!--
+    The heading of each section is a region, and every line under that
+    heading is a seller in that region. Each comma-separated field
+    represents the data about each seller. The first field in a line is the
+    SELLER_ID which unfortunately was written out in hexadecimal format. The
+    second is the PHONE_NUMBER (notice that some are missing area
+    codes). LAST_NAME and FIRST_NAME then follow. TOTAL_SALES is the second
+    to the last column. The last column is the decimal amount of the total
+    sales that the seller represents for the company. You are to format the
+    data on the terminal window so that an executive can easily interpret
+    the trends. Sample output is given below.
+    -->
+    <para>
+
+    </para>
+
+    <!-- Australia -->
+    <para>
+
+    </para>
+
+    <!-- --------------------------------- -->
+    <para>
+
+    </para>
+
+    <!-- *Last Name* *First Name* *ID* *Phone* *Sales* *Percent* -->
+    <para>
+
+    </para>
+
+    <!-- Langler Tyson 24150 766-723-0284 31.24 4.21E-02 -->
+    <para>
+
+    </para>
+
+    <!-- Oneill Zeke 11159 XXX-758-6701 553.43 7.47E-01 -->
+    <para>
+
+    </para>
+
+    <!-- (etc.) -->
+    <para>
+
+    </para>

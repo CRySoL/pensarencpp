@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: latin-1 -*-
 '''
-Transforma ficheros de texto plano en DB listo para traducir. El original debe tener los títulos de las secciones delimitados con:
+Transforma ficheros de texto plano en DB listo para traducir. El
+original debe tener los títulos de las secciones delimitados con:
 
 :SECT:1: Título de la sección
 
@@ -86,4 +87,4 @@ for line in src:
 
 src.close()
 dst.close()
-    
+print 'Ok'    
