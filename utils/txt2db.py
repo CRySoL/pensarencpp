@@ -10,6 +10,23 @@ palabrería bla bla bla
 
 :SECT:2: Título de subsección
 
+
+
+Nota:
+-----
+
+Para reemplazar los:
+
+    <!-- //: C04:Exercise14.cpp
+
+Por:
+
+//: C04:Exercise14.cpp
+
+usar el siguiente comando emacs:
+
+M-x query-replace-regexp RET ^ *<!-- //: RET //: RET
+
 '''
 
 import sys, os
