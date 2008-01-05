@@ -59,7 +59,11 @@ tagged-Volumen%.xml: Volumen%.xml
 #	$(XSL_PDF) Volumen1-final.xml
 #
 
-Volumen%.xml: $(FILES)
+Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml) 
+Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml) 
+
+
+Volumen%.xml: 
 	@echo "--- MONTANDO EL DOCUMENTO"
 	xsltproc --xinclude stylesheets/profile.xsl master_$(basename $@).xml > fase1.xml
 	@echo "--- RUTAS A LOS LISTADOS"
