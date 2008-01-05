@@ -95,7 +95,7 @@ clean:
 	$(RM) *~ 
 	$(RM) -r products
 	$(RM) vol1/images/* vol2/images/*
-	-rmdir vol1/images
+	-rmdir vol1/images  vol2/images
 	$(RM) vol1/* vol2/*
 	-rmdir -p vol1 vol2
 
