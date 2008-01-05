@@ -25,7 +25,7 @@
   <xsl:param name="section.autolabel" select="1" />
   <xsl:param name="make.valid.html" select="1" />
   <xsl:param name="collect.xref.targets" select="'yes'" />
-  <xsl:param name="targets.filename" select="'gimp-xrefs.xml'" />
+  <xsl:param name="targets.filename" select="'pec-xrefs.xml'" />
   <xsl:param name="toc.section.depth" select="2" />
   <xsl:param name="chunk.section.depth" select="2" />
   <!-- doesn't work correctly currently

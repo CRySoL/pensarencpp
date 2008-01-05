@@ -4,34 +4,34 @@ XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 XSL_HTML=stylesheets/plainhtml.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
-FILES=$(wildcard V1-*.xml V2-*.xml Volumen*-master.xml)
+FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 
-all: make_images vol1 Volumen1.pdf
+all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf 
 
 Volumen%-html.bz2: vol%
 	tar cfj $@ $<
 
-vol1: Volumen1-tagged.xml
-	@-mkdir -p vol1/images
+vol%: tagged-Volumen%.xml
+	@-mkdir -p $@/images
 	xsltproc  --xinclude \
 	  --stringparam chunker.output.encoding ISO-8859-1 \
 	  --stringparam chunker.output.indent yes \
-	  --stringparam base.dir vol1/ \
+	  --stringparam base.dir $@/ \
 	  --output  $@  $(XSL_HTML)  $<
 
-	cp images/*.png vol1/images
-	cp images/web/* vol1/images/
-	cp stylesheets/*.css vol1/
+	cp images/*.png $@/images
+	cp images/web/* $@/images/
+	cp stylesheets/*.css $@/
 
-	grep -l BEGINCODE vol1/*.html | xargs python utils/html_colorize.py 
-	$(RM) vol1/*.code
+	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py 
+	$(RM) $@/*.code
 
-	highlight --data-dir ./stylesheets/highlight --style emacs21 code/C02/Hello.cpp > /dev/null
-	mv highlight.css vol1/
+	highlight --data-dir ./stylesheets/highlight --style emacs21 code_v1/C02/Hello.cpp > /dev/null
+	mv highlight.css $@/
 
-Volumen1-tagged.xml: Volumen1.xml
-	@echo "--- Añadiendo marcas en listados para coloreado"
+tagged-Volumen%.xml: Volumen%.xml
+	@echo "--- AÃ‘ADIENDO MARCAS EN LISTADOS PARA COLOREADO"
 	python utils/xml_tag_codes.py $< > $@
 
 
@@ -59,14 +59,14 @@ Volumen1-tagged.xml: Volumen1.xml
 #	$(XSL_PDF) Volumen1-final.xml
 #
 
-Volumen1.xml: $(FILES)
-	@echo "--- Montando el documento"
-	xsltproc --xinclude stylesheets/profile.xsl $(basename $@)-master.xml > fase1.xml
-	@echo "--- Rutas a los listados"
+Volumen%.xml: $(FILES)
+	@echo "--- MONTANDO EL DOCUMENTO"
+	xsltproc --xinclude stylesheets/profile.xsl master_$(basename $@).xml > fase1.xml
+	@echo "--- RUTAS A LOS LISTADOS"
 	python utils/fix_includes.py fase1.xml > fase2.xml
-	@echo "--- Incluyendo listados"
+	@echo "--- INCLUYENDO LISTADOS"
 	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
-	@echo "--- Eliminando xmlns y traducción de tags extra"
+	@echo "--- ELIMINANDO XMLNS Y TRADUCCIÃ“N DE TAGS EXTRA"
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
@@ -77,13 +77,14 @@ make_images:
 install: products
 	scp -r products repo:public_html/pensar_en_C++/
 
-products: Volumen1-html.bz2 vol1 Volumen1.pdf
+products: Volumen1-html.bz2 vol1 Volumen1.pdf \
+	  Volumen2-html.bz2 vol2 Volumen2.pdf
 	@-mkdir products
 	cp -r $^ products/ 
 
 
 validate:
-	xsltproc --xinclude --noout stylesheets/profile.xsl Volumen1.xml
+	xsltproc --xinclude --noout stylesheets/profile.xsl Volumen%.xml
 
 
 # Limpieza
@@ -93,15 +94,15 @@ clean:
 	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
 	$(RM) *~ 
 	$(RM) -r products
-	$(RM) vol1/images/*
+	$(RM) vol1/images/* vol2/images/*
 	-rmdir vol1/images
-	$(RM) vol1/*
-	-rmdir -p vol1
+	$(RM) vol1/* vol2/*
+	-rmdir -p vol1 vol2
 
 vclean: clean
 	$(MAKE) -C images clean
 
 
-
-
-
+## Local Variables: #
+## coding:utf-8 #
+## End. #
