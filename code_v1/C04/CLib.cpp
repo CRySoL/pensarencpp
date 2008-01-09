@@ -1,4 +1,8 @@
 //: C04:CLib.cpp {O}
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Implementation of example C-like library
 // Declare structure and functions:
 #include "CLib.h"

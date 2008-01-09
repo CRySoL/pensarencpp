@@ -1,4 +1,8 @@
 //: C12:Integer.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Non-member overloaded operators
 #ifndef INTEGER_H
 #define INTEGER_H

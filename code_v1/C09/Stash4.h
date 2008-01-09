@@ -1,4 +1,8 @@
 //: C09:Stash4.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Inline functions
 #ifndef STASH4_H
 #define STASH4_H

@@ -1,4 +1,8 @@
 //: C12:CopyingWithPointers.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Solving the pointer aliasing problem by
 // duplicating what is pointed to during 
 // assignment and copy-construction.

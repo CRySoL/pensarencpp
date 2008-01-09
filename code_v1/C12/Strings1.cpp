@@ -1,4 +1,8 @@
 //: C12:Strings1.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // No auto type conversion
 #include "../require.h"
 #include <cstring>

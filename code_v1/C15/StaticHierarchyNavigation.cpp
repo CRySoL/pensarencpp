@@ -1,4 +1,8 @@
 //: C15:StaticHierarchyNavigation.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Navigating class hierarchies with static_cast
 #include <iostream>
 #include <typeinfo>

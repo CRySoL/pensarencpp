@@ -1,4 +1,8 @@
 //: C13:NoMemory.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Constructor isn't called if new fails
 #include <iostream>
 #include <new> // bad_alloc definition

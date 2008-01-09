@@ -1,4 +1,8 @@
 //: C03:Guess.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Guess a number (demonstrates "while")
 #include <iostream>
 using namespace std;

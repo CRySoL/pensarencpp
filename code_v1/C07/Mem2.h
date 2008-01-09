@@ -1,4 +1,8 @@
 //: C07:Mem2.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 #ifndef MEM2_H
 #define MEM2_H
 typedef unsigned char byte;

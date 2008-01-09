@@ -1,4 +1,8 @@
 //: C15:Instrument5.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Pure abstract base classes
 #include <iostream>
 using namespace std;

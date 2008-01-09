@@ -1,4 +1,8 @@
 //: C16:NestedIterator.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Nesting an iterator inside the container
 //{L} fibonacci
 #include "fibonacci.h"

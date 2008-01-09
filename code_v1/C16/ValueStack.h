@@ -1,4 +1,8 @@
 //: C16:ValueStack.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Holding objects by value in a Stack
 #ifndef VALUESTACK_H
 #define VALUESTACK_H

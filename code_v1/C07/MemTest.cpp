@@ -1,4 +1,8 @@
 //: C07:MemTest.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Testing the Mem class
 //{L} Mem
 #include "Mem.h"

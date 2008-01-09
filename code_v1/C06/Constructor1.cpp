@@ -1,4 +1,8 @@
 //: C06:Constructor1.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Constructors & destructors
 #include <iostream>
 using namespace std;
@@ -17,7 +21,7 @@ Tree::Tree(int initialHeight) {
 }
 
 Tree::~Tree() {
-  cout << "dentro del destructor de Tree" << endl;
+  cout << "inside Tree destructor" << endl;
   printsize();
 }
 
@@ -26,17 +30,17 @@ void Tree::grow(int years) {
 }
 
 void Tree::printsize() {
-  cout << "la altura del árbol es " << height << endl;
+  cout << "Tree height is " << height << endl;
 }
 
 int main() {
-  cout << "antes de la llave de apertura" << endl;
+  cout << "before opening brace" << endl;
   {
     Tree t(12);
-    cout << "después de la creación de Tree" << endl;
+    cout << "after Tree creation" << endl;
     t.printsize();
     t.grow(4);
-    cout << "antes de la llave de cierre" << endl;
+    cout << "before closing brace" << endl;
   }
-  cout << "después de la llave de cierre" << endl;
+  cout << "after closing brace" << endl;
 } ///:~

@@ -1,4 +1,8 @@
 //: C08:StringStack.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Using static const to create a 
 // compile-time constant inside a class
 #include <string>

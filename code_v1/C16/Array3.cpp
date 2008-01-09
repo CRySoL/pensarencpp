@@ -1,4 +1,8 @@
 //: C16:Array3.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Built-in types as template arguments
 #include "../require.h"
 #include <iostream>

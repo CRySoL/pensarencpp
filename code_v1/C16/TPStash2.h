@@ -1,4 +1,8 @@
 //: C16:TPStash2.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Templatized PStash with nested iterator
 #ifndef TPSTASH2_H
 #define TPSTASH2_H

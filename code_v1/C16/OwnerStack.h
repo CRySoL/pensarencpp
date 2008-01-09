@@ -1,4 +1,8 @@
 //: C16:OwnerStack.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Stack with runtime conrollable ownership
 #ifndef OWNERSTACK_H
 #define OWNERSTACK_H

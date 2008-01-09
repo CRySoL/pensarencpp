@@ -1,4 +1,8 @@
 //: C16:TStackTest.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 //{T} TStackTest.cpp
 #include "TStack.h"
 #include "../require.h"

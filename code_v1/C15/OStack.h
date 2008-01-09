@@ -1,4 +1,8 @@
 //: C15:OStack.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Using a singly-rooted hierarchy
 #ifndef OSTACK_H
 #define OSTACK_H

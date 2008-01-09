@@ -1,4 +1,8 @@
 //: C02:Fillvector.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Copy an entire file into a vector of string
 #include <string>
 #include <iostream>

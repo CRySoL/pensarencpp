@@ -1,4 +1,8 @@
 //: C08:ConstReturnValues.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Constant return by value
 // Result cannot be used as an lvalue
 

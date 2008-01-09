@@ -1,4 +1,8 @@
 //: C13:ArrayOperatorNew.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Operator new for arrays
 #include <new> // Size_t definition
 #include <fstream>

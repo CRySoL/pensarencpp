@@ -1,4 +1,8 @@
 //: C03:Union.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // The size and simple use of a union
 #include <iostream>
 using namespace std;

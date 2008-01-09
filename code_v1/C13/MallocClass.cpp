@@ -1,4 +1,8 @@
 //: C13:MallocClass.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Malloc with class objects
 // What you'd have to do if not for "new"
 #include "../require.h"

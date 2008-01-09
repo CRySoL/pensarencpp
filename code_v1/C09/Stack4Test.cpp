@@ -1,4 +1,8 @@
 //: C09:Stack4Test.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 //{T} Stack4Test.cpp
 #include "Stack4.h"
 #include "../require.h"

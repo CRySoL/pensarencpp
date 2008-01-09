@@ -1,4 +1,8 @@
 //: C04:CppLib.cpp {O}
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // C library converted to C++
 // Declare structure and functions:
 #include "CppLib.h"

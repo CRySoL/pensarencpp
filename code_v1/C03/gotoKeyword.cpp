@@ -1,4 +1,8 @@
 //: C03:gotoKeyword.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // The infamous goto is supported in C++
 #include <iostream>
 using namespace std;

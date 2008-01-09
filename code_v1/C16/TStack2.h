@@ -1,4 +1,8 @@
 //: C16:TStack2.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Templatized Stack with nested iterator
 #ifndef TSTACK2_H
 #define TSTACK2_H

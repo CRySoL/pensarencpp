@@ -1,4 +1,8 @@
 //: C03:Scope.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // How variables are scoped
 int main() {
   int scp1;

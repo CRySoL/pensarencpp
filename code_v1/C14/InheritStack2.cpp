@@ -1,4 +1,8 @@
 //: C14:InheritStack2.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Composition vs. inheritance
 #include "../C09/Stack4.h"
 #include "../require.h"

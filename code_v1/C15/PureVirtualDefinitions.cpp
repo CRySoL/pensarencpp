@@ -1,4 +1,8 @@
 //: C15:PureVirtualDefinitions.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Pure virtual base definitions
 #include <iostream>
 using namespace std;

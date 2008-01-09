@@ -1,4 +1,8 @@
 //: C04:CLib.h
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Header file for a C-like library
 // An array-like entity created at runtime
 

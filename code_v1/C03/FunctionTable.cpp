@@ -1,4 +1,8 @@
 //: C03:FunctionTable.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Using an array of pointers to functions
 #include <iostream>
 using namespace std;

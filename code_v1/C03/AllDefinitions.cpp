@@ -1,4 +1,8 @@
 //: C03:AllDefinitions.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // All possible combinations of basic data types, 
 // specifiers, pointers and references
 #include <iostream>

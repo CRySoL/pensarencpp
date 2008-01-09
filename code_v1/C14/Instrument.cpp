@@ -1,4 +1,8 @@
 //: C14:Instrument.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Inheritance & upcasting
 enum note { middleC, Csharp, Cflat }; // Etc.
 

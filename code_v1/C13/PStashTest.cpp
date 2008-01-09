@@ -1,4 +1,8 @@
 //: C13:PStashTest.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 //{L} PStash
 // Test of pointer Stash
 #include "PStash.h"

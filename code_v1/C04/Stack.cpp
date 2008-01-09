@@ -1,4 +1,8 @@
 //: C04:Stack.cpp {O}
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Linked list with nesting
 #include "Stack.h"
 #include "../require.h"

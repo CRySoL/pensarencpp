@@ -1,4 +1,8 @@
 //: C10:Singleton.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 // Static member of same type, ensures that
 // only one object of this type exists.
 // Also referred to as the "singleton" pattern.

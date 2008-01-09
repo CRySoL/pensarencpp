@@ -1,4 +1,8 @@
 //: C04:CppLibTest.cpp
+// From Thinking in C++, 2nd Edition
+// Available at http://www.BruceEckel.com
+// (c) Bruce Eckel 2000
+// Copyright notice in Copyright.txt
 //{L} CppLib
 // Test of C++ library
 #include "CppLib.h"
