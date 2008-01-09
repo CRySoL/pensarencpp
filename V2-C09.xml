@@ -1,0 +1,1350 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 22/PSGML
+  Traducción original: 
+  Formateado DocBook:  
+-->
+
+<!-- original de referencia en:
+http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc53985820
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C09">
+
+
+  <!-- 9: Multiple Inheritance -->
+  <title>Herencia múltiple</title>
+
+  <!--
+  The basic concept of multiple inheritance (MI) sounds simple enough: you
+  create a new type by inheriting from more than one base class. The
+  syntax is exactly what you??d expect, and as long as the inheritance
+  diagrams are simple, MI can be simple as well.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  However, MI can introduce a number of ambiguities and strange
+  situations, which are covered in this chapter. But first, it is helpful
+  to get some perspective on the subject.
+  -->
+  <para>
+
+  </para>
+
+  <sect1>
+    <!-- : Perspective -->
+    <title>Perspectiva</title>
+
+    <!--
+    Before C++, the most successful object-oriented language was
+    Smalltalk. Smalltalk was created from the ground up as an
+    object-oriented language. It is often referred to as pure, whereas C++
+    is called a hybrid language because it supports multiple programming
+    paradigms, not just the object-oriented paradigm. One of the design
+    decisions made with Smalltalk was that all classes would be derived in a
+    single hierarchy, rooted in a single base class (called Object?this is
+    the model for the object-based hierarchy).[120] You cannot create a new
+    class in Smalltalk without deriving it from an existing class, which is
+    why it takes a certain amount of time to become productive in Smalltalk:
+    you must learn the class library before you can start making new
+    classes. The Smalltalk class hierarchy is therefore a single monolithic
+    tree.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Classes in Smalltalk usually have a number of things in common, and they
+    always have some things in common (the characteristics and behaviors of
+    Object), so you don??t often run into a situation where you need to
+    inherit from more than one base class. However, with C++ you can create
+    as many distinct inheritance trees as you want. So for logical
+    completeness the language must be able to combine more than one class at
+    a time?thus the need for multiple inheritance.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    It was not obvious, however, that programmers required multiple
+    inheritance, and there was (and still is) a lot of disagreement about
+    whether it is essential in C++. MI was added in AT&T cfront release 2.0
+    in 1989 and was the first significant change to the language over
+    version 1.0.[121] Since then, a number of other features have been added
+    to Standard C++ (notably templates) that change the way we think about
+    programming and place MI in a much less important role. You can think of
+    MI as a ??minor?? language feature that is seldom involved in your daily
+    design decisions.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    One of the most pressing arguments for MI involved containers. Suppose
+    you want to create a container that everyone can easily use. One
+    approach is to use void* as the type inside the container. The Smalltalk
+    approach, however, is to make a container that holds Objects, since
+    Object is the base type of the Smalltalk hierarchy. Because everything
+    in Smalltalk is ultimately derived from Object, a container that holds
+    Objects can hold anything.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Now consider the situation in C++. Suppose vendor A creates an
+    object-based hierarchy that includes a useful set of containers
+    including one you want to use called Holder. Next you come across vendor
+    B??s class hierarchy that contains some other class that is important to
+    you, a BitImage class, for example, that holds graphic images. The only
+    way to make a Holder of BitImages is to derive a new class from both
+    Object, so it can be held in the Holder, and BitImage:
+    -->
+    <para>
+
+    </para>
+
+
+    <!-- FIXME: figura: 1mage013.gif --> 
+
+
+    <!--
+    This was seen as an important reason for MI, and a number of class
+    libraries were built on this model. However, as you saw in Chapter 5,
+    the addition of templates has changed the way containers are created, so
+    this situation is no longer a driving issue for MI.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The other reason you may need MI is related to design. You can
+    intentionally use MI to make a design more flexible or useful (or at
+    least seemingly so). An example of this is in the original iostream
+    library design (which still persists in today??s template design, as you
+    saw in Chapter 4):
+    -->
+    <para>
+
+    </para>
+
+
+        <!-- FIXME: figura: 1mage014.gif --> 
+
+    <!--
+    Both istream and ostream are useful classes by themselves, but they can
+    also be derived from simultaneously by a class that combines both their
+    characteristics and behaviors. The class ios provides what is common to
+    all stream classes, and so in this case MI is a code-factoring
+    mechanism.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Regardless of what motivates you to use MI, it??s harder to use than it
+    might appear.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Interface inheritance -->
+    <title>Herencia de interfaces</title>
+
+    <!--
+    One use of multiple inheritance that is not controversial pertains to
+    interface inheritance. In C++, all inheritance is implementation
+    inheritance, because everything in a base class, interface and
+    implementation, becomes part of a derived class. It is not possible to
+    inherit only part of a class (the interface alone, say). As Chapter 14
+    of Volume 1 explains, private and protected inheritance make it possible
+    to restrict access to members inherited from base classes when used by
+    clients of a derived class object, but this doesn??t affect the derived
+    class; it still contains all base class data and can access all
+    non-private base class members.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Interface inheritance, on the other hand, only adds member function
+    declarations to a derived class interface and is not directly supported
+    in C++. The usual technique to simulate interface inheritance in C++ is
+    to derive from an interface class, which is a class that contains only
+    declarations (no data or function bodies). These declarations will be
+    pure virtual functions, except for the destructor. Here is an example:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Interfaces.cpp
+
+
+    <!--
+    The class Able ??implements?? the interfaces Printable, Intable, and
+    Stringable because it provides implementations for the functions they
+    declare. Because Able derives from all three classes, Able objects have
+    multiple ??is-a?? relationships. For example, the object a can act as a
+    Printable object because its class, Able, derives publicly from
+    Printable and provides an implementation for print( ). The test
+    functions have no need to know the most-derived type of their parameter;
+    they just need an object that is substitutable for their parameter??s
+    type.
+    -->
+    <para>
+
+    </para>
+
+    <!-- As usual, a template solution is more compact: -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Interfaces2.cpp
+
+
+    <!--
+    The names Printable, Intable, and Stringable are now just template
+    parameters that assume the existence of the operations indicated in
+    their respective contexts. In other words, the test functions can accept
+    arguments of any type that provides a member function definition with
+    the correct signature and return type; deriving from a common base class
+    in not necessary. Some people are more comfortable with the first
+    version because the type names guarantee by inheritance that the
+    expected interfaces are implemented. Others are content with the fact
+    that if the operations required by the test functions are not satisfied
+    by their template type arguments, the error is still caught at compile
+    time. The latter approach is technically a ??weaker?? form of type
+    checking than the former (inheritance) approach, but the effect on the
+    programmer (and the program) is the same. This is one form of weak
+    typing that is acceptable to many of today??s C++ programmers.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Implementation inheritance -->
+    <title>Herencia de implementación</title>
+
+    <!--
+    As we stated earlier, C++ provides only implementation inheritance,
+    meaning that you always inherit everything from your base classes. This
+    can be good because it frees you from having to implement everything in
+    the derived class, as we had to do with the interface inheritance
+    examples earlier. A common use of multiple inheritance involves using
+    mixin classes, which are classes that exist to add capabilities to other
+    classes through inheritance. Mixin classes are not intended to be
+    instantiated by themselves.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    As an example, suppose we are clients of a class that supports access to
+    a database. In this scenario, you only have a header file available?part
+    of the point here is that you don??t have access to the source code for
+    the implementation. For illustration, assume the following
+    implementation of a Database class:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Database.h
+
+
+    <!--
+    We??re leaving out actual database functionality (storing, retrieving,
+    and so on), but that??s not important here. Using this class requires a
+    database connection string and that you call Database::open( ) to
+    connect and Database::close( ) to disconnect:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:UseDatabase.cpp
+
+
+    <!--
+    In a typical client-server situation, a client will have multiple
+    objects sharing a connection to a database. It is important that the
+    database eventually be closed, but only after access to it is no longer
+    required. It is common to encapsulate this behavior through a class that
+    tracks the number of client entities using the database connection and
+    to automatically terminate the connection when that count goes to
+    zero. To add reference counting to the Database class, we use multiple
+    inheritance to mix a class named Countable into the Database class to
+    create a new class, DBConnection. Here??s the Countable mixin class:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Countable.h
+
+
+    <!--
+    It is evident that this is not a standalone class because its
+    constructor is protected; it requires a friend or a derived class to use
+    it. It is important that the destructor is virtual, because it is called
+    only from the delete this statement in detach( ), and we want derived
+    objects to be properly destroyed.[122]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The DBConnection class inherits both Database and Countable and provides
+    a static create( ) function that initializes its Countable
+    subobject. This is an example of the Factory Method design pattern,
+    discussed in the next chapter:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:DBConnection.h
+
+
+    <!--
+    We now have a reference-counted database connection without modifying
+    the Database class, and we can safely assume that it will not be
+    surreptitiously terminated. The opening and closing is done using the
+    Resource Acquisition Is Initialization (RAII) idiom mentioned in Chapter
+    1 via the DBConnection constructor and destructor. This makes the
+    DBConnection easy to use:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:UseDatabase2.cpp
+
+
+    <!--
+    The call to DBConnection::create( ) calls attach( ), so when we??re
+    finished, we must explicitly call detach( ) to release the original hold
+    on the connection. Note that the DBClient class also uses RAII to manage
+    its use of the connection. When the program terminates, the destructors
+    for the two DBClient objects will decrement the reference count (by
+    calling detach( ), which DBConnection inherited from Countable), and the
+    database connection will be closed (because of Countable??s virtual
+    destructor) when the count reaches zero after the object c1 is
+    destroyed.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A template approach is commonly used for mixin inheritance, allowing the
+    user to specify at compile time which flavor of mixin is desired. This
+    way you can use different reference-counting approaches without
+    explicitly defining DBConnection twice. Here??s how it??s done:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:DBConnection2.h
+
+
+    <!--
+    The only change here is the template prefix to the class definition (and
+    renaming Countable to Counter for clarity). We could also make the
+    database class a template parameter (had we multiple database access
+    classes to choose from), but it is not a mixin since it is a standalone
+    class. The following example uses the original Countable as the Counter
+    mixin type, but we could use any type that implements the appropriate
+    interface (attach( ), detach( ), and so on):
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:UseDatabase3.cpp
+
+
+    <!-- The general pattern for multiple parameterized mixins is simply -->
+    <para>
+
+    </para>
+
+
+<programlisting>
+template&lt;class Mixin1, class Mixin2, ?? , class MixinK>
+class Subject : public Mixin1,
+                public Mixin2,
+                ??
+                public MixinK {??};
+</programlisting>
+
+  </sect1>
+  <sect1>
+    <!-- : Duplicate subobjects -->
+    <title>Subobjetos duplicados</title>
+
+    <!--
+    When you inherit from a base class, you get a copy of all the data
+    members of that base class in your derived class. The following program
+    shows how multiple base subobjects might be laid out in memory:[123]
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Offset.cpp
+
+
+    <!--
+    As you can see, the B portion of the object c is offset 4 bytes from the
+    beginning of the entire object, suggesting the following layout:
+    -->
+    <para>
+
+    </para>
+
+
+    <!-- FIXME: figura: 1mage015.gif --> 
+
+
+    <!--
+    The object c begins with it??s A subobject, then the B portion, and
+    finally the data from the complete type C itself. Since a C is-an A and
+    is-a B, it is possible to upcast to either base type. When upcasting to
+    an A, the resulting pointer points to the A portion, which happens to be
+    at the beginning of the C object, so the address ap is the same as the
+    expression &c. When upcasting to a B, however, the resulting pointer
+    must point to where the B subobject actually resides because class B
+    knows nothing about class C (or class A, for that matter). In other
+    words, the object pointed to by bp must be able to behave as a
+    standalone B object (except for any required polymorphic behavior).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    When casting bp back to a C*, since the original object was a C in the
+    first place, the location where the B subobject resides is known, so the
+    pointer is adjusted back to the original address of the complete
+    object. If bp had been pointing to a standalone B object instead of a C
+    object in the first place, the cast would be illegal.[124] Furthermore,
+    in the comparison bp == cp, cp is implicitly converted to a B*, since
+    that is the only way to make the comparison meaningful (that is,
+    upcasting is always allowed), hence the true result. So when converting
+    back and forth between subobjects and complete types, the appropriate
+    offset is applied.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The null pointer requires special handling, obviously, since blindly
+    subtracting an offset when converting to or from a B subobject will
+    result in an invalid address if the pointer was zero to start with. For
+    this reason, when casting to or from a B*, the compiler generates logic
+    to check first to see if the pointer is zero. If it isn??t, it applies
+    the offset; otherwise, it leaves it as zero.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    With the syntax we??ve seen so far, if you have multiple base classes,
+    and if those base classes in turn have a common base class, you will
+    have two copies of the top-level base, as you can see in the following
+    example:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Duplicate.cpp
+
+
+    <!--
+    Since the size of b is 20 bytes,[125] there are five integers altogether
+    in a complete Bottom object. A typical class diagram for this scenario
+    usually appears as:
+    -->
+    <para>
+
+    </para>
+
+
+    <!-- FIXME: figura: 1mage016.gif --> 
+
+
+    <!--
+    This is the so-called ??diamond inheritance??, but in this case it would
+    be better rendered as:
+    -->
+    <para>
+
+    </para>
+
+    <!-- FIXME: figura: 1mage017.gif -->
+
+    <!--
+    The awkwardness of this design surfaces in the constructor for the
+    Bottom class in the previous code. The user thinks that only four
+    integers are required, but which arguments should be passed to the two
+    parameters that Left and Right require? Although this design is not
+    inherently ??wrong,?? it is usually not what an application needs. It
+    also presents a problem when trying to convert a pointer to a Bottom
+    object to a pointer to Top. As we showed earlier, the address may need
+    to be adjusted, depending on where the subobject resides within the
+    complete object, but here there are two Top subobjects to choose
+    from. The compiler doesn??t know which to choose, so such an upcast is
+    ambiguous and is not allowed. The same reasoning explains why a Bottom
+    object would not be able to call a function that is only defined in
+    Top. If such a function Top::f( ) existed, calling b.f( ) above would
+    need to refer to a Top subobject as an execution context, and there are
+    two to choose from.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Virtual base classes -->
+    <title>Clases base virtuales</title>
+
+    <!--
+    What we usually want in such cases is true diamond inheritance, where a
+    single Top object is shared by both Left and Right subobjects within a
+    complete Bottom object, which is what the first class diagram
+    depicts. This is achieved by making Top a virtual base class of Left and
+    Right:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:VirtualBase.cpp
+
+
+    <!--
+    Each virtual base of a given type refers to the same object, no matter
+    where it appears in the hierarchy.[126] This means that when a Bottom
+    object is instantiated, the object layout may look something like this:
+    -->
+    <para>
+
+    </para>
+
+    <!-- FIXME: figura: 1mage018.gif -->
+
+
+    <!--
+    The Left and Right subobjects each have a pointer (or some conceptual
+    equivalent) to the shared Top subobject, and all references to that
+    subobject in Left and Right member functions will go through those these
+    pointers.[127] Here, there is no ambiguity when upcasting from a Bottom
+    to a Top object, since there is only one Top object to convert to.
+    -->
+    <para>
+
+    </para>
+
+    <!-- The output of the previous program is as follows: -->
+    <para>
+
+    </para>
+
+
+<screen>
+36
+1,2,3,4
+1245032
+1
+1245060
+1245032
+</screen>
+
+
+    <!--
+    The addresses printed suggest that this particular implementation does
+    indeed store the Top subobject at the end of the complete object
+    (although it??s not really important where it goes). The result of a
+    dynamic_cast to void* always resolves to the address of the complete
+    object.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although it is technically illegal to do so[128], if you remove the
+    virtual destructor (and the dynamic_cast statement, so the program will
+    compile), the size of Bottom decreases to 24 bytes. That seems to be a
+    decrease equivalent to the size of three pointers. Why?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    It??s important not to take these numbers too literally. Other compilers
+    we use manage only to increase the size by four bytes when the virtual
+    constructor is added. Not being compiler writers, we can??t tell you
+    their secrets. We can tell you, however, that with multiple inheritance,
+    a derived object must behave as if it has multiple VPTRs, one for each
+    of its direct base classes that also have virtual functions. It??s as
+    simple as that. Compilers make whatever optimizations their authors
+    invent, but the behavior must be the same.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The strangest thing in the previous code is the initializer for Top in
+    the Bottom constructor. Normally one doesn??t worry about initializing
+    subobjects beyond direct base classes, since all classes take care of
+    initializing their own bases. There are, however, multiple paths from
+    Bottom to Top, so relying on the intermediate classes Left and Right to
+    pass along the necessary initialization data results in an ambiguity?who
+    is responsible for performing the initialization? For this reason, the
+    most derived class must initialize a virtual base. But what about the
+    expressions in the Left and Right constructors that also initialize Top?
+    They are certainly necessary when creating standalone Left or Right
+    objects, but must be ignored when a Bottom object is created (hence the
+    zeros in their initializers in the Bottom constructor?any values in
+    those slots are ignored when the Left and Right constructors execute in
+    the context of a Bottom object). The compiler takes care of all this for
+    you, but it??s important to understand where the responsibility
+    lies. Always make sure that all concrete (nonabstract) classes in a
+    multiple inheritance hierarchy are aware of any virtual bases and
+    initialize them appropriately.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    These rules of responsibility apply not only to initialization, but to
+    all operations that span the class hierarchy. Consider the stream
+    inserter in the previous code. We made the data protected so we could
+    ??cheat?? and access inherited data in operator<<(ostream&, const
+    Bottom&). It usually makes more sense to assign the work of printing
+    each subobject to its corresponding class and have the derived class
+    call its base class functions as needed. What would happen if we tried
+    that with operator<<( ), as the following code illustrates?
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:VirtualBase2.cpp
+
+
+    <!--
+    You can??t just blindly share the responsibility upward in the usual
+    fashion, because the Left and Right stream inserters each call the Top
+    inserter, and again there will be duplication of data. Instead you need
+    to mimic what the compiler does with initialization. One solution is to
+    provide special functions in the classes that know about the virtual
+    base class, which ignore the virtual base when printing (leaving the job
+    to the most derived class):
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:VirtualBase3.cpp
+
+
+    <!--
+    The specialPrint( ) functions are protected since they will be called
+    only by Bottom. They print only their own data and ignore their Top
+    subobject because the Bottom inserter is in control when these functions
+    are called. The Bottom inserter must know about the virtual base, just
+    as a Bottom constructor needs to. This same reasoning applies to
+    assignment operators in a hierarchy with a virtual base, as well as to
+    any function, member or not, that wants to share the work throughout all
+    classes in the hierarchy.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Having discussed virtual base classes, we can now illustrate the ??full
+    story?? of object initialization. Since virtual bases give rise to
+    shared subobjects, it makes sense that they should be available before
+    the sharing takes place. So the order of initialization of subobjects
+    follows these rules, recursively:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  All virtual base class subobjects are initialized, in top-down,
+    left-to-right order according to where they appear in class definitions.
+    -->
+    <para>
+
+    </para>
+
+    <!-- 2.  Non-virtual base classes are then initialized in the usual order. -->
+    <para>
+
+    </para>
+
+    <!-- 3.  All member objects are initialized in declaration order. -->
+    <para>
+
+    </para>
+
+    <!-- 4.  The complete object??s constructor executes. -->
+    <para>
+
+    </para>
+
+    <!-- The following program illustrates this behavior: -->
+    <para>
+
+    </para>
+
+
+//: V2C09:VirtInit.cpp
+
+
+    <!-- The classes in this code can be represented by the following diagram: -->
+    <para>
+
+    </para>
+
+    
+    <!-- FIXME: figura: 1mage019.gif --> 
+
+    <!--
+    Each class has an embedded member of type M. Note that only four
+    derivations are virtual: E from B and C, and F from B and C. The output
+    of this program is:
+    -->
+    <para>
+
+    </para>
+
+<screen>
+M in B
+B from G
+M in C
+C from G
+M in A
+A from E
+M in E
+E from G
+M in D
+D from F
+M in F
+F from G
+M in G
+G from main
+</screen>
+
+    <!--
+    The initialization of g requires its E and F part to first be
+    initialized, but the B and C subobjects are initialized first because
+    they are virtual bases and are initialized from G??s initializer, G
+    being the most-derived class. The class B has no base classes, so
+    according to rule 3, its member object m is initialized, then its
+    constructor prints ??B from G??, and similarly for the C subject of
+    E. The E subobject requires A, B, and C subobjects. Since B and C have
+    already been initialized, the A subobject of the E subobject is
+    initialized next, and then the E subobject itself. The same scenario
+    repeats for g??s F subobject, but without duplicating the initialization
+    of the virtual bases.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Name lookup issues -->
+    <title>Cuestión sobre búsqueda de nombres</title>
+
+    <!--
+    The ambiguities we have illustrated with subobjects apply to any names,
+    including function names. If a class has multiple direct base classes
+    that share member functions of the same name, and you call one of those
+    member functions, the compiler doesn??t know which one to choose. The
+    following sample program would report such an error:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:AmbiguousName.cpp {-xo}
+
+
+    <!--
+    The class Bottom has inherited two functions of the same name (the
+    signature is irrelevant, since name lookup occurs before overload
+    resolution), and there is no way to choose between them. The usual
+    technique to disambiguate the call is to qualify the function call with
+    the base class name:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:BreakTie.cpp
+
+
+    <!--
+    The name Left::f is now found in the scope of Bottom, so the name
+    Right::f is not even considered. To introduce extra functionality beyond
+    what Left::f( ) provides, you implement a Bottom::f( ) function that
+    calls Left::f( ).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Functions with the same name occurring in different branches of a
+    hierarchy often conflict. The following hierarchy has no such problem:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Dominance.cpp
+
+
+    <!--
+    Here, there is no explicit Right::f( ). Since Left::f( ) is the most
+    derived, it is chosen. Why? Well, pretend that Right did not exist,
+    giving the single-inheritance hierarchy Top <= Left <= Bottom. You would
+    certainly expect Left::f( ) to be the function called by the expression
+    b.f( ) because of normal scope rules: a derived class is considered a
+    nested scope of a base class. In general, a name A::f dominates the name
+    B::f if A derives from B, directly or indirectly, or in other words, if
+    A is ??more derived?? in the hierarchy than B.[129] Therefore, in
+    choosing between two functions with the same name, the compiler chooses
+    the one that dominates. If there is no dominant name, there is an
+    ambiguity.
+    -->
+    <para>
+
+    </para>
+
+    <!-- The following program further illustrates the dominance principle: -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Dominance2.cpp
+
+
+    <!-- The class diagram for this hierarchy is -->
+    <para>
+
+    </para>
+
+
+    <!-- FIXME: figura: 1mage20.gif --> 
+
+    <!--
+    The class A is a (direct, in this case) base class for B, and so the
+    name B::f dominates A::f.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Avoiding MI -->
+    <title>Evitar la MI</title>
+
+    <!--
+    When the question of whether to use multiple inheritance comes up, ask
+    at least two questions:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Do you need to show the public interfaces of both these classes
+    through your new type? (See instead if one class can be contained within
+    the other, with only some of its interface exposed in the new class.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Do you need to upcast to both of the base classes? (This also
+    applies when you have more than two base classes.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If you can answer ??no?? to either question, you can avoid using MI and
+    should probably do so.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Watch for the situation where one class needs to be upcast only as a
+    function argument. In that case, the class can be embedded and an
+    automatic type conversion function provided in your new class to produce
+    a reference to the embedded object. Any time you use an object of your
+    new class as an argument to a function that expects the embedded object,
+    the type conversion function is used.[130] However, type conversion
+    can??t be used for normal polymorphic member function selection; that
+    requires inheritance. Preferring composition over inheritance is a good
+    overall design guideline.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Extending an interface -->
+    <title>Extender una interface</title>
+
+    <!--
+    One of the best uses for multiple inheritance involves code that??s out
+    of your control. Suppose you??ve acquired a library that consists of a
+    header file and compiled member functions, but no source code for member
+    functions. This library is a class hierarchy with virtual functions, and
+    it contains some global functions that take pointers to the base class
+    of the library; that is, it uses the library objects
+    polymorphically. Now suppose you build an application around this
+    library and write your own code that uses the base class
+    polymorphically.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Later in the development of the project or sometime during its
+    maintenance, you discover that the base-class interface provided by the
+    vendor doesn??t provide what you need: a function may be non-virtual and
+    you need it to be virtual, or a virtual function is completely missing
+    in the interface, but essential to the solution of your
+    problem. Multiple inheritance can be the solution.
+    -->
+    <para>
+
+    </para>
+
+    <!-- For example, here??s the header file for a library you acquire: -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Vendor.h
+
+
+    <!--
+    Assume the library is much bigger, with more derived classes and a
+    larger interface. Notice that it also includes the functions A( ) and B(
+    ), which take a base reference and treat it polymorphically. Here??s the
+    implementation file for the library:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Vendor.cpp {O}
+
+
+    <!--
+    In your project, this source code is unavailable to you. Instead, you
+    get a compiled file as Vendor.obj or Vendor.lib (or with the equivalent
+    file suffixes for your system).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The problem occurs in the use of this library. First, the destructor
+    isn??t virtual.[131] In addition, f( ) was not made virtual; we assume
+    the library creator decided it wouldn??t need to be. You also discover
+    that the interface to the base class is missing a function essential to
+    the solution of your problem. Also suppose you??ve already written a
+    fair amount of code using the existing interface (not to mention the
+    functions A( ) and B( ), which are out of your control), and you don??t
+    want to change it.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    To repair the problem, create your own class interface and multiply
+    inherit a new set of derived classes from your interface and from the
+    existing classes:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C09:Paste.cpp
+
+
+    <!--
+    In MyBase (which does not use MI), both f( ) and the destructor are now
+    virtual, and a new virtual function g( ) is added to the interface. Now
+    each of the derived classes in the original library must be re-created,
+    mixing in the new interface with MI. The functions Paste1::v( ) and
+    Paste1::f( ) need to call only the original base-class versions of their
+    functions. But now, if you upcast to MyBase as in main( ):
+    -->
+    <para>
+
+    </para>
+
+
+<programlisting>
+MyBase* mp = p1p; // Upcast
+</programlisting>
+
+
+    <!--
+    any function calls made through mp will be polymorphic, including
+    delete. Also, the new interface function g( ) can be called through
+    mp. Here??s the output of the program:
+    -->
+    <para>
+
+    </para>
+
+
+<screen>
+calling f()
+Paste1::f()
+Vendor1::f()
+calling g()
+Paste1::g()
+calling A(p1p)
+Paste1::v()
+Vendor1::v()
+Vendor::f()
+calling B(p1p)
+Paste1::v()
+Vendor1::v()
+Vendor::f()
+delete mp
+~Paste1()
+~Vendor1()
+~Vendor()
+~MyBase()
+</screen>
+
+
+    <!--
+    The original library functions A( ) and B( ) still work the same
+    (assuming the new v( ) calls its base-class version). The destructor is
+    now virtual and exhibits the correct behavior.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although this is a messy example, it does occur in practice, and it??s a
+    good demonstration of where multiple inheritance is clearly necessary:
+    You must be able to upcast to both base classes.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Summary -->
+    <title>Resumen</title>
+
+    <!--
+    One reason MI exists in C++ is that it is a hybrid language and
+    couldn??t enforce a single monolithic class hierarchy the way Smalltalk
+    and Java do. Instead, C++ allows many inheritance trees to be formed, so
+    sometimes you may need to combine the interfaces from two or more trees
+    into a new class.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If no ??diamonds?? appear in your class hierarchy, MI is fairly simple
+    (although identical function signatures in base classes must still be
+    resolved). If a diamond appears, you may want to eliminate duplicate
+    subobjects by introducing virtual base classes. This not only adds
+    confusion, but the underlying representation becomes more complex and
+    less efficient.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Multiple inheritance has been called the ??goto of the ??90s.??[132]
+    This seems appropriate because, like a goto, MI is best avoided in
+    normal programming, but can occasionally be very useful. It??s a
+    ??minor?? but more advanced feature of C++, designed to solve problems
+    that arise in special situations. If you find yourself using it often,
+    you might want to take a look at your reasoning. Ask yourself, ??Must I
+    upcast to all the base classes??? If not, your life will be easier if
+    you embed instances of all the classes you don??t need to upcast to.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Exercises -->
+    <title>Ejercicios</title>
+
+    <!--
+    Solutions to selected exercises can be found in the electronic document
+    The Thinking in C++ Volume 2 Annotated Solution Guide, available for a
+    small fee from www.MindView.net.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Create a base class X with a single constructor that takes an int
+    argument and a member function f( ), which takes no arguments and
+    returns void. Now derive Y and Z from X, creating constructors for each
+    of them that take a single int argument. Next, derive A from Y and
+    Z. Create an object of class A, and call f( ) for that object. Fix the
+    problem with explicit disambiguation.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Starting with the results of Exercise 1, create a pointer to an X
+    called px and assign to it the address of the object of type A you
+    created before. Fix the problem using a virtual base class. Now fix X so
+    you no longer have to call the constructor for X inside A.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3.  Starting with the results of Exercise 2, remove the explicit
+    disambiguation for f( ) and see if you can call f( ) through px. Trace
+    it to see which function gets called. Fix the problem so the correct
+    function will be called in a class hierarchy.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4.  Make an Animal interface class with a makeNoise( ) function
+    declaration. Make a SuperHero interface class with a savePersonFromFire(
+    ) function declaration. Place a move( ) function declaration in both
+    interface classes. (Remember to make your interface methods pure
+    virtual.) Now define three separate classes: SuperlativeMan, Amoeba (a
+    superhero of uncertain gender), and TarantulaWoman; SuperlativeMan
+    implements the SuperHero interface while Amoeba and TarantulaWoman
+    implement both Animal and SuperHero. Define two global functions
+    animalSound(Animal*) and saveFromFire(SuperHero*). Invoke all the
+    methods that are callable from each interface in both of these
+    functions.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    5.  Repeat the previous exercise, but use templates instead of
+    inheritance to implement the interfaces, as we did in Interfaces2.cpp.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    6.  Define some concrete mixin classes that represent superhero
+    capabilities (such as StopTrain, BendSteel, ClimbBuilding, etc.). Redo
+    exercise 4 so that your derived SuperHero classes derive from these
+    mixins and call their member functions.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    7.  Repeat the previous exercise using templates by making your
+    superhero powers mixin template parameters. Use these powers to do some
+    good in the community.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    8.  Dropping the Animal interface from exercise 4, redefine Amoeba to
+    only implement SuperHero. Now define a SuperlativeAmoeba class that
+    inherits from both SuperlativeMan and Amoeba. Try to pass a
+    SuperlativeAmoeba object to saveFromFire( ). What do you have to do to
+    make this legal? How does using virtual inheritance change the size of
+    your objects?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    9.  Continuing with the previous exercise, add an integer strengthFactor
+    data member to SuperHero from exercise 4, along with a constructor to
+    initialize it. Add constructors in the three derived classes to
+    initialize strengthFactor as well. What must you do differently in
+    SuperlativeAmoeba?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    10.  Continuing with the previous exercise, add an eatFood( ) member
+    function to both SuperlativeMan and Amoeba (but not SuperlativeAmoeba),
+    such that the two versions of eatFood( ) take different types of food
+    objects (so the signatures of the two functions differ). What must you
+    do in SuperlativeAmoeba to call either eatFood( ) function? Why?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    11.  Define a well-behaved output stream inserter and assignment
+    operator for SuperlativeAmoeba.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    12.  Remove SuperlativeAmoeba from your hierarchy and modify Amoeba to
+    derive from both SuperlativeMan (which still derives from SuperHero) and
+    SuperHero. Implement a virtual workout( ) function in both SuperHero and
+    SuperlativeMan (with identical signatures), and call it with a Amoeba
+    object. Which function gets called?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    13.  Redefine SuperlativeAmoeba to use composition instead of
+    inheritance to act as a SuperlativeMan or Amoeba. Use conversion
+    operators to provide implicit upcasting. Compare this approach to the
+    inheritance approach.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    14.  Suppose you are given a pre-compiled Person class (you only have
+    the header and compiled object file). Suppose also that Person has a
+    non-virtual work( ) function. Have SuperHero be able to act as a
+    mild-mannered ordinary Person by deriving from Person and using the
+    implementation of Person::work( ), but make SuperHero::work( ) virtual.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    15.  Define a reference-counted error logging mixin class, ErrorLog,
+    that holds a static file stream to which you can send messages. The
+    class opens the stream when its reference count exceeds 0 and closes the
+    stream when the count returns to 0 (and always appends to the
+    file). Have objects of multiple classes send messages to the static log
+    stream. Watch the stream open and close via trace statements in
+    ErrorLog.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    16.  Modify BreakTie.cpp by adding a class named VeryBottom that derives
+    (non-virtually) from Bottom. VeryBottom should look just like Bottom
+    except change ??Left?? to ??Right?? in the using declaration for
+    f. Change main( ) to instantiate a VeryBottom instead of a Bottom
+    object. Which f( ) gets called?
+    -->
+    <para>
+
+    </para>
+  </sect1>
+</chapter>
