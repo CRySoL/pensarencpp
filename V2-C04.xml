@@ -54,184 +54,250 @@ http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc
   <classname>stdio</classname> de C y explora el comprotamiento de los
   ficheros y streams de strings además de los streams de consola.</para>
 
-  <sect1><!-- : Why iostreams? --><title>¿Por que
-  <classname>iostream</classname>?</title> <!--
+  <sect1><!-- : Why iostreams? -->
+
+    <title>¿Por qué  <classname>iostream</classname></title> 
+
+    <!--
     You might wonder what's wrong with the good old C library. Why not
     'wrap' the C library in a class and be done with it? Sometimes this is
     a fine solution. For example, suppose you want to make sure that the
     file represented by a stdio FILE pointer is always safely opened and
     properly closed without having to rely on the user to remember to call
     the close( ) function. The following program is such an attempt:
-    --> <para>Se debe estar preguntando que hay de malo en la buena y vieja
-  libreria de C. ¿Por que no 'incrustar' la libreria de C en una clase y ya
-  está? A veces esta solución es totalmente válida. Por ejemplo, suponga que
-  quiere estar seguro que un fichero representado por un puntero de
-  <classname>stdio</classname> <varname>FILE</varname> siempre es abierto de
-  forma segura y cerrado correctamente sin tener que confiar en que el usuario
-  se acuerde de llamar a la función <function>close()</function>. El siguiente
-  programa es este intento:</para> //: V2C04:FileClass.h <!--
-    When you perform file I/O in C, you work with a naked pointer to a FILE
-    struct, but this class wraps around the pointer and guarantees it is
-    properly initialized and cleaned up using the constructor and
-    destructor. The second constructor argument is the file mode, which
-    defaults to 'r' for 'read.'
-    --> <para>Cuando trabaja con ficheros E/S en C, usted trabaja con punteros
-  desnudos a una <varname>struct</varname> de <varname>FILE</varname>, pero
-  esta clase envuelve los punteros y garantiza que es correctamente
-  inicializada y destruida usando el constructor y el destructor. El segundo
-  parámetro del constructor es el modo del fichero, que por defecto es 'r'
-  para 'leer'.</para> <!--
-    To fetch the value of the pointer to use in the file I/O functions, you
-    use the fp( ) access function. Here are the member function definitions:
-    --> <para>Para pedir el valor del puntero para usarlo en las funciones de
-  fichero de E/S, use la función de acceso <function>fp()</function>. Aquí
-  están las definiciones de las funciones miembro:</para> //:
-  V2C04:FileClass.cpp {O} <!--
-    The constructor calls fopen( ), as you would normally do, but it also
-    ensures that the result isn't zero, which indicates a failure upon
-    opening the file. If the file does not open as expected, an exception is
-    thrown.
-    --> <para>El constructor llama a <function>fopen()</function>, tal como se
-  haría normalmente, pero además se asegura que el resultado no es cero, que
-  indica un error al abrir el fichero. Si el fichero no se abre correctamente,
-  se lanza una excepción.</para> <!--
-    The destructor closes the file, and the access function fp( ) returns
-    f. Here's a simple example using FileClass:
-    --> <para>El destructor cierra el fichero, y la función de acceso
-  <function>fp()</function> retorna <varname>f</varname>. Este es un ejemplo
-  de uso de <classname>FileClass</classname>:</para> //:
-  V2C04:FileClassTest.cpp <!--
-    You create the FileClass object and use it in normal C file I/O function
-    calls by calling fp( ). When you're done with it, just forget about it;
-    the file is closed by the destructor at the end of its scope.
-    --> <para>Se crea el objeto <classname>FileClass</classname> y se usa en
-  llamadas a funciones E/S de fichero normal de C, llamando a
-  <function>fp()</function>. Cuando haya acabado con ella, simplemente
-  olvídese; el fichero será cerrado por el destructor al final del ámbito de
-  la variable.</para> <!--
-    Even though the FILE pointer is private, it isn't particularly safe
-    because fp( ) retrieves it. Since the only effect seems to be guaranteed
-    initialization and cleanup, why not make it public or use a struct
-    instead? Notice that while you can get a copy of f using fp( ), you
-    cannot assign to f?that's completely under the control of the
-    class. After capturing the pointer returned by fp( ), the client
-    programmer can still assign to the structure elements or even close it,
-    so the safety is in guaranteeing a valid FILE pointer rather than proper
-    contents of the structure.
-    --> <para>Incluso teniendo en cuenta que <varname>FILE</varname> es un
-  puntero privado, no es particularmente seguro porque
-  <function>fp()</function> lo recupera. Ya que el único efecto que parece
-  estar garantizado es la inicialización y la liberación, ¿por que no hacerlo
-  público o usar una <code>struct </code>en su lugar? Nótese que mientras se
-  puede obtener una copia de <varname>f </varname>usando
-  <function>fp()</function>, no se puede asignar a <varname>f</varname> -que
-  está completamente bajo el control de la clase. Después de capturar el
-  puntero retornado por <function>fp()</function>, el programador cliente
-  todavía puede asignar a la estructura elementos o incluso cerrarlo, con lo
-  que la seguridad esta en la garantía de un puntero a FILE válido mas que en
-  el correcto contenido de la estructura.</para> <!--
-    If you want complete safety, you must prevent the user from directly
-    accessing the FILE pointer. Some version of all the normal file I/O
-    functions must show up as class members so that everything you can do
-    with the C approach is available in the C++ class:
-    --> <para>Si quiere completa seguridad, tiene que evitar que el usuario
-  acceda directamente al puntero <code>FILE</code>. Cada una de las versiones
-  de las funciones normales de E/S a ficheros deben ser mostradas como
-  miembros de clase para que todo lo que se pueda hacer desde el acercamiento
-  de C esté disponible en la clase de C++.</para> //: V2C04:Fullwrap.h <!--
-   This class contains almost all the file I/O functions from <cstdio>. (vfprintf( ) is missing; it implements the printf( ) member function.)
-    --> <para>Esta clase contiene casi todas las funciones de E/S de fichero
-  de <code>&lt;cstdio&gt;</code>. (<function>vfprintf()</function> no esta; se
-  implementa en la función miembro <function>printf()</function> )</para> <!--
-    File has the same constructor as in the previous example, and it also
-    has a default constructor. The default constructor is important if you
-    want to create an array of File objects or use a File object as a member
-    of another class where the initialization doesn't happen in the
-    constructor, but some time after the enclosing object is created.
-    --> <para>El fichero tiene el mismo constructor que en el ejemplo
-  anterior, y también tiene un constructor por defecto. El constructor por
-  defecto es importante si se crea un array de objetos
-  <classname>File</classname> o se usa un objeto <classname>File</classname>
-  como miembro de otra clase donde la inicialización no se realiza en el
-  contructor, sino cierto tiempo después de que el objeto envolvente se
-  cree.</para> <!--
-    The default constructor sets the private FILE pointer f to zero. But
-    now, before any reference to f, its value must be checked to ensure it
-    isn't zero. This is accomplished with F( ), which is private because it
-    is intended to be used only by other member functions. (We don't want
-    to give the user direct access to the underlying FILE structure in this
-    class.)
-    --> <para>El constructor por defecto pone a cero el puntero a
-  <varname>FILE</varname> privado <varname>f</varname>. Pero ahora , antes de
-  cualquier referencia a <function>f</function>, el valor debe ser comprobado
-  para asegurarse que no es cero. Esto se consigue con
-  <function>F()</function>, que es privado porque está pensado para ser usado
-  solamente por otras funciones miembro. (No queremos dar acceso directo a
-  usuarios a la estructura de <varname>FILE</varname> subyacente en esta
-  clase).</para> <!--
-    This approach is not a terrible solution by any means. It's quite
-    functional, and you could imagine making similar classes for standard
-    (console) I/O and for in-core formatting (reading/writing a piece of
-    memory rather than a file or the console).
-    --> <para>Este acercamiento no es terrible en ningún sentido. Es bastante
-  funcional, y se puede imaginar haciendo clases similares para la E/S
-  estándar (consola) y para los formateos en el core (leer/escribir un trozo
-  de la memoria en vez de un fichero o la consola).</para> <!--
-    The stumbling block is the runtime interpreter used for the variable
-    argument list functions. This is the code that parses your format string
-    at runtime and grabs and interprets arguments from the variable argument
-    list. It's a problem for four reasons.
-    --> <para>Los puntos suspensivos interpretan en tiempo de ejecución usado
-  para las listas variables de argumentos. Este es el código que traduce el
-  formato de su cadena en tiempo de ejecución y recoge e interpreta argumentos
-  desde una lista variable de argumentos. Es un problema por cuatro
-  razones<note>
-      <para>Este parrafo está muy lejos de la realidad. A que se refiere con
-      stumbling block of code?</para>
-    </note></para> <!--
-    1.  Even if you use only a fraction of the functionality of the
-    interpreter, the whole thing gets loaded into your executable. So if you
-    say printf("%c", 'x');, you'll get the whole package, including the
-    parts that print floating-point numbers and strings. There's no
-    standard option for reducing the amount of space used by the program.
-    --> <para>1. Incluso si solo se usa una fracción de la funcionalidad del
-  interprete, se carga todo en el ejecutable. Luego si quiere usar un
-  <code>printf("%c", 'x'); </code>, usted tendrá todo el paquete, incluido las
-  partes que imprimen números en coma flotante y cadenas. No hay una opción
-  estándar para reducir el la cantidad de espacio usado por el
-  programa.</para> <!--
-    2.  Because the interpretation happens at runtime, you can't get rid of
-    a performance overhead. It's frustrating because all the information is
-    there in the format string at compile time, but it's not evaluated
-    until runtime. However, if you could parse the arguments in the format
-    string at compile time, you could make direct function calls that have
-    the potential to be much faster than a runtime interpreter (although the
-    printf( ) family of functions is usually quite well optimized).
-    --> <para>2. Como la interpretación pasa en tiempo de ejecución, no se
-  puede evitar un empeoramiento del rendimiento. Esto es frustrante por que
-  toda la información está allí, en el formato de la cadena, en tiempo de
-  compilación, pero no se evalua hasta la ejecución. Por otro lado, si se
-  pudieran analizar los argumentos en el formateo de la cadena durante la
-  compilación, se podrían hacer llamadas directas a funciones que tuvieran el
-  potencial de ser mucho más rápidas que un interprete en tiempo de ejecución
-  (aunque la familia de funciones de printf() acostumbran a estar bastante
-  bien optimizadas). </para> <!--
-    3.  Because the format string is not evaluated until runtime, there can
-    be no compile-time error checking. You're probably familiar with this
-    problem if you've tried to find bugs that came from using the wrong
-    number or type of arguments in a printf( ) statement. C++ makes a big
-    deal out of compile-time error checking to find errors early and make
-    your life easier. It seems a shame to throw type safety away for an I/O
-    library, especially since I/O is used a lot.
-    --> <para>3. Como el formateo de la cadena no se evalua hasta la
-  ejecución, no se hace una comprobación de errores al compilar.
-  Probalblemente está familiarizado con este problema si ha intentado buscar
-  errores que provienen del uso de un número o tipo de argumentos incorrecto
-  en una sentencia <function>printf()</function>. C++ ayuda mucho a encontrar
-  rápidamente errores durante la compilación y hacerle la vida más fácil.
-  Parece una tonteria desechar la seguridad en los tipos de datos para la
-  libreria de E/S, especialmente cuando usamos intensivamente las E/S.</para>
-  <!--
+    --> 
+    <para>
+      Se debe estar preguntando que hay de malo en la buena y vieja
+      libreria de C. ¿Por que no 'incrustar' la libreria de C en una
+      clase y ya está? A veces esta solución es totalmente válida. Por
+      ejemplo, suponga que quiere estar seguro que un fichero
+      representado por un puntero de <classname>stdio</classname>
+      <varname>FILE</varname> siempre es abierto de forma segura y
+      cerrado correctamente sin tener que confiar en que el usuario se
+      acuerde de llamar a la función <function>close()</function>. El
+      siguiente programa es este intento:</para> 
+
+
+//: V2C04:FileClass.h 
+
+
+    <!-- When you perform file I/O in C, you work
+      with a naked pointer to a FILE struct, but this class wraps
+      around the pointer and guarantees it is properly initialized and
+      cleaned up using the constructor and destructor. The second
+      constructor argument is the file mode, which defaults to 'r' for
+      'read.'  --> 
+
+    <para>
+      Cuando trabaja con ficheros E/S en C, usted trabaja con punteros
+      desnudos a una <varname>struct</varname> de
+      <varname>FILE</varname>, pero esta clase envuelve los punteros y
+      garantiza que es correctamente inicializada y destruida usando
+      el constructor y el destructor. El segundo parámetro del
+      constructor es el modo del fichero, que por defecto es 'r' para
+      'leer'.</para> 
+
+    <!-- To fetch the value of the pointer to use in
+      the file I/O functions, you use the fp( ) access function. Here
+      are the member function definitions: --> <para>Para pedir el
+      valor del puntero para usarlo en las funciones de fichero de
+      E/S, use la función de acceso <function>fp()</function>. Aquí
+      están las definiciones de las funciones miembro:</para> 
+
+
+//: V2C04:FileClass.cpp {O} 
+
+
+    <!-- The constructor calls fopen( ), as
+      you would normally do, but it also ensures that the result isn't
+      zero, which indicates a failure upon opening the file. If the
+      file does not open as expected, an exception is thrown.  -->
+      <para>El constructor llama a <function>fopen()</function>, tal
+      como se haría normalmente, pero además se asegura que el
+      resultado no es cero, que indica un error al abrir el
+      fichero. Si el fichero no se abre correctamente, se lanza una
+      excepción.</para> 
+
+    <!-- The destructor closes the file, and the
+      access function fp( ) returns f. Here's a simple example using
+      FileClass: --> <para>El destructor cierra el fichero, y la
+      función de acceso <function>fp()</function> retorna
+      <varname>f</varname>. Este es un ejemplo de uso de
+      <classname>FileClass</classname>:</para> 
+
+
+//: V2C04:FileClassTest.cpp 
+
+
+    <!-- You create the FileClass object and
+      use it in normal C file I/O function calls by calling fp(
+      ). When you're done with it, just forget about it; the file is
+      closed by the destructor at the end of its scope.  --> <para>Se
+      crea el objeto <classname>FileClass</classname> y se usa en
+      llamadas a funciones E/S de fichero normal de C, llamando a
+      <function>fp()</function>. Cuando haya acabado con ella,
+      simplemente olvídese; el fichero será cerrado por el destructor
+      al final del ámbito de la variable.</para> 
+
+    <!-- Even though the
+      FILE pointer is private, it isn't particularly safe because fp(
+      ) retrieves it. Since the only effect seems to be guaranteed
+      initialization and cleanup, why not make it public or use a
+      struct instead? Notice that while you can get a copy of f using
+      fp( ), you cannot assign to f?that's completely under the
+      control of the class. After capturing the pointer returned by
+      fp( ), the client programmer can still assign to the structure
+      elements or even close it, so the safety is in guaranteeing a
+      valid FILE pointer rather than proper contents of the structure.
+      --> <para>Incluso teniendo en cuenta que <varname>FILE</varname>
+      es un puntero privado, no es particularmente seguro porque
+      <function>fp()</function> lo recupera. Ya que el único efecto
+      que parece estar garantizado es la inicialización y la
+      liberación, ¿por que no hacerlo público o usar una <code>struct
+      </code>en su lugar? Nótese que mientras se puede obtener una
+      copia de <varname>f </varname>usando <function>fp()</function>,
+      no se puede asignar a <varname>f</varname> -que está
+      completamente bajo el control de la clase. Después de capturar
+      el puntero retornado por <function>fp()</function>, el
+      programador cliente todavía puede asignar a la estructura
+      elementos o incluso cerrarlo, con lo que la seguridad esta en la
+      garantía de un puntero a FILE válido mas que en el correcto
+      contenido de la estructura.</para> 
+
+    <!-- If you want complete
+      safety, you must prevent the user from directly accessing the
+      FILE pointer. Some version of all the normal file I/O functions
+      must show up as class members so that everything you can do with
+      the C approach is available in the C++ class: --> <para>Si
+      quiere completa seguridad, tiene que evitar que el usuario
+      acceda directamente al puntero <code>FILE</code>. Cada una de
+      las versiones de las funciones normales de E/S a ficheros deben
+      ser mostradas como miembros de clase para que todo lo que se
+      pueda hacer desde el acercamiento de C esté disponible en la
+      clase de C++.</para> 
+
+
+//: V2C04:Fullwrap.h 
+
+
+    <!-- This class
+      contains almost all the file I/O functions from
+      <cstdio>. (vfprintf( ) is missing; it implements the printf( )
+      member function.)  --> <para>Esta clase contiene casi todas las
+      funciones de E/S de fichero de
+      <code>&lt;cstdio&gt;</code>. (<function>vfprintf()</function> no
+      esta; se implementa en la función miembro
+      <function>printf()</function> )</para> 
+
+    <!-- File has the same
+      constructor as in the previous example, and it also has a
+      default constructor. The default constructor is important if you
+      want to create an array of File objects or use a File object as
+      a member of another class where the initialization doesn't
+      happen in the constructor, but some time after the enclosing
+      object is created.  --> <para>El fichero tiene el mismo
+      constructor que en el ejemplo anterior, y también tiene un
+      constructor por defecto. El constructor por defecto es
+      importante si se crea un array de objetos
+      <classname>File</classname> o se usa un objeto
+      <classname>File</classname> como miembro de otra clase donde la
+      inicialización no se realiza en el contructor, sino cierto
+      tiempo después de que el objeto envolvente se cree.</para> 
+
+    <!--
+      The default constructor sets the private FILE pointer f to
+      zero. But now, before any reference to f, its value must be
+      checked to ensure it isn't zero. This is accomplished with F( ),
+      which is private because it is intended to be used only by other
+      member functions. (We don't want to give the user direct access
+      to the underlying FILE structure in this class.)  --> <para>El
+      constructor por defecto pone a cero el puntero a
+      <varname>FILE</varname> privado <varname>f</varname>. Pero ahora
+      , antes de cualquier referencia a <function>f</function>, el
+      valor debe ser comprobado para asegurarse que no es cero. Esto
+      se consigue con <function>F()</function>, que es privado porque
+      está pensado para ser usado solamente por otras funciones
+      miembro. (No queremos dar acceso directo a usuarios a la
+      estructura de <varname>FILE</varname> subyacente en esta
+      clase).</para> 
+
+    <!-- This approach is not a terrible solution by
+      any means. It's quite functional, and you could imagine making
+      similar classes for standard (console) I/O and for in-core
+      formatting (reading/writing a piece of memory rather than a file
+      or the console).  --> <para>Este acercamiento no es terrible en
+      ningún sentido. Es bastante funcional, y se puede imaginar
+      haciendo clases similares para la E/S estándar (consola) y para
+      los formateos en el core (leer/escribir un trozo de la memoria
+      en vez de un fichero o la consola).</para> 
+
+    <!-- The stumbling
+      block is the runtime interpreter used for the variable argument
+      list functions. This is the code that parses your format string
+      at runtime and grabs and interprets arguments from the variable
+      argument list. It's a problem for four reasons.  --> <para>Los
+      puntos suspensivos interpretan en tiempo de ejecución usado para
+      las listas variables de argumentos. Este es el código que
+      traduce el formato de su cadena en tiempo de ejecución y recoge
+      e interpreta argumentos desde una lista variable de
+      argumentos. Es un problema por cuatro razones<note> <para>Este
+      parrafo está muy lejos de la realidad. A que se refiere con
+      stumbling block of code?</para> </note></para> 
+
+    <!-- 1.  Even if
+      you use only a fraction of the functionality of the interpreter,
+      the whole thing gets loaded into your executable. So if you say
+      printf("%c", 'x');, you'll get the whole package, including the
+      parts that print floating-point numbers and strings. There's no
+      standard option for reducing the amount of space used by the
+      program.  --> <para>1. Incluso si solo se usa una fracción de la
+      funcionalidad del interprete, se carga todo en el
+      ejecutable. Luego si quiere usar un <code>printf("%c", 'x');
+      </code>, usted tendrá todo el paquete, incluido las partes que
+      imprimen números en coma flotante y cadenas. No hay una opción
+      estándar para reducir el la cantidad de espacio usado por el
+      programa.</para> 
+
+    <!-- 2.  Because the interpretation happens at
+      runtime, you can't get rid of a performance overhead. It's
+      frustrating because all the information is there in the format
+      string at compile time, but it's not evaluated until
+      runtime. However, if you could parse the arguments in the format
+      string at compile time, you could make direct function calls
+      that have the potential to be much faster than a runtime
+      interpreter (although the printf( ) family of functions is
+      usually quite well optimized).  --> <para>2. Como la
+      interpretación pasa en tiempo de ejecución, no se puede evitar
+      un empeoramiento del rendimiento. Esto es frustrante por que
+      toda la información está allí, en el formato de la cadena, en
+      tiempo de compilación, pero no se evalua hasta la ejecución. Por
+      otro lado, si se pudieran analizar los argumentos en el formateo
+      de la cadena durante la compilación, se podrían hacer llamadas
+      directas a funciones que tuvieran el potencial de ser mucho más
+      rápidas que un interprete en tiempo de ejecución (aunque la
+      familia de funciones de printf() acostumbran a estar bastante
+      bien optimizadas). </para> 
+
+    <!-- 3.  Because the format string is
+      not evaluated until runtime, there can be no compile-time error
+      checking. You're probably familiar with this problem if you've
+      tried to find bugs that came from using the wrong number or type
+      of arguments in a printf( ) statement. C++ makes a big deal out
+      of compile-time error checking to find errors early and make
+      your life easier. It seems a shame to throw type safety away for
+      an I/O library, especially since I/O is used a lot.  -->
+      <para>3. Como el formateo de la cadena no se evalua hasta la
+      ejecución, no se hace una comprobación de errores al compilar.
+      Probalblemente está familiarizado con este problema si ha
+      intentado buscar errores que provienen del uso de un número o
+      tipo de argumentos incorrecto en una sentencia
+      <function>printf()</function>. C++ ayuda mucho a encontrar
+      rápidamente errores durante la compilación y hacerle la vida más
+      fácil.  Parece una tonteria desechar la seguridad en los tipos
+      de datos para la libreria de E/S, especialmente cuando usamos
+      intensivamente las E/S.</para>
+  
+    <!--
     4.  For C++, the most crucial problem is that the printf( ) family of
     functions is not particularly extensible. They're really designed to
     handle only the basic data types in C (char, int, float, double,
@@ -321,7 +387,9 @@ http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc
     <classname>string</classname>. La única interfaz que aprenderá también
     funciona para extensiones añadidas para soportar nuevas clases. Algunas
     funciones implementan sus comandos de formateo, y algunas funciones leen y
-    escriben caracteres sin formatear.</para> <!--
+    escriben caracteres sin formatear.</para> 
+
+      <!--
       The stream classes mentioned earlier are actually template
       specializations,[41] much like the standard string class is a
       specialization of the basic_string template. The basic classes in the
@@ -332,23 +400,35 @@ http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc
     <classname>basic_string</classname>. Las clases básicas en la jerarquia de
     herencias son mostradas en la siguiente figura:<footnote>
         <para>Explicadas en profundidad en el capítulo 5.</para>
-      </footnote></para> <!-- FIXME: figura --> <!--
+      </footnote></para> 
+
+      <!-- FIXME: figura --> 
+
+      <!--
       The ios_base class declares everything that is common to all streams,
       independent of the type of character the stream handles. These
       declarations are mostly constants and functions to manage them, some of
       which you'll see throughout this chapter. The rest of the classes are
       templates that have the underlying character type as a parameter. The
       istream class, for example, is defined as follows: 
-	--> <para>La clase <classname>ios_base</classname> declara todo aquello que
-    es común a todos los <classname>stream</classname>, independientemente del
-    tipo de carácteres que maneja el <classname>stream</classname>. Estas
-    declaraciones son principalmente constantes y funciones para manejarlas,
-    algunas de ella las verá a durante este capítulo. El resto de clases son
-    plantillas que tienen un tipo de caracter subyacente como parámetro. La
-    clase <classname>istream</classname>, por ejemplo, está definida a
-    continuación:</para> <programlisting>
+	--> 
+
+      <para>
+	La clase <classname>ios_base</classname> declara todo aquello
+	que es común a todos los <classname>stream</classname>,
+	independientemente del tipo de carácteres que maneja el
+	<classname>stream</classname>. Estas declaraciones son
+	principalmente constantes y funciones para manejarlas, algunas
+	de ella las verá a durante este capítulo. El resto de clases
+	son plantillas que tienen un tipo de caracter subyacente como
+	parámetro. La clase <classname>istream</classname>, por
+	ejemplo, está definida a continuación:</para> 
+
+<programlisting>
 typedef basic_istream&lt;char&gt; istream;
-</programlisting> <!--
+</programlisting>
+
+      <!--
       All the classes mentioned earlier are defined via similar type
       definitions. There are also type definitions for all stream classes
       using wchar_t (the wide character type discussed in Chapter 3) instead
@@ -370,15 +450,20 @@ typedef basic_istream&lt;char&gt; istream;
     funciones genéricas para la entrada y <classname>basic_ostream</classname>
     hace lo mismo para la salida. Las clases para ficheros y streams de
     <classname>strings</classname> introducidas después añaden funcionalidad
-    para sus tipos especificos de <classname>stream</classname>.</para> <!--
+    para sus tipos especificos de <classname>stream</classname>.</para> 
+
+      <!--
       In the iostreams library, two operators are overloaded to simplify the
       use of iostreams. The operator &lt;&lt; is often referred to as an inserter
       for iostreams, and the operator >> is often referred to as an extractor.
-      --> <para>En la librería de <classname>iostream</classname>, se han
+      --> <para>
+	En la librería de <classname>iostream</classname>, se han
     sobrecargado dos operadores para simplificar el uso de
     <classname>iostreams</classname>. El operador &lt;&lt; se denomina
     frecuentemente instertador para <classname>iostreams</classname>, y el
-    operador &gt;&gt; se denomina frecuentemente extractor.</para> <!--
+    operador &gt;&gt; se denomina frecuentemente extractor.</para> 
+
+      <!--
       Extractors parse the information that's expected by the destination
       object according to its type. To see an example of this, you can use the
       cin object, which is the iostream equivalent of stdin in C, that is,
@@ -390,7 +475,9 @@ typedef basic_istream&lt;char&gt; istream;
     <classname>iostream</classname> de <type>stdin</type> en C, esto es,
     entrada estándar redireccionable. Este objeto viene predefinido cuando
     usted incluye la cabecera <code>&lt;iostream&gt;.</code></para>
-    <programlisting>
+
+
+<programlisting>
   int i;
   cin &gt;&gt; i;
  
@@ -402,12 +489,16 @@ typedef basic_istream&lt;char&gt; istream;
  
   char buf[100];
   cin &gt;&gt; buf;
-</programlisting> <!--
+</programlisting> 
+
+      <!--
       There's an overloaded operator >> for every built-in data type. You can
       also overload your own, as you'll see later.
       --> <para>Existe un operador sobrecargado &gt;&gt; para cada tipo
     fundamental de dato. Usted también puede sobrecargar los suyos, como verá
-    más adelante.</para> <!--
+    más adelante.</para> 
+
+      <!--
       To find out what you have in the various variables, you can use the cout
       object (corresponding to standard output; there's also a cerr object
       corresponding to standard error) with the inserter &lt;&lt;:
@@ -415,7 +506,10 @@ typedef basic_istream&lt;char&gt; istream;
     objeto <classname>cout</classname> (correspondiente con la salida
     estándar; también existe un objeto <classname>cerr</classname>
     correspondiente con la salida de error estándar) con el insertador
-    &lt;&lt;:</para> <programlisting>
+    &lt;&lt;:</para> 
+
+
+<programlisting>
   cout &lt;&lt; "i = ";
   cout &lt;&lt; i;
   cout &lt;&lt; "\n";
@@ -428,7 +522,10 @@ typedef basic_istream&lt;char&gt; istream;
   cout &lt;&lt; "buf = ";
   cout &lt;&lt; buf;
   cout &lt;&lt; "\n";
-</programlisting> <!--
+</programlisting> 
+
+
+      <!--
       This is tedious and doesn't seem like much of an improvement over
       printf( ), despite improved type checking. Fortunately, the overloaded
       inserters and extractors are designed to be chained into a more complex
@@ -437,28 +534,42 @@ typedef basic_istream&lt;char&gt; istream;
     printf()</function>, aparte de la mejora en la comprobación de tipos.
     Afortunadamente, los insertadores y extractores sobrecargados están
     diseñados para ser encadenados dentro de expresiones más complejas que son
-    mucho más fáciles de escribir (y leer):</para> <programlisting>
+    mucho más fáciles de escribir (y leer):</para> 
+
+<programlisting>
   cout &lt;&lt; "i = " &lt;&lt; i &lt;&lt; endl;
   cout &lt;&lt; "f = " &lt;&lt; f &lt;&lt; endl;
   cout &lt;&lt; "c = " &lt;&lt; c &lt;&lt; endl;
   cout &lt;&lt; "buf = " &lt;&lt; buf &lt;&lt; endl;
-</programlisting> <!--
+</programlisting> 
+
+
+      <!--
       Defining inserters and extractors for your own classes is just a matter
       of overloading the associated operators to do the right things, namely:
       --> <para>Definir insertadores y extractores para sus propias clases es
     simplemente una cuestion de sobrecargar los operadores asociados para
-    hacer el trabajo correcto, de la siguente manera:</para> <!--
+    hacer el trabajo correcto, de la siguente manera:</para> 
+
+      <!--
       · Make the first parameter a non-const reference to the stream (istream
       for input, ostream for output).
       --> <para>- Hacer del primer parámetro una referencia no constante al
     <classname>stream</classname> (<classname>istream</classname> para la
-    entrada, <classname>ostream</classname> para la salida).</para> <!--
+    entrada, <classname>ostream</classname> para la salida).</para> 
+
+      <!--
       · Perform the operation by inserting/extracting data to/from the stream
       (by processing the components of the object).
       --> <para>- Realizar la operación de insertar/extraer datos hacia/desde
     el <classname>stream</classname> (procesando los componentes del
-    objeto).</para> <!-- · Return a reference to the stream. --> <para>-
-    Retornar una referencia al <classname>stream</classname></para> <!--
+    objeto).</para> 
+
+      <!-- · Return a reference to the stream. --> <para>-
+    Retornar una referencia al <classname>stream</classname></para> 
+
+
+      <!--
       The stream should be non-const because processing stream data changes
       the state of the stream. By returning the stream, you allow for chaining
       stream operations in a single statement, as shown earlier.
@@ -466,12 +577,17 @@ typedef basic_istream&lt;char&gt; istream;
     el procesado de los datos del <classname>stream</classname> cambian el
     estado del <classname>stream</classname>. Retornando el
     <classname>stream</classname>, usted permite el encadenado de operaciones
-    en una sentencia individual, como se mostró antes.</para> <!--
+    en una sentencia individual, como se mostró antes.</para> 
+
+<!--
       As an example, consider how to output the representation of a Date
       object in MM-DD-YYYY format. The following inserter does the job:
       --> <para>Como ejemplo, considere como representar la salida de un
     objeto <classname>Date</classname> en formato MM-DD-AAAA . El siguiente
-    insertador hace este trabajo:</para> <programlisting>
+    insertador hace este trabajo:</para> 
+
+
+<programlisting>
 ostream&amp; operator&lt;&lt;(ostream&amp; os, const Date&amp; d) {
   char fillc = os.fill('0');
   os &lt;&lt; setw(2) &lt;&lt; d.getMonth() &lt;&lt; '-'
@@ -479,7 +595,9 @@ ostream&amp; operator&lt;&lt;(ostream&amp; os, const Date&amp; d) {
      &lt;&lt; setw(4) &lt;&lt; setfill(fillc) &lt;&lt; d.getYear();
   return os;
 }
-</programlisting> <!--
+</programlisting> 
+
+      <!--
       This function cannot be a member of the Date class because the left
       operand of the &lt;&lt; operator must be the output stream. The fill( ) member
       function of ostream changes the padding character used when the width of
@@ -502,7 +620,10 @@ ostream&amp; operator&lt;&lt;(ostream&amp; os, const Date&amp; d) {
     caracter de relleno anterior (que por defecto es un espacio en blanco)
     para que podamos recuperarlo después con el manipulador
     <function>setfill()</function>. Discutiremos los manipuladores en
-    profundidad más adelante en este capítulo.</para> <!--
+    profundidad más adelante en este capítulo.</para> 
+
+
+<!--
       Extractors require a little more care because things can go wrong with
       input data. The way to signal a stream error is to set the stream's
       fail bit, as follows:
@@ -510,7 +631,9 @@ ostream&amp; operator&lt;&lt;(ostream&amp; os, const Date&amp; d) {
     pueden ir mal con los datos de entrada. La manera de avisar sobre errores
     en el <classname>stream</classname> es activar el bit de error del
     <classname>stream</classname>, como se muestra a continuación:</para>
-    <programlisting>
+
+
+<programlisting>
 istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
   is &gt;&gt; d.month;
   char dash;
@@ -524,7 +647,9 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
   is &gt;&gt; d.year;
   return is;
 }
-</programlisting> <!--
+</programlisting> 
+
+<!--
       When an error bit is set in a stream, all further streams operations are
       ignored until the stream is restored to a good state (explained
       shortly). That's why the code above continues extracting even if
@@ -542,16 +667,25 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
     entre los numeros y guiones en la cadena de la fecha (por que el operador
     &gt;&gt; ignora los espacios en blanco por defecto cuado lee tipos
     fundamentales). La cadena de fecha a continuación es válida para este
-    extractor:</para> "08-10-2003" "8-10-2003" "08 - 10 - 2003" <!-- but these are not: -->
+    extractor:</para> "08-10-2003" "8-10-2003" "08 - 10 - 2003" 
+
+
+      <!-- but these are not: -->
     <para>Pero esta no:</para> "A-10-2003" // No alpha characters allowed
-    "08%10/2003" // Only dashes allowed as a delimiter <!--
+    "08%10/2003" // Only dashes allowed as a delimiter 
+
+      <!--
       We'll discuss stream state in more depth in the section 'Handling
       stream errors' later in this chapter.
       --> <para>Discutiremos los estados de los <classname>stream</classname>
     en mayor profundidad en la sección 'Manejar errores de
     <classname>stream</classname>' después en este capítulo.</para></sect2>
 
-    <sect2><!-- : Common usage --><title>Uso común</title> <!--
+    <sect2>
+      <!-- : Common usage -->
+      <title>Uso común</title> 
+
+      <!--
       As the Date extractor illustrated, you must be on guard for erroneous
       input. If the input produces an unexpected value, the process is skewed,
       and it's difficult to recover. In addition, formatted input defaults to
@@ -563,13 +697,21 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
     difícil de recuperar. Además, por defecto, la entrada formateada está
     delimitada por espacios en blanco. Considere que ocurre cuando recogemos
     los fragmentos de código anteriores en un solo programa:</para> //:
-    V2C04:Iosexamp.cpp {RunByHand} <!-- and give it the following input: -->
+    V2C04:Iosexamp.cpp {RunByHand} 
+
+      <!-- and give it the following input: -->
     <para>y le proporcionamos la siguiente entrada:</para> 12 1.4 c this is a
-    test <!-- We expect the same output as if we gave it --> <para>esperamos
+    test 
+
+      <!-- We expect the same output as if we gave it --> <para>esperamos
     la misma salida que si le hubieramos proporcionado esto:</para> 12 1.4 c
-    this is a test <!-- but the output is, somewhat unexpectedly -->
+    this is a test 
+
+      <!-- but the output is, somewhat unexpectedly -->
     <para>pero la salida es algo inesperado</para> i = 12 f = 1.4 c = c buf =
-    this 0xc <!--
+    this 0xc 
+
+      <!--
       Notice that buf got only the first word because the input routine looked
       for a space to delimit the input, which it saw after 'this.' In
       addition, if the continuous input string is longer than the storage
@@ -578,7 +720,9 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
     palabra porque la rutina de entrada busca un espacio que delimite la
     entrada, que es el que se encuentra después de 'tihs.' Además, si la
     entrada continua de datos es mayor que el espacio reservado por
-    <varname>buf</varname>, sobrepasamos los limites del buffer.</para> <!--
+    <varname>buf</varname>, sobrepasamos los limites del buffer.</para> 
+
+      <!--
       In practice, you'll usually want to get input from interactive programs
       a line at a time as a sequence of characters, scan them, and then
       perform conversions once they're safely in a buffer. This way you don'
@@ -587,7 +731,9 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
     programas interactivos, una linea cada vez como secuencia de carácteres,
     leerla, y después hacer las conversiones necesarias hasta que estén
     seguras en un buffer. De esta manera no deberá preocuparse por la rutina
-    de entrada fallando por datos inesperados.</para> <!--
+    de entrada fallando por datos inesperados.</para> 
+
+      <!--
       Another consideration is the whole concept of a command-line
       interface. This made sense in the past when the console was little more
       than a glass typewriter, but the world is rapidly changing to one where
@@ -601,39 +747,56 @@ istream&amp; operator&gt;&gt;(istream&amp; is, Date&amp; d) {
     otro donde la interfaz gráfica de usuario (GUI) domina. ¿Cual es el
     sentido de la E/S por consola en este mundo? Esto le da mucho más sentido
     a ignorar <classname>cin </classname>en general, salvo para ejemplos
-    simples y tests, y hacer los siguientes acercamientos:</para> <!--
+    simples y tests, y hacer los siguientes acercamientos:</para> 
+
+      <!--
       1.  If your program requires input, read that input from a file?you'll
       soon see that it's remarkably easy to use files with
       iostreams. Iostreams for files still works fine with a GUI.
       --> <para>1. Si su programa requiere entrada, ¿leer esta entrada desde
     un fichero? Pronto verá que es remarcablemente fácil usar ficheros con
     <classname>iostream</classname>. <classname>Iostream</classname> para
-    ficheros todavia funciona perfectamente con una GUI.</para> <!--
+    ficheros todavia funciona perfectamente con una GUI.</para> 
+
+
+      <!--
       2.  Read the input without attempting to convert it, as we just
       suggested. When the input is some place where it can't foul things up
       during conversion, you can safely scan it.
       --> <para>2. Leer la entrada sin intentar convertirla, como hemos
     sugerido. Cuando la entrada es algun sitio donde no podemos arriesgarnos
-    durante la conversión, podemos escanearla de manera segura.</para> <!--
+    durante la conversión, podemos escanearla de manera segura.</para> 
+
+      <!--
       3.  Output is different. If you're using a GUI, cout doesn't
       necessarily work, and you must send it to a file (which is identical to
       sending it to cout) or use the GUI facilities for data
       display. Otherwise it often makes sense to send it to cout. In both
       cases, the output formatting functions of iostreams are highly useful.
-      --> <para>3. La salida es diferente. Si está usando una interfaz
-    gráfica, <classname>cout</classname> no necesariamente funciona, y usted
-    debe mandarlo a un fichero (que es indéntico a mandarlo a un
-    <classname>cout</classname>) o usar los componentes del GUI para mostrar
-    los datos. En cualquier otra situacion, a menudo tiene sentido mandarlo a
-    <classname>cout</classname>. En ambos casos, la funciones de formateo de
-    la salida de <classname>iostream</classname> son muy útiles.</para> <!--
+      --> 
+      <para>
+	3. La salida es diferente. Si está usando una interfaz
+	gráfica, <classname>cout</classname> no necesariamente
+	funciona, y usted debe mandarlo a un fichero (que es indéntico
+	a mandarlo a un <classname>cout</classname>) o usar los
+	componentes del GUI para mostrar los datos. En cualquier otra
+	situacion, a menudo tiene sentido mandarlo a
+	<classname>cout</classname>. En ambos casos, la funciones de
+	formateo de la salida de <classname>iostream</classname> son
+	muy útiles.</para>
+
+      <!--
       Another common practice saves compile time on large projects. Consider,
       for example, how you would declare the Date stream operators introduced
       earlier in the chapter in a header file. You only need to include the
       prototypes for the functions, so it's not really necessary to include
       the entire <iostream> header in Date.h. The standard practice is to only
       declare classes, something like this:
-      --> <para /> <programlisting>
+      --> 
+      <para>
+      </para>
+
+<programlisting>
 class ostream;
 </programlisting> <!--
       This is an age-old technique for separating interface from
@@ -649,12 +812,19 @@ namespace std {
     class basic_ostream;
   typedef basic_ostream&lt;char&gt; ostream;
 }
-</programlisting> <!--
+</programlisting> 
+
+      <!--
       (As you can see, like the string class, the streams classes use the
       character traits classes mentioned in Chapter 3). Since it would be
       terribly tedious to type all that for every stream class you want to
       reference, the standard provides a header that does it for you:
-      --> <para /> <programlisting>
+      -->
+      <para></para>
+ 
+
+
+<programlisting>
 // Date.h
 #include &lt;iosfwd&gt;
  
@@ -663,7 +833,9 @@ class Date {
                                   const Date&amp;);
   friend std::istream&amp; operator&gt;&gt;(std::istream&amp;, Date&amp;);
   // Etc.
-</programlisting> <!--
+</programlisting> 
+
+      <!--
       class Date { friend std::ostream& operator&lt;&lt;(std::ostream&, const
       Date&); friend std::istream& operator>>(std::istream&, Date&); // Etc.
       --> <para /></sect2>
