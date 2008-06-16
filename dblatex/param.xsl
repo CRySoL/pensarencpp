@@ -7,18 +7,18 @@
   <xsl:param name="figure.warning">warning</xsl:param>
   <xsl:param name="figure.caution">caution</xsl:param>
   <xsl:param name="figure.important">important</xsl:param>
-  
+
   <!-- Options used for documentclass -->
   <xsl:param name="latex.class.options">a4paper,10pt,twoside,openright</xsl:param>
 
 
-  <xsl:param name="latex.babel.use">0</xsl:param>
-<!--
+  <xsl:param name="latex.babel.use">1</xsl:param>
+
   <xsl:param name="latex.babel.language">spanish</xsl:param>
--->
+
 
   <xsl:param name="latex.hyperparam">colorlinks,linkcolor=blue,urlcolor=blue,</xsl:param>
-  
+
   <xsl:param name="draft.mode">yes</xsl:param>
   <xsl:param name="latex.class.book">book</xsl:param>
 

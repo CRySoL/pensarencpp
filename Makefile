@@ -7,7 +7,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 
-all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf 
+all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
 
 Volumen%-html.bz2: vol%
 	tar cfj $@ $<
@@ -24,7 +24,7 @@ vol%: tagged-Volumen%.xml
 	cp images/web/* $@/images/
 	cp stylesheets/*.css $@/
 
-	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py 
+	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
 	$(RM) $@/*.code
 
 	highlight --data-dir ./stylesheets/highlight --style emacs21 code_v1/C02/Hello.cpp > /dev/null
@@ -33,7 +33,6 @@ vol%: tagged-Volumen%.xml
 tagged-Volumen%.xml: Volumen%.xml
 	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO"
 	python utils/xml_tag_codes.py $< > $@
-
 
 %.pdf: %.xml
 	dblatex -T dblatex/pec $<
@@ -59,11 +58,11 @@ tagged-Volumen%.xml: Volumen%.xml
 #	$(XSL_PDF) Volumen1-final.xml
 #
 
-Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml) 
-Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml) 
+Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml)
+Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml)
 
 
-Volumen%.xml: 
+Volumen%.xml:
 	@echo "--- MONTANDO EL DOCUMENTO"
 	xsltproc --xinclude stylesheets/profile.xsl master_$(basename $@).xml > fase1.xml
 	@echo "--- RUTAS A LOS LISTADOS"
@@ -84,7 +83,7 @@ install: products
 products: Volumen1-html.bz2 vol1 Volumen1.pdf \
 	  Volumen2-html.bz2 vol2 Volumen2.pdf
 	@-mkdir products
-	cp -r $^ products/ 
+	cp -r $^ products/
 
 
 validate:
@@ -96,7 +95,7 @@ clean:
 	$(RM) fase?.xml join.xml *.bz2
 	$(RM) Volumen?.xml *-tagged.xml
 	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
-	$(RM) *~ 
+	$(RM) *~
 	$(RM) -r products
 	$(RM) vol1/images/* vol2/images/*
 	-rmdir vol1/images  vol2/images
