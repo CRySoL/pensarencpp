@@ -7,11 +7,9 @@
 % The defined options
 \DeclareOption{hyperlink}{ \def\DBKhyperlink{yes} }
 \DeclareOption{nohyperlink}{ \def\DBKhyperlink{no} }
-\DeclareOption{article}{ \def\DBKisarticle{yes} }
-\DeclareOption{report}{ \def\DBKisarticle{no} }
 
 % Default values
-\ExecuteOptions{nohyperlink,report}
+\ExecuteOptions{nohyperlink}
 
 % If defined, process the options
 \ProcessOptions\relax
@@ -20,7 +18,7 @@
 \usepackage{ifthen}
 \usepackage{float}
 
-%\usepackage[spanish]{babel}
+\usepackage{footmisc}
 
 \newcommand{\DBKreleaseinfo}{Working Paper}
 
@@ -33,6 +31,7 @@
 \usepackage{dbk_verbatim}
 \usepackage{dbk_callout}
 \usepackage{dbk_locale}
+\usepackage{dbk_annot}
 
 % LaTeX <othercredit> commands to define
 %
@@ -70,7 +69,7 @@
 \newcommand{\DBKsite}{}
 \newcommand{\DBKedition}{}
 \newcommand{\DBKsubtitle}{}
-\newcommand{\DBKdate}{}
+\newcommand{\DBKdate}{\today}
 \newcommand{\DBKpubdate}{}
 \newcommand{\DBKindexation}{}
 \newcommand{\DBKrevhistory}{}
@@ -78,6 +77,21 @@
 \newcommand{\DBKlegaltitle}{}
 \newcommand{\DBKcopyright}{}
 
+% Display ``DRAFT'' as a water mark:
+\usepackage{ifpdf}
+\ifpdf
+\usepackage{pdfpages}
+\usepackage{color}
+\def\showwatermark#1{%
+  \AddToShipoutPicture{
+  \AtTextCenter{%
+  \makebox(0,0)[c]{\resizebox{\textwidth}{!}{%
+  \rotatebox{45}{\textsf{\textbf{\color[gray]{0.8}#1}}}}}%
+  }}
+}
+\else
+\def\showwatermark#1{}%
+\fi
 
 % --------------------------
 % Title and Bookinfo display
@@ -92,9 +106,10 @@
 \let\stdauthor=\author
 \def\author#1{
   \def\DBKauthor{#1}
-  \stdauthor{#1}%
+  \stdauthor{\begin{minipage}{10cm}\centering #1\end{minipage}}%
 }
 
+%-- PEC{
 \renewcommand{\maketitle}{
 \begin{titlepage}
 
@@ -111,23 +126,24 @@
 {\large \DBKauthor}
 
 \vspace{1cm}
-\today
+\DBKdate
 \vfill
 
-Puede encontrar la versión actualizada de
-este libro e información adicional sobre el proyecto de traducción en
-\url{http://arco.inf-cr.uclm.es/~david.villa/pensarC++.html}
+Puede encontrar la versión actualizada de este libro e información
+adicional\\ sobre el proyecto de traducción en
+\url{http://arco.esi.uclm.es/~david.villa/pensarC++.html}
 
 \end{center}
 \end{titlepage}
 }
+%-- }PEC
 
 \let\stdmaketitle=\maketitle
 \def\maketitle{
   \stdmaketitle
   \noindent
   \textbf{\DBKtitle \\}
-  \ifthenelse{\equal{\DBKauthor}{}}{}{by \DBKauthor \\}
+  \ifx\DBKauthor\empty\else{by \DBKauthor \\}\fi
   \hspace{0pt}\\
   \ifthenelse{\equal{\DBKedition}{}}{}{Edition \DBKedition \\}
   \ifthenelse{\equal{\DBKpubdate}{}}{}{Published \DBKpubdate \\}
@@ -153,7 +169,6 @@ este libro e información adicional sobre el proyecto de traducción en
 % --------------------------------------------
 % Check for PDFLaTeX/LaTeX
 % --------------------------------------------
-\usepackage{ifpdf}
 \usepackage{anysize}
 \marginsize{3cm}{2cm}{1.25cm}{1.25cm}
 
@@ -186,6 +201,19 @@ este libro e información adicional sobre el proyecto de traducción en
 }{\typeout{WARNING: truncate.sty wasn't available and functionality was skipped.}}
 \pagestyle{fancy}
 
+% Define front/main/back matter if not available
+\makeatletter
+\@ifundefined{frontmatter}{
+  \def\frontmatter{\cleardoublepage\pagenumbering{roman}}
+}{}
+\@ifundefined{mainmatter}{
+  \def\mainmatter{\cleardoublepage\pagenumbering{arabic}}
+}{}
+\@ifundefined{backmatter}{
+  \def\backmatter{\if@openright\cleardoublepage\else\clearpage\fi}
+}{}
+\makeatother
+
 % ----------------------
 % Most Common Packages
 % ----------------------
@@ -211,23 +239,11 @@ este libro e información adicional sobre el proyecto de traducción en
 % --------------------------------------------
 % Math support
 % --------------------------------------------
-\usepackage{amsmath,amsthm,amsfonts,amssymb,amsxtra,amsopn}
-\newcommand{\bysame}{\mbox{\rule{3em}{.4pt}}\,}
-\newcommand{\A}{\mathcal{A}}
-\newcommand{\B}{\mathcal{B}}
-\newcommand{\XcY}{{(X,Y)}}
-\newcommand{\SX}{{S_X}}
-\newcommand{\SY}{{S_Y}}
-\newcommand{\SXY}{{S_{X,Y}}}
-\newcommand{\SXgYy}{{S_{X|Y}(y)}}
-\newcommand{\Cw}[1]{{\hat C_#1(X|Y)}}
-\newcommand{\G}{{G(X|Y)}}
-\newcommand{\PY}{{P_{\mathcal{Y}}}}
-\newcommand{\X}{\mathcal{X}}
-\newcommand{\wt}{\widetilde}
-\newcommand{\wh}{\widehat}
+%\usepackage{amsmath,amsthm,amsfonts,amssymb,amsxtra,amsopn}
+\usepackage{amsmath,amsthm,amsfonts,amsxtra,amsopn}
+
 % --------------------------------------------
-%\DeclareMathOperator{\per}{per}
+\DeclareMathOperator{\per}{per}
 \DeclareMathOperator{\cov}{cov}
 \DeclareMathOperator{\non}{non}
 \DeclareMathOperator{\cf}{cf}
@@ -235,13 +251,13 @@ este libro e información adicional sobre el proyecto de traducción en
 \DeclareMathOperator{\Cham}{Cham}
 \DeclareMathOperator{\IM}{Im}
 \DeclareMathOperator{\esssup}{ess\,sup}
-\DeclareMathOperator{\meas}{meas}
-\DeclareMathOperator{\seg}{seg}
 
 % ---------------
 % Document Font
 % ---------------
-%\usepackage{palatino}
+\ifxetex\else
+\usepackage{palatino}
+\fi
 
 % ----------------------------------------------
 % Define a new LaTeX environment (adminipage)
@@ -345,11 +361,6 @@ este libro e información adicional sobre el proyecto de traducción en
   \floatname{algorithm}{Algorithm}
 }
 \makeatother
-\ifpdf
-\DeclareGraphicsExtensions{.pdf,.png,.jpg}
-\else
-\DeclareGraphicsExtensions{.eps}
-\fi
 
 % --------------------------------------------
 % $latex.caption.swapskip enabled for $formal.title.placement support
@@ -460,6 +471,19 @@ este libro e información adicional sobre el proyecto de traducción en
 
 %-- PEC{
 
+\usepackage[twoside]{geometry}
+\geometry{
+  paperwidth=18cm,
+  paperheight=26.7cm,
+  hmargin=2cm,
+  vmargin=2cm,
+  bindingoffset=1cm,
+  bottom=2cm,
+}
+
+\usepackage[cam,a4,center]{crop}
+%\usepackage[cam,frame,a4,center]{crop}
+
 
 %-- headings
 \fancyhf{}
@@ -476,7 +500,9 @@ este libro e información adicional sobre el proyecto de traducción en
 
 %\addtolength{\headwidth}{20pt}
 
+% alargar la linea del encabezado
 \fancyhfoffset[L]{20pt}
+\fancyhfoffset[R]{20pt}
 
 \parskip=5pt
 
@@ -525,26 +551,64 @@ este libro e información adicional sobre el proyecto de traducción en
 
 
 \usepackage{color}
-\definecolor{grisfondo}{gray}{0.97}
-\definecolor{lstcomment}{gray}{.45}
+\definecolor{gray97}{gray}{.97}
+\definecolor{gray75}{gray}{.75}
+\definecolor{gray45}{gray}{.45}
+
 \usepackage{listings}
-\lstset{frame=Ltb,
-	framerule=0pt,
-	aboveskip=0.5cm,
-	framextopmargin=6pt,
-	framexbottommargin=6pt,
-	framexleftmargin=0.5cm,
-	framesep=0pt,
-	rulesep=.4pt,
-	backgroundcolor=\color{grisfondo},
-	rulesepcolor=\color{black},
-	%
-	language=C++,
-	stringstyle=\ttfamily,
-	showstringspaces = false,
-	basicstyle=\small\ttfamily,
-	commentstyle=\color{lstcomment},
-	keywordstyle=\bfseries,
-	}
+\lstset{ frame=Ltb,
+     framerule=0pt,
+     aboveskip=0.5cm,
+     framextopmargin=3pt,
+     framexbottommargin=3pt,
+     framexleftmargin=0.4cm,
+     framesep=0pt,
+     rulesep=.4pt,
+     backgroundcolor=\color{gray97},
+     rulesepcolor=\color{black},
+     %
+     stringstyle=\ttfamily,
+     showstringspaces = false,
+     basicstyle=\small\ttfamily,
+     commentstyle=\color{gray45},
+     keywordstyle=\bfseries,
+     %
+     numbers=none, %left,
+     numbersep=15pt,
+     numberstyle=\tiny,
+     numberfirstline = false,
+     breaklines=true,
+     %
+     language=C++,
+   }
+
+% minimizar fragmentado de listados
+\lstnewenvironment{listing}[1][]
+   {\lstset{#1}\pagebreak[0]}{\pagebreak[0]}
+
+
+%\usepackage{color}
+%\definecolor{grisfondo}{gray}{0.97}
+%\definecolor{lstcomment}{gray}{.45}
+%
+%\usepackage{listings}
+%\lstset{frame=Ltb,
+%	framerule=0pt,
+%	aboveskip=0.5cm,
+%	framextopmargin=6pt,
+%	framexbottommargin=6pt,
+%	framexleftmargin=0.5cm,
+%	framesep=0pt,
+%	rulesep=.4pt,
+%	backgroundcolor=\color{grisfondo},
+%	rulesepcolor=\color{black},
+%	%
+%	language=C++,
+%	stringstyle=\ttfamily,
+%	showstringspaces = false,
+%	basicstyle=\small\ttfamily,
+%	commentstyle=\color{lstcomment},
+%	keywordstyle=\bfseries,
+%	}
 
 %-- }PEC

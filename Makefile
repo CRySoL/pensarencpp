@@ -35,7 +35,7 @@ tagged-Volumen%.xml: Volumen%.xml
 	python utils/xml_tag_codes.py $< > $@
 
 %.pdf: %.xml
-	dblatex -T dblatex/pec $<
+	dblatex -T pecstyle $<
 
 
 #$(MAIN).pdf: $(MAIN).tex
@@ -110,7 +110,8 @@ clean:
 
 vclean: clean
 	$(MAKE) -C images clean
-
+	rm -rf code_v1 code_v2
+	$(RM) pec-xrefs.xml
 
 ## Local Variables: #
 ## coding:utf-8 #

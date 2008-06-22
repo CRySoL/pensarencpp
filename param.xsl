@@ -66,4 +66,34 @@
     <xsl:apply-templates/>
     <xsl:text>''</xsl:text>
   </xsl:template>
+
+  <xsl:template match="programlisting">
+    <xsl:param name="opt"/>
+    <xsl:param name="co-tagin"/>
+    <xsl:param name="rnode" select="/"/>
+
+    <xsl:variable name="env" select="'listing'"/>
+
+    <xsl:text>&#10;\begin{</xsl:text>
+    <xsl:value-of select="$env"/>
+    <xsl:text>}</xsl:text>
+    <xsl:if test="$opt!=''">
+      <xsl:text>[</xsl:text>
+      <xsl:value-of select="$opt"/>
+      <xsl:text>]</xsl:text>
+    </xsl:if>
+    <!-- some text just after the open tag must be put on a new line -->
+    <xsl:if test="not(contains(.,'&#10;')) or
+      string-length(normalize-space(substring-before(.,'&#10;')))&gt;0">
+      <xsl:text>&#10;</xsl:text>
+    </xsl:if>
+    <xsl:apply-templates mode="latex.programlisting">
+      <xsl:with-param name="co-tagin" select="$co-tagin"/>
+      <xsl:with-param name="rnode" select="$rnode"/>
+    </xsl:apply-templates>
+    <xsl:text>\end{</xsl:text>
+    <xsl:value-of select="$env"/>
+    <xsl:text>}&#10;</xsl:text>
+  </xsl:template>
+
 </xsl:stylesheet>
