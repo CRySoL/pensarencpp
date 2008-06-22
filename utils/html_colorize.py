@@ -9,7 +9,7 @@ replaces = [
   ('&lt;', '<'),
   ('&gt;', '>'),
   ('&amp;' , '&'),
-  ('&#13;', ''),
+#  ('&#13;', ''),
   ]
 
 
@@ -49,8 +49,8 @@ def colorize(fname):
         fo.write(os.popen(command).read())
 
       else:
-        if not nline in SKIP_LINES:
-          listing += line
+        #if not nline in SKIP_LINES:
+        listing += line
         nline += 1
 
 

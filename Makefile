@@ -62,7 +62,7 @@ Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml)
 Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml)
 
 
-Volumen%.xml:
+Volumen%.xml: code_v%
 	@echo "--- MONTANDO EL DOCUMENTO"
 	xsltproc --xinclude stylesheets/profile.xsl master_$(basename $@).xml > fase1.xml
 	@echo "--- RUTAS A LOS LISTADOS"
@@ -73,6 +73,12 @@ Volumen%.xml:
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
+
+code_v%: code_orig_v%
+	rm -rf $@
+	cp -r $< $@
+	python utils/patch_sources.py $@
+
 
 make_images:
 	$(MAKE) -C images
