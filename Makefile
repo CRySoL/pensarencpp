@@ -21,6 +21,7 @@ vol%: tagged-Volumen%.xml
 	  --output  $@  $(XSL_HTML)  $<
 
 	cp images/*.png $@/images
+	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images/
 	cp stylesheets/*.css $@/
 
