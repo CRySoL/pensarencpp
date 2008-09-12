@@ -1,0 +1,1517 @@
+<?xml  version="1.0" encoding="iso-8859-1"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs 21/PSGML
+  Traduccin original: 
+  Formateado DocBook:  
+-->
+
+<!-- original en:
+http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc53985643
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<chapter 
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C02">
+
+
+  <!-- 2: Defensive Programming -->
+  <title>Programacin defensiva</title>
+
+  <!--
+  Writing software may be an elusive goal for developers,
+  but a few defensive techniques, routinely applied, can go a long way
+  toward improving the quality of your code.
+  -->
+  <para>
+
+  </para>
+
+  <!-- Although the complexity of typical production software
+  guarantees that testers will always have a job, we hope you still
+  yearn to produce defect-free software. Object-oriented design
+  techniques do much to corral the difficulty of large projects, but
+  eventually you must write loops and functions. These details of
+  programming in the small become the building blocks of the larger
+  components needed for your designs. If your loops are off by one or
+  your functions calculate the correct values only most of the time,
+  you re in trouble no matter how fancy your overall methodology. In
+  this chapter, you ll see practices that help create robust code
+  regardless of the size of your project. -->
+  <para>
+
+  </para>
+
+  <!-- Your code is, among other things, an expression of your attempt
+  to solve a problem. It should be clear to the reader (including
+  yourself) exactly what you were thinking when you designed that
+  loop. At certain points in your program, you should be able to make
+  bold statements that some condition or other holds. (If you can't,
+  you really haven't yet solved the problem.) Such statements are
+  called invariants, since they should invariably be true at the point
+  where they appear in the code; if not, either your design is faulty,
+  or your code does not accurately reflect your design. -->
+  <para>
+
+  </para>
+
+  <!--
+  Consider a program that plays the guessing game of Hi-Lo. One person
+  thinks of a number between 1 and 100, and the other person guesses the
+  number. (We'll let the computer do the guessing.) The person who
+  holds the number tells the guesser whether their guess is high, low or
+  correct. The best strategy for the guesser is a binary search, which
+  chooses the midpoint of the range of numbers where the sought-after
+  number resides. The high-low response tells the guesser which half of
+  the list holds the number, and the process repeats, halving the size
+  of the active search range on each iteration. So how do you write a
+  loop to drive the repetition properly? It's not sufficient to just
+  say
+  -->
+  <para>
+
+  </para>
+
+  <!-- bool guessed = false; -->
+  <para>
+
+  </para>
+
+  <!--
+  while(!guessed) {
+  ...
+  }
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  because a malicious user might respond deceitfully, and you could
+  spend all day guessing. What assumption, however simple, are you
+  making each time you guess? In other words, what condition should hold
+  by design on each loop iteration?
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  The simple assumption is that the secret number is within the current
+  active range of unguessed numbers: [1, 100]. Suppose we label the
+  endpoints of the range with the variables low and high. Each time you
+  pass through the loop you need to make sure that if the number was in
+  the range [low, high] at the beginning of the loop, you calculate the
+  new range so that it still contains the number at the end of the
+  current loop iteration.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  The goal is to express the loop invariant in code so that a violation
+  can be detected at runtime. Unfortunately, since the computer doesn't
+  know the secret number, you can't express this condition directly in
+  code, but you can at least make a comment to that effect:
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  while(!guessed) {
+  // INVARIANT: the number is in the range [low, high]
+  ...
+  }
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  What happens when the user says that a guess is too high or too low
+  when it isn't? The deception will exclude the secret number from the
+  new subrange. Because one lie always leads to another, eventually your
+  range will diminish to nothing (since you shrink it by half each time
+  and the secret number isn't in there). We can express this condition
+  in the following program:
+  -->
+  <para>
+
+  </para>
+
+
+//: C02:HiLo.cpp {RunByHand}
+
+
+  <!--
+  The violation of the invariant is detected with the condition if(low >
+  high), because if the user always tells the truth, we will always find
+  the secret number before we run out of guesses.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  We also use a standard C technique for reporting program status to the
+  calling context by returning different values from main( ). It is
+  portable to use the statement return 0; to indicate success, but there
+  is no portable value to indicate failure. For this reason we use the
+  macro declared for this purpose in <cstdlib>: EXIT_FAILURE. For
+  consistency, whenever we use EXIT_FAILURE we also use EXIT_SUCCESS,
+  even though the latter is always defined as zero.
+  -->
+  <para>
+
+  </para>
+
+  <sect1>
+    <!-- : Assertions -->
+    <title> </title>
+
+    <!--
+    The condition in the Hi-Lo program depends on user input, so you can'
+    t prevent a violation of the invariant. However, invariants usually
+    depend only on the code you write, so they will always hold if you've
+    implemented your design correctly. In this case, it is clearer to make
+    an assertion, which is a positive statement that reveals your design
+    decisions.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Suppose you are implementing a vector of integers: an expandable array
+    that grows on demand. The function that adds an element to the vector
+    must first verify that there is an open slot in the underlying array
+    that holds the elements; otherwise, it needs to request more heap
+    space and copy the existing elements to the new space before adding
+    the new element (and deleting the old array). Such a function might
+    look like the following:
+    -->
+    <para>
+
+    </para>
+
+
+void MyVector::push_back(int x) {
+if(nextSlot == capacity)
+grow();
+assert(nextSlot < capacity);
+data[nextSlot++] = x;
+}
+
+
+    <!--
+    In this example, data is a dynamic array of ints with capacity slots
+    and nextSlot slots in use. The purpose of grow( ) is to expand the
+    size of data so that the new value of capacity is strictly greater
+    than nextSlot. Proper behavior of MyVector depends on this design
+    decision, and it will never fail if the rest of the supporting code is
+    correct. We assert the condition with the assert( ) macro, which is
+    defined in the header <cassert>.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The Standard C library assert( ) macro is brief, to the point, and
+    portable. If the condition in its parameter evaluates to non-zero,
+    execution continues uninterrupted; if it doesn't, a message
+    containing the text of the offending expression along with its source
+    file name and line number is printed to the standard error channel and
+    the program aborts. Is that too drastic? In practice, it is much more
+    drastic to let execution continue when a basic design assumption has
+    failed. Your program needs to be fixed.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If all goes well, you will thoroughly test your code with all
+    assertions intact by the time the final product is deployed. (We'll
+    say more about testing later.) Depending on the nature of your
+    application, the machine cycles needed to test all assertions at
+    runtime might be too much of a performance hit in the field. If that'
+    s the case, you can remove all the assertion code automatically by
+    defining the macro NDEBUG and rebuilding the application.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    To see how this works, note that a typical implementation of assert( )
+    looks something like this:
+    -->
+    <para>
+
+    </para>
+
+
+#ifdef NDEBUG
+#define assert(cond) ((void)0)
+#else
+void assertImpl(const char*, const char*, long);
+#define assert(cond) \
+((cond) ? (void)0 : assertImpl(???))
+#endif
+
+
+    <!--
+    When the macro NDEBUG is defined, the code decays to the expression
+    (void) 0, so all that's left in the compilation stream is an
+    essentially empty statement as a result of the semicolon you appended
+    to each assert( ) invocation. If NDEBUG is not defined, assert(cond)
+    expands to a conditional statement that, when cond is zero, calls a
+    compiler-dependent function (which we named assertImpl( )) with a
+    string argument representing the text of cond, along with the file
+    name and line number where the assertion appeared. (We used as
+    a place holder in the example, but the string mentioned is actually
+    computed there, along with the file name and the line number where the
+    macro occurs in that file. How these values are obtained is immaterial
+    to our discussion.) If you want to turn assertions on and off at
+    different points in your program, you must not only #define or #undef
+    NDEBUG, but you must also re-include <cassert>. Macros are evaluated
+    as the preprocessor encounters them and thus use whatever NDEBUG state
+    applies at the point of inclusion. The most common way to define
+    NDEBUG once for an entire program is as a compiler option, whether
+    through project settings in your visual environment or via the command
+    line, as in:
+    -->
+    <para>
+
+    </para>
+
+
+mycc NDEBUG myfile.cpp
+
+
+    <!--
+    Most compilers use the flag to define macro names. (Substitute the
+    name of your compiler's executable for mycc above.) The advantage of
+    this approach is that you can leave your assertions in the source code
+    as an invaluable bit of documentation, and yet there is no runtime
+    penalty. Because the code in an assertion disappears when NDEBUG is
+    defined, it is important that you never do work in an assertion. Only
+    test conditions that do not change the state of your program.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Whether using NDEBUG for released code is a good idea remains a
+    subject of debate. Tony Hoare, one of the most influential computer
+    scientists of all time,[15] has suggested that turning off runtime
+    checks such as assertions is similar to a sailing enthusiast who wears
+    a life jacket while training on land and then discards it when he goes
+    to sea.[16] If an assertion fails in production, you have a problem
+    much worse than degradation in performance, so choose wisely.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Not all conditions should be enforced by assertions. User errors and
+    runtime resource failures should be signaled by throwing exceptions,
+    as we explained in detail in Chapter 1. It is tempting to use
+    assertions for most error conditions while roughing out code, with the
+    intent to replace many of them later with robust exception
+    handling. Like any other temptation, use caution, since you might
+    forget to make all the necessary changes later. Remember: assertions
+    are intended to verify design decisions that will only fail because of
+    faulty programmer logic. The ideal is to solve all assertion
+    violations during development. Don't use assertions for conditions
+    that aren't totally in your control (for example, conditions that
+    depend on user input). In particular, you wouldn't want to use
+    assertions to validate function arguments; throw a logic_error
+    instead.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The use of assertions as a tool to ensure program correctness was
+    formalized by Bertrand Meyer in his Design by Contract
+    methodology.[17] Every function has an implicit contract with clients
+    that, given certain preconditions, guarantees certain
+    postconditions. In other words, the preconditions are the requirements
+    for using the function, such as supplying arguments within certain
+    ranges, and the postconditions are the results delivered by the
+    function, either by return value or by side-effect.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    When client programs fail to give you valid input, you must tell them
+    they have broken the contract. This is not the best time to abort the
+    program (although you're justified in doing so since the contract was
+    violated), but an exception is certainly appropriate. This is why the
+    Standard C++ library throws exceptions derived from logic_error, such
+    as out_of_range.[18] If there are functions that only you call,
+    however, such as private functions in a class of your own design, the
+    assert( ) macro is appropriate, since you have total control over the
+    situation and you certainly want to debug your code before shipping.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A postcondition failure indicates a program error, and it is
+    appropriate to use assertions for any invariant at any time, including
+    the postcondition test at the end of a function. This applies in
+    particular to class member functions that maintain the state of an
+    object. In the MyVector example earlier, for instance, a reasonable
+    invariant for all public member functions would be:
+    -->
+    <para>
+
+    </para>
+
+    <!-- assert(0 <= nextSlot && nextSlot <= capacity); -->
+    <para>
+
+    </para>
+
+    <!-- or, if nextSlot is an unsigned integer, simply -->
+    <para>
+
+    </para>
+
+    <!-- assert(nextSlot <= capacity); -->
+    <para>
+
+    </para>
+
+    <!--
+    Such an invariant is called a class invariant and can reasonably be
+    enforced by an assertion. Subclasses play the role of subcontractor to
+    their base classes because they must maintain the original contract
+    between the base class and its clients. For this reason, the
+    preconditions in derived classes must impose no extra requirements
+    beyond those in the base contract, and the postconditions must deliver
+    at least as much.[19]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Validating results returned to the client, however, is nothing more or
+    less than testing, so using post-condition assertions in this case
+    would be duplicating work. Yes, it's good documentation, but more
+    than one developer has been fooled into improperly using
+    post-condition assertions as a substitute for unit testing.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : A simple unit test framework -->
+    <title> </title>
+
+    <!--
+    Writing software is all about meeting requirements.[20] Creating these
+    requirements is difficult, and they can change from day to day; you
+    might discover at a weekly project meeting that what you just spent
+    the week doing is not exactly what the users really want.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    People cannot articulate software requirements without sampling an
+    evolving, working system. It's much better to specify a little,
+    design a little, code a little, and test a little. Then, after
+    evaluating the outcome, do it all over again. The ability to develop
+    in such an iterative fashion is one of the great advances of the
+    object-oriented approach, but it requires nimble programmers who can
+    craft resilient code. Change is hard.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Another impetus for change comes from you, the programmer. The
+    craftsperson in you wants to continually improve the design of your
+    code. What maintenance programmer hasn't cursed the aging, flagship
+    company product as a convoluted, unmodifiable patchwork of spaghetti?
+    Management's reluctance to let you tamper with a functioning system
+    robs code of the resilience it needs to endure. If it's not broken,
+    don't fix it eventually gives way to, We can't fix it rewrite
+    it. Change is necessary.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Fortunately, our industry is growing accustomed to the discipline of
+    refactoring, the art of internally restructuring code to improve its
+    design, without changing its behavior.[21] Such improvements include
+    extracting a new function from another, or inversely, combining member
+    functions; replacing a member function with an object; parameterizing
+    a member function or class; and replacing conditionals with
+    polymorphism. Refactoring helps code evolve.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Whether the force for change comes from users or programmers, changes
+    today may break what worked yesterday. We need a way to build code
+    that withstands change and improves over time.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Extreme Programming (XP)[22] is only one of many practices that
+    support a quick-on-your-feet motif. In this section we explore what we
+    think is the key to making flexible, incremental development succeed:
+    an easy-to-use automated unit test framework. (Note that testers,
+    software professionals who test others' code for a living, are still
+    indispensable. Here, we are merely describing a way to help developers
+    write better code.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Developers write unit tests to gain the confidence to say the two most
+    important things that any developer can say:
+    -->
+    <para>
+
+    </para>
+
+    <!-- 1.      I understand the requirements. -->
+    <para>
+
+    </para>
+
+    <!-- 2.      My code meets those requirements (to the best of my knowledge). -->
+    <para>
+
+    </para>
+
+    <!--
+    There is no better way to ensure that you know what the code you're
+    about to write should do than to write the unit tests first. This
+    simple exercise helps focus the mind on the task ahead and will likely
+    lead to working code faster than just jumping into coding. Or, to
+    express it in XP terms:
+    -->
+    <para>
+
+    </para>
+
+    <!-- Testing + programming is faster than just programming. -->
+    <para>
+
+    </para>
+
+    <!--
+    Writing tests first also guards you against boundary conditions that
+    might break your code, so your code is more robust.
+    -->
+    <para>
+
+    </para>
+
+    <!-- When your code passes all your tests, you know that if the
+    system isn't working, your code is probably not the problem. The
+    statement All my tests pass is a powerful argument. -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Automated testing -->
+      <title> </title>
+
+      <!--
+      So what does a unit test look like? Too often developers just use some
+      well-behaved input to produce some expected output, which they inspect
+      visually. Two dangers exist in this approach. First, programs don't
+      always receive only well-behaved input. We all know that we should
+      test the boundaries of program input, but it's hard to think about
+      this when you're trying to just get things working. If you write the
+      test for a function first before you start coding, you can wear your
+      tester hat and ask yourself, What could possibly make this
+      break? Code a test that will prove the function you'll write isn't
+      broken, and then put on your developer hat and make it happen. You'll
+      write better code than if you hadn't written the test first.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The second danger is that inspecting output visually is tedious and
+      error prone. Most any such thing a human can do a computer can do, but
+      without human error. It's better to formulate tests as collections of
+      Boolean expressions and have a test program report any failures.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      For example, suppose you need to build a Date class that has the
+      following properties:
+      -->
+      <para>
+
+      </para>
+
+      <!-- A date can be initialized with a string (YYYYMMDD), three
+      integers (Y, M, D), or nothing (giving today's date). -->
+      <para>
+
+      </para>
+
+      <!-- A date object can yield its year, month, and day or a
+      string of the form YYYYMMDD. -->
+      <para>
+
+      </para>
+
+      <!-- All relational comparisons are available, as well as
+      computing the duration between two dates (in years, months, and
+      days). -->
+      <para>
+
+      </para>
+
+      <!-- Dates to be compared need to be able to span an arbitrary
+      number of centuries (for example, 16002200). -->
+      <para>
+
+      </para>
+
+      <!--
+      Your class can store three integers representing the year, month, and
+      day. (Just be sure the year is at least 16 bits in size to satisfy the
+      last bulleted item.) The interface for your Date class might look like
+      this:
+      -->
+      <para>
+
+      </para>
+
+
+//: C02:Date1.h
+
+
+      <!--
+      Before you implement this class, you can solidify your grasp of the
+      requirements by writing the beginnings of a test program. You might
+      come up with something like the following:
+      -->
+      <para>
+
+      </para>
+
+
+
+//: C02:SimpleDateTest.cpp
+
+
+
+      <!--
+      In this trivial case, the function test( ) maintains the global
+      variables nPass and nFail. The only visual inspection you do is to
+      read the final score. If a test failed, a more sophisticated test( )
+      displays an appropriate message. The framework described later in this
+      chapter has such a test function, among other things.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You can now implement enough of the Date class to get these tests to
+      pass, and then you can proceed iteratively until all the requirements
+      are met. By writing tests first, you are more likely to think of
+      corner cases that might break your upcoming implementation, and you'
+      re more likely to write the code correctly the first time. Such an
+      exercise might produce the following version of a test for the Date
+      class:
+      -->
+      <para>
+
+      </para>
+
+
+//: C02:SimpleDateTest2.cpp
+
+
+      <!--
+      This test can be more fully developed. For example, we haven't tested
+      that long durations are handled correctly. We'll stop here, but you
+      get the idea. The full implementation for the Date class is available
+      in the files Date.h and Date.cpp in the appendix.[23]
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- :  The TestSuite Framework -->
+      <title> </title>
+
+      <!--
+      Some automated C++ unit test tools are available on the World Wide Web
+      for download, such as CppUnit.[24] Our purpose here is not only to
+      present a test mechanism that is easy to use, but also easy to
+      understand internally and even modify if necessary. So, in the spirit
+      of Do The Simplest Thing That Could Possibly Work,[25] we have
+      developed the TestSuite Framework, a namespace named TestSuite that
+      contains two key classes: Test and Suite.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The Test class is an abstract base class from which you derive a test
+      object. It keeps track of the number of passes and failures and
+      displays the text of any test condition that fails. You simply to
+      override the run( ) member function, which should in turn call the
+      test_( ) macro for each Boolean test condition you define.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To define a test for the Date class using the framework, you can
+      inherit from Test as shown in the following program:
+      -->
+      <para>
+
+      </para>
+
+
+//: C02:DateTest.h
+
+
+      <!--
+      Running the test is a simple matter of instantiating a DateTest object
+      and calling its run( ) member function:
+      -->
+      <para>
+
+      </para>
+
+
+//: C02:DateTest.cpp
+
+
+      <!--
+      The Test::report( ) function displays the previous output and returns
+      the number of failures, so it is suitable to use as a return value
+      from main( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The Test class uses RTTI[26] to get the name of your class (for
+      example, DateTest) for the report. There is also a setStream( ) member
+      function if you want the test results sent to a file instead of to the
+      standard output (the default). You'll see the Test class
+      implementation later in this chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The test_( ) macro can extract the text of the Boolean condition that
+      fails, along with its file name and line number.[27] To see what
+      happens when a failure occurs, you can introduce an intentional error
+      in the code, for example by reversing the condition in the first call
+      to test_( ) in DateTest::testOps( ) in the previous example code. The
+      output indicates exactly what test was in error and where it happened:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      DateTest failure: (mybday > today) , DateTest.h (line 31)
+      Test "DateTest":
+      Passed: 20      Failed: 1
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In addition to test_( ), the framework includes the functions
+      succeed_( ) and fail_( ), for cases where a Boolean test won't
+      do. These functions apply when the class you're testing might throw
+      exceptions. During testing, create an input set that will cause the
+      exception to occur. If it doesn't, it's an error and you call fail_(
+      ) explicitly to display a message and update the failure count. If it
+      does throw the exception as expected, you call succeed_( ) to update
+      the success count.
+      -->
+      <para>
+
+      </para>
+
+      <!-- To illustrate, suppose we modify the specification of the
+      two non-default Date constructors to throw a DateError exception
+      (a type nested inside Date and derived from std::logic_error) if
+      the input parameters do not represent a valid date: Date(const
+      string& s) throw(DateError); Date(int year, int month, int day)
+      throw(DateError); -->
+      <para>
+
+      </para>
+
+      <!--
+      The DateTest::run( ) member function can now call the following
+      function to test the exception handling:
+	-->
+      <para>
+
+      </para>
+
+
+void testExceptions() {
+try {
+Date d(0,0,0);  // Invalid
+fail_("Invalid date undetected in Date int ctor");
+} catch(Date::DateError&) {
+succeed_();
+}
+try {
+Date d("");  // Invalid
+fail_("Invalid date undetected in Date string ctor");
+} catch(Date::DateError&) {
+succeed_();
+}
+}
+
+
+      <!--
+      In both cases, if an exception is not thrown, it is an error. Notice
+      that you must manually pass a message to fail_( ), since no Boolean
+      expression is being evaluated.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Test suites -->
+      <title> </title>
+
+      <!--
+      Real projects usually contain many classes, so you need a way to group
+      tests so that you can just push a single button to test the entire
+      project.[28] The Suite class collects tests into a functional
+      unit. You add Test objects to a Suite with the addTest( ) member
+      function, or you can include an entire existing suite with addSuite(
+      ). To illustrate, the following example collects the programs in
+      Chapter 3 that use the Test class into a single suite. Note that this
+      file will appear in the Chapter 3 subdirectory:
+      -->
+      <para>
+
+      </para>
+
+
+
+//: C03:StringSuite.cpp
+
+
+      <!--
+      Five of the above tests are completely contained in header
+      files. TrimTest is not, because it contains static data that must be
+      defined in an implementation file. The two first two output lines are
+      trace lines from the StringStorage test. You must give the suite a
+      name as a constructor argument. The Suite::run( ) member function
+      calls Test::run( ) for each of its contained tests. Much the same
+      thing happens for Suite::report( ), except that you can send the
+      individual test reports to a different destination stream than that of
+      the suite report. If the test passed to addSuite( ) already has a
+      stream pointer assigned, it keeps it. Otherwise, it gets its stream
+      from the Suite object. (As with Test, there is an optional second
+      argument to the suite constructor that defaults to std::cout.) The
+      destructor for Suite does not automatically delete the contained Test
+      pointers because they don't need to reside on the heap; that's the
+      job of Suite::free( ).
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : The test framework code -->
+      <title> </title>
+
+      <!--
+      The test framework code is in a subdirectory called TestSuite in the
+      code distribution available at www.MindView.net. To use it, include
+      the search path for the TestSuite subdirectory in your header, link
+      the object files, and include the TestSuite subdirectory in the
+      library search path. Here is the header for Test.h:
+      -->
+      <para>
+
+      </para>
+
+
+//: TestSuite:Test.h
+
+
+      <!-- There are three virtual functions in the Test class: -->
+      <para>
+
+      </para>
+
+      <!-- A virtual destructor -->
+      <para>
+
+      </para>
+
+      <!-- The function reset( ) -->
+      <para>
+
+      </para>
+
+      <!-- The pure virtual function run( ) -->
+      <para>
+
+      </para>
+
+      <!--
+      As explained in Volume 1, it is an error to delete a derived heap
+      object through a base pointer unless the base class has a virtual
+      destructor. Any class intended to be a base class (usually evidenced
+      by the presence of at least one other virtual function) should have a
+      virtual destructor. The default implementation of the Test::reset( )
+      resets the success and failure counters to zero. You might want to
+      override this function to reset the state of the data in your derived
+      test object; just be sure to call Test::reset( ) explicitly in your
+      override so that the counters are reset. The Test::run( ) member
+      function is pure virtual since you are required to override it in your
+      derived class.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The test_( ) and fail_( ) macros can include file name and line number
+      information available from the preprocessor. We originally omitted the
+      trailing underscores in the names, but the fail( ) macro then collided
+      with ios::fail( ), causing compiler errors.
+      -->
+      <para>
+
+      </para>
+
+      <!-- Here is the implementation of the remainder of the Test functions: -->
+      <para>
+
+      </para>
+
+
+      //: TestSuite:Test.cpp {O}
+
+
+      <!--
+      The Test class keeps track of the number of successes and failures as
+      well as the stream where you want Test::report( ) to display the
+      results. The test_( ) and fail_( ) macros extract the current file
+      name and line number information from the preprocessor and pass the
+      file name to do_test( ) and the line number to do_fail( ), which do
+      the actual work of displaying a message and updating the appropriate
+      counter. We can't think of a good reason to allow copy and assignment
+      of test objects, so we have disallowed these operations by making
+      their prototypes private and omitting their respective function
+      bodies.
+      -->
+      <para>
+
+      </para>
+
+      <!-- Here is the header file for Suite: -->
+      <para>
+
+      </para>
+
+
+//: TestSuite:Suite.h
+
+
+      <!--
+      The Suite class holds pointers to its Test objects in a vector. Notice
+      the exception specification on the addTest( ) member function. When
+      you add a test to a suite, Suite::addTest( ) verifies that the pointer
+      you pass is not null; if it is null, it throws a TestSuiteError
+      exception. Since this makes it impossible to add a null pointer to a
+      suite, addSuite( ) asserts this condition on each of its tests, as do
+      the other functions that traverse the vector of tests (see the
+      following implementation). Copy and assignment are disallowed as they
+      are in the Test class.
+      -->
+      <para>
+
+      </para>
+
+
+//: TestSuite:Suite.cpp {O}
+
+
+      <!--
+      We will be using the TestSuite framework wherever it applies
+      throughout the rest of this book.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Debugging techniques -->
+    <title> </title>
+
+    <!--
+    The best debugging habit is to use assertions as explained in the
+    beginning of this chapter; by doing so you'll help find logic errors
+    before they cause real trouble. This section contains some other tips
+    and techniques that might help during debugging.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Trace macros -->
+      <title> </title>
+
+      <!--
+      Sometimes it's useful to print the code of each statement as it is
+      executed, either to cout or to a trace file. Here's a preprocessor
+      macro to accomplish this:
+      -->
+      <para>
+
+      </para>
+
+      <!-- #define TRACE(ARG) cout << #ARG << endl; ARG -->
+      <para>
+
+      </para>
+
+      <!--
+      Now you can go through and surround the statements you trace with this
+      macro. However, this can introduce problems. For example, if you take
+      the statement:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      for(int i = 0; i < 100; i++)
+      cout << i << endl;
+      -->
+      <para>
+
+      </para>
+
+      <!-- and put both lines inside TRACE( ) macros, you get this: -->
+      <para>
+
+      </para>
+
+      <!--
+      TRACE(for(int i = 0; i < 100; i++))
+      TRACE(  cout << i << endl;)
+      -->
+      <para>
+
+      </para>
+
+      <!-- which expands to this: -->
+      <para>
+
+      </para>
+
+      <!--
+      cout << "for(int i = 0; i < 100; i++)" << endl;
+      for(int i = 0; i < 100; i++)
+      cout << "cout << i << endl;" << endl;
+      cout << i << endl;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      which isn't exactly what you want. Thus, you must use this technique
+      carefully.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The following is a variation on the TRACE( ) macro: -->
+      <para>
+
+      </para>
+
+      <!-- #define D(a) cout << #a "=[" << a << "]" << endl; -->
+      <para>
+
+      </para>
+
+      <!--
+      If you want to display an expression, you simply put it inside a call
+      to D( ). The expression is displayed, followed by its value (assuming
+      there's an overloaded operator << for the result type). For example,
+      you can say D(a + b). You can use this macro any time you want to
+      check an intermediate value.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      These two macros represent the two most fundamental things you do with
+      a debugger: trace through the code execution and display values. A
+      good debugger is an excellent productivity tool, but sometimes
+      debuggers are not available, or it's not convenient to use
+      them. These techniques always work, regardless of the situation.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Trace file -->
+      <title> </title>
+
+      <!--
+      DISCLAIMER: This section and the next contain code which is officially
+      unsanctioned by the C++ Standard. In particular, we redefine cout and
+      new via macros, which can cause surprising results if you're not
+      careful. Our examples work on all the compilers we use, however, and
+      provide useful information. This is the only place in this book where
+      we will depart from the sanctity of standard-compliant coding
+      practice. Use at your own risk! Note that in order for this to work, a
+      using-declaration must be used, so that cout isn't prefixed by its
+      namespace, i.e. std::cout will not work.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following code easily creates a trace file and sends all the
+      output that would normally go to cout into that file. All you must do
+      is #define TRACEON and include the header file (of course, it's
+      fairly easy just to write the two key lines right into your file):
+      -->
+      <para>
+
+      </para>
+
+
+//: C03:Trace.h
+
+
+      <!-- Here's a simple test of the previous file: -->
+      <para>
+
+      </para>
+
+
+//: C03:Tracetst.cpp {-bor}
+
+
+      <!--
+      Because cout has been textually turned into something else by Trace.h,
+      all the cout statements in your program now send information to the
+      trace file. This is a convenient way of capturing your output into a
+      file, in case your operating system doesn't make output redirection
+      easy.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- : Finding memory leaks -->
+      <title> </title>
+
+      <!--
+      The following straightforward debugging techniques are explained in
+      Volume 1:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      1.  For array bounds checking, use the Array template in
+      C16:Array3.cpp of Volume 1 for all arrays. You can turn off the
+      checking and increase efficiency when you're ready to ship. (Although
+      this doesn't deal with the case of taking a pointer to an array.)
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      2.  Check for non-virtual destructors in base classes.  Tracking
+      new/delete and malloc/free
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Common problems with memory allocation include mistakenly calling
+      delete for memory that's not on the free store, deleting the free
+      store more than once, and, most often, forgetting to delete a
+      pointer. This section discusses a system that can help you track down
+      these kinds of problems.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As an additional disclaimer beyond that of the preceding section:
+      because of the way we overload new, the following technique may not
+      work on all platforms, and will only work for programs that do not
+      call the function operator new( ) explicitly. We have been quite
+      careful in this book to only present code that fully conforms to the
+      C++ Standard, but in this one instance we're making an exception for
+      the following reasons:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      1.  Even though it's technically illegal, it works on many
+      compilers.[29]
+      -->
+      <para>
+
+      </para>
+
+      <!-- 2.  We illustrate some useful thinking along the way. -->
+      <para>
+
+      </para>
+
+      <!-- To use the memory checking system, you simply include the
+      header file MemCheck.h, link the MemCheck.obj file into your
+      application to intercept all the calls to new and delete, and
+      call the macro MEM_ON( ) (explained later in this section) to
+      initiate memory tracing. A trace of all allocations and
+      deallocations is printed to the standard output (via
+      stdout). When you use this system, all calls to new store
+      information about the file and line where they were called. This
+      is accomplished by using the placement syntax for operator
+      new.[30] Although you typically use the placement syntax when
+      you need to place objects at a specific point in memory, it can
+      also create an operator new( ) with any number of
+      arguments. This is used in the following example to store the
+      results of the __FILE__ and __LINE__ macros whenever new is
+      called: -->
+      <para>
+
+      </para>
+
+
+//: C02:MemCheck.h
+
+
+      <!-- It is important to include this file in any source file in
+      which you want to track free store activity, but include it last
+      (after your other #include directives). Most headers in the
+      standard library are templates, and since most compilers use the
+      inclusion model of template compilation (meaning all source code
+      is in the headers), the macro that replaces new in MemCheck.h
+      would usurp all instances of the new operator in the library
+      source code (and would likely result in compile
+      errors). Besides, you are only interested in tracking your own
+      memory errors, not the library's. -->
+      <para>
+
+      </para>
+
+      <!-- In the following file, which contains the memory tracking
+      implementation, everything is done with C standard I/O rather
+      than with C++ iostreams. It shouldn't make a difference, since
+      we're not interfering with iostreams' use of the free store, but
+      when we tried it, some compilers complained. All compilers were
+      happy with the <cstdio> version. -->
+      <para>
+
+      </para>
+
+
+//: C02:MemCheck.cpp {O}
+
+
+      <!--
+      The Boolean flags traceFlag and activeFlag are global, so they can be
+      modified in your code by the macros TRACE_ON( ), TRACE_OFF( ), MEM_ON(
+      ), and MEM_OFF( ). In general, enclose all the code in your main( )
+      within a MEM_ON( )-MEM_OFF( ) pair so that memory is always
+      tracked. Tracing, which echoes the activity of the replacement
+      functions for operator new( ) and operator delete( ), is on by
+      default, but you can turn it off with TRACE_OFF( ). In any case, the
+      final results are always printed (see the test runs later in this
+      chapter).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The MemCheck facility tracks memory by keeping all addresses allocated
+      by operator new( ) in an array of Info structures, which also holds
+      the file name and line number where the call to new occurred. To
+      prevent collision with any names you have placed in the global
+      namespace, as much information as possible is kept inside the
+      anonymous namespace. The Sentinel class exists solely to call a static
+      object destructor as the program shuts down. This destructor inspects
+      memMap to see if any pointers are waiting to be deleted (indicating a
+      memory leak).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Our operator new( ) uses malloc( ) to get memory, and then adds the
+      pointer and its associated file information to memMap. The operator
+      delete( ) function undoes all that work by calling free( ) and
+      decrementing nptrs, but first it checks to see if the pointer in
+      question is in the map in the first place. If it isn't, either you'
+      re trying to delete an address that isn't on the free store, or you'
+      re trying to delete one that's already been deleted and removed from
+      the map. The activeFlag variable is important here because we don't
+      want to process any deallocations from any system shutdown
+      activity. By calling MEM_OFF( ) at the end of your code, activeFlag
+      will be set to false, and such subsequent calls to delete will be
+      ignored. (That's bad in a real program, but our purpose here is to
+      find your leaks; we're not debugging the library.) For simplicity, we
+      forward all work for array new and delete to their scalar
+      counterparts.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The following is a simple test using the MemCheck facility: -->
+      <para>
+
+      </para>
+
+
+//: C02:MemTest.cpp
+
+
+      <!--
+      This example verifies that you can use MemCheck in the presence of
+      streams, standard containers, and classes that allocate memory in
+      constructors. The pointers p and q are allocated and deallocated
+      without any problem, but r is not a valid heap pointer, so the output
+      indicates the error as an attempt to delete an unknown pointer:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      hello
+      Allocated 4 bytes at address 0xa010778 (file: memtest.cpp, line: 25)
+      Deleted memory at address 0xa010778
+      Allocated 12 bytes at address 0xa010778 (file: memtest.cpp, line: 27)
+      Deleted memory at address 0xa010778
+      Attempt to delete unknown pointer: 0x1
+      Allocated 8 bytes at address 0xa0108c0 (file: memtest.cpp, line: 14)
+      Deleted memory at address 0xa0108c0
+      No user memory leaks!
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Because of the call to MEM_OFF( ), no subsequent calls to operator
+      delete( ) by vector or ostream are processed. You still might get some
+      calls to delete from reallocations performed by the containers.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you call TRACE_OFF( ) at the beginning of the program, the output
+      is
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      hello
+      Attempt to delete unknown pointer: 0x1
+      No user memory leaks!
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- : Summary -->
+    <title> </title>
+
+    <!--
+    Much of the headache of software engineering can be avoided by being
+    deliberate about what you're doing. You've probably been using
+    mental assertions as you've crafted your loops and functions, even if
+    you haven't routinely used the assert( ) macro. If you'll use
+    assert( ), you'll find logic errors sooner and end up with more
+    readable code as well. Remember to only use assertions for invariants,
+    though, and not for runtime error handling.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Nothing will give you more peace of mind than thoroughly tested
+    code. If it's been a hassle for you in the past, use an automated
+    framework, such as the one we've presented here, to integrate routine
+    testing into your daily work. You (and your users!) will be glad you
+    did.
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- : Exercises -->
+    <title> </title>
+
+    <!--
+    Solutions to selected exercises can be found in the electronic
+    document The Thinking in C++ Volume 2 Annotated Solution Guide,
+    available for a small fee from www.MindView.net.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Write a test program using the TestSuite Framework for the
+    standard vector class that thoroughly tests the following member
+    functions with a vector of integers: push_back( ) (appends an element
+    to the end of the vector), front( ) (returns the first element in the
+    vector), back( ) (returns the last element in the vector), pop_back( )
+    (removes the last element without returning it), at( ) (returns the
+    element in a specified index position), and size( ) (returns the
+    number of elements). Be sure to verify that vector::at( ) throws a
+    std::out_of_range exception if the supplied index is out of range.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Suppose you are asked to develop a class named Rational that
+    supports rational numbers (fractions). The fraction in a Rational
+    object should always be stored in lowest terms, and a denominator of
+    zero is an error. Here is a sample interface for such a Rational
+    class:
+    -->
+    <para>
+
+    </para>
+
+
+//: C02:Rational.h {-xo}
+
+
+    <!--
+    Write a complete specification for this class, including
+    preconditions, postconditions, and exception specifications.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3.  Write a test using the TestSuite framework that thoroughly tests
+    all the specifications from the previous exercise, including testing
+    exceptions.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4.  Implement the Rational class so that all the tests from the
+    previous exercise pass. Use assertions only for invariants.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    5.  The file BuggedSearch.cpp below contains a binary search function
+    that searches the range [beg, end) for what. There are some bugs in
+    the algorithm. Use the trace techniques from this chapter to debug the
+    search function.
+    -->
+    <para>
+
+    </para>
