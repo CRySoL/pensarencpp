@@ -19,7 +19,7 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
 
 
   <!-- 2: Defensive Programming -->
-  <title>Programacin defensiva</title>
+  <title>Programación defensiva</title>
 
   <!--
   Writing software may be an elusive goal for developers,
@@ -27,7 +27,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   toward improving the quality of your code.
   -->
   <para>
-
+    Escribir software puede ser un objetivo difícil para
+    desarrolladoes, pero unas pocas técnicas defensivas, aplicadas
+    rutinariamente, puede ser un largo camino hacia la mejora de la
+    calidad de su código.
   </para>
 
   <!-- Although the complexity of typical production software
@@ -42,7 +45,18 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   this chapter, you ll see practices that help create robust code
   regardless of the size of your project. -->
   <para>
-
+    Aunque la complejidad de la típica producción de software
+    garantiza que los probadores tendrán siempre un trabajo, esperamos
+    anheles producir software sin defectos. Las técnicas de diseño
+    orientada a objectos hacen mucho para limitar la dificultad de
+    proyectos grandes, pero finalmente debe escribir bucles y
+    funciones. Estos pequeños detalles de programación se convierten
+    en los bloques de construcción de componentes mayores para sus
+    diseños. Si sus blucles fallan por uno o sus funciones calculan
+    los valores correctos sólo la mayoría de las veces, tiene
+    problemas no imorta como de elaborada sea su metodología
+    global. En este capítulo, verá prácticas que ayudan a crear código
+    robusto sin importar el tamaño de su proyecto.
   </para>
 
   <!-- Your code is, among other things, an expression of your attempt
@@ -57,6 +71,15 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   <para>
 
   </para>
+  Su código es, entre otras cosas, una expresión de su intento de
+  resolver un problema. Sería claro para el lector (incluyendo usted)
+  exctamente lo que estaba pensando cuando diseño aquel bucle. En
+  ciertos puntos de su programa, podría crear sentencias #bold# que
+  alguna condición u otra considera. (Si no puede, no ha solucionado
+  todavía el problema.) Tales sentencias se llaman invariantes, puesto
+  que deberían ser invariablemente verdad en el punto donde aparecen
+  en el código; si no, o su diseño es defectuoso, o su código no
+  refleja precisamente su diseño.
 
   <!--
   Consider a program that plays the guessing game of Hi-Lo. One person
@@ -72,12 +95,23 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   say
   -->
   <para>
-
+     Considere un programa que juega al juego de adivinanza
+     mayor-menor. Una persona piensa un número entre el 1 y 100,y la
+     otra persona adivina el número. (Permitirá al ordenador hacer la
+     adivinanza.) La persona que piensa el número le dice al
+     adivinador si su conjetura es mayor, menor o correcta. La mejor
+     estrategia para el adivinador es la búsqueda binaria, que elige
+     el punto medio del rango de los números donde el número codiciado
+     reside. La respuesta mayor-menor dice al adivinador que mitad de
+     la lista ocupa el número, y el proceso repite, reduciendo el
+     tamaño del rango de búsqueda activo en cada iteración. ¿Entonces
+     cómo escribe un bucle para realizar la repetición correctamente?
+     No es suficiente simplemente decir
   </para>
 
   <!-- bool guessed = false; -->
   <para>
-
+    bool adivinado = false;
   </para>
 
   <!--
@@ -86,7 +120,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   }
   -->
   <para>
-
+    while(!adivinado) {
+    ...
+    }
   </para>
 
   <!--
@@ -96,7 +132,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   by design on each loop iteration?
   -->
   <para>
-
+    porque un usuario malintencionado podría responder engañosamente,
+    y podría pasar todo el día adivinando. ¿ Qué suposición, que sea
+    sencilla, esta haciendo cada vez que adivina? En otras palabras,
+    ¿qué condición debería cumplir por diseño en cada iteración del bucle?
   </para>
 
   <!--
@@ -109,7 +148,13 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   current loop iteration.
   -->
   <para>
-
+    La suposición sencilla es que el número secreto está dentro del
+    actual rango activo de números sin adivinar: [1, 100]. Suponga que
+    etiquetamos los puntos finales del rango con las variables bajo y
+    alto. Cada vez que pasa por el bucle necesita asegurarse que si el
+    número estaba en el rango [bajo, alto] al principio del bucle,
+    calcule el nuevo rango de modo que todavía contenga el número al
+    final de la iteración en curso.
   </para>
 
   <!--
@@ -119,7 +164,11 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   code, but you can at least make a comment to that effect:
   -->
   <para>
-
+    El objetivo es expresar el invariante del bucle en código de modo
+    que una violación pueda ser detectada en tiempo de
+    ejecución. Desafortunadamente, ya que el ordenador no conoce el
+    número secreto, no puede expresar esta condición directaemnte en
+    código, pero puede al menos hacer un comentario para este efecto:
   </para>
 
   <!--
@@ -129,7 +178,8 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   }
   -->
   <para>
-
+    while(!adivinado) {
+    // INVARIANTE: el número está en el rango [low, high]
   </para>
 
   <!--
@@ -141,7 +191,12 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   in the following program:
   -->
   <para>
-
+    ¿Qué ocurre cuando el usuario dice que una conjetura es demasiado
+    alto o demasiado bajo cuando no lo es? El engaño excluiría el
+    número secreto del nuevo subrango. Porque una mentira siempre
+    dirige a otra, finalmente su rango disminuiría a nada (puesto que se
+    reduce a la mitada cada vez y el número secreto no está
+    allí). Podemos expresar esta condición en el siguiente programa:
   </para>
 
 
@@ -154,7 +209,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   the secret number before we run out of guesses.
   -->
   <para>
-
+    La violación del invariante se detecta con la condición if(menor >
+    mayor), porque si el usuario siempre dice la verdad, siempre
+    encontraremos el número secreto antes que agotasemos los intentos.
   </para>
 
   <!--
@@ -167,12 +224,19 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   even though the latter is always defined as zero.
   -->
   <para>
-
+    Usamos también una técnica del estándar C para informar sobre el
+    estado de un programa al contexto llamante devolviedo diferentes
+    valores desde main( ). Es portable para usar la sentencia return
+    0; para indicar éxito, pero no hay un valor portable para indicar
+    fracaso. Por esta razón usamos la macro declarada para este
+    propósito in <cstdlib>:EXIT_FAILURE. Por consistencia, cuando
+    usamos EXIT_FAILURE usamos EXIT_SUCCESS, a pesar de que éste es
+    siempre definido como cero.
   </para>
 
   <sect1>
     <!-- : Assertions -->
-    <title> </title>
+    <title>Aserciones </title>
 
     <!--
     The condition in the Hi-Lo program depends on user input, so you can'
@@ -183,7 +247,13 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     decisions.
     -->
     <para>
-
+      La condición en el programa mayor-menor depende de la entrada
+      del usuario, por lo tanto no puede prevenir una violación del
+      invariante. Sin embargo, los invariantes normalmente dependen
+      solo del código que escribe, por eso comprobarán siempre si ha
+      implementado su diseño correctamente. En este caso, es más claro
+      hacer una aserción, que es un sentencia positiva que revela sus
+      decisiones de diseño.
     </para>
 
     <!--
@@ -196,7 +266,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     look like the following:
     -->
     <para>
-
+      Suponga que está implementando un vecotr de enteros: un array
+      expandible que crece bajo demanda. La función que añade un
+      elemento al vector debe primero verificar que hay un ##CONTINUAR
     </para>
 
 
