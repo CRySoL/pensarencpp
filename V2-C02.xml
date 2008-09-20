@@ -268,7 +268,11 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     <para>
       Suponga que está implementando un vecotr de enteros: un array
       expandible que crece bajo demanda. La función que añade un
-      elemento al vector debe primero verificar que hay un ##CONTINUAR
+      elemento al vector debe primero verificar que hay un espacio
+      vacio en el array subyacente que contiene los elementos; de lo
+      contrario, necesita solicitar más espacio y copiar los elementos
+      existentes al nuevo espacio antes de añadir el nuevo elemento (y
+      borrar el viejo array). Tal función podría ser de la siguiente forma:
     </para>
 
 
@@ -290,7 +294,14 @@ data[nextSlot++] = x;
     defined in the header <cassert>.
     -->
     <para>
-
+      En este ejemplo, la información es un array dinámico de ints con
+      capacidad #espacios# y espacioSiguiente espacios en uso. La
+      utilidad de crecer( ) es expandir el tamaño de la información
+      por lo tanto el nuevo valor de capacidad es estrictamente mayor
+      que espacioSiguiente. El comportamiento correcto de MiVector
+      depende de su decisión de diseño, y nunca fallará si el resto
+      del código secundario es correcto. Afirmamos la condición con la
+      macro assert( ), que está definido en la cabecera <cassert>.
     </para>
 
     <!--
@@ -304,7 +315,15 @@ data[nextSlot++] = x;
     failed. Your program needs to be fixed.
     -->
     <para>
-
+      La macro assert( ) de la biblioteca Estándar de C es breve, que
+      resulta, portable. Si la condición en su parámetro evalua a no
+      cero, la ejecución continúa inenterrumpidamente; si no, un
+      mensaje contiene el texto de la expresión culpable con su nombre
+      de fichero fuente y el número de línea impreso en el canal de
+      error estándar y los archivos de programa. ¿Es eso tan drástico?
+      En la práctica, es mucho más drástico permitir que la ejecución
+      continue cuando un supuesto ha fracasado. Su programa necesita
+      ser arreglado.
     </para>
 
     <!--
@@ -317,7 +336,16 @@ data[nextSlot++] = x;
     defining the macro NDEBUG and rebuilding the application.
     -->
     <para>
-
+      Si todo va bien, probará a conciencia su código con todas las
+      aserciones intantas hasta el momento en que se haga uso del
+      producto final. (Diremos más sobre pruebas más tarde.) Depende
+      de la naturalez de tu aplicación, los ciclos de máquina
+      necesarios para probar todas las aserciones en el momento de
+      ejecución podrían ser demasiado del impacto de rendimiento en el
+      campo. En ese caso, puede eliminar todas las aserciones del
+      código automáticamente definiendo la macro NDEBUG y reconstruir
+      la aplicación.
+      
     </para>
 
     <!--
@@ -325,7 +353,8 @@ data[nextSlot++] = x;
     looks something like this:
     -->
     <para>
-
+      Para ver como esto funciona, observe que una implementación
+      típica de assert( ) se parece a esto:
     </para>
 
 
@@ -360,7 +389,23 @@ void assertImpl(const char*, const char*, long);
     line, as in:
     -->
     <para>
-
+      Cuando la macro NDEBUG está definida, el código descompone a la
+      expresión (void) 0, todod lo que queda en la cadena de
+      compilación es una sentencia esencialmente vacia como un
+      resultado de la semicolumna que añade a cada invocación de
+      assert( ). Si NDEBUG no está definido, assert(cond) se expande a
+      una sentencia condicional que, cuando cond es cero, llama a una
+      función dependiente del compilador ( que llamamos assertImpl( ))
+      con argumento string representando el texto de cond, junto con
+      el nombre de fichero y el número de línea donde la aserción
+      aparece. (Usamos como un marcador de posición en el ejemplo,
+      pero la cadena mencionada es de hecho computada allí, junto con
+      el nombre del fichero y el número de línea donde la macro
+      aparece en ese fichero. Como estos valores se obtienen es
+      irrelevante para nuestra discusión.) Si quiere activar y
+      desactivar aserciones en diferentes puntos de su programa, no
+      debe solo #define o #undef NDEBUG, pero debe también reincluir
+      <cassert>. Las macros son 
     </para>
 
 
