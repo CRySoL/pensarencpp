@@ -1310,12 +1310,16 @@ succeed_();
       with ios::fail( ), causing compiler errors.
       -->
       <para>
-
+	Las macros test_( ) y fail_( ) pueden incluir la información
+	disponible del nombre del fichero y el número de línea del
+	preprocesador. Originalmente omitimos el guión bajo en los
+	nombres, pero la macro fail colisiona con ios::fail( ),
+	provocando errores de compilación.
       </para>
 
       <!-- Here is the implementation of the remainder of the Test functions: -->
       <para>
-
+	Aquí está la implementación el resto de las funciones Test:
       </para>
 
 
@@ -1335,12 +1339,22 @@ succeed_();
       bodies.
       -->
       <para>
-
+	La clase Test lleva la cuenta del número de éxitos y fracasos
+	además la cadena donde quiere Test::report( ) para mostrar los
+	resultados. Las macros test_( ) y fail_() extraen la
+	información del nombre del fichero actual y el número de línea
+	del preprocesador y pasa el nombre del fichero a do_test( ) y
+	el número de línea a do_fail( ), que hacen el mismo trabajo de
+	mostrar un mensaje y actualiar el contador apropiado. No
+	podemos pensar una buena razón para permitir copiar y asignar
+	objectos de prueba, por lo que hemos rechazado estas
+	operaciones para hacer sus prototipos privados y omitir el
+	cuerpo de sus respectivas funciones.
       </para>
 
       <!-- Here is the header file for Suite: -->
       <para>
-
+	Aquí está el fichero de cabecera para Suite:
       </para>
 
 
@@ -1359,7 +1373,16 @@ succeed_();
       are in the Test class.
       -->
       <para>
-
+	La clase Suite tiene punteros a sus objetos Test en un
+	vector. Dese cuenta que la especificación de la excepción en
+	la función addTest( ). Cuando añada una prueba a una suite,
+	Suite::addTest( ) verifica que el puntero que pasa no es null;
+	si es null, lanza una excepción TestSuiteError. Puesto que
+	esto hace imposible añadir un puntero null a una suite,
+	addSuite( ) afirma esta condición en cada prueba, como hacen
+	las otras funciones que atraviesan el vector de pruebas (vea
+	la siguiente implementación). Copiar y asignar están
+	desestimados como están en la clase Test.
       </para>
 
 
@@ -1371,7 +1394,8 @@ succeed_();
       throughout the rest of this book.
       -->
       <para>
-
+	Usaremos el framework TestSuite donde se aplique a lo largo
+	del resto de este libro.
       </para>
 
     </sect2>
@@ -1387,7 +1411,11 @@ succeed_();
     and techniques that might help during debugging.
     -->
     <para>
-
+      La mejor costumbre de elimiar fallos es usar aserciones como
+      está explicado al principio de este capítulo; haciendo esto le
+      ayudará a encontrar errores lógicos antes de que causen
+      problemas reales. Esta sección contiene otros consejos y
+      técnicas que podrían ayudar durante la depuración.
     </para>
 
     <sect2>
@@ -1400,12 +1428,14 @@ succeed_();
       macro to accomplish this:
       -->
       <para>
-
+	Algunas veces es útil imprimir el código de cada sentencia
+	cuando es ejecutada, o cout o trazar un fichero. Aquí esta una
+	macro de preprocesaor para llevar a cabo esto:
       </para>
 
       <!-- #define TRACE(ARG) cout << #ARG << endl; ARG -->
       <para>
-
+	#define TRACE(ARG) cout << #ARG << endl; ARG
       </para>
 
       <!--
@@ -1414,7 +1444,9 @@ succeed_();
       the statement:
       -->
       <para>
-
+	Ahora puede ir a través y alrededor de las sentencias que
+	trace con esta macro. Sin embargo, esto puede introducir
+	problemas. Por ejemplo, si coge la sentencia:
       </para>
 
       <!--
@@ -1422,12 +1454,13 @@ succeed_();
       cout << i << endl;
       -->
       <para>
-
+	for(int i = 0; i < 100; i++)
+      cout << i << endl;
       </para>
 
       <!-- and put both lines inside TRACE( ) macros, you get this: -->
       <para>
-
+	y ponga ambas líneas dentro de la macro TRACE( ), obtiene esto:
       </para>
 
       <!--
@@ -1435,12 +1468,13 @@ succeed_();
       TRACE(  cout << i << endl;)
       -->
       <para>
-
+	TRACE(for(int i = 0; i < 100; i++))
+      TRACE(  cout << i << endl;)
       </para>
 
       <!-- which expands to this: -->
       <para>
-
+	que se expande a esto:
       </para>
 
       <!--
@@ -1450,7 +1484,10 @@ succeed_();
       cout << i << endl;
       -->
       <para>
-
+	cout << "for(int i = 0; i < 100; i++)" << endl;
+      for(int i = 0; i < 100; i++)
+      cout << "cout << i << endl;" << endl;
+      cout << i << endl;
       </para>
 
       <!--
@@ -1458,17 +1495,18 @@ succeed_();
       carefully.
       -->
       <para>
-
+	que no es exactamente lo que quiere. Por lo tanto, debe usar
+	esta técnica cuidadosamente.
       </para>
 
       <!-- The following is a variation on the TRACE( ) macro: -->
       <para>
-
+	Lo siguiente es una variación en la macro TRACE( ):
       </para>
 
       <!-- #define D(a) cout << #a "=[" << a << "]" << endl; -->
       <para>
-
+	#define D(a) cout << #a "=[" << a << "]" << endl; 
       </para>
 
       <!--
@@ -1479,7 +1517,12 @@ succeed_();
       check an intermediate value.
       -->
       <para>
-
+	Si quiere mostrar una expresión, simplemente póngala dentro de
+	una llamada a D( ). La expresión se muestra, seguida de su
+	valor ( asumiendo que hay un operador sobrecargado << para el
+	tipo de resultado). Por ejemplo, puede decir D(a + b). Puede
+	usar esta macro en cualquier momento que quiera comprobar un
+	valor intermedio.
       </para>
 
       <!--
@@ -1490,7 +1533,12 @@ succeed_();
       them. These techniques always work, regardless of the situation.
       -->
       <para>
-
+	Estas dos macros representan las dos cosas fundamentales que
+	hace con un depurador: tracear la ejecución de código y
+	mostrar valores. Un buen depurador es una herramienta de
+	productividad excelente, pero a veces los depuradores no están
+	disponibles, o no es conveniente usarlos. Estas técnicas
+	siempre funcionan, sin tener en cuenta la situación.
       </para>
 
     </sect2>
@@ -1510,7 +1558,10 @@ succeed_();
       namespace, i.e. std::cout will not work.
       -->
       <para>
-
+	ADVERTENCIA: Esta sección y la siguiente contienen código que
+	está oficialmente sin aprobación por el Estándar C++. En
+	particular, redefinimos cout y new mediante macros, que puede
+	provocar resultados sorprendentes si no tiene cuidado.
       </para>
 
       <!--
