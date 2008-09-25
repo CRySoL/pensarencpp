@@ -1748,7 +1748,18 @@ succeed_();
       errors). Besides, you are only interested in tracking your own
       memory errors, not the library's. -->
       <para>
-
+	Es importante incluir este fichero en cualquier fichero fuente
+	en el que quiera seguir la actividad de la memoria libre, pero
+	inclúyalo al final (después de sus otras directivas
+	#include). La mayoría de las cabeceras en la biblioteca
+	estándar sons plantillas, y puesto que la mayoría de los
+	compiladores usan el modelo de inclusión de compilación de
+	plantilla (significa que todo el código fuente está en las
+	cabeceras), la macro que reemplaza new en MemCheck.h usurpará
+	todas las instancias del operador new en el código fuente de
+	la biblioteca (y casi resultaría en errores de
+	compilación). Además, está sólo interesado en seguir sus
+	propios errores de memoria, no los de la biblioteca.
       </para>
 
       <!-- In the following file, which contains the memory tracking
@@ -1758,7 +1769,13 @@ succeed_();
       when we tried it, some compilers complained. All compilers were
       happy with the <cstdio> version. -->
       <para>
-
+	En el siguiente fichero, que contiene la implementación del
+	seguimiento de memoria, todo está hecho con C estándar I/O más
+	que con iostreams C++. No debería hacer una diferencia, puesto
+	que no estamos interfiriendo con el uso de iostream de la
+	memoria libre, pero cuando lo intentamos, algunos compiladores
+	se quejaron. Todos los compiladores estaban felices con la
+	version <cstdio>.
       </para>
 
 
@@ -1777,7 +1794,16 @@ succeed_();
       chapter).
       -->
       <para>
-
+	Las banderas booleanas de traceFalg y activeFlag son globales,
+	por lo que pueden ser modificados en su código por las macros
+	TRACE_ON( ), TRACE_OFF( ), MEM_ON( ), y MEM_OFF( ). En
+	general, encierre todo el código en su main( ) dentro una
+	pareja MEM_ON( )-MEM_OFF( ) de modo que la memoria sea siempre
+	trazada. Trazar, que repite la actividad de las funciones de
+	sustitución por el operador new( ) y el operador delete( ), es
+	por defecto, pero puede desactivarlo con TRACE_OFF( ). En
+	cualquier caso, los resultados fianales sons siempre impresos
+	(vea la prueba que se ejecuta más tarde en este capítulo).
       </para>
 
       <!--
@@ -1792,7 +1818,17 @@ succeed_();
       memory leak).
       -->
       <para>
-
+	La facilidad MemCheck rastrea la memoria guardando todas las
+	direcciones asignadas por el operador new( ) en un array de
+	estructuras Info, que también tiene el nombre del fichero y el
+	número de línea donde la llamada new aparece. Para prevenir la
+	colisión con cualquier nombre que haya colocado en el espacio
+	de nombres global, tanta información como es posible se guarda
+	dentro del espacio de nombre anónimo. La clase Sentinel existe
+	únicamente para llamar a un destructor de objetos con estático
+	cuando el programa termina. Este destructor inspecciona memMap
+	para ver si cualquier puntero está esperando a ser borrado (
+	indicando un agujero de memoria).
       </para>
 
       <!--
@@ -1813,12 +1849,27 @@ succeed_();
       counterparts.
       -->
       <para>
-
+	Nuestro operador new( ) usa malloc( ) para conseguir memoria,
+	y luego añade el puntero y su información de fichero asociado
+	a memMap. La función de operador delete( ) deshace todo el
+	trabajo llamando a free( ) y decrementando nptrs, pero primero
+	se comprueba para ver si el puntero en cuestión está en el map
+	en el primer lugar. Si no es así, o reintenta borrar una
+	dirección que no está en el almacén libre, o re intenta borrar
+	la que ya está siendo borrada y eliminada del mapa. La variabe
+	activeFlag es importante aquí porque no queremos procesar
+	cualquier desasignación de ninguna actividad del cierre del
+	sistema. Llamando MEM_OFF( ) al final de su código, activeFlag
+	será puesta a falso, y posteriores llamandas para borrar serán
+	ignoradas. (Está mal en un programa real, pero nuestra
+	intención aquí es encontrar agujeros, no está depurando la
+	biblioteca.) Por simplicidad, enviamos todo el trabajo por
+	array new y delete a sus homólogos escalares.
       </para>
 
       <!-- The following is a simple test using the MemCheck facility: -->
       <para>
-
+	Lo siguiente es un test sencillo usando la facilidad MemCheck:
       </para>
 
 
@@ -1833,7 +1884,12 @@ succeed_();
       indicates the error as an attempt to delete an unknown pointer:
       -->
       <para>
-
+	Este ejemplo verifica que puede usar MemCheck en la presencia
+	de streams, contenedores estándar, y clases que asignan
+	memoria en constructores. Los punteros p y q son asignados y
+	desasignados sin ningún problema, pero r no es un puntero de
+	pila válido, así que la salida indica el error como un intento
+	para borrar un puntero desconocido:
       </para>
 
       <!--
@@ -1848,7 +1904,15 @@ succeed_();
       No user memory leaks!
       -->
       <para>
-
+      hola
+      Asignados 4 bytes en la dirección 0xa010778 (fichero: memtest.cpp, línea: 25)
+      Deleted memory at address 0xa010778
+      Asignados 12 bytes en la dirección 0xa010778 (fichero: memtest.cpp, línea: 27)
+      Memoria borrada en la dirección 0xa010778
+      Intento de borrar puntero desconocido: 0x1
+      Asignados 8 bytes en la dirección 0xa0108c0 (fichero: memtest.cpp, línea: 14)
+      Memoria borrada en la dirección 0xa0108c0
+      ¡No hay agujeros de memoria de usuario!
       </para>
 
       <!--
@@ -1857,7 +1921,10 @@ succeed_();
       calls to delete from reallocations performed by the containers.
       -->
       <para>
-
+	A causa de la llamada a MEM_OFF( ), no se procesan posteriores
+	llamadas al operador delete( ) por vector o ostream. Todavía
+	podría conseguir algunas llamadas a delete realizadas dsede
+	reasignaciones por los contenedores.
       </para>
 
       <!--
@@ -1865,7 +1932,7 @@ succeed_();
       is
       -->
       <para>
-
+	Si llama a TRACE_OFF( ) al principio del programa, la salida es
       </para>
 
       <!--
@@ -1874,7 +1941,9 @@ succeed_();
       No user memory leaks!
       -->
       <para>
-
+	Hola
+	Intento de borrar puntero desconocido: 0x1
+	¡No hay agujeros de memoria de usuario!
       </para>
 
     </sect2>
@@ -1893,7 +1962,14 @@ succeed_();
     though, and not for runtime error handling.
     -->
     <para>
-
+      Muchos de los dolores de cabeza de la ingenería del software
+      pueden ser evitados reflexionando sobre lo que está
+      haciendo. Probablemente ha estado usando aserciones mentales
+      cuando ha navegado por sus blucles y funciones, incluso si no ha
+      usado rutinariamente la macro assert( ). Si usa assert( ),
+      encontrará errores lógicos más pronto y acabará con código más
+      legible también. Recuerde usar solo aserciones para invariantes,
+      aunque, no para el manejo de error en tiempo de ejecución.
     </para>
 
     <!--
@@ -1904,7 +1980,11 @@ succeed_();
     did.
     -->
     <para>
-
+      Nada le dará más tranquilidad que código probado
+      rigurosamente. Si ha sido un lío en el pasado, usa un framework
+      automatizado, como el que hemos presentado aquí, para integrar
+      rutina de pruebas en su trabajo diario. Usted (¡y sus usarios!)
+      estarán contentos de que lo hiciera.
     </para>
 
   </sect1>
@@ -1918,7 +1998,10 @@ succeed_();
     available for a small fee from www.MindView.net.
     -->
     <para>
-
+      Las soluciones para ejercicios seleccionados pueden encontrarse
+      en el documento electrónico Pensar en C++ Volumen 2 Guía de
+      Soluciones Comentadas disponible por una pequeña cuota en
+      www.MindView.net.
     </para>
 
     <!--
@@ -1933,7 +2016,15 @@ succeed_();
     std::out_of_range exception if the supplied index is out of range.
     -->
     <para>
-
+      1. Escriba un programa de prueba usando el Framework TestSuite
+      para la clase estándar vector que prueba rigurosamente las
+      funciones con un vector de enteros: push_back( ) (añade un
+      elemento al final del vector) front( ) (devuelve el primer
+      elemento en el vector), back( ) (devuelve el último elemento en
+      el vector), pop_back( ) (elimina el último elemento sin
+      devolverlo), at( ) (devuelve el número de elementos). Asegúrate
+      de verificar que vector::at( ) lanza una excepción
+      std::out_of_range si el índice provisto está fuera de rango.
     </para>
 
     <!--
@@ -1944,7 +2035,11 @@ succeed_();
     class:
     -->
     <para>
-
+      2. Supóngase que le piden desarrollar un clase llamada Rational
+      que da soporte a números racionales (fracciones). La fracción
+      en un objecto Rational debería siempre almacenarse en términos
+      más bajos, y un denominador de cero es un error. Aquí está una
+      interfaz de ejemplo para esa clase Rational:
     </para>
 
 
@@ -1956,7 +2051,8 @@ succeed_();
     preconditions, postconditions, and exception specifications.
     -->
     <para>
-
+      Escriba una especificación completa para esta clase, incluyendo
+      especificaciones precondiciones, postcondiciones, y de excepción.
     </para>
 
     <!--
@@ -1965,7 +2061,9 @@ succeed_();
     exceptions.
     -->
     <para>
-
+      3. Escriba un test usando el framework TestSuite que prueba
+      rigurosaente todas las especificaciones del ejercicio anterior,
+      incluyendo probar excepciones.
     </para>
 
     <!--
@@ -1973,7 +2071,8 @@ succeed_();
     previous exercise pass. Use assertions only for invariants.
     -->
     <para>
-
+      4. Implemente la clase Rational de modo que pase todas las pruebas
+      del ejercicio anterior. Usa aserciones sólo para invariantes.
     </para>
 
     <!--
@@ -1983,5 +2082,8 @@ succeed_();
     search function.
     -->
     <para>
-
+      5. El fichero BuggedSearch.cpp de abajo contiene un función de búsqueda
+      binaria que busca el rango [pedir, final) para que. Hay algunos
+      errores en el algoritmo. Usa las técnicas de seguimiento de este
+      capítulo para depurar la función de búsqueda.
     </para>
