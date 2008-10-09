@@ -1620,7 +1620,20 @@ mecanismo de secuenciación no es parte esencial del patrón.
     same: adding a new type can cause problems.
     -->
     <para>
-
+Cuando se descubre que se necesitan añadir nuevos tipos a un sistema, el primer
+paso más sensato es usar polimorfismo para crear una interfaz común para esos
+nuevos tipos. Así, se separa el resto del código en el sistema del conocimiento
+de los tipos específicos que se están añadiendo. Los tipos nuevos pueden añadirse
+sin "molestar" al código existente, o eso parece. A primera vista, podría parecer
+que hace falta cambiar el código únicamente en los lugares donde se hereda un
+tipo nuevo, pero esto no es del todo cierto. Todavía hay que crear un objeto de
+este nuevo tipo, y en el momento de la creación hay que especificar qué constructor
+usar. Por lo tanto, si el codigo que crea objetos está distribuido por toda la
+aplicación, se obtiene el mismo problema que cuando se añaden tipos -hay que
+localizar todos los puntos del código donde el tipo tiene importancia. Lo que
+imoporta es la creación del tipo, más que el uso del mismo (de eso se encarga
+el polimorfismo), pero el efecto es el mismo: añadir un nuevo tipo puede
+causar problemas.
     </para>
 
     <!--
@@ -1635,7 +1648,15 @@ mecanismo de secuenciación no es parte esencial del patrón.
     most useful of all design patterns.
     -->
     <para>
-
+La solución es forzar a que la creación de objetos se lleve a cabo a través
+de una factoría común, en lugar de permitir que el código creacional se
+disperse por el sistema. Si todo el código del programa debe ir a esta
+factoría cada vez que necesita crear uno de esos objetos, todo lo que
+hay que hacer para añadir un objeto es modificar la factoría. Este diseño
+es una variación del patrón conocido comúnmente como Factory Method. Dado que
+todo programa orientado a objetos crea objetos, y como es probable que haya
+que extender el programa añadiendo nuevos tipos, las factorías pueden ser
+el más útil de todos los patrones de diseño.
     </para>
 
     <!--
@@ -1644,7 +1665,9 @@ mecanismo de secuenciación no es parte esencial del patrón.
     base class:
     -->
     <para>
-
+Como ejemplo, considere el ampliamente usado ejemplo de figura (Shape). Una
+aproximación para implementar una factoría es definir una función miembro
+estática en la clase base:
     </para>
 
 
@@ -1661,7 +1684,12 @@ mecanismo de secuenciación no es parte esencial del patrón.
     as in this example.)
     -->
     <para>
-
+La función factory() toma un argumento que le permite determinar qué tipo
+de figura crear. Aquí, el argumento es una cadena, pero podría ser cualquier
+conjunto de datos. El método factory() es el único código del sistema que
+hay que cambiar cuando se añade un nuevo tipo de figura. (Los datos de
+inicialización para los objetos vendrán supuestamente de algún sitio fuera
+del sistema y no serán un FIXME: hard-coded array como en el ejemplo.)
     </para>
 
     <!--
@@ -1680,7 +1708,19 @@ mecanismo de secuenciación no es parte esencial del patrón.
     unfortunate circular dependency.
     -->
     <para>
-
+Para asegurar que la creación sólo puede realizarse en factory(), los
+constructores de cada tipo específico de figura se hacen privados, y
+Shape se declara como <kw>friend</kw> de forma que factory() tiene acceso
+a los mismos. (También se podría declarar sólamente Shape::factory() como
+<kw>friend</kw>, pero parece razonablemente inocuo declarar la clase base
+entera.) Hay otra implicación importante de este diseño -la clase base, Shape,
+debe conocer ahora los detalles de todas las clases derivadas -una propiedad
+que el diseño orientado a objetos intenta evitar. Para <kw>frameworks</kw> o
+cualquier librería de clases que deban poder extenderse, esto hace que se
+convierta rápidamente en algo difícil de manejar, ya que la clase base debe
+actualizarse en cuanto se añada un tipo nuevo a la jerarquía. Las factorías
+polimórficas, descritas en la siguiente subsección, se pueden usar para
+evitar esta dependencia circular tan poco deseada.
     </para>
 
     <sect2>
