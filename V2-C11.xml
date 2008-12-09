@@ -396,7 +396,7 @@ http://arco.inf-cr.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc
       and error reports.
       -->
       <para>
-      Por favor, nota que la librería ZThread es un proyecto independiente y
+      Por favor, note que la librería ZThread es un proyecto independiente y
       no está soportada por el autor de este libro; simplemente estamos
       usando la librería en este capítulo y no podemos dar soporte técnico a
       las características de la instalación. Mira el sitio web de ZThread
@@ -757,7 +757,8 @@ public:
     how all the threads run in concert with one another:
     -->
     <para>
-
+      Puede añadir más hilos fácilmente para controlar más tareas. A
+      continuación, puede ver cómo los hilos se ejecutan con algún otro:
     </para>
 
 
@@ -773,7 +774,14 @@ public:
     scheduler will quietly distribute the threads among the processors.
     -->
     <para>
-
+      El segundo argumento del constructor
+      de <classname>LiftOff</classname> identifica cada tarea. Cuando
+      ejecute el programa, verá que la ejecución de las distintas
+      tareas se mezclan a medida que los hilos entran y salen de su
+      ejecución. Este intercambio está controlado automáticamente por
+      el planificador de hilos. Si tiene múltiples procesadores en su
+      máquina, el planificador de hilos distribuirá los hilos entre
+      los procesadores de forma transparente.
     </para>
 
     <!--
@@ -792,12 +800,27 @@ public:
     the underlying thread after the object vanishes.
     -->
     <para>
-
+      El bucle for puede parecer un poco extraño a priori ya que se
+      crea localmente dentro del bucle for e inmediatamente después
+      sale del ámbito y es destruído. Esto hace que parezca que el
+      hilo propiamente dicho pueda perderse inmediatamente, pero puede
+      ver por la salida que los hilos, en efecto, están en ejecución
+      hasta su finalización. Cuando crea un
+      objeto <classname>Thread</classname>, el hilo asociado se
+      registra en el sistema de hilos, que lo mantiene vivo. A pesar
+      de que el objeto <classname>Thread</classname> local se pierde,
+      el hilo sigue vivo hasta que su tarea asociada termina. Aunque
+      puede ser poco intuitivo desde el punto de vista de C++, el
+      concepto de hilos es la excepción de la regla: un hilo crea un
+      hilo de ejecución separado que persiste después de que la
+      llamada a función finalice. Esta excepción se refleja en la
+      persistencia del hilo subyacente después de que el objeto
+      desaparezca.
     </para>
 
     <sect2>
       <!-- : Creating responsive user interfaces -->
-      <title></title>
+      <title>Creación de interfaces de usuarios interactivas</title>
 
       <!--
       As stated earlier, one of the motivations for using threading is to
@@ -806,7 +829,11 @@ public:
       console-based user interface.
       -->
       <para>
-
+	Como se dijo anteriormente, uno de las motivaciones para usar
+	hilos es crear interfaces de usuario interactivas. Aunque en
+	este libro no cubriremos las interfaces gráficas de usuario,
+	verá un ejemplo sencillo de una interfaz de usuario basada en
+	consola.
       </para>
 
       <!--
@@ -817,7 +844,12 @@ public:
       input, so the UI is unresponsive:
       -->
       <para>
-
+	El siguiente ejemplo lee líneas de un archivo y las imprime a
+	la consola, durmiéndose (suspender el hilo actual) durante un
+	segundo después de que cada línea sea mostrada. (Aprenderá más
+	sobre el proceso de dormir hilos en el capítulo.) Durante este
+	proceso, el programa no busca la entrada del usuario, por lo
+	que la IU no es interactiva:
       </para>
 
 
@@ -830,7 +862,10 @@ public:
       input so the program becomes responsive:
       -->
       <para>
-
+	Para hacer este programa interactivo, puede ejecutar una tarea
+	que muestre el archivo en un hilo separado. De esta forma, el
+	hilo principal puede leer la entrada del usuario, por lo que
+	el programa se vuelve interactivo:
       </para>
 
 
@@ -842,7 +877,9 @@ public:
       and call quit( ) on the DisplayTask.
       -->
       <para>
-
+	Ahora el hilo main() puede responder inmediatamente cuando
+	pulse Return e invocar quit()
+	sobre <classname>DisplayTask</classname>.
       </para>
 
       <!--
@@ -861,7 +898,23 @@ public:
       task has completed.
       -->
       <para>
-
+	Este ejemplo también muestra la necesidad de una comunicación
+	entre tareas - la tarea en el hilo main() necesita parar
+	al <classname>DisplayTask</classname>. Dado que tenemos un
+	puntero a DisplayTask, puede pensar que bastaría con llamar al
+	destructor de ese puntero para matar la tarea, pero esto hace
+	que los programas sean poco fiables. El problema es que la
+	tarea podría estar en mitad de algo importante cuando lo
+	destruye y, por lo tanto, es probable que ponga el programa en
+	un estado inestable. En este sentido, la propia tarea decide
+	cuando es seguro terminar. La manera más sencilla de hacer
+	esto es simplemente notificar a la tarea que desea detener
+	mediante una bandera booleana. Cuando la tarea se encuentre en
+	un punto estable puede consultar esa bandera y hacer lo que
+	sea necesario para limpiar el estado después de regresar de
+	run(). Cuando la tarea vuelve de
+	run(), <classname>Thread</classname> sabe que la tarea se ha
+	completado.
       </para>
 
       <!--
@@ -871,14 +924,17 @@ public:
       in this chapter.
       -->
       <para>
-
+	Aunque este programa es lo suficientemente simple para que no
+	haya problemas, hay algunos pequeños defectos respecto a la
+	comunicación entre pilas. Es un tema importante que se cubrirá
+	más tarde en este capítulo.
       </para>
 
     </sect2>
     <sect2>
       <!-- Simplifying with Executors -->
       <title>Simplificación con Ejecutores</title>
-
+      
       <!--
       You can simplify your coding overhead by using ZThread
       Executors. Executors provide a layer of indirection between a client
@@ -886,7 +942,11 @@ public:
       directly, an intermediate object executes the task.
       -->
       <para>
-
+	Utilizando los Ejecutores de ZThread, puede simplificar su
+	código. Los Ejecutores proporcionan una capa de indirección
+	entre un cliente y la ejecución de una tarea; a diferencia de
+	un cliente que ejecuta una tarea directamente, un objeto
+	intermediario ejecuta la tarea. 
       </para>
 
       <!--
@@ -898,7 +958,16 @@ public:
       example, the ThreadedExecutor creates one thread per task:
       -->
       <para>
-
+	Podemos verlo utilizando un Ejecutor en vez de la creación
+	explícita de objetos <classname>Thread</classname> en
+	MoreBasicThreads.cpp. Un objeto <classname>LiftOff</classname>
+	conoce cómo ejecutar una tarea específica; como el patrón
+	Command, expone una única función a ejecutar. Un
+	objeto <classname>Executor</classname> conoce como construir
+	el contexto apropiado para lanzar
+	objetos <classname>Runnable</classname>. En el siguiente
+	ejemplo, <classname>ThreadedExecutor</classname> crea un hilo
+	por tarea:
       </para>
 
 
@@ -915,7 +984,16 @@ public:
       waiting on conditions, etc.), as you will learn later in this chapter.
       -->
       <para>
-
+	Note que algunos casos un <classname>Executor</classname>
+	individual puede ser usado para crear y gestionar todo los
+	hilos en su sistema. Debe colocar el código correspondiente a
+	los hilos dentro de un bloque try porque el método execute()
+	de un <classname>Executor</classname> puede lanzar una
+	<classname>Synchronization_Exception</classname> si algo va
+	mal. Esto es válido para cualquier función que implique
+	cambiar el estado de un objeto de sincronización (arranque de
+	hilos, la adquisición de mutexes, esperas en condiciones,
+	etc.), tal y como aprenderá más adelante en este capítulo. 
       </para>
 
       <!--
@@ -923,7 +1001,8 @@ public:
       complete.
       -->
       <para>
-
+	El programa finalizará cuando todas las tareas en
+	el <classname>Executor</classname> hayan concluido.
       </para>
 
       <!--
@@ -937,7 +1016,19 @@ public:
       execute the submitted tasks in parallel:
       -->
       <para>
-
+	En el siguiente
+	ejemplo, <classname>ThreadedExecutor</classname> crea un hilo
+	para cada tarea que quiera ejecutar, pero puede cambiar
+	fácilmente la forma en la que esas tareas son ejecutadas
+	reemplazando el <classname>ThreadedExecutor</classname> por un
+	tipo diferente de <classname>Executor</classname>. En este
+	capítulo, usar un <classname>ThreadedExecutor</classname> está
+	bien, pero para código en producción puede resultar
+	excesivamente costoso para la creación de muchos hilos. En ese
+	caso, puede reemplazarlo por
+	un <classname>PoolExecutor</classname>, que utilizará un
+	conjunto limitado de hilos para lanzar las tareas registradas
+	en paralelo:
       </para>
 
 
@@ -956,7 +1047,20 @@ public:
       using PoolExecutors in production code.
       -->
       <para>
-
+	Con <classname>PoolExecutor</classname> puede realizar una
+	asignación inicial de hilos costosa de una sola vez, por
+	adelantado, y los hilos se reutilizan cuando sea posible. Esto
+	ahorra tiempo porque no está pagando el gasto de la creación
+	de hilos por cada tarea individual de forma constante. Además,
+	en un sistema dirigido por eventos, los eventos que requieren
+	hilos para manejarlos puede ser generados tan rápido como
+	quiera, basta con traerlos del pool. No excederá los recursos
+	disponibles porque <classname>PoolExecutor</classname> utiliza
+	un número limitado de
+	objetos <classname>Thread</classname>. Así, aunque en este
+	libro se utilizará <classname>ThreadedExecutors</classname>,
+	tenga en cuenta utilizar <classname>PoolExecutor</classname>
+	para código en producción. 
       </para>
 
       <!--
@@ -968,7 +1072,14 @@ public:
       or remote log, or for an event-dispatching thread.
       -->
       <para>
-
+	<classname>ConcurrentExecutor</classname> es
+	como <classname>PoolExecutor</classname> pero con un tamaño
+	fijo de hilos. Es útil para cualquier cosa que quiera lanzar
+	en otro hilo de forma continua (una tarea de larga duración),
+	como una tare que escucha conexiones entrantes en un
+	socket. También es útil para tareas cortas que quiera lanzar
+	en un hilo, por ejemplo, pequeñas tareas que actualizar un log
+	local o remoto, o para un hilo que atienda a eventos. 
       </para>
 
       <!--
@@ -980,7 +1091,14 @@ public:
       submitted to it.
       -->
       <para>
-
+	Si hay más de una tarea registrada en
+	un <classname>ConcurrentExecutor</classname>, cada una de
+	ellas se ejecutará completamente hasta que la siguiente
+	empiece; todas utilizando el mismo hilo. En el ejemplo
+	siguiente, verá que cada tarea se completa, en el orden en el
+	que fue registrada, antes de que la siguiente comience. De
+	esta forma, un <classname>ConcurrentExecutor</classname>
+	serializa las tareas que le fueron asignadas.
       </para>
 
 
@@ -998,7 +1116,19 @@ public:
       then the next one in the queue is begun.
       -->
       <para>
-
+	Como un <classname>ConcurrentExecutor</classname>,
+	un <classname>SynchronousExecutor</classname> se usa cuando
+	quiera una única tarea se ejecute al mismo tiempo, en serie en
+	lugar de concurrente. A diferencia
+	de <classname>ConcurrentExecutor</classname>,
+	un <classname>SynchronousExecutor</classname> no crea ni
+	gestiona hilos sobre si mismo. Utiliza el hilo que añadió la
+	tarea y, así, únicamente actúa como un punto focal para la
+	sincronización. Si tiene n tareas registradas en
+	un <classname>SynchronousExecutor</classname>, nunca habrá 2
+	tareas que se ejecuten a la vez. En lugar de eso, cada una se
+	ejecutará hasta su finalización y la siguiente en la cola
+	comenzará. 
       </para>
 
       <!--
@@ -1014,7 +1144,21 @@ public:
       properly just to prototype something.
       -->
       <para>
-
+	Por ejemplo, suponga que tiene un número de hilos ejecutando
+	tareas que usan un sistema de archivos, pero está escribiendo
+	código portable luego no quiere utilizar flock() u otra
+	llamada al sistema operativo específica para bloquear un
+	archivo. Puede lanzar esas tareas con
+	un <classname>SynchronousExecutor</classname> para asegurar
+	que solamente una de ellas, en un tiempo determinado, está
+	ejecutándose desde cualquier hilo. De esta manera, no necesita
+	utilizar sincronización para un recurso compartido (y, de
+	paso, no se cargará el sistema de archivos). Una mejor
+	solución pasa por sincronizar el recurso (lo cual aprenderá
+	más adelante en este capítulo), sin embargo
+	un <classname>SynchronousExecutor</classname> le permite
+	evitar las molestias de obtener una coordinación adecuada para
+	prototipar algo. 
       </para>
 
 
@@ -1031,7 +1175,14 @@ public:
       much in production code.
       -->
       <para>
-
+	Cuando ejecuta el programa verá que las tareas son lanzadas en
+	el orden en el que fueron registradas, y cada tarea se ejecuta
+	completamente antes de que la siguiente empiece. ¿Qué es lo
+	que no ve y que hace que no se creen nuevos hilos? El hilo
+	main() se usa para cada tarea, y debido a este ejemplo, ese es
+	el hilo que registra todas las tareas. Podría no utilizar 
+	un <classname>SynchronousExecutor</classname> en código en 
+	producción porque, principalmente, es para prototipado.
       </para>
 
     </sect2>
