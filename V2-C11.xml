@@ -1188,7 +1188,7 @@ public:
     </sect2>
     <sect2>
       <!-- : Yielding -->
-      <title> </title>
+      <title>Ceder el paso</title>
 
       <!--
       If you know that you?ve accomplished what you need to during one pass
@@ -1200,7 +1200,14 @@ public:
       function.
       -->
       <para>
-
+	Si sabe que ha logrado realizar lo que necesita durante una
+	pasada a través de un bucle en su función run() (la mayoría de
+	las funciones run() suponen un periodo largo de tiempo de
+	ejecución), puede darle un toque al mecanismo de planificación
+	de hilos, decirle que ya ha hecho suficiente y que algún otro
+	hilo puede tener la CPU. Este toque (y es un toque - no hay
+	garantía de que su implementación vaya a escucharlo) adopta la
+	forma de la función yield().
       </para>
 
       <!--
@@ -1208,7 +1215,9 @@ public:
       after each loop:
       -->
       <para>
-
+	Podemos construir una versión modificada
+	de los ejemplos de <classname>LiftOff</classname> cediendo el
+	paso después de cada bucle:
       </para>
 
 
@@ -1224,13 +1233,19 @@ public:
       serious tuning of your application.
       -->
       <para>
-
+	Puede ver que la tarea del método run() es en un bucle
+	infinito en su totalidad. Utilizando yield( ), la salida se
+	equilibra bastante que en el caso en el que no se cede el
+	paso. Pruebe a comentar la llamada a Thread::yield() para ver
+	la diferencia. Sin embargo, en general, yield() es útil en
+	raras ocasiones, y no puede contar con ella para realizar un
+	afinamiento serio sobre su aplicación.
       </para>
 
     </sect2>
     <sect2>
       <!-- : Sleeping -->
-      <title> </title>
+      <title>Dormir</title>
 
       <!--
       Another way you can control the behavior of your threads is by calling
@@ -1239,7 +1254,11 @@ public:
       yield( ) with a call to sleep( ), you get the following:
       -->
       <para>
-
+	Otra forma con la que puede tener control sobre el
+	comportamiento de su hilos es llamando a sleep() para cesar la
+	ejecución de uno de ellos durante un número de milisegundos
+	dado. En el ejemplo que viene a continuación, si cambia la llamada a
+	yield() por una a sleep(), obtendrá lo siguiente:
       </para>
 
 
@@ -1258,7 +1277,19 @@ public:
       arise within a task.
       -->
       <para>
-
+	Thread::sleep() puede lanzar
+	una <classname>Interrupted_Exception</classname>(sobre las
+	interrupciones aprenderá más adelante), y puede ver que esta
+	excepción se captura en run(). Sin embargo, la tarea se crea y
+	se ejecuta dentro de un bloque try en main() que
+	captura <classname>Interrupted_Exception</classname> (la clase
+	base para todas las excepciones de ZThread), por lo que ¿no
+	sería posible ignorar la excepción en run() y asumir que se
+	propagará al manejador en main()?. Esto no funcionará porque
+	las excepciones no se propagarán a lo largo de los hilos para
+	volver hacia main(). De esta forma, debe manejar cualquier
+	excepción que pueda ocurrir dentro de una tarea de forma
+	local.
       </para>
 
       <!--
@@ -1271,7 +1302,15 @@ public:
       back to it after the sleep interval expires.
       -->
       <para>
-
+	Notará que los hilos tienden a ejecutarse en cualquier orden,
+	lo que quiere decir que sleep() tampoco es una forma de
+	controlar el orden de la ejecución de los hilos. Simplemente
+	para la ejecución del hilo durante un rato. La única garantía
+	que tiene es que el hilo se dormirá durante, al menos, 100
+	milisegundos (en este ejemplo), pero puede que tarde más
+	después de que el hilo reinicie la ejecución ya que el
+	planificador de hilos tiene que volver a él tras haber
+	expirado el intervalo.
       </para>
 
       <!--
@@ -1282,7 +1321,11 @@ public:
       order.
       -->
       <para>
-
+	Si debe tener control sobre el orden de la ejecución de hilos,
+	su mejor baza es el uso de controles de sincronización
+	(descritos más adelante) o, en algunos casos, no usar hilos en
+	todo, FIXMEbut instead to write your own cooperative routines that
+	hand control to each other in a specified order.
       </para>
 
     </sect2>
