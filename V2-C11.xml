@@ -1152,13 +1152,13 @@ public:
 	un <classname>SynchronousExecutor</classname> para asegurar
 	que solamente una de ellas, en un tiempo determinado, está
 	ejecutándose desde cualquier hilo. De esta manera, no necesita
-	utilizar sincronización para un recurso compartido (y, de
-	paso, no se cargará el sistema de archivos). Una mejor
+	preocuparse por la sincronización del recurso compartido (y,
+	de paso, no se cargará el sistema de archivos). Una mejor
 	solución pasa por sincronizar el recurso (lo cual aprenderá
 	más adelante en este capítulo), sin embargo
 	un <classname>SynchronousExecutor</classname> le permite
 	evitar las molestias de obtener una coordinación adecuada para
-	prototipar algo. 
+	prototipar algo.
       </para>
 
 
@@ -1573,7 +1573,18 @@ public:
       all the examples in this chapter.
       -->
       <para>
-
+	Recargar el hilo al destruir una tarea es un problema. Ese
+	hilo sabe necesariamente si otro necesita hacer referencia a
+	ese Runnable, y por ello el Runnable podría ser destruido
+	prematuramente. Para ocuparse de este problema, el mecanismo
+	de la biblioteca ZThread mantiene un conteo de referencias
+	sobre las tareas. Una tarea se mantiene viva hasta que su
+	contador de referencias se pone a cero, en este punto la tarea
+	se destruye. Esto quiere decir que las tareas tienen que ser
+	destruidas dinámicamente siempre, por lo que no pueden ser
+	creadas en la pila. En vez de eso, las tareas deben ser
+	creadas utilizando new, tal y como puede ver en todos los
+	ejemplos de este capítulo.  tareas in ZThreads
       </para>
 
       <!--
@@ -1584,7 +1595,13 @@ public:
       program faults. Here?s a simple example:
       -->
       <para>
-
+	Además, también debe asegurar que los objetos que no son
+	tareas estarán vivos tanto tiempo como el que las tareas
+	necesiten de ellos. Por otro lado, resulta sencillo para los
+	objetos utilizados por las tareas salir del ámbito antes de
+	que las tareas hayan concluido. Si ocurre esto, las tareas
+	intentarán acceder zonas de almacenamiento ilegales y
+	provocará que el programa falle. He aquí un simple ejemplo:
       </para>
 
 
@@ -1603,7 +1620,19 @@ public:
       and not in a register.
       -->
       <para>
-
+	Podría parecer a priori que la
+	clase <classname>Count</classname> es excesiva, pero si
+	únicamente n es un int (en lugar de una matriz), el compilador
+	puede ponerlo dentro de un registro y ese almacenamiento
+	seguirá estando disponible (aunque técnicamente es ilegal)
+	después de que el objeto <classname>Count</classname> salga
+	del ámbito. Es difícil detectar la violación de memoria en
+	este caso. Sus resultados podrían variar dependiendo de su
+	compilador y de su sistema operativo, pero pruebe a que n sea
+	un int y verá qué ocurre. En cualquier evento,
+	si <classname>Count</classname> contiene una matriz de ints y
+	como antes, el compilador está obligado a ponerlo en la pila y
+	no en un registro. 
       </para>
 
       <!--
@@ -1613,7 +1642,13 @@ public:
       an object that no longer exists. This produces a program fault.
       -->
       <para>
-
+	<classname>Incrementer</classname> es una tarea sencilla que
+	utiliza un objeto <classname>Count</classname>. En main(),
+	puede ver que las tareas <classname>Incrementer</classname> se
+	ejecutan el tiempo suficiente para que el salga del ámbito,
+	por lo que la tarea intentará acceder a un objeto que no
+	existe. Esto produce un fallo en el programa.
+	objeto <classname>Count</classname> 
       </para>
 
       <!--
@@ -1627,7 +1662,16 @@ public:
       use reference counting.
       -->
       <para>
-
+	Para solucionar este problema, debemos garantizar que
+	cualquiera de los objetos compartidos entre tareas estarán
+	accesibles tanto tiempo como las tareas los necesiten. (Si los
+	objetos no fueran compartidos, podrían estar directamente
+	dentro de las clases de las tareas y, así, unir su tiempo de
+	vida a la tarea.) Dado que no queremos que el propio ámbito
+	estático del programa controle el tiempo de vida del objeto,
+	pondremos el en heap. Y para asegurar que el objeto no se
+	destruye hasta que no haya objetos (tareas, en este caso) que
+	lo estén utilizando, utilizaremos el conteo de referencias.
       </para>
 
       <!--
@@ -1639,7 +1683,15 @@ public:
       the fault:
       -->
       <para>
-
+	El conteo de referencias se ha explicado a lo largo del
+	volumen uno de este libro y además se revisará en este
+	volumen. La librería ZThread incluye una plantilla
+	llamada <classname>CountedPtr</classname> que automáticamente
+	realiza el conteo de referencias y destruye un objeto cuando
+	su contador de referencias vale cero. A continuación, se ha
+	modificado el programa para que
+	utilice <classname>CountedPtr</classname> para evitar el
+	fallo:
       </para>
 
 
@@ -1657,8 +1709,22 @@ public:
       (automatically) on the Count object by the CountedPtr.
       -->
       <para>
-
-      </para>
+	Ahora <classname>Incrementer</classname> contiene un
+	objeto <classname>CountedPtr</classname>, que gestiona
+	un <classname>Count</classname>. En la función main(), los
+	objetos <classname>CountedPtr</classname> se pasan a los dos
+	objetos <classname>Incrementer</classname> por valor, por lo
+	que se llama el constructor de copia, incrementando el
+	conteo de referencias. Mientras la tarea esté ejecutándose, el
+	contador de referencias no valdrá cero, por lo que el
+	objeto <classname>Count</classname> utilizado
+	por <classname>CountedPtr</classname> no será
+	destruído. Solamente cuando todas las tareas que utilice
+	el <classname>Count</classname> terminen se llamará al
+	destructor (automáticamente) sobre el
+	objeto <classname>Count</classname> por
+	el <classname>CountedPtr</classname>.
+     </para>
 
       <!--
       Whenever you have objects that are used by more than one task, you?ll
@@ -1667,7 +1733,10 @@ public:
       issues.
       -->
       <para>
-
+	Siempre que tenga una tarea que utilice más de un objeto, casi
+	siempre necesitará controlar aquellos objetos utilizando la
+	plantilla <classname>CountedPtr</classname> para evitar
+	problemas derivados del tiempo de vida de los objetos. 
       </para>
 
     </sect2>
@@ -1681,7 +1750,10 @@ public:
       consumer threads is to check the validity of the even numbers.
       -->
       <para>
-
+	Considere el siguiente ejemplo, donde una tarea genera números
+	constantes y otras tareas consumen esos números. Ahora, el
+	único trabajo de los hilos consumidores es probar la validez
+	de los números constantes.
       </para>
 
       <!--
@@ -1693,7 +1765,16 @@ public:
       nextValue( ) function and that it can be canceled.
       -->
       <para>
-
+	Primeramente, definiremos <classname>EvenChecker</classname>,
+	el hilo consumidor, puesto que será reutilizado en todos los
+	ejemplos siguientes. Para
+	desacoplar <classname>EvenChecker</classname> de los varios
+	tipos de generadores con los que experimentaremos, crearemos
+	una interfaz llamada <classname>Generator</classname> que
+	contiene el número mínimo de funciones
+	que <classname>EvenChecker</classname> necesita conocer: por
+	lo que tiene una función nextValue() y que puede ser
+	cancelada.
       </para>
 
 
@@ -1722,7 +1803,35 @@ public:
       using CountedPtr) we eliminate the potential race condition.
       -->
       <para>
-
+	La clase <classname>Generator</classname> presenta la clase
+	abstracta <classname>Cancelable</classname>, que es parte de
+	la biblioteca de ZThread. El propósito
+	de <classname>Cancelable</classname> es proporcionar una
+	interfaz consistente para cambiar el estado de un objeto via
+	cancel() y ver si el objeto ha sido cancelado con la función
+	isCanceled(). Aquí utilizamos el enfoque simple de una bandera
+	de cancelación booleana similar a quitFlag, vista previamente
+	en ResponsiveUI.cpp. Note que en este ejemplo la clase que
+	es <classname>Cancelable</classname> no
+	es <classname>Runnable</classname>. En su lugar, toda
+	tarea <classname>EvenChecker</classname> que dependa de un
+	objeto <classname>Cancelable</classname>
+	(el <classname>Generator</classname>) lo comprueba para ver
+	que ha sido cancelado, como puede ver en run(). De esta
+	manera, las tareas que comparten recursos comunes
+	(el <classname>Cancelable</classname> <classname>Generator</classname>)
+	estén atentos a la señal de ese recurso para terminar. Esto
+	elimina la también conocida condición de carrera, donde dos o
+	más tareas compiten por responder una condición y, así,
+	colisionar o producir resultados inconsistentes. Debe pensar
+	sobre esto cuidadosamente y protegerse de todas las formas
+	posible de los fallos de un sistema concurrente. Por ejemplo,
+	una tarea no puede depender de otra porque el orden de
+	finalización de las tareas no está garantizado. En este
+	sentido, eliminamos la potencial condición de carrera haciendo
+	que las tareas dependan de objetos que no son tareas (que son
+	contados referencialmente
+	utilizando <classname>CountedPtr</classname>. 
       </para>
 
       <!--
@@ -1730,7 +1839,8 @@ public:
       general mechanisms for termination of threads.
       -->
       <para>
-
+	En las secciones posteriores, verá que la librería ZThread
+	contiene más mecanismos generales para la terminación de hilos.
       </para>
 
       <!--
@@ -1738,7 +1848,12 @@ public:
       CountedPtr template is used to reference count the Generator objects.
       -->
       <para>
-
+	Debido a que muchos objetos <classname>EvenChecker</classname>
+	podrían terminar compartiendo
+	un <classname>Generator</classname>, la
+	plantilla <classname>CountedPtr</classname> se usa para contar
+	las referencias de los
+	objetos <classname>Generator</classname>.
       </para>
 
       <!--
@@ -1750,7 +1865,16 @@ public:
       terminate it.
       -->
       <para>
-
+	El último método en <classname>EvenChecker</classname> es un
+	miembro estático de la plantilla que configura y realiza una
+	comprobación de los tipos de <classname>Generator</classname>
+	creando un <classname>CountedPtr</classname> dentro y,
+	seguidamente, lanzar un número
+	de <classname>EvenChecker</classname>s que usan
+	ese <classname>Generator</classname>. Si
+	el <classname>Generator</classname> provoca un fallo, test()
+	lo reportará y volverá; en otro caso, deberá pulsar Control-C
+	para finalizarlo. 
       </para>
 
       <!--
@@ -1762,12 +1886,24 @@ public:
       that Generator to gracefully shut down.
       -->
       <para>
-
+	Las tareas <classname>EvenChecker</classname> leen
+	constantemente y comprueban que los valores de
+	sus <classname>Generator</classname>s asociados. Vea que si
+	generator->isCanceled() es verdadero, run() retorna, con lo
+	que se le dice al <classname>Executor</classname> de
+	EvenChecker::test() que la tarea se ha
+	completado. Cualquier tarea <classname>EvenChecker</classname>
+	puede llamar a cancel() sobre
+	su <classname>Generator</classname> asociado, lo que causará
+	que todos los demás <classname>EvenChecker</classname>s que
+	utilicen ese <classname>Generator</classname> finalicen con
+	elegancia.     
       </para>
 
       <!-- The EvenGenerator is simple?nextValue( ) produces the next even value: -->
       <para>
-
+	<classname>EvenGenerator</classname> es simple -
+	nextValue() produce el siguiente valor constante:
       </para>
 
 
@@ -1784,7 +1920,16 @@ public:
       error is reported and the program is shut down.
       -->
       <para>
-
+	Es posible que un hilo llame a nextValue() después de el
+	primer incremento de currentEvenValue y antes del segundo (en
+	el lugar "Danger point here!" del código comentado), que pone
+	el valor en un estado "incorrecto". Para probar que esto puede
+	ocurrir, EventChecker::test() crea un grupo de
+	objetos <classname>EventChecker</classname> para leer
+	continuamente la salida de
+	un <classname>EvenGenerator</classname> y ver si cada valor es
+	constante. Si no es así, el error se reporta y el programa
+	finaliza.
       </para>
 
       <!--
@@ -1797,7 +1942,16 @@ public:
       EvenGenerator while it?s in an ?incorrect? state.
       -->
       <para>
-
+	Este programa podría no detectar el problema hasta
+	que <classname>EvenGenerator</classname> ha completado varios
+	ciclos, dependiendo de las particuliaridades de su sistema
+	operativo y otros detalles de implementación. Si quiere ver
+	que falla mucho más rápido, pruebe a poner una llamada a
+	yield() entre el primero y segundo incremento. En algún
+	evento, fallará puntualmente a causa de que los
+	hilos <classname>EvenChecker</classname> pueden acceder a la
+	información en <classname>EvenGenerator</classname> mientras
+	se encuentra en un estado "incorrecto"
       </para>
 
     </sect2>
