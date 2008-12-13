@@ -1951,7 +1951,7 @@ public:
 	evento, fallará puntualmente a causa de que los
 	hilos <classname>EvenChecker</classname> pueden acceder a la
 	información en <classname>EvenGenerator</classname> mientras
-	se encuentra en un estado "incorrecto"
+	se encuentra en un estado "incorrecto".
       </para>
 
     </sect2>
@@ -1969,7 +1969,14 @@ public:
       programs.
       -->
       <para>
-
+	En el ejemplo anterior se muestra el problema fundamental a la
+	hora de utilizar hilos: nunca sabrá cuándo un hilo puede ser
+	ejecutado. Imagínese sentado en la mesa con un tenedor, a
+	punto de coger el último pedazo de comida de un plato y tan
+	pronto como su tenedor lo alcanza, de repente, la comida se
+	desvanece (debido a que su hilo fue suspendido y otro vino y
+	se comió la comida). Ese es el problema que estamos tratando a
+	la hora de escribir programas concurrentes.
       </para>
 
       <!--
@@ -1991,7 +1998,13 @@ public:
       resource, the child who shouts ?Dibs!? acquires the lock.
       -->
       <para>
-
+	Para prevenir este tipo de colisiones existe una manera
+	sencilla que consiste en poner un bloqueo sobre un recursos
+	cuando un hilo trata de usarlo. El primer hilo que accede al
+	recursos lo bloquea y, así, otro hilo no puede acceder al
+	recurso hasta que no sea desbloqueado, momento en el que este
+	hilo lo vuelve a bloquear y lo vuelve a usar, y así
+	sucesivamente.
       </para>
 
       <!--
@@ -2004,7 +2017,14 @@ public:
       library contains a mutex mechanism declared in the header Mutex.h.
       -->
       <para>
-
+	De esta forma, tenemos que ser capaces de evitar cualquier
+	tarea de acceso a memoria mientras ese almacenamiento no esté
+	en un estado adecuado. Esto es, necesitamos tener un mecanismo
+	que excluya una segunda tarea sobre el acceso a memoria cuando
+	una primera tarea ya está usándola. Esta idea es fundamental
+	para todo sistema multihilado y se conoce como exclusión
+	mutua; abreviado como mutex. La biblioteca ZThread tiene un
+	mecanismo de mutex en el fichero de cabecera Mutex.h.
       </para>
 
       <!--
@@ -2015,7 +2035,12 @@ public:
       so mutual exclusion is achieved:
       -->
       <para>
-
+	Para solucionar el problema en el programa anterior,
+	identificaremos las secciones críticas donde debe aplicarse la
+	exclusión mutua; posteriormente, antes de entrar en la sección
+	crítica adquiriremos el mutex y lo liberaremos cuando finalice
+	la sección crítica. Únicamente un hilo podrá adquirir el mutex
+	al mismo tiempo, por lo que se logra exclusión mutua:
       </para>
 
 
@@ -2033,7 +2058,17 @@ public:
       failure if it?s going to happen.
       -->
       <para>
-
+	<classname>MutexEvenGenerator</classname> añade
+	un <classname>Mutex</classname> llamado lock y utiliza
+	acquire() y release() para crear una sección crítica con
+	nextValue(). Además, se ha insertado una llamada a
+	Thread::yield() entre los dos incrementos, para aumentar la
+	probabilidad de que haya un cambio de contexto mientras
+	currentEvenValue se encuentra en un estado extraño. Este hecho
+	no producirá un fallo ya que el mutex evita que más de un hilo
+	esté en la sección crítica al mismo tiempo, pero llamar a
+	yield() es una buena forma de provocar un fallo si este
+	ocurriera.
       </para>
 
       <!--
@@ -2044,7 +2079,11 @@ public:
       learn about at the end of this chapter.)
       -->
       <para>
-
+	Note que nextValue() debe capturar el valor de retorno dentro
+	de la sección crítica porque si lo devolviera dentro de la
+	sección critica no liberaría lock y así evitar que fuera
+	adquirido. (Normalmente, esto conllevaría un interbloqueo, de
+	lo cual aprenderá sobre ello al final de este capítulo.)
       </para>
 
       <!--
@@ -2056,7 +2095,12 @@ public:
       that is guarded by the mutex.
       -->
       <para>
-
+	El primer hilo que entre en nextValue() adquirirá lock y
+	cualquier otro hilo que intente adquirirlo será bloqueado
+	hasta que el primer hilo libere lock. En ese momento, el
+	mecanismo de planificación selecciona otro hilo que esté
+	esperando en lock. De esta manera, solo un hilo puede pasar a
+	través del código custodiado por el mutex al mismo tiempo.
       </para>
 
     </sect2>
@@ -2070,9 +2114,15 @@ public:
       ensure that each possible exception path includes a call to release(
       ). In addition, any function that has multiple return paths must
       carefully ensure that it calls release( ) at the appropriate points.
-      -->
+	-->
       <para>
-
+	El uso de mutexes se convierte rápidamente complicado cuando
+	se introducen excepciones. Para estar seguro de que el mutes
+	siempre se libera, debe asegurar que cualquier camino a una
+	excepción incluya una llamada a release(). Además, cualquier
+	función que tenga múltiples caminos para retornar debe
+	asegurar cuidadosamente que se llama a release() en el momento
+	adecuado.
       </para>
 
       <!--
@@ -2087,7 +2137,20 @@ public:
       above example reimplemented using Guards:
       -->
       <para>
-
+	Esos problemas pueden se fácilmente solucionados utilizando el
+	hecho de que los objetos de la pila (automáticos) tiene un
+	destructor que siempre se llama sea cual sea la forma en que
+	salga del ámbito de la función. En la librería ZThread, esto
+	se implementa en la plantilla <classname>Guard</classname>. La
+	plantilla <classname>Guard</classname> crea objetos que
+	adquieren un objeto <classname>Lockable</classname> cuando se
+	construyen y lo liberan cuando son destruidos. Los
+	objetos <classname>Guard</classname> creados en la pila local
+	serán eliminados automáticamente independientemente de la
+	forma en el que la función finalice y siempre desbloqueará el
+	objeto <classname>Lockable</classname>. A continuación, el
+	ejemplo anterior reimplementado para
+	utilizar <classname>Guard</classname>s:
       </para>
 
 
@@ -2100,7 +2163,10 @@ public:
       opportunity for user error is greatly reduced.
       -->
       <para>
-
+	Note que el valor de retorno temporal ya no es necesario en
+	nextValue(). En general, hay menos código que escribir y la
+	probabilidad de errores por parte del usuario se reduce en
+	gran medida. 
       </para>
 
       <!--
@@ -2109,7 +2175,11 @@ public:
       used to temporarily unlock a guard:
       -->
       <para>
-
+	Una característica interesante de la
+	plantilla <classname>Guard</classname> es que puede ser usada
+	para manipular otros elementos de seguridad. Por ejemplo, un
+	segundo <classname>Guard</classname> puede ser utilizado
+	temporalmente para desbloquear un elemento de seguridad:
       </para>
 
 
@@ -2121,7 +2191,9 @@ public:
       of time and then give up:
       -->
       <para>
-
+	Un <classname>Guard</classname> también puede utilizarse para
+	adquirir un lock durante un determinado tiempo y, después,
+	liberarlo: 
       </para>
 
 
@@ -2131,11 +2203,16 @@ public:
 
       <!--
       In this example, a Timeout_Exception will be thrown if the lock cannot
-      be acquired within 500 milliseconds.  Synchronizing entire classes
+      be acquired within 500 milliseconds.  
       -->
       <para>
-
+	En este ejemplo, se lanzará
+	una <classname>Timeout_Exception</classname> si el lock no
+	puede ser adquirido en 500 milisegundos. 
       </para>
+
+      <!-- Synchronizing entire classes -->
+      <para>Sincronización de clases completas</para>
 
       <!--
       The ZThread library also provides a GuardedClass template to
@@ -2144,7 +2221,11 @@ public:
       guarded:
       -->
       <para>
-
+	La librería ZThread también proporciona la
+	plantilla <classname>GuardedClass</classname> para crear
+	automáticamente un recubrimiento de sincronización para toda
+	una clase. Esto quiere decir que cualquier método de una clase
+	estará automáticamente protegido:
       </para>
 
 
@@ -2158,7 +2239,12 @@ public:
       synchronized and only one function per object can be called any time.
       -->
       <para>
-
+	El objeto a no está sincronizado, por lo que func1() y func2()
+	pueden ser llamadas en cualquier momento por cualquier número
+	de hilos. El objeto b está protegido por el
+	recubrimiento <classname>GuardedClass</classname>, así que
+	cada método se sincroniza automáticamente y solo se puede
+	llamar a una función por objeto en cualquier instante. 
       </para>
 
       <!--
@@ -2170,7 +2256,13 @@ public:
       associated. Consider breaking the class into two classes.
       -->
       <para>
-
+	El recubrimiento bloquea un tipo de nivel de granularidad, que
+	podría afectar al rendimiento.[151] Si una clase contiene
+	funciones no vinculadas, puede ser mejor sincronizarlas
+	internamente con 2 locks diferentes. Sin embargo, si se
+	encuentra haciendo esto, significa que la clase contiene
+	grupos de datos que puede no estar fuertemente
+	asociados. Considere dividir la clase en dos. 
       </para>
 
       <!--
@@ -2179,7 +2271,10 @@ public:
       all threading issues in order to guarantee thread safety.
       -->
       <para>
-
+	Proteger todos los métodos de una clase con un mutex no hace
+	que esa clase sea segura automáticamente cuando se utilicen
+	hilos. Debe tener cuidado con estas cuestiones para garantizar
+	la seguridad cuando se usan hilos.
       </para>
 
     </sect2>
