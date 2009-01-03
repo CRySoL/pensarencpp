@@ -1233,13 +1233,13 @@ public:
       serious tuning of your application.
       -->
       <para>
-	Puede ver que la tarea del método run() es en un bucle
-	infinito en su totalidad. Utilizando yield( ), la salida se
-	equilibra bastante que en el caso en el que no se cede el
-	paso. Pruebe a comentar la llamada a Thread::yield() para ver
-	la diferencia. Sin embargo, en general, yield() es útil en
-	raras ocasiones, y no puede contar con ella para realizar un
-	afinamiento serio sobre su aplicación.
+	Puede ver que la tarea del método <function>run()</function>
+	es en un bucle infinito en su totalidad. Utilizando yield(),
+	la salida se equilibra bastante que en el caso en el que no se
+	cede el paso. Pruebe a comentar la llamada a Thread::yield()
+	para ver la diferencia. Sin embargo, en general, yield() es
+	útil en raras ocasiones, y no puede contar con ella para
+	realizar un afinamiento serio sobre su aplicación.
       </para>
 
     </sect2>
@@ -2407,7 +2407,12 @@ public:
       that they synchronize the use of iostreams.
       -->
       <para>
-
+	Puede haberse dado cuenta en los ejemplos anteriores que la
+	salida es FIXMEconfusa. El sistema iostream de C++ no fue
+	creado con el sistema de hilos en mente, por no lo que no hay
+	nada que prevenga que la salida de un hilo interfiera con la
+	salida de otro hilo. Por ello, debe escribir aplicaciones de
+	tal forma que sincronicen el uso de iostreams.
       </para>
 
       <!--
@@ -2419,7 +2424,13 @@ public:
       time:
       -->
       <para>
-
+	Para solucionar el problema, primero necesitamos crear un
+	paquete completo de salida y, después, decidir explícitamente
+	cuando intentamos mandarlo a la consola. Una sencilla solución
+	pasa por escribir la informacion en un ostringstream y
+	posteriormente utilizar un único objeto con un mutex como
+	punto de salida de todos los hilos, para evitar que más de un
+	hilo escriba al mismo tiempo:
       </para>
 
 
@@ -2436,7 +2447,15 @@ public:
       object in your program, as you?ll see in the following examples.)
       -->
       <para>
-
+	De esta manera, predefinimos la función estandar operator<<()
+	y el objeto puede ser construido en memoria utilizando
+	operadores habituales de ostream. Cuando una tarea quiere
+	mostrar una salida, crea un objeto ostringstream temporal que
+	utiliza FIXME. Cuando llama a output(), el mutex evita que
+	varios hilos escriban a este
+	objeto <classname>Display</classname>. (Debe usar solo un
+	objeto <classname>Display</classname> en su programa, tal y
+	como verá en los siguientes ejemplos.)  
       </para>
 
       <!--
@@ -2447,7 +2466,13 @@ public:
       Singletons.)
       -->
       <para>
-
+	Todo esto muestra la idea básica pero, si es necesario, puede
+	construir un entorno más elaborado. Por ejemplo, podría forzar
+	el requisito de que solo haya un
+	objeto <classname>Display</classname> en un programa
+	haciéndolo Singleton. (La librería ZThread tiene una
+	plantilla <classname>Singleton</classname> para dar soporte a
+	Singletons).
       </para>
 
     </sect2>
@@ -2463,7 +2488,12 @@ public:
       the total number of people in the garden.
       -->
       <para>
-
+	En esta simulación, al comité del jardín le gustaría saber
+	cuanta gente entra en el jardín cada día a través de distintas
+	puertas. Cada puerta tiene un FIXMEturnstile o algún otro tipo
+	de contador, y después de que el contador FIXMEturnstile se
+	incrementa, aumenta una cuenta compartida que representa el
+	número total de gente en el jardín. 
       </para>
 
 
@@ -2479,7 +2509,18 @@ public:
       will thus yield more interesting results.
       -->
       <para>
-
+	<classname>Count</classname> es la clase que conserva el
+	contador principal de los visitantes del jardín. El objeto
+	único <classname>Count</classname> definido en main() como
+	contador FIXME is held como
+	un <classname>CountedPtr</classname>
+	en <classname>Entrance</classname> y, así, se comparte entre
+	todos los objetos <classname>Entrance</classname>. En este
+	ejemplo, se utiliza un <classname>FastMutex</classname>
+	llamado lock en vez de un <classname>Mutex</classname>
+	ordinario ya que un <classname>FastMutex</classname> usa el
+	mutex nativo del sistema operativo y, por ello, aportará
+	resultados más interesantes.
       </para>
 
       <!--
@@ -2491,7 +2532,10 @@ public:
       multiple threads will be accessing and modifying count simultaneously.
       -->
       <para>
-
+	Se utiliza un <classname>Guard</classname> con bloqueo en
+	increment() para sincronizar el acceso a count. Esta función
+	usa rand() para realizar una carga de trabajo alta (mediante
+	yield()) FIXME  la mitad del tiempo, ....   
       </para>
 
       <!--
@@ -2503,6 +2547,13 @@ public:
       milliseconds.
       -->
       <para>
+	La clase <classname>Entrance</classname> también mantiene una
+	variable local numbre con el número de visitantes que han
+	pasado a través de una entrada concreta. Esto proporciona un
+	chequeo doble contra el objeto count para asegurar que el
+	verdadero número de visitantes es el que se está
+	almacenando. Entrance::run() simplemente incrementa number y
+	el objeto count y se duerme durante 100 milisegundos.
 
       </para>
 
@@ -2512,7 +2563,12 @@ public:
       iterate over all the individual Entrance values and total them.
       -->
       <para>
-
+	En main, se carga
+	un <typename>vector&lt;Entrance*&bg;</typename> con
+	cada <classname>Entrance</classname> que se crean. Después de
+	que el usuario pulse Enter, el vector se utiliza para iterar
+	sobre el valor de cada <classname>Entrance</classname> y
+	calcular el total.
       </para>
 
       <!--
@@ -2523,7 +2579,8 @@ public:
       you will learn about shortly.
       -->
       <para>
-
+	FIXMEThis program goes to quite a bit of extra trouble to shut
+      everything down in a stable fashion. 
       </para>
 
       <!--
@@ -2548,7 +2605,30 @@ public:
       mechanism.
       -->
       <para>
-
+	Toda la comunicación entre los
+	objetos <classname>Entrance</classname> ocurre a través de un
+	único objeto <classname>Count</classname>. Cuando el usuario
+	pulsa Enter, main() manda el mensaje pause() a count. Como
+	cada Entrance::run() está vigilando a que el objeto count esté
+	pausado, esto hace que cada <classname>Entrance</classname> se
+	mueva al estado waitingForCancel, donde no se cuenta más, pero
+	aún sigue vivo. Esto es esencial porque main() debe poder
+	seguir iterando de forma segura sobre los objetos del vector<
+	Entrace* >. Note que debido a que existe una FIXMEpequeña
+	posibilidad que la iteración pueda ocurrir antes de que
+	un <classname>Entrance</classname> haya terminado de contar y
+	haya ido al estado de waitingForCancel, la función getValue()
+	itera a lo largo de las llamadas a sleep() hasta que el objeto
+	vaya al estado de waitingForCancel. (Esta es una forma, que se
+	conoce como espera activa, y es indeseable. Verá un enfoque
+	más apropiado utilizando wait(), más adelante en el
+	capítulo). Una vez que main() completa una iteración a lo
+	largo del vector< Entrance* >, se manda el mensaje de cancel()
+	al objeto count, y de nuevo todos los
+	objetos <classname>Entrance</classname> esperan a este cambio
+	de estado. En ese instante, imprimen un mensaje de
+	finalización y salen de run(), por lo que el mecanismo de
+	hilado destruye cada tarea.
       </para>
 
       <!--
@@ -2565,11 +2645,30 @@ public:
       trap of believing that things are working correctly. Just as in the
       example above, there are likely to be hidden problems that haven?t
       occurred to you, so be exceptionally diligent when reviewing
-      concurrent code.  Atomic operations
+      concurrent code.  
       -->
       <para>
-
+	Tal y como este programa se ejecuta, verá que la cuenta total
+	y la de cada una de las entradas se muestran a la vez que la
+	gente pasa a través de un FIXMEturnstile. Si comenta el
+	objeto <classname>Guard</classname> en Count::increment(), se
+	dará cuenta que el número total de personas no es el que
+	espera que sea. El número de personas contadas por cada
+	FIXMEturnstile será diferente del valor de count. Tan pronto
+	como haya un <classname>Mutex</classname> para sincronizar el
+	acceso al <classname>Counter</classname>, las cosas
+	funcionarán correctamente. Tenga en cuenta que
+	Count::increment() exagera la situación potencial de fallo que
+	supone utilizar temp y yield(). En problemas reales de hilado,
+	la probabilidad de fallo puede ser estadísticamente menor, por
+	lo que puede caer fácilmente en la trampa de creer que las
+	cosas funcionan correctamente. Tal y como muestra el problema
+	anterior, existen FIXMElikely problemas ocultos que no le han
+	ocurrido, por lo que debe ser excepcionalmente diligente
+	cuando revise código concurrente.  
       </para>
+
+      <title>Operaciones atómicas</title>
 
       <!--
       Note that Count::value( ) returns the value of count using a Guard
@@ -2588,7 +2687,22 @@ public:
       well.[153]
       -->
       <para>
-
+	Note que Count::value() devuelve el valor de count utilizando
+	un objeto <classname>Guard</classname> para la
+	sincronización. Esto ofrece un aspecto interesante porque este
+	código probablemente funcionará bien con la mayoría de los
+	compiladores y sistemas sin sincronización. El motivo es que,
+	en general, una operación simple como devolver un int será una
+	operación atómica, que quiere decir que probablemente se
+	llevará a cabo con una única instrucción de microprocesador y
+	no será interrumpida. (El mecanismo de multihilado no puede
+	parar un hilo en mitad de una instrucción de microprocesador.)
+	Esto es, las operaciones atómicas no son interrumpibles por el
+	mecanismo de hilado y, así, no necesitan ser protegidas.[152]
+	De hecho, si elimináramos la asignación de count en temp y
+	quitáramos yield(), y en su lugar simplemente incrementáramos
+	count directamente, probablemente no necesitaríamos un lock ya
+	que la operación de incremento es, normalmente, atómica. [153]
       </para>
 
       <!--
@@ -2605,7 +2719,20 @@ public:
       down the occasional glitch caused by thread collisions.
       -->
       <para>
-
+	El problema es que el estándar de C++ no garantiza la
+	atomicidad para ninguna de esas operaciones. Sin embargo, pese
+	a que operaciones como devolver un int e incrementar un int
+	son atómicas en la mayoría de las máquinas no hay garantías. Y
+	puesto que no hay garantía, debe asumir lo peor. En algunas
+	ocasiones podría investigar el funcionamiento de la atomicidad
+	para una máquina en particular (normalmente mirando el
+	lenguaje ensamblador) y escribir código basado en esas
+	asunciones. Esto es siempre peligroso y FIXMEill-advised. Es
+	muy fácil que esta información se pierda o esté oculta, y la
+	siguiente persona que venga podría asumir que el código puede
+	ser portado a otra máquina y, por ello, volverse loco
+	siguiendo la pista al FIXMEoccsional glitch provocado por la
+	colisión de hilos. 
       </para>
 
       <!--
@@ -2613,7 +2740,9 @@ public:
       not airtight, and thus on some machines you may see aberrant behavior.
       -->
       <para>
-
+	Por ello, aunque quitar el guarda en Count::value() parezca
+	que funciona no es FIXMEairtight y, así, en algunas máquinas
+	puede ver un comportamiento aberrante. 
       </para>
 
     </sect2>
@@ -2631,12 +2760,19 @@ public:
       Thread states
       -->
       <para>
-
+	En el ejemplo anterior, Entrance::run() incluye una llamada a
+	sleep() en el bucle principal. Sabemos que sleep() se
+	despertará eventualmente y que la tarea llegará al principio
+	del bucle donde tiene una oportunidad para salir de ese bucle
+	chequeando el estado isPaused(). Sin embargo, sleep() es
+	simplemente una situación donde un hilo en ejecución se
+	bloquea, y a veces necesita terminar una tarea que está
+	bloqueada.  
       </para>
 
       <!-- A thread can be in any one of four states: -->
       <para>
-
+	Un hilo puede estar cualquiera de los cuatro estados: 
       </para>
 
       <!--
