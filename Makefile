@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 
 XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
 
@@ -36,28 +37,10 @@ tagged-Volumen%.xml: Volumen%.xml
 	python utils/xml_tag_codes.py $< > $@
 
 %.pdf: %.xml
-	dblatex -T pecstyle $<
+	dblatex -T dblatex/pecstyle $<
 
 
-#$(MAIN).pdf: $(MAIN).tex
-#	@echo '-- Building PDF'
-#	pdflatex  $<
-#	makeindex $(MAIN).idx
-#	pdflatex $<
-#
-#
-#$(MAIN).tex: raw.tex
-#	python utils/latex_filter.py $< $@
-#
-#
-#raw.tex: Volumen1-final.xml stylesheets/plainprint.xsl
-#	@echo '-- Building LaTeX '
-#	xsltproc --nonet --noout -o raw.tex --xinclude \
-#	  --stringparam l10n.gentext.default.language es \
-#	  --stringparam profile.lang es \
-#	  --stringparam admon.graphics.path /usr/share/xml/docbook/stylesheet/db2latex/latex/figures \
-#	$(XSL_PDF) Volumen1-final.xml
-#
+
 
 Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml)
 Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml)
@@ -114,6 +97,3 @@ vclean: clean
 	rm -rf code_v1 code_v2
 	$(RM) pec-xrefs.xml
 
-## Local Variables: #
-## coding:utf-8 #
-## End. #

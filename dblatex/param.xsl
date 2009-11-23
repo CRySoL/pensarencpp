@@ -26,7 +26,7 @@
   <xsl:param name="latex.class.book">book</xsl:param>
 
   <xsl:template match="highlights">
-    <xsl:text>{\fontsize{13}{13pt} \selectfont \bfseries </xsl:text>
+    <xsl:text>{\large \bfseries </xsl:text>
     <xsl:apply-templates/>
     <xsl:text>} \medskip </xsl:text>
   </xsl:template>
@@ -66,4 +66,30 @@
     <xsl:apply-templates/>
     <xsl:text>''</xsl:text>
   </xsl:template>
+
+<!--
+  <xsl:template match="programlisting">
+    <xsl:variable name="language">
+      <xsl:choose>
+      <xsl:when test="@language!=''">
+	<xsl:value-of select="@language"/>
+	</xsl:when>
+	<xsl:otherwise>C++</xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+    <xsl:text>&#10;\begin{listing}[language=</xsl:text>
+    <xsl:value-of select="$language"/>
+    <xsl:text>]</xsl:text>
+    <xsl:apply-templates mode="latex.verbatim"/>
+    <xsl:text>\end{listing}&#10;</xsl:text>
+  </xsl:template>
+-->
+
+  <xsl:template match="screen">
+    <xsl:text>&#10;\begin{listing}[style=console]</xsl:text>
+    <xsl:apply-templates mode="latex.verbatim"/>
+    <xsl:text>\end{listing}&#10;</xsl:text>
+  </xsl:template>
+
+
 </xsl:stylesheet>
