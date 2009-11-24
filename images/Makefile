@@ -14,8 +14,11 @@ all: $(PNG) $(PDF)
 %.ps: %.svg
 	inkscape -P $@ $<
 
-%.pdf: %.ps
-	$(EPS2PDF) < $< > $@
+%.pdf: %.svg
+	inkscape -A $@ $<
+
+#%.pdf: %.ps
+#	$(EPS2PDF) < $< > $@
 
 clean::
 	$(RM) $(PNG) $(PDF)
