@@ -29,7 +29,7 @@ vol%: tagged-Volumen%.xml
 	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
 	$(RM) $@/*.code
 
-	highlight --data-dir ./stylesheets/highlight --style emacs21 code_v1/C02/Hello.cpp > /dev/null
+	highlight --print-style --data-dir ./stylesheets/highlight --style emacs21 code_v1/C02/Hello.cpp
 	mv highlight.css $@/
 
 tagged-Volumen%.xml: Volumen%.xml
