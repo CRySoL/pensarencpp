@@ -74,8 +74,9 @@ def print_par(fd, par):
         fd.write(indent('</para>\n'))
 
 
+outfile = os.path.splitext(sys.argv[1])[0] + '.xml'
 src = open(sys.argv[1])
-dst = open(os.path.splitext(sys.argv[1])[0] + '.xml', 'w')
+dst = open(outfile, 'w')
 
 status = OUTPAR
 level = 0
@@ -101,7 +102,6 @@ for line in src:
             continue
 
 
-
 src.close()
 dst.close()
-print 'Ok'
+print "generated '%s'" % outfile
