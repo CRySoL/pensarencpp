@@ -1,0 +1,593 @@
+One of the important features in any programming language is the
+convenient use of names.
+
+When you create an object (a variable), you give a name to a region of
+storage. A function is a name for an action. By making up names to
+describe the system at hand, you create a program that is easier for
+people to understand and change. It’s a lot like writing prose – the
+goal is to communicate with your readers.
+
+A problem arises when mapping the concept of nuance in human language
+onto a programming language. Often, the same word expresses a number
+of different meanings, depending on context. That is, a single word
+has multiple meanings – it’s overloaded. This is very useful,
+especially when it comes to trivial differences. You say “wash the
+shirt, wash the car.” It would be silly to be forced to say,
+“shirt_wash the shirt, car_wash the car” just so the listener doesn’t
+have to make any distinction about the action performed. Human
+languages have built-in redundancy, so even if you miss a few words,
+you can still determine the meaning. We don’t need unique identifiers
+– we can deduce meaning from context.
+
+Most programming languages, however, require that you have a unique
+identifier for each function. If you have three different types of
+data that you want to print: int, char, and float, you generally have
+to create three different function names, for example, print_int( ),
+print_char( ), and print_float( ). This loads extra work on you as you
+write the program, and on readers as they try to understand it.
+
+In C++, another factor forces the overloading of function names: the
+constructor. Because the constructor’s name is predetermined by the
+name of the class, it would seem that there can be only one
+constructor. But what if you want to create an object in more than one
+way? For example, suppose you build a class that can initialize itself
+in a standard way and also by reading information from a file. You
+need two constructors, one that takes no arguments (the default
+constructor) and one that takes a string as an argument, which is the
+name of the file to initialize the object. Both are constructors, so
+they must have the same name: the name of the class. Thus, function
+overloading is essential to allow the same function name – the
+constructor in this case – to be used with different argument types.
+
+Although function overloading is a must for constructors, it’s a
+general convenience and can be used with any function, not just class
+member functions. In addition, function overloading means that if you
+have two libraries that contain functions of the same name, they won’t
+conflict as long as the argument lists are different. We’ll look at
+all these factors in detail throughout this chapter.
+
+The theme of this chapter is convenient use of function
+names. Function overloading allows you to use the same name for
+different functions, but there’s a second way to make calling a
+function more convenient. What if you’d like to call the same function
+in different ways? When functions have long argument lists, it can
+become tedious to write (and confusing to read) the function calls
+when most of the arguments are the same for all the calls. A commonly
+used feature in C++ is called default arguments. A default argument is
+one the compiler inserts if it isn’t specified in the function
+call. Thus, the calls f(“hello”), f(“hi”, 1), and f(“howdy”, 2, ‘c’)
+can all be calls to the same function. They could also be calls to
+three overloaded functions, but when the argument lists are this
+similar, you’ll usually want similar behavior, which calls for a
+single function.
+
+Function overloading and default arguments really aren’t very
+complicated. By the time you reach the end of this chapter, you’ll
+understand when to use them and the underlying mechanisms that
+implement them during compiling and linking.
+
+
+:SECT:1: More name decoration
+
+In Chapter 4, the concept of name decoration was introduced. In the
+code
+
+    void f();
+    class X { void f(); };
+
+the function f( ) inside the scope of class X does not clash with the
+global version of f( ). The compiler performs this scoping by
+manufacturing different internal names for the global version of f( )
+and X::f( ). In Chapter 4, it was suggested that the names are simply
+the class name “decorated” together with the function name, so the
+internal names the compiler uses might be _f and _X_f. However, it
+turns out that function name decoration involves more than the class
+name.
+
+Here’s why. Suppose you want to overload two function names
+
+    void print(char);
+    void print(float);
+
+It doesn’t matter whether they are both inside a class or at the
+global scope. The compiler can’t generate unique internal identifiers
+if it uses only the scope of the function names. You’d end up with
+_print in both cases. The idea of an overloaded function is that you
+use the same function name, but different argument lists. Thus, for
+overloading to work the compiler must decorate the function name with
+the names of the argument types. The functions above, defined at
+global scope, produce internal names that might look something like
+_print_char and _print_float. It’s worth noting there is no standard
+for the way names must be decorated by the compiler, so you will see
+very different results from one compiler to another. (You can see what
+it looks like by telling the compiler to generate assembly-language
+output.) This, of course, causes problems if you want to buy compiled
+libraries for a particular compiler and linker – but even if name
+decoration were standardized, there would be other roadblocks because
+of the way different compilers generate code.
+
+That’s really all there is to function overloading: you can use the
+same function name for different functions as long as the argument
+lists are different. The compiler decorates the name, the scope, and
+the argument lists to produce internal names for it and the linker to
+use.
+
+
+:SECT:2: Overloading on return values
+
+It’s common to wonder, “Why just scopes and argument lists? Why not
+return values?” It seems at first that it would make sense to also
+decorate the return value with the internal function name. Then you
+could overload on return values, as well:
+
+    void f();
+    int f();
+
+This works fine when the compiler can unequivocally determine the
+meaning from the context, as in int x = f( );. However, in C you’ve
+always been able to call a function and ignore the return value (that
+is, you can call the function for its side effects). How can the
+compiler distinguish which call is meant in this case? Possibly worse
+is the difficulty the reader has in knowing which function call is
+meant. Overloading solely on return value is a bit too subtle, and
+thus isn’t allowed in C++.
+
+
+:SECT:2: Type-safe linkage
+
+There is an added benefit to all of this name decoration. A
+particularly sticky problem in C occurs when the client programmer
+misdeclares a function, or, worse, a function is called without
+declaring it first, and the compiler infers the function declaration
+from the way it is called. Sometimes this function declaration is
+correct, but when it isn’t, it can be a difficult bug to find.
+
+Because all functions must be declared before they are used in C++,
+the opportunity for this problem to pop up is greatly diminished. The
+C++ compiler refuses to declare a function automatically for you, so
+it’s likely that you will include the appropriate header
+file. However, if for some reason you still manage to misdeclare a
+function, either by declaring by hand or including the wrong header
+file (perhaps one that is out of date), the name decoration provides a
+safety net that is often referred to as type-safe linkage.
+
+Consider the following scenario. In one file is the definition for a
+function:
+
+    //: C07:Def.cpp {O}
+    // Function definition
+    void f(int) {}
+    ///:~
+
+In the second file, the function is misdeclared and then called:
+
+    //: C07:Use.cpp //{L} Def // Function misdeclaration void f(char);
+
+    int main() {
+    //!  f(1); // Causes a linker error
+    } ///:~
+
+Even though you can see that the function is actually f(int), the
+compiler doesn’t know this because it was told – through an explicit
+declaration – that the function is f(char). Thus, the compilation is
+successful. In C, the linker would also be successful, but not in
+C++. Because the compiler decorates the names, the definition becomes
+something like f_int, whereas the use of the function is f_char. When
+the linker tries to resolve the reference to f_char, it can only find
+f_int, and it gives you an error message. This is type-safe
+linkage. Although the problem doesn’t occur all that often, when it
+does it can be incredibly difficult to find, especially in a large
+project. This is one of the cases where you can easily find a
+difficult error in a C program simply by running it through the C++
+compiler.
+
+
+:SECT:1: Overloading example
+
+We can now modify earlier examples to use function overloading. As
+stated before, an immediately useful place for overloading is in
+constructors. You can see this in the following version of the Stash
+class:
+
+    //: C07:Stash3.h
+
+
+The first Stash( ) constructor is the same as before, but the second
+one has a Quantity argument to indicate the initial number of storage
+places to be allocated. In the definition, you can see that the
+internal value of quantity is set to zero, along with the storage
+pointer. In the second constructor, the call to inflate(initQuantity)
+increases quantity to the allocated size:
+
+    //: C07:Stash3.cpp {O}
+
+
+When you use the first constructor no memory is allocated for
+storage. The allocation happens the first time you try to add( ) an
+object and any time the current block of memory is exceeded inside
+add( ).
+
+Both constructors are exercised in the test program:
+
+    //: C07:Stash3Test.cpp
+
+
+The constructor call for stringStash uses a second argument;
+presumably you know something special about the specific problem
+you’re solving that allows you to choose an initial size for the
+Stash.
+
+
+:SECT:1:unions
+
+As you’ve seen, the only difference between struct and class in C++ is
+that struct defaults to public and class defaults to private. A struct
+can also have constructors and destructors, as you might expect. But
+it turns out that a union can also have a constructor, destructor,
+member functions, and even access control. You can again see the use
+and benefit of overloading in the following example:
+
+    //: C07:UnionClass.cpp
+
+
+You might think from the code above that the only difference between a
+union and a class is the way the data is stored (that is, the int and
+float are overlaid on the same piece of storage). However, a union
+cannot be used as a base class during inheritance, which is quite
+limiting from an object-oriented design standpoint (you’ll learn about
+inheritance in Chapter 14).
+
+Although the member functions civilize access to the union somewhat,
+there is still no way to prevent the client programmer from selecting
+the wrong element type once the union is initialized. In the example
+above, you could say X.read_float( ) even though it is
+inappropriate. However, a “safe” union can be encapsulated in a
+class. In the following example, notice how the enum clarifies the
+code, and how overloading comes in handy with the constructors:
+
+    //: C07:SuperVar.cpp
+
+In the code above, the enum has no type name (it is an untagged
+enumeration). This is acceptable if you are going to immediately
+define instances of the enum, as is done here. There is no need to
+refer to the enum’s type name in the future, so the type name is
+optional.
+
+The union has no type name and no variable name. This is called an
+anonymous union, and creates space for the union but doesn’t require
+accessing the union elements with a variable name and the dot
+operator. For instance, if your anonymous union is:
+
+    //: C07:AnonymousUnion.cpp
+
+
+Note that you access members of an anonymous union just as if they
+were ordinary variables. The only difference is that both variables
+occupy the same space. If the anonymous union is at file scope
+(outside all functions and classes) then it must be declared static so
+it has internal linkage.
+
+Although SuperVar is now safe, its usefulness is a bit dubious because
+the reason for using a union in the first place is to save space, and
+the addition of vartype takes up quite a bit of space relative to the
+data in the union, so the savings are effectively eliminated. There
+are a couple of alternatives to make this scheme workable. If the
+vartype controlled more than one union instance – if they were all the
+same type – then you’d only need one for the group and it wouldn’t
+take up more space. A more useful approach is to have #ifdefs around
+all the vartype code, which can then guarantee things are being used
+correctly during development and testing. For shipping code, the extra
+space and time overhead can be eliminated.
+
+
+:SECT:1: Default arguments
+
+In Stash3.h, examine the two constructors for Stash( ). They don’t
+seem all that different, do they? In fact, the first constructor seems
+to be a special case of the second one with the initial size set to
+zero. It’s a bit of a waste of effort to create and maintain two
+different versions of a similar function.
+
+C++ provides a remedy with default arguments. A default argument is a
+value given in the declaration that the compiler automatically inserts
+if you don’t provide a value in the function call. In the Stash
+example, we can replace the two functions:
+
+      Stash(int size); // Zero quantity
+     Stash(int size, int initQuantity);
+
+with the single function:
+
+      Stash(int size, int initQuantity = 0);
+
+The Stash(int) definition is simply removed – all that is necessary is
+the single Stash(int, int) definition.
+
+Now, the two object definitions
+
+      Stash A(100), B(100, 0);
+
+will produce exactly the same results. The identical constructor is
+called in both cases, but for A, the second argument is automatically
+substituted by the compiler when it sees the first argument is an int
+and that there is no second argument. The compiler has seen the
+default argument, so it knows it can still make the function call if
+it substitutes this second argument, which is what you’ve told it to
+do by making it a default.
+
+Default arguments are a convenience, as function overloading is a
+convenience. Both features allow you to use a single function name in
+different situations. The difference is that with default arguments
+the compiler is substituting arguments when you don’t want to put them
+in yourself. The preceding example is a good place to use default
+arguments instead of function overloading; otherwise you end up with
+two or more functions that have similar signatures and similar
+behaviors. If the functions have very different behaviors, it doesn’t
+usually make sense to use default arguments (for that matter, you
+might want to question whether two functions with very different
+behaviors should have the same name).
+
+There are two rules you must be aware of when using default
+arguments. First, only trailing arguments may be defaulted. That is,
+you can’t have a default argument followed by a non-default
+argument. Second, once you start using default arguments in a
+particular function call, all the subsequent arguments in that
+function’s argument list must be defaulted (this follows from the
+first rule).
+
+Default arguments are only placed in the declaration of a function
+(typically placed in a header file). The compiler must see the default
+value before it can use it. Sometimes people will place the commented
+values of the default arguments in the function definition, for
+documentation purposes
+
+    void fn(int x /* = 0 */) { // ...
+
+
+:SECT:2: Placeholder arguments
+
+Arguments in a function declaration can be declared without
+identifiers. When these are used with default arguments, it can look a
+bit funny. You can end up with
+
+    void f(int x, int = 0, float = 1.1);
+
+In C++ you don’t need identifiers in the function definition, either:
+
+    void f(int x, int, float flt) { /* ... */ }
+
+In the function body, x and flt can be referenced, but not the middle
+argument, because it has no name. Function calls must still provide a
+value for the placeholder, though: f(1) or f(1,2,3.0). This syntax
+allows you to put the argument in as a placeholder without using
+it. The idea is that you might want to change the function definition
+to use the placeholder later, without changing all the code where the
+function is called. Of course, you can accomplish the same thing by
+using a named argument, but if you define the argument for the
+function body without using it, most compilers will give you a warning
+message, assuming you’ve made a logical error. By intentionally
+leaving the argument name out, you suppress this warning.
+
+More important, if you start out using a function argument and later
+decide that you don’t need it, you can effectively remove it without
+generating warnings, and yet not disturb any client code that was
+calling the previous version of the function.
+
+
+:SECT:1: Choosing overloading vs. default arguments
+
+Both function overloading and default arguments provide a convenience
+for calling function names. However, it can seem confusing at times to
+know which technique to use. For example, consider the following tool
+that is designed to automatically manage blocks of memory for you:
+
+    //: C07:Mem.h
+
+A Mem object holds a block of bytes and makes sure that you have
+enough storage. The default constructor doesn’t allocate any storage,
+and the second constructor ensures that there is sz storage in the Mem
+object. The destructor releases the storage, msize( ) tells you how
+many bytes there are currently in the Mem object, and pointer( )
+produces a pointer to the starting address of the storage (Mem is a
+fairly low-level tool). There’s an overloaded version of pointer( ) in
+which client programmers can say that they want a pointer to a block
+of bytes that is at least minSize large, and the member function
+ensures this.
+
+Both the constructor and the pointer( ) member function use the
+private ensureMinSize( ) member function to increase the size of the
+memory block (notice that it’s not safe to hold the result of pointer(
+) if the memory is resized).
+
+Here’s the implementation of the class:
+
+    //: C07:Mem.cpp {O}
+
+You can see that ensureMinSize( ) is the only function responsible for
+allocating memory, and that it is used from the second constructor and
+the second overloaded form of pointer( ). Inside ensureMinSize( ),
+nothing needs to be done if the size is large enough. If new storage
+must be allocated in order to make the block bigger (which is also the
+case when the block is of size zero after default construction), the
+new “extra” portion is set to zero using the Standard C library
+function memset( ), which was introduced in Chapter 5. The subsequent
+function call is to the Standard C library function memcpy( ), which
+in this case copies the existing bytes from mem to newmem (typically
+in an efficient fashion). Finally, the old memory is deleted and the
+new memory and sizes are assigned to the appropriate members.
+
+The Mem class is designed to be used as a tool within other classes to
+simplify their memory management (it could also be used to hide a more
+sophisticated memory-management system provided, for example, by the
+operating system). Appropriately, it is tested here by creating a
+simple “string” class:
+
+    //: C07:MemTest.cpp
+
+
+All you can do with this class is to create a MyString, concatenate
+text, and print to an ostream. The class only contains a pointer to a
+Mem, but note the distinction between the default constructor, which
+sets the pointer to zero, and the second constructor, which creates a
+Mem and copies data into it. The advantage of the default constructor
+is that you can create, for example, a large array of empty MyString
+objects very cheaply, since the size of each object is only one
+pointer and the only overhead of the default constructor is that of
+assigning to zero. The cost of a MyString only begins to accrue when
+you concatenate data; at that point the Mem object is created if it
+hasn’t been already. However, if you use the default constructor and
+never concatenate any data, the destructor call is still safe because
+calling delete for zero is defined such that it does not try to
+release storage or otherwise cause problems.
+
+If you look at these two constructors it might at first seem like this
+is a prime candidate for default arguments. However, if you drop the
+default constructor and write the remaining constructor with a default
+argument:
+
+    MyString(char* str = "");
+
+everything will work correctly, but you’ll lose the previous
+efficiency benefit since a Mem object will always be created. To get
+the efficiency back, you must modify the constructor:
+
+    MyString::MyString(char* str) {
+      if(!*str) { // Pointing at an empty string
+        buf = 0;
+        return;
+      }
+      buf = new Mem(strlen(str) + 1);
+      strcpy((char*)buf->pointer(), str);
+    }
+
+This means, in effect, that the default value becomes a flag that
+causes a separate piece of code to be executed than if a non-default
+value is used. Although it seems innocent enough with a small
+constructor like this one, in general this practice can cause
+problems. If you have to look for the default rather than treating it
+as an ordinary value, that should be a clue that you will end up with
+effectively two different functions inside a single function body: one
+version for the normal case and one for the default. You might as well
+split it up into two distinct function bodies and let the compiler do
+the selection. This results in a slight (but usually invisible)
+increase in efficiency, because the extra argument isn’t passed and
+the extra code for the conditional isn’t executed. More importantly,
+you are keeping the code for two separate functions in two separate
+functions rather than combining them into one using default arguments,
+which will result in easier maintainability, especially if the
+functions are large.
+
+On the other hand, consider the Mem class. If you look at the
+definitions of the two constructors and the two pointer( ) functions,
+you can see that using default arguments in both cases will not cause
+the member function definitions to change at all. Thus, the class
+could easily be:
+
+    //: C07:Mem2.h
+
+Notice that a call to ensureMinSize(0) will always be quite efficient.
+
+Although in both of these cases I based some of the decision-making
+process on the issue of efficiency, you must be careful not to fall
+into the trap of thinking only about efficiency (fascinating as it
+is). The most important issue in class design is the interface of the
+class (its public members, which are available to the client
+programmer). If these produce a class that is easy to use and reuse,
+then you have a success; you can always tune for efficiency if
+necessary but the effect of a class that is designed badly because the
+programmer is over-focused on efficiency issues can be dire. Your
+primary concern should be that the interface makes sense to those who
+use it and who read the resulting code. Notice that in MemTest.cpp the
+usage of MyString does not change regardless of whether a default
+constructor is used or whether the efficiency is high or low.
+
+:SECT:1: Summary
+
+As a guideline, you shouldn’t use a default argument as a flag upon
+which to conditionally execute code. You should instead break the
+function into two or more overloaded functions if you can. A default
+argument should be a value you would ordinarily put in that
+position. It’s a value that is more likely to occur than all the rest,
+so client programmers can generally ignore it or use it only if they
+want to change it from the default value.
+
+The default argument is included to make function calls easier,
+especially when those functions have many arguments with typical
+values. Not only is it much easier to write the calls, it’s easier to
+read them, especially if the class creator can order the arguments so
+the least-modified defaults appear latest in the list.
+
+An especially important use of default arguments is when you start out
+with a function with a set of arguments, and after it’s been used for
+a while you discover you need to add arguments. By defaulting all the
+new arguments, you ensure that all client code using the previous
+interface is not disturbed.
+
+:SECT:1: Exercises
+
+Solutions to selected exercises can be found in the electronic
+document The Thinking in C++ Annotated Solution Guide, available for a
+small fee from www.BruceEckel.com.
+
+   1. Create a Text class that contains a string object to hold the
+   text of a file. Give it two constructors: a default constructor and
+   a constructor that takes a string argument that is the name of the
+   file to open. When the second constructor is used, open the file
+   and read the contents into the string member object. Add a member
+   function contents( ) to return the string so (for example) it can
+   be printed. In main( ), open a file using Text and print the
+   contents.
+
+   2. Create a Message class with a constructor that takes a single
+   string with a default value. Create a private member string, and in
+   the constructor simply assign the argument string to your internal
+   string. Create two overloaded member functions called print( ): one
+   that takes no arguments and simply prints the message stored in the
+   object, and one that takes a string argument, which it prints in
+   addition to the internal message. Does it make sense to use this
+   approach instead of the one used for the constructor?
+
+   3. Determine how to generate assembly output with your compiler,
+   and run experiments to deduce the name-decoration scheme.
+
+   4. Create a class that contains four member functions, with 0, 1,
+   2, and 3 int arguments, respectively. Create a main( ) that makes
+   an object of your class and calls each of the member functions. Now
+   modify the class so it has instead a single member function with
+   all the arguments defaulted. Does this change your main( )?
+
+   5. Create a function with two arguments and call it from main(
+   ). Now make one of the arguments a “placeholder” (no identifier)
+   and see if your call in main( ) changes.
+
+   6. Modify Stash3.h and Stash3.cpp to use default arguments in the
+   constructor. Test the constructor by making two different versions
+   of a Stash object.
+
+   7. Create a new version of the Stack class (from Chapter 6) that
+   contains the default constructor as before, and a second
+   constructor that takes as its arguments an array of pointers to
+   objects and the size of that array. This constructor should move
+   through the array and push each pointer onto the Stack. Test your
+   class with an array of string.
+
+   8. Modify SuperVar so that there are #ifdefs around all the vartype
+   code as described in the section on enum. Make vartype a regular
+   and public enumeration (with no instance) and modify print( ) so
+   that it requires a vartype argument to tell it what to do.
+
+   9. Implement Mem2.h and make sure that the modified class still
+   works with MemTest.cpp.
+
+  10. Use class Mem to implement Stash. Note that because the
+  implementation is private and thus hidden from the client
+  programmer, the test code does not need to be modified.
+
+  11. In class Mem, add a bool moved( ) member function that takes the
+  result of a call to pointer( ) and tells you whether the pointer has
+  moved (due to reallocation). Write a main( ) that tests your moved(
+  ) member function. Does it make more sense to use something like
+  moved( ) or to simply call pointer( ) every time you need to access
+  the memory in Mem?
+
+

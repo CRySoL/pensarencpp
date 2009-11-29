@@ -1,14 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: latin-1 -*-
+# -*- coding:utf-8 -*-
 '''
 Transforma ficheros de texto plano en DocBook listo para traducir. El
-original debe tener los títulos de las secciones delimitados con:
+original debe tener los tÃ­tulos de las secciones delimitados con:
 
-:SECT:1: Título de la sección
+:SECT:1: TÃ­tulo de la secciÃ³n
 
-palabrería bla bla bla
+palabrerÃ­a bla bla bla
 
-:SECT:2: Título de subsección
+:SECT:2: TÃ­tulo de subsecciÃ³n
 
 
 
@@ -39,7 +39,7 @@ def indent(cad, offset=None):
     if offset == None: offset = level+1
     sp = ' ' * 2 * offset
     return '%s%s' % (sp, cad)
-    
+
 def print_par(fd, par):
     global level
     put_para = True
@@ -49,14 +49,14 @@ def print_par(fd, par):
         par = par.strip()
         if par.startswith(':SECT:'):
             newlevel = int(par[6])
-           
+
             # cerrar las secciones si newlevel > level
             dif = newlevel - level
             if dif <= 0:
                 for i in range(abs(dif)+1):
                     fd.write(indent('</sect%d>\n' % (level - i), level-i))
 
-            
+
             level = newlevel
             par = par[7:].strip()
             fd.write(indent('<sect%d>\n' % level, level))
@@ -84,7 +84,7 @@ par = ''
 for line in src:
     line = line.strip()
     if line and line[0] == '<': continue
-        
+
     if status == INPAR:
         if not line:
             status = OUTPAR
@@ -100,8 +100,8 @@ for line in src:
             par = indent(line + '\n')
             continue
 
-    
+
 
 src.close()
 dst.close()
-print 'Ok'    
+print 'Ok'
