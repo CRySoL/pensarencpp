@@ -12,14 +12,20 @@
 -->
 
 
-<chapter 
+<chapter
   xmlns:xi="http://www.w3.org/2001/XInclude"
   id="C8">
 
   <title>Constantes</title>
-    
+
   <!-- [PAG:353] -->
   <highlights>
+  <!--
+  The concept of constant (expressed by the const keyword) was created
+  to allow the programmer to draw a line between what changes and what
+  doesn't. This provides safety and control in a C++ programming
+  project.
+  -->
     <para>
       El concepto de constante (expresión con la palabra reservada
       <emphasis>const</emphasis>) se creó para permitir a los
@@ -30,6 +36,15 @@
   </highlights>
 
   <!-- [PAG: 354] -->
+  <!--
+  Since its origin, const has taken on a number of different
+  purposes. In the meantime it trickled back into the C language where
+  its meaning was changed. All this can seem a bit confusing at first,
+  and in this chapter you'll learn when, why, and how to use the const
+  keyword. At the end there's a discussion of volatile, which is a near
+  cousin to const (because they both concern change) and has identical
+  syntax.
+  -->
   <para>
     Desde su origen, <emphasis>const</emphasis> ha sido utilizada
     para diferentes propositos.  In the meantime it trickled back
@@ -41,7 +56,15 @@
     <emphasis>const</emphasis> (pues ambos se refieren a los cambios)
     y su sintaxis es idéntica.
   </para>
-  
+
+  <!--
+  The first motivation for const seems to have been to eliminate the use
+  of preprocessor #defines for value substitution. It has since been put
+  to use for pointers, function arguments, return types, class objects
+  and member functions. All of these have slightly different but
+  conceptually compatible meanings and will be looked at in separate
+  sections in this chapter.
+  -->
   <para>
     El primer motivo para la creación de <emphasis>const</emphasis>
     parace que fue eliminar el uso de la directiva del preprocesador
@@ -52,10 +75,18 @@
     compatible. Serán tratados en diferentes secciones de este
     capítulo.
   </para>
-  
+
   <sect1>
+    <!-- : Value substitution -->
     <title>Sustitución de valores</title>
-    
+
+    <!--
+    When programming in C, the preprocessor is liberally used to create
+    macros and to substitute values. Because the preprocessor simply does
+    text replacement and has no concept nor facility for type checking,
+    preprocessor value substitution introduces subtle problems that can be
+    avoided in C++ by using const values.
+    -->
     <para>
       Cuando se programa en C, se usa libremente el preprocesador para
       crear macros y sustituir valores. El preprocesador simplemente
@@ -64,18 +95,33 @@
       problemas que pueden ser evitados usando valores
       <emphasis>const</emphasis>.
     </para>
-    
+
+   <!--
+    The typical use of the preprocessor to substitute values for names in
+    C looks like this:
+    -->
     <para>
       El uso más frecuente del preprocesador es la sustitución de
       valores por nombres, algo que en C es algo como:
     </para>
 
-    
+
 <programlisting>
 #define BUFSIZE 100
 </programlisting>
 
-	 
+    <!--
+    BUFSIZE is a name that only exists during preprocessing, therefore it
+    doesn't occupy storage and can be placed in a header file to provide a
+    single value for all translation units that use it. It's very
+    important for code maintenance to use value substitution instead of
+    so-called "magic numbers." If you use magic numbers in your code,
+    not only does the reader have no idea where the numbers come from or
+    what they represent, but if you decide to change a value, you must
+    perform hand editing, and you have no trail to follow to ensure you
+    don't miss one of your values (or accidentally change one you
+    shouldn't).
+    -->
     <para>
       <varname>BUFSIZE</varname> es un nombre que sólo existe durante
       el preprocesamiento. Por tanto, no ocupa memoria y se puede
@@ -90,6 +136,13 @@
     </para>
 
     <!-- [PAG:355] -->
+    <!--
+    Most of the time, BUFSIZE will behave like an ordinary variable, but
+    not all the time. In addition, there's no type information. This can
+    hide bugs that are very difficult to find. C++ uses const to eliminate
+    these problems by bringing value substitution into the domain of the
+    compiler. Now you can say
+    -->
     <para>
       La mayor parte del tiempo, <varname>BUFSIZE</varname> se
       comportará como un valor ordinario, pero no siempre. No tiene
@@ -98,13 +151,19 @@
       problemas llevando la sustitución de valores al terreno del
       compilador. Ahora, puede escribir:
     </para>
-    
+
 
 <programlisting>
 const int bufsize = 100;
 </programlisting>
 
-    
+    <!--
+    You can use bufsize anyplace where the compiler must know the value at
+    compile time. The compiler can use bufsize to perform constant
+    folding, which means the compiler will reduce a complicated constant
+    expression to a simple one by performing the necessary calculations at
+    compile time. This is especially important in array definitions:
+    -->
     <para>
       Puede colocar <varname>bufsize</varname> en cualquier lugar
       donde se necesite conocer el valor en tiempo de compilación. El
@@ -120,7 +179,13 @@ const int bufsize = 100;
 char buf[bufsize];
 </programlisting>
 
-
+    <!--
+    You can use const for all the built-in types (char, int, float, and
+    double) and their variants (as well as class objects, as you'll see
+    later in this chapter). Because of subtle bugs that the preprocessor
+    might introduce, you should always use const instead of #define value
+    substitution.
+    -->
     <para>
       Puede usar <emphasis>const</emphasis> con todos los tipos
       básicos(<type>char</type>, <type>int</type>,
@@ -130,10 +195,21 @@ char buf[bufsize];
       deberá utilizar siempre <emphasis>const</emphasis> en lugar de
       <emphasis>#define</emphasis> para la sustitución de valores.
     </para>
-    
+
     <sect2>
+      <!-- : const in header files -->
       <title><kw>const</kw> en archivos de cabecera</title>
-      
+
+      <!--
+      To use const instead of #define, you must be able to place const
+      definitions inside header files as you can with #define. This way, you
+      can place the definition for a const in a single place and distribute
+      it to translation units by including the header file. A const in C++
+      defaults to internal linkage; that is, it is visible only within the
+      file where it is defined and cannot be seen at link time by other
+      translation units. You must always assign a value to a const when you
+      define it, except when you make an explicit declaration using extern:
+      -->
       <para>
 	Para usar <kw>const</kw> en lugar de
 	<kw>#define</kw>, debe ser capaz de colocar las
@@ -151,12 +227,20 @@ char buf[bufsize];
       </para>
       <!-- [PAG:356] -->
 
-      
+
 <programlisting>
 extern const int bufsize;
 </programlisting>
 
-
+      <!--
+      Normally, the C++ compiler avoids creating storage for a const, but
+      instead holds the definition in its symbol table. When you use extern
+      with const, however, you force storage to be allocated (this is also
+      true for certain other cases, such as taking the address of a
+      const). Storage must be allocated because extern says "use
+      external linkage," which means that several translation units must be
+      able to refer to the item, which requires it to have storage.
+      -->
       <para>
 	Normalmente el compilador de C++ evita la asignación de
 	memoria para las constantes, pero en su lugar ocupa una
@@ -170,13 +254,26 @@ extern const int bufsize;
 	capaces de hacer referencia al elemento, algo que requiere
 	su almacenamiento en memoria.
       </para>
-      
+
+      <!--
+      In the ordinary case, when extern is not part of the definition, no
+      storage is allocated. When the const is used, it is simply folded in
+      at compile time.
+      -->
       <para>
 	Por lo general, cuando <kw>extern</kw> no forma parte de
 	la definición, no se pide memoria. Cuando la constante se utiliza
 	simplemte se incorpora en tiempo de compilación.
       </para>
-      
+
+
+     <!--
+      The goal of never allocating storage for a const also fails with
+      complicated structures. Whenever the compiler must allocate storage,
+      constant folding is prevented (since there's no way for the compiler
+      to know for sure what the value of that storage is - if it could know
+      that, it wouldn't need to allocate the storage).
+      -->
       <para>
 	El objetivo de no almacenar en memoria las constantes tampoco
 	se cumple con estructuras complicadas. Siempre que el
@@ -186,6 +283,19 @@ extern const int bufsize;
 	necesitaría pedir memoria).
       </para>
 
+      <!--
+      Because the compiler cannot always avoid allocating storage for a
+      const, const definitions must default to internal linkage, that is,
+      linkage only within that particular translation unit. Otherwise,
+      linker errors would occur with complicated consts because they cause
+      storage to be allocated in multiple cpp files. The linker would then
+      see the same definition in multiple object files, and
+      complain. Because a const defaults to internal linkage, the linker
+      doesn't try to link those definitions across translation units, and
+      there are no collisions. With built-in types, which are used in the
+      majority of cases involving constant expressions, the compiler can
+      always perform constant folding.
+      -->
       <para>
 	Como el compilador no siempre puede impedir el almacenamiento
 	para una constante, las definiciones de constantes utilizan
@@ -208,9 +318,10 @@ extern const int bufsize;
         ejecuta [FIXME constant folding].
       </para>
     </sect2>
-    
+
 
     <sect2>
+      <!-- : Safety consts -->
       <title>constantes seguras</title>
 
       <!--
@@ -221,15 +332,13 @@ extern const int bufsize;
       it a const so the compiler will give you an error message if you
       accidentally try to change it. Here's an example:
       -->
-      
-
       <para>
         El uso de las constantes no está limitado a la sustitución de
         los <kw>#define</kw> por expresiones constantes. Si inicializa
         una variable con un valor que se produce en tiempo de ejecución
         y sabe que no cambiará durante la
 
-	<!-- [PAG:357] --> 
+	<!-- [PAG:357] -->
 
         vida de la variable, es una buena práctica de programación
         hacerla constante para que de ese modo el compilador produzca un
@@ -242,7 +351,16 @@ extern const int bufsize;
 //: V1C08:Safecons.cpp
 
 
-
+      <!--
+      You can see that i is a compile-time const, but j is calculated from
+      i. However, because i is a const, the calculated value for j still
+      comes from a constant expression and is itself a compile-time
+      constant. The very next line requires the address of j and therefore
+      forces the compiler to allocate storage for j. Yet this doesn't
+      prevent the use of j in the determination of the size of buf because
+      the compiler knows j is const and that the value is valid even if
+      storage was allocated to hold that value at some point in the program.
+      -->
       <para>
         Puede ver que <constant>i</constant> es una constante en tiempo
         de compilación, pero <constant>j</constant> se calcula a partir
@@ -260,7 +378,7 @@ extern const int bufsize;
         mantener el valor en algún punto en el programa.
       </para>
 
-     
+
       <!--
       In main( ), you see a different kind of const in the identifier c
       because the value cannot be known at compile time. This means
@@ -272,8 +390,6 @@ extern const int bufsize;
       for consts as it does for any other type - yet another improvement
       over the use of #define
       -->
-
-
       <para>
         En <function>main()</function>, aparece un tipo diferente de
         constante en el identificador <constant>c</constant>, porque el
@@ -290,6 +406,12 @@ extern const int bufsize;
       </para>
 
       <!-- [PAG:358] -->
+      <!--
+      As a matter of practice, if you think a value shouldn't change, you
+      should make it a const. This not only provides insurance against
+      inadvertent changes, it also allows the compiler to generate more
+      efficient code by eliminating storage and memory reads.
+      -->
       <para>
 	En la práctica, si piensa que una variable no debería cambiar,
 	debería hacer que fuese una constante. Esto no sólo da seguridad
@@ -298,10 +420,21 @@ extern const int bufsize;
 	y lecturas de memoria en la ejecución del programa.
       </para>
     </sect2>
-    
+
     <sect2>
+      <!-- : Aggregates -->
       <title>Vectores</title>
 
+      <!--
+      It's possible to use const for aggregates, but you're virtually
+      assured that the compiler will not be sophisticated enough to keep an
+      aggregate in its symbol table, so storage will be allocated. In these
+      situations, const means "a piece of storage that cannot be
+      changed." However, the value cannot be used at compile time because
+      the compiler is not required to know the contents of the storage at
+      compile time. In the following code, you can see the statements that
+      are illegal:
+      -->
       <para>
 	Es posible usar constantes para los vectores, pero
 	prácticamente está asegurado que el compilador no será lo
@@ -320,8 +453,12 @@ extern const int bufsize;
 
 //: V1C08:Constag.cpp
 
-
-
+      <!--
+      In an array definition, the compiler must be able to generate code
+      that moves the stack pointer to accommodate the array. In both of the
+      illegal definitions above, the compiler complains because it cannot
+      find a constant expression in the array definition.
+      -->
       <para>
 	En la definición de un vector, el compilador debe ser capaz de
 	generar código que mueva el puntero de pila para dar cabida al
@@ -330,10 +467,19 @@ extern const int bufsize;
 	constante en la definición del tamaño del vector.
       </para>
     </sect2>
-    
+
     <sect2>
+      <!-- : Differences with C -->
       <title>Diferencias con C</title>
-      
+
+      <!--
+      Constants were introduced in early versions of C++ while the Standard
+      C specification was still being finished. Although the C committee
+      then decided to include const in C, somehow it came to mean for them
+      "an ordinary variable that cannot be changed." In C, a const always
+      occupies storage and its name is global. The C compiler cannot treat a
+      const as a compile-time constant. In C, if you say
+      -->
       <para>
 	Las constantes se introdujeron en las primeras versiones de
 	C++ mientras la especificación del estandar C estaba siendo
@@ -343,7 +489,7 @@ extern const int bufsize;
 	puede cambiarse</quote>. En C, una constante siempre ocupa
 	espacio de almacenamiento y su ámbito es global. El compilador
 	C no puede tratar <kw>const</kw> como una constante
-	en tiempo de compilación. En C, si escribe: 
+	en tiempo de compilación. En C, si escribe:
       </para>
       <!-- [PAG:359] -->
 
@@ -353,7 +499,11 @@ const int bufsize = 100;
 char buf[bufsize];
 </programlisting>
 
-
+      <!--
+      you will get an error, even though it seems like a rational thing to
+      do. Because bufsize occupies storage somewhere, the C compiler cannot
+      know the value at compile time. You can optionally say
+      -->
       <para>
 	aparecerá un error, aunque parezca algo
 	razonable. <constant>Bufsize</constant> está guardado en algún
@@ -366,7 +516,14 @@ char buf[bufsize];
 const int bufsize;
 </programlisting>
 
-
+      <!--
+      in C, but not in C++, and the C compiler accepts it as a declaration
+      indicating there is storage allocated elsewhere. Because C defaults to
+      external linkage for consts, this makes sense. C++ defaults to
+      internal linkage for consts so if you want to accomplish the same
+      thing in C++, you must explicitly change the linkage to external using
+      extern:
+      -->
       <para>
 	en C, pero no en C++, y el compilador C lo acepta como una
 	declaración que indica que se almacenará en alguna parte. Como
@@ -382,11 +539,25 @@ const int bufsize;
 extern const int bufsize;  // es declaración, no definición
 </programlisting>
 
-
+      <!-- This line also works in C. -->
       <para>
         Esta declaración también es válida en C.
       </para>
-      
+
+      <!--
+      In C++, a const doesn't necessarily create storage. In C a const
+      always creates storage. Whether or not storage is reserved for a const
+      in C++ depends on how it is used. In general, if a const is used
+      simply to replace a name with a value (just as you would use a
+      #define), then storage doesn't have to be created for the const. If no
+      storage is created (this depends on the complexity of the data type
+      and the sophistication of the compiler), the values may be folded into
+      the code for greater efficiency after type checking, not before, as
+      with #define. If, however, you take an address of a const (even
+      unknowingly, by passing it to a function that takes a reference
+      argument) or you define it as extern, then storage is created for the
+      const.
+      -->
       <para>
         En C++, <kw>const</kw> no implica necesariamente
         almacenamiento. En C, las constantes siempre necesitan
@@ -404,7 +575,18 @@ extern const int bufsize;  // es declaración, no definición
         <kw>extern</kw>, entonces se requiere asignar almacenamiento
         para la constante.
       </para>
-		
+
+      <!--
+      In C++, a const that is outside all functions has file scope (i.e., it
+      is invisible outside the file). That is, it defaults to internal
+      linkage. This is very different from all other identifiers in C++ (and
+      from const in C!) that default to external linkage. Thus, if you
+      declare a const of the same name in two different files and you don't
+      take the address or define that name as extern, the ideal C++ compiler
+      won't allocate storage for the const, but simply fold it into the
+      code. Because const has implied file scope, you can put it in C++
+      header files with no conflicts at link time.
+      -->
       <para>
         En C++, una constante que esté definida fuera de todas las
         funciones tiene ámbito de archivo (es decir, es inaccesible
@@ -424,6 +606,12 @@ extern const int bufsize;  // es declaración, no definición
         enlace.
       </para>
 
+      <!--
+      Since a const in C++ defaults to internal linkage, you can't just
+      define a const in one file and reference it as an extern in another
+      file. To give a const external linkage so it can be referenced from
+      another file, you must explicitly define it as extern, like this:
+      -->
       <para>
 	Dado que las constante en C++ utilizan por defecto enlace
 	interno, no puede definir una constante en un archivo y
@@ -438,7 +626,12 @@ extern const int bufsize;  // es declaración, no definición
 extern const int x = 1;  // definición, no declaración
 </programlisting>
 
-
+      <!--
+      Notice that by giving it an initializer and saying it is extern, you
+      force storage to be created for the const (although the compiler still
+      has the option of doing constant folding here). The initialization
+      establishes this as a definition, not a declaration. The declaration:
+      -->
       <para>
 	Señalar que dado un identificador, si se dice que es
 	<kw>extern</kw>, se fuerza el almacenamiento para la
@@ -452,7 +645,14 @@ extern const int x = 1;  // definición, no declaración
 extern const int x;
 </programlisting>
 
-
+      <!--
+      in C++ means that the definition exists elsewhere (again, this is not
+      necessarily true in C). You can now see why C++ requires a const
+      definition to have an initializer: the initializer distinguishes a
+      declaration from a definition (in C it's always a definition, so no
+      initializer is necessary). With an extern const declaration, the
+      compiler cannot do constant folding because it doesn't know the value.
+      -->
       <para>
 	en C++ significa que la definición existe en algún sitio (mientras
 	que en C no tiene porque ocurrir asi). Ahora puede ver porqué C++
@@ -464,6 +664,12 @@ extern const int x;
 	porque no conoce su valor.
       </para>
 
+      <!--
+      The C approach to const is not very useful, and if you want to use a
+      named value inside a constant expression (one that must be evaluated
+      at compile time), C almost forces you to use #define in the
+      preprocessor.
+      -->
       <para>
 	La aproximación de C a las constantes es poco útil, y si quiere
 	usar un valor simbólico en una expresión constante (que deba
@@ -474,15 +680,30 @@ extern const int x;
   </sect1>
 
   <sect1>
+    <!-- : Pointers -->
     <title>Punteros</title>
 
+    <!--
+    Pointers can be made const. The compiler will still endeavor to
+    prevent storage allocation and do constant folding when dealing with
+    const pointers, but these features seem less useful in this case. More
+    importantly, the compiler will tell you if you attempt to change a
+    const pointer, which adds a great deal of safety.
+    -->
+    <!--
+    When using const with pointers, you have two options: const can be
+    applied to what the pointer is pointing to, or the const can be
+    applied to the address stored in the pointer itself. The syntax for
+    these is a little confusing at first but becomes comfortable with
+    practice.
+    -->
     <para>
       Los punteros pueden ser <kw>const</kw>. El compilador
       pondrá más esfueszo aún para evitar el almacenamiento y hacer
       expansión de constantes cuando se trata de punteros constantes,
       pero estas características parecen menos útiles en este
-      caso. 
-      <!-- [PAG:361] --> 
+      caso.
+      <!-- [PAG:361] -->
       Lo más importante es que el compilador le avisará si intenta
       cambiar un puntero constante, lo que respresenta un buen elemento
       de seguridad. Cuando se usa <kw>const</kw> con punteros tiene dos
@@ -492,8 +713,16 @@ extern const int x;
     </para>
 
     <sect2>
+      <!-- : Pointer to const -->
       <title>Puntero a constante</title>
 
+      <!--
+      The trick with a pointer definition, as with any complicated
+      definition, is to read it starting at the identifier and work your way
+      out. The const specifier binds to the thing it is "closest to." So
+      if you want to prevent any changes to the element you are pointing to,
+      you write a definition like this:
+      -->
       <para>
 	El truco con la definición de un puntero, al igual que con una
 	definición complicada, es leerla empezando por el identificador e
@@ -508,7 +737,12 @@ extern const int x;
 const int* u;
 </programlisting>
 
-
+      <!--
+      Starting from the identifier, we read "u is a pointer, which points to
+      a const int." Here, no initialization is required because you're
+      saying that u can point to anything (that is, it is not const), but
+      the thing it points to cannot be changed.
+      -->
       <para>
 	Empezando por el identificador, se lee
 	<quote><varname>u</varname> es un puntero, que apunta a un
@@ -518,6 +752,13 @@ const int* u;
 	pero la cosa a la que apunta no puede cambiar.
       </para>
 
+      <!-- FIXME este párrafo no corresponde -->
+      <!--
+      Here's the mildly confusing part. You might think that to make the
+      pointer itself unchangeable, that is, to prevent any change to the
+      address contained inside u, you would simply move the const to the
+      other side of the int like this:
+      -->
       <para>
 	Podría pensar que hacer el puntero inalterable en si mismo, es
 	decir, impedir cualquier cambio en la dirección que contiene
@@ -531,7 +772,15 @@ const int* u;
 int const* v;
 </programlisting>
 
-
+      <!--
+      It's not all that crazy to think that this should read "v is a
+      const pointer to an int." However, the way it actually reads is "v is
+      an ordinary pointer to an int that happens to be const." That is, the
+      const has bound itself to the int again, and the effect is the same as
+      the previous definition. The fact that these two definitions are the
+      same is the confusing point; to prevent this confusion on the part of
+      your reader, you should probably stick to the first form.
+      -->
       <para>
 	y pensar que  esto debería leerse <quote><varname>v</varname> es
 	un puntero constante a un  entero</quote>. La forma de leerlo es
@@ -546,8 +795,13 @@ int const* v;
     </sect2>
 
     <sect2>
+      <!-- : const pointer -->
       <title>Puntero constante</title>
 
+     <!--
+      To make the pointer itself a const, you must place the const specifier
+      to the right of the *, like this:
+      -->
       <para>
 	Para conseguir que el puntero sea inalterable, debe colocar el
 	[FIXME:especificador] <kw>const</kw> a la derecha del *:
@@ -559,7 +813,13 @@ int d = 1;
 int * const w = &amp;d;
 </programlisting>
 
-
+      <!--
+      Now it reads: "w is a pointer, which is const, that points to an int."
+      Because the pointer itself is now the const, the compiler requires
+      that it be given an initial value that will be unchanged for the life
+      of that pointer. It's OK, however, to change what that value points to
+      by saying
+      -->
       <para>
 	Ahora, se lee <quote><constant>w</constant> es un puntero
 	  constate, y apunta a un <type>entero</type></quote>. Como
@@ -575,7 +835,10 @@ int * const w = &amp;d;
 *w = 2;
 </programlisting>
 
-
+      <!--
+      You can also make a const pointer to a const object using either of
+      two legal forms:
+      -->
       <para>
 	También puede hacer un puntero constante a un elemento constante
 	usando una de las formas siguientes:
@@ -588,16 +851,20 @@ const int* const x = &amp;d;  // (1)
 int const* const x2 = &amp;d; // (2)
 </programlisting>
 
-      
+
       <!--
       Now neither the pointer nor the object can be changed.
       -->
-
       <para>
         Ahor,a ni el puntero ni el elemento al que apunta pueden
         modificarse.
       </para>
 
+      <!--
+      Some people argue that the second form is more consistent because the
+      const is always placed to the right of what it modifies. You'll have
+      to decide which is clearer for your particular coding style.
+      -->
       <para>
 	Algunos argumentan que la segunda forma más consistente porque el
 	<kw>const</kw> se coloca siempre a la derecha de lo que
@@ -605,6 +872,7 @@ int const* const x2 = &amp;d; // (2)
 	codificación particular.
       </para>
 
+      <!-- Here are the above lines in a compileable file: -->
       <para>
 	Algunas líneas de un archivo susceptible de ser compilado.
       </para>
@@ -616,9 +884,10 @@ int const* const x2 = &amp;d; // (2)
 
 
       <sect3>
+        <!-- : Formatting -->
         <title>Formato</title>
 
-        <!-- [PAG:363] --> 
+        <!-- [PAG:363] -->
         <!--
         This book makes a point of only putting one pointer definition
         on a line, and initializing each pointer at the point of
@@ -640,6 +909,13 @@ int* u = &amp;i;
 </programlisting>
 
 
+        <!--
+        as if int* were a discrete type unto itself. This makes the code
+        easier to understand, but unfortunately that's not actually the way
+        things work. The "*" in fact binds to the identifier, not the type. It
+        can be placed anywhere between the type name and the identifier. So
+        you could do this:
+        -->
 	<para>
 	  como si <type>int*</type> fuese un tipo de dato
 	  directo. Esto hace que el código sea más fácil de leer,
@@ -655,9 +931,13 @@ int* u = &amp;i;
 int * v = &amp;i, v = 0;
 </programlisting>
 
-
+        <!--
+        which creates an int* u, as before, and a non-pointer int v. Because
+        readers often find this confusing, it is best to follow the form shown
+        in this book.
+        -->
 	<para>
-	  donde se crea un <type>int*</type> u y después un
+	  donde se crea un <code>int* u</code> y después un
 	  [FIXME]int v[/FIXME]. Como a los lectores esto les puede parecer
 	  confuso, es mejor utilizar el estilo mostrado en este libro.
 	</para>
@@ -665,10 +945,22 @@ int * v = &amp;i, v = 0;
     </sect2>
 
     <sect2>
+      <!-- : Assignment and type checking -->
       <title>Asignación y comprobación de tipos</title>
 
+      <!--
+      C++ is very particular about type checking, and this extends to
+      pointer assignments. You can assign the address of a non-const object
+      to a const pointer because you're simply promising not to change
+      something that is OK to change. However, you can't assign the address
+      of a const object to a non-const pointer because then you're saying
+      you might change the object via the pointer. Of course, you can always
+      use a cast to force such an assignment, but this is bad programming
+      practice because you are then breaking the constness of the object,
+      along with any safety promised by the const. For example:
+      -->
       <para>
-	[FIXME: SEGUIR] 
+	[FIXME: SEGUIR]
 
 	C++ es muy exigente en lo referente a la comprobación de tipos y esto
 	se extiende a la asignación de punteros. Puede asignar la
@@ -685,32 +977,48 @@ int * v = &amp;i, v = 0;
 	<kw>const</kw>. Por ejemplo:
       </para>
 
-      
+
 
 //: V1C08:PointerAssignment.cpp
 
 
-      
+
       <!-- [PAG:364] -->
+      <!--
+      Although C++ helps prevent errors it does not protect you from
+      yourself if you want to break the safety mechanisms.
+      -->
       <para>
 	Aunque C++ ayuda a evitar errores, no le protege de si mismo si
 	se empeña en romper los mecanisnmos de seguridad.
       </para>
-      
+
       <sect3>
+        <!-- : Character array literals -->
 	<title>Literales de cadena</title>
-	
+
+        <!--
+        The place where strict constness is not enforced is with character
+        array literals. You can say
+        -->
 	<para>
 	  C++ no es estricto con los literales en lo referente a
 	  constantes. Puede escribir:
 	</para>
 
-	
+
 <programlisting>
 char * cp = "howdy";
 </programlisting>
 
-
+        <!--
+        and the compiler will accept it without complaint. This is technically
+        an error because a character array literal ("howdy" in this case)
+        is created by the compiler as a constant character array, and the
+        result of the quoted character array is its starting address in
+        memory. Modifying any of the characters in the array is a runtime
+        error, although not all compilers enforce this correctly.
+        -->
 	<para>
 	  y el compilador lo aceptará sin objección. Técnicamente esto
 	  supone un error porque el literal de cadena
@@ -722,7 +1030,16 @@ char * cp = "howdy";
 	  error, aunque no todos los compiladores lo imponen
 	  correctamente.
 	</para>
-	
+
+
+        <!--
+        So character array literals are actually constant character arrays. Of
+        course, the compiler lets you get away with treating them as non-const
+        because there's so much existing C code that relies on this. However,
+        if you try to change the values in a character array literal, the
+        behavior is undefined, although it will probably work on many
+        machines.
+        -->
 	<para>
 	  Así que los literales de cadena son arrays de caracteres
 	  constantes. Por supuesto, el compilador le permite tratarlos como
@@ -731,17 +1048,23 @@ char * cp = "howdy";
 	  resultado no está definido, y probablemente funcione en muchos
 	  computadores.
 	</para>
-	
+
+        <!-- If you want to be able to modify the string, put it in an
+        array: -->
 	<para>
 	  Si quiere poder modificar una cadena, debe ponerla en un vector:
 	</para>
-	
+
 
 <programlisting>
 char cp[] = "howdy";
 </programlisting>
 
-
+        <!--
+        Since compilers often don't enforce the difference you won't be
+        reminded to use this latter form and so the point becomes rather
+        subtle.
+        -->
 	<para>
 	  Como los compiladores a menudo no imponen la diferecia no tiene
 	  porque recordar que debe usar la última forma.
@@ -749,16 +1072,28 @@ char cp[] = "howdy";
       </sect3>
     </sect2>
   </sect1>
-  
+
+
   <sect1>
+    <!-- : Function arguments & return values -->
     <title>Argumentos de funciones y valores de retorno</title>
-    
+
+    <!--
+    The use of const to specify function arguments and return values is
+    another place where the concept of constants can be confusing. If you
+    are passing objects by value, specifying const has no meaning to the
+    client (it means that the passed argument cannot be modified inside
+    the function). If you are returning an object of a user-defined type
+    by value as a const, it means the returned value cannot be
+    modified. If you are passing and returning addresses, const is a
+    promise that the destination of the address will not be changed.
+    -->
     <para>
       El uso del especificador <kw>const</kw> con
       argumentos de funciones y valores de retorno es otro lugar
       donde el concepto de constante puede ser confuso.
     </para>
-    
+
     <para>
       Si está pasando variables por valor, utilizar
       <kw>const</kw> no tiene significado para el cliente
@@ -770,23 +1105,34 @@ char cp[] = "howdy";
       <kw>const</kw> impide que el destinatario de la
       dirección pueda modificarse.
     </para>
-    
+
     <sect2>
+      <!-- : Passing by const value -->
       <title>Paso por valor constante</title>
-      
+
+      <!--
+      You can specify that function arguments are const when passing them by
+      value, such as
+      -->
       <para>
 	Puede indicar que los argumentos de funciones son constantes
 	cuando se pasa por valor como:
       </para>
 
-      
+
 <programlisting>
 void f1(const int i) {
     i++; // ilegal
 }
 </programlisting>
 
-
+      <!--
+      but what does this mean? You're making a promise that the original
+      value of the variable will not be changed by the function f1(
+      ). However, because the argument is passed by value, you immediately
+      make a copy of the original variable, so the promise to the client is
+      implicitly kept.
+      -->
       <para>
 	pero, qué significa esto? Está impidiendo que el valor de la
 	variable original pueda ser cambiado en la función
@@ -796,22 +1142,38 @@ void f1(const int i) {
 	restricción se cumple implicitamente sin necesidad de usar
 	el especificador const.
       </para>
-      
+
+      <!--
+      Inside the function, the const takes on meaning: the argument cannot
+      be changed. So it's really a tool for the creator of the function, and
+      not the caller.
+      -->
       <para>
 	Dentro de la función, <kw>const</kw> si toma un
 	significado: El argumento no se puede cambiar. Así que, en
 	realidad, es una herramienta para el programador de la
 	función, no para el que la usa.
       </para>
-      
+
+     <!--
+      To avoid confusion to the caller, you can make the argument a const
+      inside the function, rather than in the argument list. You could do
+      this with a pointer, but a nicer syntax is achieved with the
+      reference, a subject that will be fully developed in Chapter
+      11. Briefly, a reference is like a constant pointer that is
+      automatically dereferenced, so it has the effect of being an alias to
+      an object. To create a reference, you use the & in the definition. So
+      the non-confusing function definition looks like this:
+      -->
       <para>
-	Para impedir la confusión del usuario de la función, puede hacer
+	Para evitar la confusión del usuario de la función, puede hacer
 	que el argumento sea constante dentro de la función en lugar de en
 	la lista de argumentos. Podría hacerlo con un puntero, pero la
 	sintaxis más adecuada para lograrlo es la referencia, algo que se
 	tratará en profuncidad en el capitulo 11[FIXME:XREF].
       </para>
-      
+
+      <!-- FIXME -->
       <para>
 	Brevemente, una referencia es como un puntero constante que
 	se dereferencia automaticamente, así que es como tener un
@@ -820,7 +1182,7 @@ void f1(const int i) {
 	modo se tiene una definición libre de confusiones.
       </para>
 
-      
+
 <programlisting>
 void f2(int ic) {
     const int &amp;i = ic;
@@ -828,7 +1190,12 @@ void f2(int ic) {
 }
 </programlisting>
 
-
+      <!--
+      Again, you'll get an error message, but this time the constness of the
+      local object is not part of the function signature; it only has
+      meaning to the implementation of the function and therefore it's
+      hidden from the client.
+      -->
       <para>
 	De nuevo, aparece un mensaje de error, pero esta vez el
 	especificador <kw>const</kw> no forma parte de la
@@ -837,48 +1204,74 @@ void f2(int ic) {
 	el cliente.
       </para>
     </sect2>
-    
+
     <sect2>
+      <!-- : Returning by const value -->
       <title>Retorno por valor constante</title>
-      
-      <para>
+
+      <!--
+      A similar truth holds for the return value. If you say that a
+      function's return value is const:
+      -->      <para>
 	Algo similar ocurre con los valores de retorno. Si dice que el
 	valor de retorno de una función es constante:
       </para>
 
-      
+
 <programlisting>
 const int g();
 </programlisting>
 
 
+      <!--
+      you are promising that the original variable (inside the function
+      frame) will not be modified. And again, because you're returning it by
+      value, it's copied so the original value could never be modified via
+      the return value.
+      -->
       <para>
 	está diciendo que el valor de la variable original (en el ámbito de
 	la función) no se modificará. Y de nuevo, como lo está devolviendo
 	por valor, es la copia lo que se retorna, de modo que el valor
 	original nunca se podrá modificar.
       </para>
-      
+
+      <!--
+      At first, this can make the specification of const seem
+      meaningless. You can see the apparent lack of effect of returning
+      consts by value in this example:
+      -->
       <para>
 	En principio, esto puede hacer suponer que el especificador
 	<kw>const</kw> tiene poco significado. Puede ver
 	la aparente falta de sentido de devolver constantes por
 	valor en este ejemplo:
       </para>
-      
+
 
 
 //: V1C08:Constval.cpp
 
 
-
+      <!--
+      For built-in types, it doesn't matter whether you return by value as a
+      const, so you should avoid confusing the client programmer and leave
+      off the const when returning a built-in type by value.
+      -->
       <para>
 	Para los tipos básicos, no importa si el retorno es
 	constante, así que debería evitar la confusión para el
 	programador cliente y no utilizar <kw>const</kw>
 	cuando se devuelven variables de tipos básicos por valor.
       </para>
-      
+
+      <!--
+      Returning by value as a const becomes important when you're dealing
+      with user-defined types. If a function returns a class object by value
+      as a const, the return value of that function cannot be an lvalue
+      (that is, it cannot be assigned to or otherwise modified). For
+      example:
+      -->
       <para>
 	Devolver por valor como constante se vuelve importante cuando
 	se trata con tipos definidos por el programador. Si una
@@ -887,16 +1280,21 @@ const int g();
 	NOTA DEL TRADUCTOR) (es decir, no se puede modificar ni
 	asignarle nada).
       </para>
-      
+
       <para>
 	Por ejemplo:
       </para>
 
-		
+
 
 //: V1C08:ConstReturnValues.cpp
 
-
+      <!--
+      f5( ) returns a non-const X object, while f6( ) returns a const X
+      object. Only the non-const return value can be used as an
+      lvalue. Thus, it's important to use const when returning an object by
+      value if you want to prevent its use as an lvalue.
+      -->
       <para>
 	<function>f5()</function> devuelve un objeto de clase
 	<classname>X</classname> no constante, mientras que
@@ -904,13 +1302,20 @@ const int g();
 	<classname>X</classname> pero constante. Solo el valor de
 	retorno por valor no constante se puede usar como recipiente.
       </para>
-      
+
       <para>
 	Por eso, es importante usar <kw>const</kw> cuando
 	se devuelve un objeto por valor si quiere impedir que se use como
 	valor izquierdo.
       </para>
-      
+
+      <!--
+      The reason const has no meaning when you're returning a built-in type
+      by value is that the compiler already prevents it from being an lvalue
+      (because it's always a value, and not a variable). Only when you're
+      returning objects of user-defined types by value does it become an
+      issue.
+      -->
       <para>
 	La razón por la que <kw>const</kw> no tiene
 	sentido cuando se usa para devolver por valor variables de tipos
@@ -919,7 +1324,14 @@ const int g();
 	cuando se devuelven objetos por valor de tipos definidos por el
 	programador esta funcionalidad adquiere sentido.
       </para>
-      
+
+      <!--
+      The function f7( ) takes its argument as a non-const reference (an
+      additional way of handling addresses in C++ and the subject of Chapter
+      11). This is effectively the same as taking a non-const pointer; it's
+      just that the syntax is different. The reason this won't compile in
+      C++ is because of the creation of a temporary.
+      -->
       <para>
 	La función <function>f7()</function> toma como argumento una
 	referencia no constante (la referencia es una forma adicional para
@@ -930,8 +1342,23 @@ const int g();
       </para>
 
       <sect3>
+	<!-- : Temporaries -->
 	<title>Temporarios</title>
-	
+
+        <!--
+        Sometimes, during the evaluation of an expression, the compiler must
+        create temporary objects. These are objects like any other: they
+        require storage and they must be constructed and destroyed. The
+        difference is that you never see them - the compiler is responsible
+        for deciding that they're needed and the details of their
+        existence. But there is one thing about temporaries: they're
+        automatically const. Because you usually won't be able to get your
+        hands on a temporary object, telling it to do something that will
+        change that temporary is almost certainly a mistake because you won't
+        be able to use that information. By making all temporaries
+        automatically const, the compiler informs you when you make that
+        mistake.
+        -->
 	<para>
 	  A veces, durante la evaluación de una expresión, el compilador
 	  debe crear objetos temporales (temporarios). Son objetos como
@@ -946,18 +1373,36 @@ const int g();
 	  temporarios como objetos constantes, de modo que le avisará si
 	  intenta modificarlos.
 	</para>
-	
+
+        <!--
+        In the above example, f5( ) returns a non-const X object. But in the
+        expression:
+        -->
 	<para>
 	  En el ejemplo anterior, <function>f5()</function> devuelve
 	  un objeto no constante. Pero en la expresión
 	</para>
-	
+
 
 <programlisting>
 f7(f5());
 </programlisting>
 
-
+        <!--
+        the compiler must manufacture a temporary object to hold the return
+        value of f5( ) so it can be passed to f7( ). This would be fine if f7(
+        ) took its argument by value; then the temporary would be copied into
+        f7( ) and it wouldn't matter what happened to the temporary
+        X. However, f7( ) takes its argument by reference, which means in this
+        example takes the address of the temporary X. Since f7( ) doesn't take
+        its argument by const reference, it has permission to modify the
+        temporary object. But the compiler knows that the temporary will
+        vanish as soon as the expression evaluation is complete, and thus any
+        modifications you make to the temporary X will be lost. By making all
+        temporary objects automatically const, this situation causes a
+        compile-time error message so you don't get caught by what would be a
+        very difficult bug to find.
+        -->
 	<para>
 	  el compilador debe crear un temporario para albergar el
 	  valor de retorno de <function>f5()</function> para que
@@ -967,7 +1412,8 @@ f7(f5());
 	  <function>f7()</function> y eso no puede pasarle al
 	  temporario X.
 	</para>
-	
+
+	<!-- FIXME -->
 	<para>
 	  Sin embargo, <function>f7()</function> toma su argumento
 	  por referencia, lo que significa que toma la dirección del
@@ -982,19 +1428,31 @@ f7(f5());
 	  compilación de modo que evitará cometer un error muy
 	  dificil de localizar.
 	</para>
-	
+
+        <!-- However, notice the expressions that are legal: -->
 	<para>
 	  En cuaquier caso, tenga presente que las expresiones siguientes
 	  son correctas.
 	</para>
 
-	
+
 <programlisting>
 f5() = X(1);
 f5().modify();
 </programlisting>
 
-
+       <!--
+        Although these pass muster for the compiler, they are actually
+        problematic. f5( ) returns an X object, and for the compiler to
+        satisfy the above expressions it must create a temporary to hold that
+        return value. So in both expressions the temporary object is being
+        modified, and as soon as the expression is over the temporary is
+        cleaned up. As a result, the modifications are lost so this code is
+        probably a bug - but the compiler doesn't tell you anything about
+        it. Expressions like these are simple enough for you to detect the
+        problem, but when things get more complex it's possible for a bug to
+        slip through these cracks.
+        -->
 	<para>
 	  Aunque son aceptables para el compilador, en realidad son
 	  problemáticas.  <function>f5()</function> devuelve un
@@ -1012,16 +1470,30 @@ f5().modify();
 	  localizar.
 	</para>
 
+        <!--
+        The way the constness of class objects is preserved is shown later in
+        the chapter.
+        -->
 	<para>
 	  La forma de preservar la constancia de los objetos se
 	  muestra más adelante en este capíitulo.
 	</para>
       </sect3>
     </sect2>
-    
+
     <sect2>
+      <!-- : Passing and returning addresses -->
       <title>Paso y retorno de direcciones</title>
-      
+
+      <!--
+      If you pass or return an address (either a pointer or a reference),
+      it's possible for the client programmer to take it and modify the
+      original value. If you make the pointer or reference a const, you
+      prevent this from happening, which may save you some grief. In fact,
+      whenever you're passing an address into a function, you should make it
+      a const if at all possible. If you don't, you're excluding the
+      possibility of using that function with anything that is a const.
+      -->
       <para>
 	Si pasa o retorna una dirección (ya sea un puntero o una
 	referencia), el programador cliente puede recoger y
@@ -1032,7 +1504,13 @@ f5().modify();
 	constante siempre que sea posible. Si no lo hace, está
 	excluyendo la posibilidad de usar la función con constantes.
       </para>
-      
+
+      <!--
+      The choice of whether to return a pointer or reference to a const
+      depends on what you want to allow your client programmer to do with
+      it. Here's an example that demonstrates the use of const pointers as
+      function arguments and return values:
+      -->
       <para>
 	La opción de devolver un puntero o referencia constante
 	depende de lo que quiera permitir hacer al programador
@@ -1041,13 +1519,21 @@ f5().modify();
 	de retorno.
       </para>
 
-		
+
 
 //: V1C08:ConstPointer.cpp
 
 
 
       <!-- [PAG:371] -->
+      <!--
+      The function t( ) takes an ordinary non-const pointer as an argument,
+      and u( ) takes a const pointer. Inside u( ) you can see that
+      attempting to modify the destination of the const pointer is illegal,
+      but you can of course copy the information out into a non-const
+      variable. The compiler also prevents you from creating a non-const
+      pointer using the address stored inside a const pointer.
+      -->
       <para>
 	La función <function>t()</function> toma un puntero no-constante
 	ordinario como argumento, y <function>u()</function> toma un
@@ -1059,6 +1545,15 @@ f5().modify();
 	un puntero constante.
       </para>
 
+      <!--
+      The functions v( ) and w( ) test return value semantics. v( ) returns
+      a const char* that is created from a character array literal. This
+      statement actually produces the address of the character array
+      literal, after the compiler creates it and stores it in the static
+      storage area. As mentioned earlier, this character array is
+      technically a constant, which is properly expressed by the return
+      value of v( ).
+      -->
       <para>
 	Las funciones <function>v()</function> y
 	<function>w()</function> prueban las semánticas de retorno de
@@ -1071,6 +1566,16 @@ f5().modify();
 	bien indica el tipo de retorno de <function>v()</function>.
       </para>
 
+      <!--
+      The return value of w( ) requires that both the pointer and what it
+      points to must be const. As with v( ), the value returned by w( ) is
+      valid after the function returns only because it is static. You never
+      want to return pointers to local stack variables because they will be
+      invalid after the function returns and the stack is cleaned
+      up. (Another common pointer you might return is the address of storage
+      allocated on the heap, which is still valid after the function
+      returns.)
+      -->
       <para>
 	El valor de retorno de <function>w()</function> requiere que
 	tanto el puntero como lo que apunta sean constantes. Como en
@@ -1083,7 +1588,17 @@ f5().modify();
 	(<foreignphrase>heap</foreignphrase>), pues siguen siendo
 	validos después de terminar la función.
       </para>
-      
+
+
+      <!--
+      In main( ), the functions are tested with various arguments. You can
+      see that t( ) will accept a non-const pointer argument, but if you try
+      to pass it a pointer to a const, there's no promise that t( ) will
+      leave the pointer's destination alone, so the compiler gives you an
+      error message. u( ) takes a const pointer, so it will accept both
+      types of arguments. Thus, a function that takes a const pointer is
+      more general than one that does not.
+      -->
       <para>
 	En <function>main()</function> se prueban las funciones con
 	varios argumentos. Puede ver que <function>t()</function>
@@ -1097,6 +1612,18 @@ f5().modify();
 	que una que acepta un puntero ordinario.
       </para>
 
+      <!--
+      As expected, the return value of v( ) can be assigned only to a
+      pointer to a const. You would also expect that the compiler refuses to
+      assign the return value of w( ) to a non-const pointer, and accepts a
+      const int* const, but it might be a bit surprising to see that it also
+      accepts a const int*, which is not an exact match to the return
+      type. Once again, because the value (which is the address contained in
+      the pointer) is being copied, the promise that the original variable
+      is untouched is automatically kept. Thus, the second const in const
+      int* const is only meaningful when you try to use it as an lvalue, in
+      which case the compiler prevents you.
+      -->
       <para>
 	Como es lógico, el valor de retorno de
 	<function>v()</function> sólo se puede asignar a un puntero
@@ -1115,8 +1642,23 @@ f5().modify();
       </para>
 
       <sect3>
+        <!-- : Standard argument passing -->
 	<title>Criterio de paso de argumentos</title>
 
+      <!--
+        In C it's very common to pass by value, and when you want to pass an
+        address your only choice is to use a pointer[43]. However, neither of
+        these approaches is preferred in C++. Instead, your first choice when
+        passing an argument is to pass by reference, and by const reference at
+        that. To the client programmer, the syntax is identical to that of
+        passing by value, so there's no confusion about pointers - they don't
+        even have to think about pointers. For the creator of the function,
+        passing an address is virtually always more efficient than passing an
+        entire class object, and if you pass by const reference it means your
+        function will not change the destination of that address, so the
+        effect from the client programmer's point of view is exactly the same
+        as pass-by-value (only more efficient).
+        -->
 	<para>
 	  En C es muy común el paso por valor, y cuando se quiere
 	  pasar una dirección la única posibilidad es usar un
@@ -1135,6 +1677,17 @@ f5().modify();
 	  embargo es más eficiente).
 	</para>
 
+       <!--
+        Because of the syntax of references (it looks like pass-by-value to
+        the caller) it's possible to pass a temporary object to a function
+        that takes a const reference, whereas you can never pass a temporary
+        object to a function that takes a pointer - with a pointer, the
+        address must be explicitly taken. So passing by reference produces a
+        new situation that never occurs in C: a temporary, which is always
+        const, can have its address passed to a function. This is why, to
+        allow temporaries to be passed to functions by reference, the argument
+        must be a const reference. The following example demonstrates this:
+        -->
 	<para>
 	  A causa de la sintaxis de las referencias (para el cliente
 	  es igual que el paso por valor) es posible pasar un objeto
@@ -1150,13 +1703,13 @@ f5().modify();
 	  referencia, el argumento debe ser una referencia
 	  constante. El siguiente ejemplo lo demuestra:
 	</para>
-	
+
 
 
 //: V1C08:ConstTemporary.cpp
 
 
-
+	<!-- FIXME -->
 	<para>
 	  Algunos autores dicen que todo en C se pasa por valor, ya que
 	  cuando se pasa un puntero se hace también una copia (de modo
@@ -1165,6 +1718,14 @@ f5().modify();
 	</para>
 	<!-- [PAG:373] -->
 
+        <!--
+        f( ) returns an object of class X by value. That means when you
+        immediately take the return value of f( ) and pass it to another
+        function as in the calls to g1( ) and g2( ), a temporary is created
+        and that temporary is const. Thus, the call in g1( ) is an error
+        because g1( ) doesn't take a const reference, but the call to g2( ) is
+        OK.
+        -->
 	<para>
 	  <function>f()</function> retorna un objeto de la clase
 	  <classname>X</classname> por valor. Esto significa que
@@ -1183,8 +1744,16 @@ f5().modify();
   </sect1>
 
   <sect1>
+    <!-- : Classes -->
     <title>Clases</title>
 
+    <!--
+    This section shows the ways you can use const with classes. You may
+    want to create a local const in a class to use inside constant
+    expressions that will be evaluated at compile time. However, the
+    meaning of const is different inside classes, so you must understand
+    the options in order to create const data members of a class.
+    -->
     <para>
       Esta sección muesta la forma en la que se puede usar el
       especficador <kw>const</kw> con las clases. Puede
@@ -1198,6 +1767,15 @@ f5().modify();
       constantes en una clase.
     </para>
 
+    <!--
+    You can also make an entire object const (and as you've just seen, the
+    compiler always makes temporary objects const). But preserving the
+    constness of an object is more complex. The compiler can ensure the
+    constness of a built-in type but it cannot monitor the intricacies of
+    a class. To guarantee the constness of a class object, the const
+    member function is introduced: only a const member function may be
+    called for a const object.
+    -->
     <para>
       También se puede hacer que un objeto completo sea constante (y
       como se ha visto, el compilador siempre hace constantes los
@@ -1211,8 +1789,20 @@ f5().modify();
     <!-- [PAG:373] -->
 
     <sect2>
+      <!-- : const in classes -->
       <title><kw>const</kw> en las clases</title>
 
+      <!--
+      One of the places you'd like to use a const for constant expressions
+      is inside classes. The typical example is when you're creating an
+      array inside a class and you want to use a const instead of a #define
+      to establish the array size and to use in calculations involving the
+      array. The array size is something you'd like to keep hidden inside
+      the class, so if you used a name like size, for example, you could use
+      that name in another class without a clash. The preprocessor treats
+      all #defines as global from the point they are defined, so this will
+      not achieve the desired effect.
+      -->
       <para>
 	Uno de los lugares donde interesa usar
 	<kw>const</kw> es para expresiones constantes
@@ -1231,6 +1821,15 @@ f5().modify();
 	consiguiendo el efecto deseado.
       </para>
 
+      <!--
+      You might assume that the logical choice is to place a const inside
+      the class. This doesn't produce the desired result. Inside a class,
+      const partially reverts to its meaning in C. It allocates storage
+      within each object and represents a value that is initialized once and
+      then cannot change. The use of const inside a class means "This is
+      constant for the lifetime of the object." However, each different
+      object may contain a different value for that constant.
+      -->
       <para>
 	Se podría pensar que la elección lógica es colocar una
 	constante dentro de la clase. Esto no produce el resultado
@@ -1243,6 +1842,18 @@ f5().modify();
 	la constante puede contener un valor diferente.
       </para>
 
+      <!--
+      Thus, when you create an ordinary (non-static) const inside a class,
+      you cannot give it an initial value. This initialization must occur in
+      the constructor, of course, but in a special place in the
+      constructor. Because a const must be initialized at the point it is
+      created, inside the main body of the constructor the const must
+      already be initialized. Otherwise you're left with the choice of
+      waiting until some point later in the constructor body, which means
+      the const would be un-initialized for a while. Also, there would be
+      nothing to keep you from changing the value of the const at various
+      places in the constructor body.
+      -->
       <para>
 	Por eso, cuando crea una constante ordinaria (no estática) dentro
 	de una clase, no puede darle un valor inicial. Esta inicialización
@@ -1256,8 +1867,21 @@ f5().modify();
       </para>
 
       <sect3>
+	<!-- : The constructor initializer list -->
 	<title>La lista de inicialización del constructor.</title>
 
+        <!--
+        The special initialization point is called the constructor initializer
+        list, and it was originally developed for use in inheritance (covered
+        in Chapter 14). The constructor initializer list - which, as the name
+        implies, occurs only in the definition of the constructor - is a list
+        of "constructor calls" that occur after the function argument list
+        and a colon, but before the opening brace of the constructor
+        body. This is to remind you that the initialization in the list occurs
+        before any of the main constructor code is executed. This is the place
+        to put all const initializations. The proper form for const inside a
+        class is shown here:
+        -->
 	<para>
 	  Un punto especial de inicialización se llama <quote>lista
 	    de inicialización del constructor</quote> y fue pensada en
@@ -1283,7 +1907,11 @@ f5().modify();
 //: V1C08:ConstInitialization.cpp
 
 
-
+        <!--
+        The form of the constructor initializer list shown above is confusing
+        at first because you're not used to seeing a built-in type treated as
+        if it has a constructor.
+        -->
 	<para>
 	  El aspecto de la lista de inicialización del constructor
 	  mostrada arriba puede crear confución al principio porque no
@@ -1293,8 +1921,16 @@ f5().modify();
       </sect3>
 
       <sect3>
+        <!-- : Constructors for built-in types -->
 	<title>Constructores para los tipos del lenguaje</title>
 
+        <!--
+        As the language developed and more effort was put into making
+        user-defined types look like built-in types, it became apparent that
+        there were times when it was helpful to make built-in types look like
+        user-defined types. In the constructor initializer list, you can treat
+        a built-in type as if it has a constructor, like this:
+        -->
 	<para>
 	  Durante el desarrollo del lenguaje se puso más esfuerzo en
 	  hacer que los tipos definidos por el programador se
@@ -1306,13 +1942,27 @@ f5().modify();
 	  del lenguaje como si tuvieran un constructor, como aquí:
 	</para>
 
-	
+
 
 //: V1C08:BuiltInTypeConstructors.cpp
 
 
 
-	<!-- [PAG:376] --> 
+	<!-- [PAG:376] -->
+        <!--
+        This is especially critical when initializing const data members
+        because they must be initialized before the function body is entered.
+        -->
+        <!--
+        It made sense to extend this "constructor" for built-in types (which
+        simply means assignment) to the general case, which is why the float
+        pi(3.14159) definition works in the above code.
+        -->
+        <!--
+        It's often useful to encapsulate a built-in type inside a class to
+        guarantee initialization with the constructor. For example, here's an
+        Integer class:
+        -->
 	<para>
 	  Esto es especialmente crítico cuando se
 	  inicializan atributos constantes porque se deben
@@ -1331,8 +1981,12 @@ f5().modify();
 
 //: V1C08:EncapsulatingTypes.cpp
 
-
-	  
+        <!--
+        The array of Integers in main( ) are all automatically initialized to
+        zero. This initialization isn't necessarily more costly than a for
+        loop or memset( ). Many compilers easily optimize this to a very fast
+        process.
+        -->
 	<para>
 	  El vector de enteros declarado en
 	  <function>main()</function> se inicializa automaticamente
@@ -1345,9 +1999,22 @@ f5().modify();
     </sect2>
 
     <sect2>
+      <!-- : Compile-time constants in classes -->
       <title>Las constantes en tiempo de compilación dentro de las
 	clases.</title>
 
+      <!--
+      The above use of const is interesting and probably useful in cases,
+      but it does not solve the original problem which is: "how do you
+      make a compile-time constant inside a class?" The answer requires the
+      use of an additional keyword which will not be fully introduced until
+      Chapter 10: static. The static keyword, in this situation, means
+      "there's only one instance, regardless of how many objects of the
+      class are created," which is precisely what we need here: a member
+      of a class which is constant, and which cannot change from one object
+      of the class to another. Thus, a static const of a built-in type can
+      be treated as a compile-time constant.
+      -->
       <para>
 	El uso anterior de <kw>const</kw> es interesante y
 	probablemente útil en muchos casos, pero no resuelve el
@@ -1365,6 +2032,14 @@ f5().modify();
 	puede tratar como una constante en tiempo de compilación.
       </para>
 
+      <!--
+      There is one feature of static const when used inside classes which is
+      a bit unusual: you must provide the initializer at the point of
+      definition of the static const. This is something that only occurs
+      with the static const; as much as you might like to use it in other
+      situations it won't work because all other data members must be
+      initialized in the constructor or in other member functions.
+      -->
       <para>
 	Hay un aspecto de <kw>static const</kw> cuando se
 	usa dentro de clases que es un tanto inusual: se debe
@@ -1376,6 +2051,11 @@ f5().modify();
 	miembro.
       </para>
 
+      <!--
+      Here's an example that shows the creation and use of a static const
+      called size inside a class that represents a stack of string
+      pointers[44]:
+      -->
       <para>
 	A continuación aparece un ejemplo que muestra la creación y
 	uso de una <kw>static const</kw> llamada
@@ -1392,6 +2072,11 @@ f5().modify();
 
 
       <!-- [PAG:379] -->
+      <!--
+      Since size is used to determine the size of the array stack, it is
+      indeed a compile-time constant, but one that is hidden inside the
+      class.
+      -->
       <para>
 	Como <varname>size</varname> se usa para
 	determinar el tamaño del vector <varname>stack</varname>, es
@@ -1399,6 +2084,14 @@ f5().modify();
 	que queda oculta dentro de la clase.
       </para>
 
+      <!--
+      Notice that push( ) takes a const string* as an argument, pop( )
+      returns a const string*, and StringStack holds const string*. If this
+      were not true, you couldn't use a StringStack to hold the pointers in
+      iceCream. However, it also prevents you from doing anything that will
+      change the objects contained by StringStack. Of course, not all
+      containers are designed with this restriction.
+      -->
       <para>
 	Conste que <function>push()</function> toma un <type>const
 	  string*</type> como argumento, <function>pop()</function>
@@ -1413,9 +2106,20 @@ f5().modify();
       </para>
 
       <sect3>
+        <!-- : The enum hack in old code -->
 	<title>El enumerado en codigo antiguo</title>
 
-	<para>
+
+	<para>        <!--
+        In older versions of C++, static const was not supported inside
+        classes. This meant that const was useless for constant expressions
+        inside classes. However, people still wanted to do this so a typical
+        solution (usually referred to as the "enum hack") was to use an
+        untagged enum with no instances. An enumeration must have all its
+        values established at compile time, it's local to the class, and its
+        values are available for constant expressions. Thus, you will commonly
+        see:
+        -->
 	  En versiones antiguas de C++ el tipo <kw>static
 	    const</kw> no se permitía dentro de las
 	  clases. Esto hacía que <kw>const</kw> no
@@ -1435,8 +2139,11 @@ f5().modify();
 
 //: V1C08:EnumHack.cpp
 
-
-
+        <!--
+        The use of enum here is guaranteed to occupy no storage in the object,
+        and the enumerators are all evaluated at compile time. You can also
+        explicitly establish the values of the enumerators:
+        -->
 	<para>
 	  Este uso de <type>enum</type> garantiza que no se ocupa
 	  almacenamiento en el objeto, y que todos los símbolos
@@ -1450,13 +2157,17 @@ f5().modify();
 enum { one = 1, two = 2, three };
 </programlisting>
 
-
+        <!--
+        With integral enum types, the compiler will continue counting from the
+        last value, so the enumerator three will get the value 3.
+        -->
 	<para>
 	  utilizando el tipo <type>enum</type>, el compilador
 	  continuará contando a partir del último valor, así que el
 	  símbolo <constant>three</constant> tendrá un valor 3.
 	</para>
 
+        <!-- In the StringStack.cpp example above, the line: -->
 	<para>
 	  En el ejemplo StringStack anterior, la línea:
 	</para>
@@ -1466,7 +2177,7 @@ enum { one = 1, two = 2, three };
 static const int size = 100;
 </programlisting>
 
-
+        <!-- would be instead: -->
 	<para>
 	  podriá sustituirse por:
 	</para>
@@ -1476,7 +2187,14 @@ static const int size = 100;
 enum { size = 100 };
 </programlisting>
 
-
+        <!--
+        Although you'll often see the enum technique in legacy code, the
+        static const feature was added to the language to solve just this
+        problem. However, there is no overwhelming reason that you must choose
+        static const over the enum hack, and in this book the enum hack is
+        used because it is supported by more compilers at the time this book
+        was written.
+        -->
 	<para>
 	  Aunque es fácil ver esta tícnica en código correcto, el
 	  uso de <kw>static const</kw> fue añadido al
@@ -1492,14 +2210,23 @@ enum { size = 100 };
     </sect2>
 
     <sect2>
+      <!-- : const objects & member functions -->
       <title>Objetos y métodos constantes</title>
 
+      <!--
+      Class member functions can be made const. What does this mean? To
+      understand, you must first grasp the concept of const objects.
+      -->
       <para>
 	Las funciones miembro (métodos) se pueden hacer
 	constantes. ¿Qué significa esto?. Para entenderlo, primero
 	debe comprender el concepto de objeto constante.
       </para>
 
+     <!--
+      A const object is defined the same for a user-defined type as a
+      built-in type. For example:
+      -->
       <para>
 	Un objeto constante se define del mismo modo para un tipo
 	definido por el usuario que para un tipo del lenguaje. Por
@@ -1512,7 +2239,14 @@ const int i = 1;
 const blob b(2);
 </programlisting>
 
-
+      <!--
+      Here, b is a const object of type blob. Its constructor is called with
+      an argument of two. For the compiler to enforce constness, it must
+      ensure that no data members of the object are changed during the
+      object's lifetime. It can easily ensure that no public data is
+      modified, but how is it to know which member functions will change the
+      data and which ones are "safe" for a const object?
+      -->
       <para>
         Aquí, <varname>b</varname> es un objeto constante de tipo
         <type>blob</type>, su constructor se llama con un 2 como
@@ -1524,6 +2258,14 @@ const blob b(2);
         atributos y cuales son seguros para un objeto constante?
       </para>
 
+
+              <!--
+      If you declare a member function const, you tell the compiler the
+      function can be called for a const object. A member function that is
+      not specifically declared const is treated as one that will modify
+      data members in an object, and the compiler will not allow you to call
+      it for a const object.
+      -->
       <para>
         Si declara un método como constante, le está diciendo que la
         función puede ser invocada por un objeto constante. Un método
@@ -1532,6 +2274,17 @@ const blob b(2);
         que un objeto constante lo utilice.
       </para>
 
+      <!--
+      It doesn't stop there, however. Just claiming a member function is
+      const doesn't guarantee it will act that way, so the compiler forces
+      you to reiterate the const specification when defining the
+      function. (The const becomes part of the function signature, so both
+      the compiler and linker check for constness.) Then it enforces
+      constness during the function definition by issuing an error message
+      if you try to change any members of the object or call a non-const
+      member function. Thus, any member function you declare const is
+      guaranteed to behave that way in the definition.
+      -->
       <para>
         Pero la cosa no acaba ahí. Sólo porque una función afirme ser
         <kw>const</kw> no garantiza que actuará del modo correcto, de
@@ -1546,6 +2299,13 @@ const blob b(2);
         <kw>const</kw> se comportarán del modo esperado.
       </para>
 
+      <!--
+      To understand the syntax for declaring const member functions, first
+      notice that preceding the function declaration with const means the
+      return value is const, so that doesn't produce the desired
+      results. Instead, you must place the const specifier after the
+      argument list. For example,
+      -->
       <para>
 	Para comprender la sintaxis para declarar métodos
 	constantes, primero debe recordar que colocar
@@ -1561,8 +2321,14 @@ const blob b(2);
 //: V1C08:ConstMember.cpp
 
 
-      
+
       <!-- [PAG:382] -->
+      <!--
+      Note that the const keyword must be repeated in the definition or the
+      compiler sees it as a different function. Since f( ) is a const member
+      function, if it attempts to change i in any way or to call another
+      member function that is not const, the compiler flags it as an error.
+      -->
       <para>
 	La palabra <kw>const</kw> debe incluirse tando en la declaración
 	como en la definición del método o de otro modo el compilador
@@ -1573,6 +2339,14 @@ const blob b(2);
 	error.
       </para>
 
+      <!--
+      You can see that a const member function is safe to call with both
+      const and non-const objects. Thus, you could think of it as the most
+      general form of a member function (and because of this, it is
+      unfortunate that member functions do not automatically default to
+      const). Any function that doesn't modify member data should be
+      declared as const, so it can be used with const objects.
+      -->
       <para>
 	Puede ver que un miembro constante puede llamarse tanto
 	desde objetos constantes como desde no constantes de forma
@@ -1584,6 +2358,9 @@ const blob b(2);
 	objetos constantes.
       </para>
 
+      <!--
+      Here's an example that contrasts a const and non-const member
+      function:-->
       <para>
 	Aquí se muestra un ejemplo que compara métodos const y
 	métodos ordinarios:
@@ -1593,8 +2370,15 @@ const blob b(2);
 
 //: V1C08:Quoter.cpp
 
-
-
+      <!--
+      Neither constructors nor destructors can be const member functions
+      because they virtually always perform some modification on the object
+      during initialization and cleanup. The quote( ) member function also
+      cannot be const because it modifies the data member lastquote (see the
+      return statement). However, lastQuote( ) makes no modifications, and
+      so it can be const and can be safely called for the const object cq.
+      mutable:
+      -->
       <para>
 	Ni los constructores ni los destructores pueden ser métodos
 	constantes porque prácticamente siempre realizarn alguna
@@ -1609,8 +2393,22 @@ const blob b(2);
       </para>
 
       <sect3>
+        <!-- : bitwise vs. logical const -->
 	<title>FIXME mutable: bitwise vs. logical const</title>
 
+        <!--
+        What if you want to create a const member function, but you'd still
+        like to change some of the data in the object? This is sometimes
+        referred to as the difference between bitwise const and logical const
+        (also sometimes called memberwise const). Bitwise const means that
+        every bit in the object is permanent, so a bit image of the object
+        will never change. Logical const means that, although the entire
+        object is conceptually constant, there may be changes on a
+        member-by-member basis. However, if the compiler is told that an
+        object is const, it will jealously guard that object to ensure bitwise
+        constness. To effect logical constness, there are two ways to change a
+        data member from within a const member function.
+        -->
 	<para>
 	  ¿Qué ocurre si quiere crear un método constante, pero
 	  necesita cambiar algún atributo del objeto? Esto se aplica
@@ -1627,6 +2425,16 @@ const blob b(2);
 	  de cambiar los atributos con un método constante.
 	</para>
 
+        <!--
+        The first approach is the historical one and is called casting away
+        constness. It is performed in a rather odd fashion. You take this (the
+        keyword that produces the address of the current object) and cast it
+        to a pointer to an object of the current type. It would seem that this
+        is already such a pointer. However, inside a const member function
+        it's actually a const pointer, so by casting it to an ordinary
+        pointer, you remove the constness for that operation. Here's an
+        example:
+        -->
 	<para>
 	  La primera solución es la tradicional y se llama constacia
 	  <foreignphrase>casting away</foreignphrase>.  Esto se hace
@@ -1646,7 +2454,17 @@ const blob b(2);
 //: V1C08:Castaway.cpp
 
 
-
+        <!--
+        This approach works and you'll see it used in legacy code, but it is
+        not the preferred technique. The problem is that this lack of
+        constness is hidden away in a member function definition, and you have
+        no clue from the class interface that the data of the object is
+        actually being modified unless you have access to the source code (and
+        you must suspect that constness is being cast away, and look for the
+        cast). To put everything out in the open, you should use the mutable
+        keyword in the class declaration to specify that a particular data
+        member may be changed inside a const object:
+        -->
 	<para>
 	  Esta aproximación funciona y puede verse en código
 	  correcto, pero no es la técnica ideal. El problema es que
@@ -1665,13 +2483,32 @@ const blob b(2);
 //: V1C08:Mutable.cpp
 
 
-
+        <!--
+        This way, the user of the class can see from the declaration which
+        members are likely to be modified in a const member function.
+        -->
 	<para>
 	  De este modo el usuario de la clase puede ver en la declaración
 	  que miembros tienen posibilidad de ser modificados por un método.
 	</para>
+      </sect3>
+      <sect3>
+        <!-- : ROMability -->
+        <title>FIXME </title>
+
 
 	<!-- [PAG:386] -->
+        <!--
+        If an object is defined as const, it is a candidate to be placed in
+        read-only memory (ROM), which is often an important consideration in
+        embedded systems programming. Simply making an object const, however,
+        is not enough - the requirements for ROMability are much stricter. Of
+        course, the object must be bitwise-const, rather than
+        logical-const. This is easy to see if logical constness is implemented
+        only through the mutable keyword, but probably not detectable by the
+        compiler if constness is cast away inside a const member function. In
+        addition,
+        -->
 	<para>
 	  Si un objeto se define como constante es un
 	  candidato para ser almacenado en memoriar de sólo lectura
@@ -1689,12 +2526,20 @@ const blob b(2);
 
 	<itemizedlist>
 	  <listitem>
+        <!--
+        1. The class or struct must have no user-defined constructors or
+        destructor.
+        -->
 	    <para>
-	      La clase o estructura no puede tener constructores o destructor 
+	      La clase o estructura no puede tener constructores o destructor
 	      definidos por el usuario.
 	    </para>
 	  </listitem>
 	  <listitem>
+        <!--
+        2. There can be no base classes (covered in Chapter 14) or member
+        objects with user-defined constructors or destructors.
+        -->
 	    <para>
 	      No pueden ser clases base (tratado en el capitulo 14) u
 	      objetos miembro con constructores o destructor definidos
@@ -1703,6 +2548,11 @@ const blob b(2);
 	  </listitem>
 	</itemizedlist>
 
+        <!--
+        The effect of a write operation on any part of a const object of a
+        ROMable type is undefined. Although a suitably formed object may be
+        placed in ROM, no objects are ever required to be placed in ROM.
+        -->
 	<para>
 	  El efecto de una operación de escritura en una parte del
 	  objeto constante de un tipo <type>ROMable</type> no está
@@ -1712,10 +2562,19 @@ const blob b(2);
       </sect3>
     </sect2>
   </sect1>
-  
+
   <sect1>
+    <!-- : volatile -->
     <title>Volatile</title>
 
+    <!--
+    The syntax of volatile is identical to that for const, but volatile
+    means "This data may change outside the knowledge of the
+    compiler." Somehow, the environment is changing the data (possibly
+    through multitasking, multithreading or interrupts), and volatile
+    tells the compiler not to make any assumptions about that data,
+    especially during optimization.
+    -->
     <para>
       La sintaxis de <kw>volatile</kw> es idéntica a la de
       <kw>const</kw>, pero <kw>volatile</kw>
@@ -1727,6 +2586,15 @@ const blob b(2);
       especialmente durante la optimización.
     </para>
 
+
+    <!--
+    If the compiler says, "I read this data into a register earlier, and I
+    haven't touched that register," normally it wouldn't need to read
+    the data again. But if the data is volatile, the compiler cannot make
+    such an assumption because the data may have been changed by another
+    process, and it must reread that data rather than optimizing the code
+    to remove what would normally be a redundant read.
+    -->
     <para>
       Si el compilador dice <quote>Yo guardé este dato en un
 	registro anteriormente, y no he tocado ese registro</quote>,
@@ -1738,6 +2606,13 @@ const blob b(2);
       eliminar la lectura redundante que se hace normalmente).
     </para>
 
+    <!--
+    You create volatile objects using the same syntax that you use to
+    create const objects. You can also create const volatile objects,
+    which can't be changed by the client programmer but instead change
+    through some outside agency. Here is an example that might represent a
+    class associated with some piece of communication hardware:
+    -->
     <para>
       Pueden crearse objetos <kw>volatile</kw> usando la
       misma sintaxis que se usa para crear objetos
@@ -1755,7 +2630,12 @@ const blob b(2);
 
 
 
-    <!-- [PAG:388] --> 
+    <!-- [PAG:388] -->
+    <!--
+    As with const, you can use volatile for data members, member
+    functions, and objects themselves. You can only call volatile member
+    functions for volatile objects.
+    -->
     <para>
       Como ocurre con <kw>const</kw>, se puede
       usar <kw>volatile</kw> para los atributos de la
@@ -1764,6 +2644,13 @@ const blob b(2);
       <kw>volatile</kw>.
     </para>
 
+    <!--
+    The reason that isr( ) can't actually be used as an interrupt service
+    routine is that in a member function, the address of the current
+    object (this) must be secretly passed, and an ISR generally wants no
+    arguments at all. To solve this problem, you can make isr( ) a static
+    member function, a subject covered in Chapter 10.
+    -->
     <para>
       La razón por la que <function>isr()</function> no se puede
       usar como una rutina de servicio de interrupción (ISR) es que
@@ -1775,6 +2662,11 @@ const blob b(2);
       el [FIXME:capitulo 10].
     </para>
 
+    <!--
+    The syntax of volatile is identical to const, so discussions of the
+    two are often treated together. The two are referred to in combination
+    as the c-v qualifier.
+    -->
     <para>
       La sintaxis de <kw>volatile</kw> es idéntica a la de
       <kw>const</kw>, así que por eso se suelen tratar
@@ -1786,8 +2678,18 @@ const blob b(2);
 
 
   <sect1>
+    <!-- : Summary -->
     <title>Resumen</title>
 
+    <!--
+    The const keyword gives you the ability to define objects, function
+    arguments, return values and member functions as constants, and to
+    eliminate the preprocessor for value substitution without losing any
+    preprocessor benefits. All this provides a significant additional form
+    of type checking and safety in your programming. The use of so-called
+    const correctness (the use of const anywhere you possibly can) can be
+    a lifesaver for projects.
+    -->
     <para>
       La palabra <kw>const</kw> permite la posibilidad de
       definir objetos, argumentos de funciones, valores de retorno y
@@ -1801,6 +2703,12 @@ const blob b(2);
       puede ser un salvavidas para muchos proyectos.
     </para>
 
+    <!--
+    Although you can ignore const and continue to use old C coding
+    practices, it's there to help you. Chapters 11 and on begin using
+    references heavily, and there you'll see even more about how critical
+    it is to use const with function arguments.
+    -->
     <para>
       Aunque ignore a <kw>const</kw> y continue usando el
       estilo tradicional de C, <kw>const</kw> existe para
@@ -1817,6 +2725,13 @@ const blob b(2);
 
     <orderedlist>
       <listitem>
+    <!--
+    1. Create three const int values, then add them together to produce
+    a value that determines the size of an array in an array
+    definition. Try to compile the same code in C and see what happens
+    (you can generally force your C++ compiler to run as a C compiler
+    by using a command-line flag).
+    -->
 	<para>
 	  Crear 3 valores enteros constantes, después sumarlos todos
 	  para producir un valor que determine el tamaño en la
@@ -1827,6 +2742,11 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    2. Prove to yourself that the C and C++ compilers really do treat
+    constants differently. Create a global const and use it in a global
+    constant expression; then compile it under both C and C++.
+    -->
 	<para>
 	  Probar que los compiladores de C y C++ realmente tratan
 	  las constantes de modo diferente. Crear una constante
@@ -1835,7 +2755,12 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
-	<para> 
+    <!--
+    3. Create example const definitions for all the built-in types and
+    their variants. Use these in expressions with other consts to make
+    new const definitions. Make sure they compile successfully.
+    -->
+	<para>
 	  Crear definiciones constantes para todos los tipos del
 	  lenguaje y sus variantes. Usarlos en expresiones con otras
 	  constantes para hacer definiciones de constantes
@@ -1843,6 +2768,11 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    4. Create a const definition in a header file, include that header
+    file in two .cpp files, then compile those files and link them. You
+    should not get any errors. Now try the same experiment with C.
+    -->
 	<para>
 	  Crear una definición de constante en un archivo de
 	  cabecera, incluir dicho archivo en dos archivos
@@ -1852,6 +2782,12 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    5. Create a const whose value is determined at runtime by reading
+    the time when the program starts (you'll have to use the <ctime>
+    standard header). Later in the program, try to read a second value
+    of the time into your const and see what happens.
+    -->
 	<para>
 	  Crear una constante cuyo valor se determine en tiempo de
 	  ejecución leyendo la hora en que comienza la ejecución del
@@ -1862,41 +2798,67 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    6. Create a const array of char, then try to change one of the
+    chars.
+    -->
 	<para>
 	  Crear un vector de caracteres constante, después intentar
 	  cambiar uno de los caracteres.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    7. Create an extern const declaration in one file, and put a main(
+    ) in that file that prints the value of the extern const. Provide
+    an extern const definition in a second file, then compile and link
+    the two files together.
+    -->
 	<para>
 	  Crear una declaración de constante
 	  <kw>extern</kw> en un fichero y poner un
 	  <function>main()</function> en el que se imprima el valor
 	  de dicha constante. Crear una definición de constante
 	  <kw>extern</kw> en un segundo fichero, compilar
-	  y enlazar los dos ficheros.  
+	  y enlazar los dos ficheros.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    8. Write two pointers to const long using both forms of the
+    declaration. Point one of them to an array of long. Demonstrate
+    that you can increment or decrement the pointer, but you can't
+    change what it points to.
+    -->
 	<para>
 	  Definir dos punteros a <type>const long</type> utilizando
 	  las dos formas de definición. Apuntar con uno de ellos a
 	  un vector de <type>long</type>. Demostrar que se puede
 	  incrementar o decrementar el puntero, pero no se puede
-	  cambiar el valor de lo que apunta.  
+	  cambiar el valor de lo que apunta.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    9. Write a const pointer to a double, and point it at an array of
+    double. Show that you can change what the pointer points to, but
+    you can't increment or decrement the pointer.
+    -->
 	<para>
 	  Definir un puntero constante a <type>double</type>, y
 	  apuntar con él a un vector de
 	  <type>double</type>. Demostrar que se puede cambiar lo que
 	  apunta el puntero pero no se puede incrementar ni
-	  decrementar el puntero.  
+	  decrementar el puntero.
 	</para>
 	<!-- [PAG:390] -->
       </listitem>
       <listitem>
+    <!--
+    10. Write a const pointer to a const object. Show that you can only
+    read the value that the pointer points to, but you can't change the
+    pointer or what it points to.
+    -->
 	<para>
 	  Definir un puntero constante a objeto constante. Probar que
 	  solamente se puede leer el valor de lo que apunta el puntero,
@@ -1904,6 +2866,10 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    11. Remove the comment on the error-generating line of code in
+    PointerAssignment.cpp to see the error that your compiler generates.
+    -->
 	<para>
 	  Eliminar el comentario de la linea erronea en
 	  <filename>PointerAssignemt.cpp</filename> para ver que
@@ -1911,22 +2877,37 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    12. Create a character array literal with a pointer that points to
+    the beginning of the array. Now use the pointer to modify elements
+    in the array. Does your compiler report this as an error? Should it?
+    If it doesn't, why do you think that is?
+    -->
 	<para>
 	  Crear un literal de cadena y un puntero que apunte al
 	  comienzo del literal. Ahora, usar el puntero para
 	  modificar los elementos del vector, ¿Informa el compilador
 	  de algún error? ¿Debería? Si no lo hace, ¿Porqué piensa
-	  que puede ser?  
+	  que puede ser?
 	</para>
       </listitem>
       <listitem>
+    <!--
+    13. Create a function that takes an argument by value as a const;
+    then try to change that argument in the function body.
+    -->
 	<para>
-	  Crear una función que tome un argumento por valor como constante, 
+	  Crear una función que tome un argumento por valor como constante,
 	  después intentar cambiar el argumento en el cuerpo de la
 	  función.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    14. Create a function that takes a float by value. Inside the
+    function, bind a const float& to the argument, and only use the
+    reference from then on to ensure that the argument is not changed.
+    -->
 	<para>
 	  Crear una función que tome un <type>float</type> por
 	  valor. Dentro de la función vincular el argumento a un
@@ -1935,6 +2916,11 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    15. Modify ConstReturnValues.cpp removing comments on the
+    error-causing lines one at a time, to see what error messages your
+    compiler generates.
+    -->
 	<para>
 	  Modificar <filename>ConstReturnValues.cpp</filename>
 	  eliminando los comentarios en las líneas erroneas una cada
@@ -1942,13 +2928,23 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    16. Modify ConstPointer.cpp removing comments on the error-causing
+    lines one at a time, to see what error messages your compiler
+    generates.
+    -->
 	<para>
 	  Modificar <filename>ConsPointer.cpp</filename> eliminando
 	  los comentarios en las líneas erroneas para ver que mensajes de
-	  error muestra el compilador.  
+	  error muestra el compilador.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    17. Make a new version of ConstPointer.cpp called ConstReference.cpp
+    which demonstrates references instead of pointers (you may need to
+    look forward to Chapter 11).
+    -->
 	<para>
 	  Hacer una nueva versión de
 	  <filename>ConstPointer.cpp</filename> llamada
@@ -1958,6 +2954,11 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    18. Modify ConstTemporary.cpp removing the comment on the
+    error-causing line to see what error messages your compiler
+    generates.
+    -->
 	<para>
 	  Modificar <filename>ConstTemporary.cpp</filename>
 	  eliminando el comentario en la línea erronea para ver el
@@ -1965,6 +2966,10 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    19. Create a class containing both a const and a non-const
+    float. Initialize these using the constructor initializer list.
+    -->
 	<para>
 	  Crear una clase que contenga un <type>float</type>
 	  constante y otro no constante. Inicializarlos usando la
@@ -1973,6 +2978,12 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    20. Create a class called MyString which contains a string and has a
+    constructor that initializes the string, and a print( )
+    function. Modify StringStack.cpp so that the container holds
+    MyString objects, and main( ) so it prints them.
+    -->
 	<para>
 	  Crear una clase llamada <classname>MyString</classname>
 	  que contenga una cadena y tenga un constructor que
@@ -1983,47 +2994,76 @@ const blob b(2);
 	  <function>main()</function> para que los imprima.
 	</para>
       </listitem>
-      <listitem>
+      <listitem>    <!--
+    21. Create a class containing a const member that you initialize in
+    the constructor initializer list and an untagged enumeration that
+    you use to determine an array size.
+    -->
+
 	<para>
 	  Crear una clase que contenga un atributo constante que se
 	  inicialice en la lista de inicialización del constructor y
 	  una enumeración no etiquetada que se use para determinar
-	  el tamaño de un vector.  
+	  el tamaño de un vector.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    22. In ConstMember.cpp, remove the const specifier on the member
+    function definition, but leave it on the declaration, to see what
+    kind of compiler error message you get.
+    -->
 	<para>
 	  Eliminar el especificador <kw>const</kw> en la
 	  definición del método de
 	  <filename>ConstMember.cpp</filename>, pero dejar el de la
 	  declaración para ver que mensaje de error muestra el
-	  compilador.  
+	  compilador.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    23. Create a class with both const and non-const member
+    functions. Create const and non-const objects of this class, and try
+    calling the different types of member functions for the different
+    types of objects.
+    -->
 	<para>
 	  Crear una clase con un método constante y otro
 	  ordinario. Crear un objeto constante y otro no constante
 	  de esa clase e intentar invocar ambos métodos desde ambos
-	  objetos.  
+	  objetos.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    24. Create a class with both const and non-const member
+    functions. Try to call a non-const member function from a const
+    member function to see what kind of compiler error message you get.
+    -->
 	<para>
 	  Crear una clase con un método constante y otro
 	  ordinario. Interntar llamar al método ordinario esde el
 	  método constante para ver que mensaje de error muestra el
-	  compilador.  
+	  compilador.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    25. In Mutable.cpp, remove the comment on the error-causing line to
+    see what sort of error message your compiler produces.
+    -->
 	<para>
 	  Eliminar el comentario de la línea erronea en
 	  <filename>mutable.cpp</filename> para ver el mensaje de error
-	  que muestra el compilador.  
+	  que muestra el compilador.
 	</para>
       </listitem>
       <listitem>
+    <!--
+    26. Modify Quoter.cpp by making quote( ) a const member function and
+    lastquote mutable.
+    -->
 	<para>
 	  Modificar <filename>Quoter.cpp</filename> haciendo que
 	  <function>quote()</function> sea un método constante y
@@ -2031,6 +3071,14 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+    <!--
+    27. Create a class with a volatile data member. Create both volatile
+    and non-volatile member functions that modify the volatile data
+    member, and see what the compiler says. Create both volatile and
+    non-volatile objects of your class and try calling both the volatile
+    and non-volatile member functions to see what is successful and what
+    kind of error messages the compiler produces.
+    -->
 	<para>
 	  Crear una clase con un atributo <kw>volatile</kw>. Crear
 	  métodos <kw>volatile</kw> y no <kw>volatile</kw> que
@@ -2042,6 +3090,14 @@ const blob b(2);
 	</para>
       </listitem>
       <listitem>
+	<!--
+	Create a class called bird that can fly( ) and a class
+	rock that can't. Create a rock object, take its address, and
+	assign that to a void*. Now take the void*, assign it to a
+	bird* (you'll have to use a cast), and call fly( ) through
+	that pointer. Is it clear why C's permission to openly assign
+	via a void* (without a cast) is a 'hole' in the language,
+	which couldn't be propagated into C++?  -->
 	<para>
 	  Crear una clase llamada <classname>bird</classname> que
 	  pueda ejecutar <function>fly()</function> y una clase
