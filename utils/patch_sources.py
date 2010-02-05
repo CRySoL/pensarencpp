@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: iso-8859-1 -*-
 
-# Proyecto "Pensar en C++", traducción de "Thinking in C++" de Bruce Eckel
+# Proyecto «Pensar en C++», traducción de «Thinking in C++» de Bruce Eckel
 #
 # Este programilla prepara los ficheros fuente proporcionados con el
 # libro (fichero 'TICPP-2nd-ed-Vol-one-code.zip') para ser incluidos en
@@ -11,7 +11,7 @@
 # original.
 #
 #
-# Copyright (C) 2004 David Villa
+# Copyright (C) 2004, 2010 David Villa
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ def main(codedir):
          if os.path.splitext(f)[1] not in ['.cpp', '.h']: continue
 	 filename = os.path.join(d, f)
 	 print 'Fixing', filename
-	 os.system('dos2unix ' + filename)
+	 os.system('fromdos %s' % filename)
 	 dellines(filename, 1, 4)
 
 
