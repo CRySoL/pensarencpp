@@ -37,7 +37,7 @@ tagged-Volumen%.xml: Volumen%.xml
 	python utils/xml_tag_codes.py $< > $@
 
 %.pdf: %.xml
-	dblatex -T dblatex/pecstyle $<
+	dblatex --debug --style dblatex/pecstyle $<
 
 
 
