@@ -62,9 +62,9 @@
 
 
   <xsl:template match="quote">
-    <xsl:text>``</xsl:text>
+    <xsl:text>\guillemotleft{}</xsl:text>
     <xsl:apply-templates/>
-    <xsl:text>''</xsl:text>
+    <xsl:text>\guillemotright{}</xsl:text>
   </xsl:template>
 
 <!--

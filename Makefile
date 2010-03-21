@@ -8,7 +8,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 
-all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
+all: make_images vol1 Volumen1.pdf Volumen1.rst vol2 Volumen2.pdf
 
 Volumen%-html.bz2: vol%
 	tar cfj $@ $<
@@ -39,7 +39,9 @@ tagged-Volumen%.xml: Volumen%.xml
 %.pdf: %.xml
 	dblatex --debug --style dblatex/pecstyle $<
 
-
+%.rst: %.xml
+	echo "-*- coding:utf-8 -*-" > $@
+	python db2rst/db2rst.py $< >> $@
 
 
 Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml)
@@ -57,6 +59,7 @@ Volumen%.xml: code_v%
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
+	xmllint --noout --postvalid $@
 
 code_v%: code_orig_v%
 	rm -rf $@
@@ -67,13 +70,13 @@ code_v%: code_orig_v%
 make_images:
 	$(MAKE) -C images
 
-install: products
-	scp -r products repo:public_html/pensar_en_C++/
-
-products: Volumen1-html.bz2 vol1 Volumen1.pdf \
+products: Volumen1-html.bz2 vol1 Volumen1.pdf Volumen1.rst \
 	  Volumen2-html.bz2 vol2 Volumen2.pdf
 	@-mkdir products
 	cp -r $^ products/
+
+install: products
+	scp -r products repo:public_html/pensar_en_C++/
 
 
 validate:
