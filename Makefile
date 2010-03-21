@@ -88,6 +88,7 @@ clean:
 	$(RM) fase?.xml join.xml *.bz2
 	$(RM) Volumen?.xml *-tagged.xml
 	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
+	$(RM) Volumen?.rst
 	$(RM) *~
 	$(RM) -r products
 	$(RM) vol1/images/* vol2/images/*
