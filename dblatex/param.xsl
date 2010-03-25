@@ -25,6 +25,8 @@
   <xsl:param name="draft.mode">no</xsl:param>
   <xsl:param name="latex.class.book">book</xsl:param>
 
+   <xsl:param name="appendix.autolabel">0</xsl:param>
+
   <xsl:template match="highlights">
     <xsl:text>{\large \bfseries </xsl:text>
     <xsl:apply-templates/>
