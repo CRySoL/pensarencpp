@@ -17,8 +17,10 @@
   <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/chunk.xsl"/>
 
   <xsl:param name="html.stylesheet">plain.css screen.css custom.css highlight.css</xsl:param>
+
   <xsl:param name="generate.index">1</xsl:param>
   <xsl:param name="use.id.as.filename">1</xsl:param>
+
   <xsl:param name="admon.graphics" select="1" />
   <xsl:param name="admon.graphics.path">./images/</xsl:param>
   <xsl:param name="callout.graphics.path">./images/callouts/</xsl:param>
@@ -26,13 +28,16 @@
   <xsl:param name="make.valid.html" select="1" />
   <xsl:param name="collect.xref.targets" select="'yes'" />
   <xsl:param name="targets.filename" select="'pec-xrefs.xml'" />
-  <xsl:param name="toc.section.depth" select="2" />
+  <xsl:param name="toc.section.depth" select="1" />
   <xsl:param name="chunk.section.depth" select="2" />
   <!-- doesn't work correctly currently
   <xsl:param name="chunk.tocs.and.lots" select="1" />
   <xsl:param name="chunk.seperate.lots" select="1" />
   -->
+
   <xsl:param name="chunker.output.indent" select="'yes'" />
+  <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
+
   <xsl:param name="navig.showtitles" select="1" />
   <xsl:param name="navig.graphics" select="1" />
   <xsl:param name="navig.graphics.extension">.png</xsl:param>
