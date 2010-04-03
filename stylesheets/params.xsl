@@ -118,6 +118,14 @@
     </xsl:choose>
   </xsl:template>
 
+  <xsl:template match="revision[@role='svn']/date" mode="titlepage.mode">
+    <xsl:value-of select="substring(.,8,10)"/>
+  </xsl:template>
+
+  <xsl:template match="revision[@role='svn']/authorinitials" mode="titlepage.mode">
+    <xsl:value-of select="substring-before(substring-after(.,'Author: '), '$')"/>
+  </xsl:template>
+
 
   <!-- pec++ -->
   <xsl:template match="highlights">
