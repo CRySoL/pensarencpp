@@ -11,49 +11,12 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   version="1.0">
 
-<!--
-  <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/profile-chunk.xsl"/>
--->
   <xsl:import href="http://docbook.sourceforge.net/release/xsl/current/xhtml/chunk.xsl"/>
 
-  <xsl:param name="html.stylesheet">plain.css screen.css custom.css highlight.css</xsl:param>
+  <xsl:import href="./params.xsl"/>
 
-  <xsl:param name="generate.index">1</xsl:param>
-  <xsl:param name="use.id.as.filename">1</xsl:param>
+  <xsl:param name="html.stylesheet">common.css chunk.css highlight.css</xsl:param>
 
-  <xsl:param name="admon.graphics" select="1" />
-  <xsl:param name="admon.graphics.path">./images/</xsl:param>
-  <xsl:param name="callout.graphics.path">./images/callouts/</xsl:param>
-  <xsl:param name="section.autolabel" select="1" />
-  <xsl:param name="make.valid.html" select="1" />
-  <xsl:param name="collect.xref.targets" select="'yes'" />
-  <xsl:param name="targets.filename" select="'pec-xrefs.xml'" />
-  <xsl:param name="toc.section.depth" select="1" />
-  <xsl:param name="chunk.section.depth" select="2" />
-  <!-- doesn't work correctly currently
-  <xsl:param name="chunk.tocs.and.lots" select="1" />
-  <xsl:param name="chunk.seperate.lots" select="1" />
-  -->
-
-  <xsl:param name="chunker.output.indent" select="'yes'" />
-  <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
-
-  <xsl:param name="navig.showtitles" select="1" />
-  <xsl:param name="navig.graphics" select="1" />
-  <xsl:param name="navig.graphics.extension">.png</xsl:param>
-  <xsl:param name="navig.graphics.path">./images/</xsl:param>
-
-  <!-- Add NotInToc role to simplesect, which is using in fdl.xml to
-       deal with FDL-In-TOC issue.
-       also omit title 'image' if the links in header and footer
-       pointing to the images
-    -->
-  <xsl:template match="simplesect[@role = 'NotInToc']" mode="toc"/>
-
-  <!-- suppress all elements which have the 'tex' role, because we don't
-       want to process elements which are obviously for PDF generation
-    -->
-  <xsl:template match="*[@role='tex']" />
 
   <!-- custom header and footer navigation -->
   <xsl:template name="header.navigation">
@@ -251,101 +214,6 @@
       </div>
     </xsl:if>
   </xsl:template>
-
-  <!-- For unknown reasons the original version of the template starting
-       from August 2004 would unwind the path of the sourcecode several
-       times into the processing of the fileref thus prepending the path
-       a few times into the src attribute of the img tag -->
-  <xsl:template name="mediaobject.filename">
-    <xsl:param name="object"></xsl:param>
-
-    <xsl:variable name="data" select="$object/videodata
-				      |$object/imagedata
-				      |$object/audiodata
-				      |$object"/>
-
-    <xsl:variable name="filename">
-      <xsl:choose>
-	<xsl:when test="$data[@fileref]">
-	  <xsl:value-of select="$data/@fileref"/>
-	</xsl:when>
-	<xsl:when test="$data[@entityref]">
-	  <xsl:value-of select="unparsed-entity-uri($data/@entityref)"/>
-	</xsl:when>
-	<xsl:otherwise></xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-
-    <xsl:variable name="real.ext">
-      <xsl:call-template name="filename-extension">
-	<xsl:with-param name="filename" select="$filename"/>
-      </xsl:call-template>
-    </xsl:variable>
-
-    <xsl:variable name="ext">
-      <xsl:choose>
-	<xsl:when test="$real.ext != ''">
-	  <xsl:value-of select="$real.ext"/>
-	</xsl:when>
-	<xsl:otherwise>
-	  <xsl:value-of select="$graphic.default.extension"/>
-	</xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-
-    <xsl:variable name="graphic.ext">
-      <xsl:call-template name="is.graphic.extension">
-	<xsl:with-param name="ext" select="$ext"/>
-      </xsl:call-template>
-    </xsl:variable>
-
-    <xsl:choose>
-      <xsl:when test="$real.ext = ''">
-	<xsl:choose>
-	  <xsl:when test="$ext != ''">
-	    <xsl:value-of select="$filename"/>
-	    <xsl:text>.</xsl:text>
-	    <xsl:value-of select="$ext"/>
-	  </xsl:when>
-	  <xsl:otherwise>
-	    <xsl:value-of select="$filename"/>
-	  </xsl:otherwise>
-	</xsl:choose>
-      </xsl:when>
-      <xsl:when test="not($graphic.ext)">
-	<xsl:choose>
-	  <xsl:when test="$graphic.default.extension != ''">
-	    <xsl:value-of select="$filename"/>
-	    <xsl:text>.</xsl:text>
-	    <xsl:value-of select="$graphic.default.extension"/>
-	  </xsl:when>
-	  <xsl:otherwise>
-	    <xsl:value-of select="$filename"/>
-	  </xsl:otherwise>
-	</xsl:choose>
-      </xsl:when>
-      <xsl:otherwise>
-	<xsl:value-of select="$filename"/>
-      </xsl:otherwise>
-    </xsl:choose>
-  </xsl:template>
-
-
-  <!-- pec++ -->
-  <xsl:template match="highlights">
-    <b>
-      <xsl:apply-templates/>
-    </b>
-  </xsl:template>
-
-  <xsl:template match="type">
-    <tt><xsl:apply-templates/></tt>
-  </xsl:template>
-
-  <xsl:template match="quote">
-    <xsl:text>«</xsl:text><xsl:apply-templates/><xsl:text>»</xsl:text>
-  </xsl:template>
-
 
 
 </xsl:stylesheet>
