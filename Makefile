@@ -79,8 +79,8 @@ code_v%: code_orig_v%
 make_images:
 	$(MAKE) -C images
 
-products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf Volumen1.rst \
-	  Volumen2-html.tar.bz2 vol2 Volumen2.pdf
+products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf \
+	  Volumen2-html.tar.bz2 vol2 Volumen2.pdf # Volumen1.rst
 	@-mkdir products
 	cp -r $^ products/
 
