@@ -4,19 +4,19 @@
   Editor:              Emacs 21/PSGML
   Traducción original: josemaria.gomez@gmail.com
   Formateado DocBook:  David Villa <dvilla@gmx.net>
-  1ª Revisión:
+  1ª Revisión:         David Villa <dvilla@gmx.net>
   2ª Revisión
 -->
 
-<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-                 "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
 
-<chapter 
+<chapter
   xmlns:xi="http://www.w3.org/2001/XInclude"
   id="C10">
 
   <title>Control de nombres</title>
-  
+
   <!--
   Creating names is a fundamental activity in programming, and when a
   project gets large, the number of names can easily be overwhelming.
@@ -25,9 +25,8 @@
   <highlights>
     <para>
       La creación de nombres es una actividad fundamental en la
-      programación, y cuando un proyecto empieza a tomar grandes
-      dimensiones, el número de nombres puede fácilmente llegar a ser
-      inmanejable.
+      programación, y cuando un proyecto empieza a crecer, el número
+      de nombres puede llegar a ser inmanejable con facilidad.
     </para>
   </highlights>
 
@@ -41,96 +40,100 @@
   whether that means a physical location in memory or visibility within
   a file.
   -->
-	
+
+
   <para>
-    C++ le permite un vasto control sobre la creación y visibilidad de
-    nombres, el lugar donde se almacenan y el enlazado de nombres.  La
-    palabra clave static fue sobrecargada en C incluso antes de que la
-    mayoría de gente supiera que significaba el término
-    "sobrecargar". C++ todavía ha añadido otro significado. El concepto
-    subyacente bajo todos los usos de static parece ser "algo que
-    mantiene su posición" (como la electricidad estática), sea
-    manteniendo una localización física en la memoria o su visibilidad
-    en un fichero.
+    C++ <function>permite</function> gran control sobre la creación y visibilidad de
+    nombres, el lugar donde se almacenan y el enlazado de nombres. La
+    palabra clave <kw>static</kw> estaba sobrecargada en C incluso
+    antes de que la mayoría de la gente supiera que significaba el
+    término <quote>sobrecargar</quote>. C++ ha añadido además otro
+    significado. El concepto subyacente bajo todos los usos de
+    <kw>static</kw> parece ser <quote>algo que mantiene su
+    posición</quote> (como la electricidad estática), sea manteniendo
+    un ubicación física en la memoria o su visibilidad en un fichero.
   </para>
 
   <!--
   In this chapter, you'll learn how static controls storage and
   visibility, and an improved way to control access to names vía C++'s
   namespace feature. You'll also find out how to use functions that were
-  written and compiled in C.  
+  written and compiled in C.
   -->
-  
+
   <para>
-    En este capítulo aprenderá cómo static controla el almacenamiento y
-    la visibilidad, así como una forma mejorada para controlar los
-    nombres mediante el uso de la palabra clave de C++
-    namespace. También descubrirá como utilizar funciones que fueron
-    escritas y compiladas en C.
+    En este capítulo aprenderá cómo <kw>static</kw> controla el
+    almacenamiento y la visibilidad, así como una forma mejorada para
+    controlar los nombres mediante el uso de la palabra clave de C++
+    <kw>namespace</kw>. También descubrirá como utilizar funciones que
+    fueron escritas y compiladas en C.
   </para>
-  
+
   <sect1>
     <title>Los elementos estáticos de C</title>
-    
-    <!-- 
+
+    <!--
     In both C and C++ the keyword static has two basic meanings,
     which unfortunately often step on each other's toes:
     -->
-    
+
     <para>
-      Tanto en C como en C++ la palabra clave static tiene dos
+      Tanto en C como en C++ la palabra clave <kw>static</kw> tiene dos
       significados básicos que, desafortunadamente, a menudo se confunden:
     </para>
-    
-    <!--
-    1. Allocated once at a fixed address; that is, the object is
-    created in a special static data área rather than on the stack each
-    time a function is called. This is the concept of static storage.
-    -->
-    
+
+
+    <itemizedlist>
+      <listitem>
+	<!--
+	1. Allocated once at a fixed address; that is, the object is
+	created in a special static data área rather than on the stack each
+	time a function is called. This is the concept of static storage.
+	-->
+	<para>
+	  Almacenado una sola vez en una dirección de memoria fija. Es
+	  decir, el objeto se crea en una área de datos estática
+	  especial en lugar de en la pila cada vez que se llama a una
+	  función. Éste es el concepto de almacenamiento estático.
+	</para>
+      </listitem>
+      <listitem>
+	<!--
+	2. Local to a particular translation unit (and local to a class
+	scope in C++, as you will see later).  Here, static
+	controls the visibility of a name, so that name cannot
+	be seen outside the translation unit or class. This also
+	describes the concept of linkage, which determines what
+	names the linker will see.
+	-->
+	<para>
+	  Local a una unidad de traducción particular (y también local
+	  para el ámbito de una clase en C++, tal como se verá
+	  después). Aquí, <kw>static</kw> controla la visibilidad de
+	  un nombre, de forma que dicho nombre no puede ser visto
+	  fuera del la unidad de traducción o la clase. Esto también
+	  corresponde al concepto de enlazado, que determina qué
+	  nombres verá el enlazador.
+	</para>
+      </listitem>
+    </itemizedlist>
+
     <para>
-      1. Almacenado una sola vez en una dirección de memoria fija. Es
-      decir, el objeto se crea en una área de datos estática especial en
-      lugar de en la pila, cada vez que se llama a una función. Este es
-      el concepto de almacenamiento estático.
+      En esta sección se van a analizar los significados anteriores de
+      <kw>static</kw> tal y como se heredaron de C.
     </para>
-    
-    <!--
-    2. Local to a particular translation unit (and local to a class
-    scope in C++, as you will see later).  Here, static
-    controls the visibility of a name, so that name cannot
-    be seen outside the translation unit or class. This also
-    describes the concept of linkage, which determines what
-    names the linker will see.
-    -->
-    
-    <para>
-      2. Local para una (FIXME:translation unit:unidad de traducción)
-      particular (y también local para el campo de visión de una clase en
-      C++, tal como se verá despues). Aquí, static controla la visibilidad
-      de un nombre, de forma que dicho nombre no puede ser visto fuera del
-      la (FIXME:translation unit:unidad de traducción) o la clase. Esto
-      también describe el concepto de enlazado, que determina qué nombres
-      será capaz de ver el enlazador.
-    </para>
-    
-    
-    <para>
-      Esta sección se van a analizar los significados anteriores de
-      static tal y como estos fueron heredados de C.
-    </para>
-    
+
     <sect2>
       <title>Variables estáticas dentro de funciones</title>
-    
-      <!--        
+
+      <!--
       When you create a local variable inside a function, the compiler
       allocates storage for that variable each time the function is
       called by moving the stack pointer down an appropriate amount. If
       there is an initializer for the variable, the initialization is
-      performed each time that sequence point 
+      performed each time that sequence point
       -->
-      
+
       <para>
 	Cuando se crea una variable local dentro de una función, el
 	compilador reserva espacio para esa variable cada vez que se
@@ -139,7 +142,7 @@
 	la inicialización se realiza cada vez que se pasa por ese punto
 	de la secuencia.
       </para>
-      
+
       <!--
       Sometimes, however, you want to retain a value between function
       calls. You could accomplish this by making a global variable, but
@@ -150,15 +153,15 @@
       initialized only once, the first time the function is called, and
       then retains its value between function invocations. For example,
       the following function returns the next character in the array
-      each time the function is 
+      each time the function is
       -->
-      
-      
+
+
       <para>
 	No obstante, a veces es deseable retener un valor entre llamadas
 	a función. Esto se puede lograr creando una variable global,
 	pero entonces esta variable no estará únicamente bajo control de
-	la función. C y C++ permiten crear un objeto static dentro de
+	la función. C y C++ permiten crear un objeto <kw>static</kw> dentro de
 	una función. El almacenamiento de este objeto no se lleva a cabo
 	en la pila sino en el área de datos estáticos del
 	programa. Dicho objeto sólo se inicializa una vez, la primera
@@ -167,14 +170,14 @@
 	devuelve el siguiente carácter del vector cada vez que se la
 	llama:
       </para>
-      
+
 
 
 //: V1C10:StaticVariablesInfunctions.cpp
 
 
 
-      <!-- 
+      <!--
       The static char* s holds its value between calls of oneChar( )
       because its storage is not part of the stack frame of the
       function, but is in the static storage área of the program. When
@@ -186,43 +189,47 @@
       previously initialized value of s. The function will continúe to
       produce characters until it reaches the null terminator of the
       character array, at which point it stops incrementing the pointer
-      so it doesn't overrun the end of the array.  
+      so it doesn't overrun the end of the array.
       -->
-   
+
       <para>
-	La variable static char* s mantiene su valor entre llamadas a
-	oneChar() porque no está almacenada en el segmento de pila de la
-	función, sino que está en el área de almacenamiento estático del
-	programa. Cuando se llama a oneChar() con char* como argumento,
-	s se asigna a ese argumento de forma que se devuelve el primer
-	carácter del array. Cada llamada posterior a oneChar() sin
-	argumentos devuelve el valor por defecto cero para charArray,
-	que indica a la función que todavía se están extrayendo
-	caracteres del previamente inicializado valor de s. La función
-	continuará devolviendo caracteres hasta que alcance el valor de
-	final del vector, momento en el que para de incrementar el
-	puntero evitando que este sobrepase la última posición del
-	vector.
+	La variable <type>static char* s</type> mantiene su valor
+	entre llamadas a <function>oneChar()</function> porque no está
+	almacenada en el segmento de pila de la función, sino que está
+	en el área de almacenamiento estático del programa. Cuando se
+	llama a <function>oneChar()</function> con <type>char*</type>
+	como argumento, <varname>s</varname> se asigna a ese argumento
+	de forma que se devuelve el primer carácter del array. Cada
+	llamada posterior a <function>oneChar()</function>
+	<emphasis>sin</emphasis> argumentos devuelve el valor por
+	defecto cero para <varname>charArray</varname>, que indica a
+	la función que todavía se están extrayendo caracteres del
+	valor previo de <varname>s</varname>. La función continuará
+	devolviendo caracteres hasta que alcance el valor de final del
+	vector, momento en el que para de incrementar el puntero
+	evitando que éste sobrepase la última posición del vector.
       </para>
 
 
-      <!-- 
+      <!--
       But what happens if you call oneChar( ) with no arguments and
       without previously initializing the value of s?  In the definition
       for s, you could have provided an initializer, <sect3>
       -->
-      
+
       <para>
-	Pero ¿qué pasa si se llama a oneChar() sin argumentos y sin
-	haber inicializado previamente el valor de s? En la definición
-	para s, se podía haber utilizado la inicialización
+	Pero ¿qué pasa si se llama a <function>oneChar()</function>
+	sin argumentos y sin haber inicializado previamente el valor
+	de <varname>s</varname>? En la definición para
+	<varname>s</varname>, se podía haber utilizado la
+	inicialización,
       </para>
 
       <programlisting>
       static char* s = 0;
       </programlisting>
-	
-      <!-- 
+
+      <!--
       but if you do not provide an initializer for a static
       variable of a built-in type, the compiler guarantees that variable
       will be initialized to zero (converted to the proper type) at
@@ -230,38 +237,39 @@
       called, s is zero. In this case, the if(!s) conditional will catch
       it.  -->
 
-	<para>
-	pero si no se incluye un inicializador para una variable
+      <para>
+	pero si no se incluye un valor inicial para una variable
 	estática de un tipo definido, el compilador garantiza que la
-	variable se inicializará a cero (convertido al tipo adecuado) al
-	comenzar el programa. Así pues, en oneChar(), la primera vez que
-	se llama a la función, s vale cero.  En este caso, se cumplirá
-	la condición if(!s).
+	variable se inicializará a cero (convertido al tipo adecuado)
+	al comenzar el programa. Así pues, en
+	<function>oneChar()</function>, la primera vez que se llama a
+	la función, <varname>s</varname> vale cero.  En este caso, se
+	cumplirá la condición <code>if(!s)</code>.
       </para>
-               
+
       <!--
 	The initialization above for s is very simple, but
 	initialization for static objects (like all other objects) can
 	be arbitrary expressions involving constants and previously
-	declared variables and functions.  <title>Amigas</title>
+	declared variables and functions.
       -->
 
       <para>
-	El caso anterior es muy sencillo pero la inicialización de
-	objetos estáticos predefinidos (así como la de cualquier otro
-	objeto) puede ser una expresión arbitraria, utilizando
-	constantes así como variables y funciones previamente
+	La inicialización anterior para <varname>s</varname> es muy
+	simple, pero la inicialización para objetos estáticos (como la
+	de cualquier otro objeto) puede ser una expresión arbitraria,
+	que involucre constantes, variables o funciones previamente
 	declaradas.
       </para>
 
-        
+
       <!--
 	You should be aware that the function above is very vulnerable
 	to multithreading problems; whenever you design functions
 	containing static variables you should keep multithreading
-	issues in mind.  
+	issues in mind.
       -->
- 
+
 
       <para>
 	Fíjese que la función de arriba es muy vulnerable a problemas de
@@ -269,10 +277,10 @@
 	variables estáticas, deberá tener en mente este tipo de
 	problemas.
       </para>
-   
+
       <sect3>
 	<title>Objetos estáticos dentro de funciones</title>
-	
+
 	<!--
 	The rules are the same for static objects of user-defined types,
 	including the fact that some initialization is required for the
@@ -284,15 +292,15 @@
 	-->
 
 	<para>
-	Las reglas son las mismas para objetos estáticos de tipos
-	definidos por el usuario, añadiendo el hecho que el objeto
-	requiere ser inicializado. Sin embargo, la asignación del valor
-	cero sólo tiene sentido para tipos predefinidos. Los tipos
-	definidos por el usuario deben ser inicializados llamando a sus
-	respectivos constructores.  Por tanto, si no especifica
-	argumentos en los constructores cuando define un objeto
-	estático, la clase deberá tener un constructor por defecto. Por
-	ejemplo:
+	  Las reglas son las mismas para objetos estáticos de tipos
+	  definidos por el usuario, añadiendo el hecho que el objeto
+	  requiere ser inicializado. Sin embargo, la asignación del
+	  valor cero sólo tiene sentido para tipos predefinidos. Los
+	  tipos definidos por el usuario deben ser inicializados
+	  llamando a sus respectivos constructores.  Por tanto, si no
+	  especifica argumentos en los constructores cuando defina un
+	  objeto estático, la clase deberá tener un constructor por
+	  defecto. Por ejemplo:
 	</para>
 
 
@@ -301,25 +309,28 @@
 
 
 
-	<!-- 
+	<!--
 	  The static objects of type X inside f( ) can be initialized
 	  either with the constructor argument list or with the default
 	  constructor. This construction occurs the first time control
-	  passes through the definition, and only the first time.  
+	  passes through the definition, and only the first time.
 	  -->
-	
+
 	<para>
-	  Los objetos estáticos de tipo X dentro de f() pueden ser
-	  inicializados tanto con la lista de argumentos del constructor
-	  como con el constructor por defecto. Esta construcción sucede
-	  únicamente la primera vez que el control llega a la definición.
+	  Los objetos estáticos de tipo <type>X</type> dentro de
+	  <function>f()</function> pueden ser inicializados tanto con
+	  la lista de argumentos del constructor como con el
+	  constructor por defecto. Esta construcción ocurre únicamente
+	  la primera vez que el control llega a la definición.
 	</para>
       </sect3>
-    
+
+
+
       <sect3>
 	<title>Destructores de objetos estáticos</title>
-	
-	<!-- 
+
+	<!--
 	Destructors for static objects (that is, all objects with static
 	storage, not just local static objects as in the example above)
 	are called when main( ) exits or when the Standard C library
@@ -332,19 +343,22 @@
 
 	<para>
 	  Los destructores para objetos estáticos (es decir, cualquier
-	  objeto con almacenamiento estático, no sólo objetos estáticos
-	  locales como en el ejemplo anterior) son invocados cuando
-	  main() finaliza o cuando la función de librería estándar de C
-	  exit() se llama explícitamente. En la mayoría de
-	  implementaciones, main() simplemente llama a exit() cuando
-	  termina. Esto significa que pude ser peligroso llamar a exit()
-	  dentro de un destructor porque podría producirse un bucle
-	  infinito. Los destructores de objetos estáticos no se invocan
-	  si se sale del programa utilizando la función de librería
-	  estándar de C <function>abort()</function>.
+	  objeto con almacenamiento estático, no sólo objetos
+	  estáticos locales como en el ejemplo anterior) son invocados
+	  cuando <function>main()</function> finaliza o cuando la
+	  función de librería estándar de C
+	  <function>exit()</function> se llama explícitamente. En la
+	  mayoría de implementaciones, <function>main()</function>
+	  simplemente llama a <function>exit()</function> cuando
+	  termina. Esto significa que puede ser peligroso llamar a
+	  <function>exit()</function> dentro de un destructor porque
+	  podría producirse una invocación recursiva infinita. Los
+	  destructores de objetos estáticos no se invocan si se sale
+	  del programa utilizando la función de librería estándar de C
+	  <function>abort()</function>.
 	</para>
 
-	<!-- 
+	<!--
 	You can specify actions to take place when leaving main( ) (or
 	calling exit( )) by using the Standard C library function
 	atexit( ). In this case, the functions registered by atexit( )
@@ -353,14 +367,17 @@
 
 	<para>
 	  Es posible especificar acciones que se lleven a cabo tras
-	  finalizar la ejecución de main() (o llamando a exit())
-	  utilizando la función de librería estándar de C atexit(). En
-	  este caso, las funciones registradas en atexit() serán invocadas
-	  antes de los destructores para cualquier objeto construido antes
-	  de abandonar main() (o de llamar a exit()).
+	  finalizar la ejecución de <function>main()</function> (o
+	  llamando a <function>exit()</function>) utilizando la
+	  función de librería estándar de C
+	  <function>atexit()</function>. En este caso, las funciones
+	  registradas en <function>atexit()</function> serán invocadas
+	  antes de los destructores para cualquier objeto construido
+	  antes de abandonar <function>main()</function> (o de llamar
+	  a <function>exit()</function>).
 	</para>
 
-	<!-- 
+	<!--
 	Like ordinary destruction, destruction of static objects occurs in
 	the reverse order of initialization. However, only objects that
 	have been constructed are destroyed. Fortunately, the C++
@@ -370,24 +387,26 @@
 	exits, but if a function containing a local static object is
 	never called, the constructor for that object is never executed,
 	so the destructor is also not executed. For example, -->
-	
+
 	<para>
 	  Como la destrucción ordinaria, la destrucción de objetos
 	  estáticos se lleva a cabo en orden inverso al de la
-	  inicialización. Hay que tener en cuenta que sólo los objetos que
-	  han sido construidos serán destruidos.  Afortunadamente, las
-	  herramientas de desarrollo de C++ mantienen un registro del
-	  orden de inicialización y de los objetos que han sido
-	  construidos. Los objetos globales siempre se construyen antes de
-	  entrar en main() y se destruyen una vez se sale, pero si existe
-	  una función que contiene un objeto local estático a la que nunca
-	  se llama, el constructor de dicho objeto nunca será ejecutado y,
-	  por tanto, nunca se invocará al destructor. Por ejemplo:
+	  inicialización. Hay que tener en cuenta que sólo los objetos
+	  que han sido construidos serán destruidos.  Afortunadamente,
+	  las herramientas de desarrollo de C++ mantienen un registro
+	  del orden de inicialización y de los objetos que han sido
+	  construidos. Los objetos globales siempre se construyen
+	  antes de entrar en <function>main()</function> y se
+	  destruyen una vez se sale, pero si existe una función que
+	  contiene un objeto local estático a la que nunca se llama,
+	  el constructor de dicho objeto nunca fue ejecutado y, por
+	  tanto, nunca se invocará su destructor. Por ejemplo:
 	</para>
 
 
 
 //: V1C10:StaticDestructors.cpp
+
 
 
 	<!--
@@ -400,13 +419,16 @@
 	-->
 
 	<para>
-	  En Obj, char c actúa como un identificador de forma que el
-	  constructor y el destructor pueden imprimir la información a
-	  cerca del objeto sobre el que actúan. Obj a es un objeto global
+	  En <classname>Obj</classname>, <code>char c</code> actúa
+	  como un identificador de forma que el constructor y el
+	  destructor pueden imprimir la información acerca del objeto
+	  sobre el que actúan. <code>Obj a</code> es un objeto global
 	  y por tanto su constructor siempre se llama antes de que el
-	  control pase a main(), pero el constructor para static Obj b
-	  dentro de f(), y el de static Obj c dentro de g() sólo serán
-	  invocados si se llama a esas funciones.
+	  control pase a <function>main()</function>, pero el
+	  constructor para <code>static Obj b</code> dentro de
+	  <function>f()</function>, y el de <code>static Obj c</code>
+	  dentro de <function>g()</function> sólo serán invocados si
+	  se llama a esas funciones.
 	</para>
 
 
@@ -415,19 +437,19 @@
 	only f( ) is called. The output of the program is -->
 
 	<para>
-	Para mostrar qué constructores y qué destructores serán
-	llamados, sólo se invoca a f(). La salida del programa será la
-	siguiente:
+	  Para mostrar qué constructores y qué destructores serán
+	  llamados, sólo se invoca a <function>f()</function>. La
+	  salida del programa será la siguiente:
 	</para>
-	
-	<programlisting>
-	Obj::Obj() for a
-	inside main()
-	Obj::Obj() for b
-	leaving main()
-	Obj::~Obj() for b
-	Obj::~Obj() for a
-	</programlisting>
+
+<screen>
+Obj::Obj() for a
+inside main()
+Obj::Obj() for b
+leaving main()
+Obj::~Obj() for b
+Obj::~Obj() for a
+</screen>
 
 	<!--
 	The constructor for a is called before main( ) is entered, and the
@@ -437,17 +459,23 @@
 	construction. This means that if g( ) is called, the order in
 	which the destructors for b and c are called depends on whether
 	f( ) or g( ) is called first.  -->
-	
+
 	<para>
-	  El constructor para a se invoca antes de entrar en main() y el
-	  constructor de b se invoca sólo porque existe una llamada a
-	  f(). Cuando se sale de main(), se invoca a los destructores de
-	  los objetos que han sido construidos en orden inverso al de su
-	  construcción. Esto significa que si se llama a g(), el orden en
-	  el que los destructores para b y c son invocados depende de si
-	  se llamó primero a f() o a g().
+	  El constructor para <varname>a</varname> se invoca antes de
+	  entrar en <function>main()</function> y el constructor de
+	  <varname>b</varname> se invoca sólo porque existe una
+	  llamada a <function>f()</function>. Cuando se sale de
+	  <function>main()</function>, se invoca a los destructores de
+	  los objetos que han sido construidos en orden inverso al de
+	  su construcción. Esto significa que si llama a
+	  <function>g()</function>, el orden en el que los
+	  destructores para <varname>b</varname> y
+	  <varname>c</varname> son invocados depende de si se llamó
+	  primero a <function>f()</function> o a
+	  <function>g()</function>.
 	</para>
-	
+
+
 	<!--
 	Notice that the trace file ofstream object out is also a static
 	object - since it is defined outside of all functions, it
@@ -458,13 +486,15 @@
 	initialized.  -->
 
 	<para>
-	  Nótese que el objeto out de tipo ofstream, utilizado en la
-	  gestión de ficheros, también es un objeto estático (puesto que
-	  está definido fuera de cualquier función, vive en el érea de
+	  Nótese que el objeto <varname>out</varname> de tipo
+	  <varname>ofstream</varname>, utilizado en la gestión de
+	  ficheros, también es un objeto estático (puesto que está
+	  definido fuera de cualquier función, reside en el área de
 	  almacenamiento estático). Es importante remarcar que su
-	  definición (a diferencia de una declaración tipo extern) aparece
-	  al principio del archivo, antes de cualquier posible uso de out.
-	  De lo contrario estaríamos utilizando un objeto antes de que
+	  definición (a diferencia de una declaración tipo
+	  <kw>extern</kw>) aparece al principio del fichero, antes de
+	  cualquier posible uso de <varname>out</varname>.  De lo
+	  contrario estaríamos utilizando un objeto antes de que
 	  estuviese adecuadamente inicializado.
 	</para>
 
@@ -475,116 +505,118 @@
 	with the destructor after exiting main( ). In C, this was always
 	a trial that required you to root around in the compiler
 	vendor's assembly-language startup code.  -->
-	
+
 	<para>
-	  En C++, el constructor de un objeto estático global se invoca
-	  antes de entrar en main(), de forma que ya dispone de una forma
-	  simple y portable de ejecutar código antes de entrar en
-	  main(), así como de ejecutar código después de salir de
-	  main(). En C, eso siempre implicaba revolver el código
-	  ensamblador de arranque del compilador utilizado.
+	  En C++, el constructor de un objeto estático global se
+	  invoca antes de entrar en <function>main()</function>, de
+	  forma que ya dispone de una forma simple y portable de
+	  ejecutar código antes de entrar en
+	  <function>main()</function>, así como ejecutar código
+	  después de salir de <function>main()</function>. En C, eso
+	  siempre implicaba revolver el código ensamblador de arranque
+	  del compilador utilizado.
 	</para>
-	
+
       </sect3>
     </sect2>
 
     <sect2>
       <title>Control del enlazado</title>
-      
-      <!-- 
+
+      <!--
       Ordinarily, any name at file scope (that is, not nested
       inside a class or function) is visible throughout all translation
-      units in a program. This is often called external linkage because
+      units in a program. This is often called <kw>extern</kw>al linkage because
       at link time the name is visible to the linker everywhere,
-      external to that translation unit. Global variables and ordinary
-      functions have external linkage.  -->
-	
+      <kw>extern</kw>al to that translation unit. Global variables and ordinary
+      functions have <kw>extern</kw>al linkage.  -->
+
       <para>
-	Generalmente, cualquier nombre dentro del rango de visión de
-	archivo (es decir, no incluido dentro de una clase o de una
-	función) es visible para todas las (FIXME:translation units:
-	unidades de traducción) en el programa. Esto suele
-	llamarse enlazado externo porque en tiempo de enlace el nombre
-	es visible para el enlazador en cualquier sitio, externo a esa
-	(FIXME:translation unit:unidad de traducción). Las variables
-	globales y las funciones ordinarias tienen enlazado externo
+	Generalmente, cualquier nombre dentro del ámbito del fichero
+	(es decir, no incluido dentro de una clase o de una función)
+	es visible para todas las unidades de traducción del
+	programa. Esto suele llamarse enlazado
+	externo<emphasis></emphasis> porque durante el enlazado ese
+	nombre es visible desde cualquier sitio, desde el exterior de
+	esa unidad de traducción. Las variables globales y las
+	funciones ordinarias tienen enlazado externo.
       </para>
 
-	<!-- 
+	<!--
 	There are times when you'd like to limit the visibility of
 	a name. You might like to have a variable at file scope so all
 	the functions in that file can use it, but you don't want
 	functions outside that file to see or access that variable, or
 	to inadvertently cause name clashes with identifiers outside the
-	file.  
+	file.
 	-->
 
       <para>
 	Hay veces en las que conviene limitar la visibilidad de un
 	nombre. Puede que desee tener una variable con visibilidad a
-	nivel de archivo de forma que todas las funciones de ese archivo
-	puedan utilizarla, pero quizá no desee que funciones externas a
-	ese archivo tengan acceso a esa variable, o que de forma
-	inadvertida, cause solapes de nombres con identificadores
-	externos a ese archivo.
+	nivel de fichero de forma que todas las funciones de ese
+	fichero puedan utilizarla, pero quizá no desee que funciones
+	externas a ese fichero tengan acceso a esa variable, o que de
+	forma inadvertida, cause solapes de nombres con
+	identificadores externos a ese fichero.
       </para>
-	
-	<!--
-	An object or function name at file scope that is explicitly
-	declared static is local to its translation unit (in the terms
-	of this book, the cpp file where the declaration occurs). That
-	name has internal linkage. This means that you can use the same
-	name in other translation units without a name clash.  -->
 
-	<para>
-	  Un objeto o nombre de función, con visibilidad dentro del
-	  archivo en que se encuentra, que es explícitamente declarado
-	  como static es local a su (FIXME:translation unit:unidad de
-	  traducción) (en términos de este libro, el cpp donde se lleva
-	  a cabo la declaración). Este nombre tiene enlace interno. Esto
-	  significa que puede usar el mismo nombre en otras
-	  (FIXME:translation units:unidades de traducción) sin confusión
-	  entre ellos.
-	</para>
-	
-	<!--
-	One advantage to internal linkage is that the name can be placed
-	in a header file without worrying that there will be a clash at
-	link time. Names that are commonly placed in header files, such
-	as const definitions and inline functions, default to internal
-	linkage. (However, const defaults to internal linkage only in
-	C++; in C it defaults to external linkage.) Note that linkage
-	refers only to elements that have addresses at link/load time;
-	thus, class declarations and local variables have no linkage.
-	-->
+      <!--
+      An object or function name at file scope that is explicitly
+      declared static is local to its translation unit (in the terms
+      of this book, the cpp file where the declaration occurs). That
+      name has internal linkage. This means that you can use the same
+      name in other translation units without a name clash.  -->
 
-	<para>
-	  Una ventaja del enlace interno es que el nombre puede situarse
-	  en un archivo de cabecera sin tener que preocuparse de si
-	  habrá o no un cruce de nombres en el momento del enlazado. Los
-	  nombres que aparecen usualmente en los archivos de cabecera,
-	  como definiciones const y funciones inline, tienen por defecto
-	  enlazado interno. (De todas formas, const tiene por defecto
-	  enlazado interno sólo en C++; en C tiene enlazado
-	  externo). Nótese que el enlazado se refiere sólo a elementos
-	  que tienen direcciones en tiempo de enlazado / carga. Por
-	  tanto, las declaraciones de clases y de variables locales no
-	  tienen enlazado.
-	</para>
+      <para>
+	Un objeto o nombre de función, con visibilidad dentro del
+	fichero en que se encuentra, que es explícitamente declarado
+	como <kw>static</kw> es local a su unidad de traducción (en
+	términos de este libro, el fichero <filename>cpp</filename>
+	donde se lleva a cabo la declaración). Este nombre tiene
+	<emphasis>enlace interno</emphasis>. Esto significa que puede
+	usar el mismo nombre en otras unidades de traducción sin
+	confusión entre ellos.
+      </para>
+
+      <!--
+      One advantage to internal linkage is that the name can be placed
+      in a header file without worrying that there will be a clash at
+      link time. Names that are commonly placed in header files, such
+      as const definitions and inline functions, default to internal
+      linkage. (However, const defaults to internal linkage only in
+      C++; in C it defaults to external linkage.) Note that linkage
+      refers only to elements that have addresses at link/load time;
+      thus, class declarations and local variables have no linkage.
+      -->
+
+      <para>
+	Una ventaja del enlace interno es que el nombre puede situarse
+	en un fichero de cabecera sin tener que preocuparse de si
+	habrá o no un choque de nombres durante el enlazado. Los
+	nombres que aparecen usualmente en los archivos de cabecera,
+	como definiciones <kw>const</kw> y funciones <kw>inline</kw>,
+	tienen por defecto enlazado interno. (De todas formas,
+	<kw>const</kw> tiene por defecto enlazado interno sólo en C++;
+	en C tiene enlazado externo). Nótese que el enlazado se
+	refiere sólo a elementos que tienen direcciones en tiempo de
+	enlazado / carga. Por tanto, las declaraciones de clases y de
+	variables locales no tienen enlazado.
+      </para>
 
       <sect3>
 	<title>Confusión</title>
 
-	<!-- 
+	<!--
 	Here's an example of how the two meanings of static can
 	cross over each other. All global objects implicitly have static
 	storage class, so if you say (at file scope), -->
 
 	<para>
-	  He aquí un ejemplo de como los dos sentidos de static pueden
-	  confundirse. Todos los objetos globales tienen implícitamente
-	  clase de almacenamiento estático, o sea que si usted dice (en
-	  rango de visibilidad a nivel de archivo)
+	  He aquí un ejemplo de cómo los dos significados de
+	  <kw>static</kw> pueden confundirse. Todos los objetos
+	  globales tienen implícitamente almacenamiento de tipo
+	  estático, o sea que si usted dice (en ámbito de fichero)
 	</para>
 
 	<programlisting>
@@ -596,29 +628,31 @@
 	and the initialization for a will occur once, before main( ) is
 	entered. In addition, the visibility of a is global across all
 	translation units. In terms of visibility, the opposite of
-	static (visible only in this translation unit) is extern, which
+	static (visible only in this translation unit) is <kw>extern</kw>, which
 	explicitly states that the visibility of the name is across all
 	translation units. So the definition above is equivalent to
 	saying
 	-->
-	
+
 	<para>
-	  el almacenamiento para a se llevará a cabo en el área para
-	  datos estáticos del programa y la inicialización para a sólo se
-	  realizará una vez, antes de entrar en main(). Además, la
-	  visibilidad de a es global para todas las (FIXME:translation
-	  units:unidades de traducción). En términos de visibilidad, lo
-	  opuesto a static (visible tan sólo en su (FIXME:translation
-	  unit:unidad de traducción)) es extern que establece
-	  explícitamente que la visibilidad del nombre se extienda a todas
-	  las (FIXME:translation units:unidades de traducción).  Es decir,
-	  la definición de arriba equivale a
+	  el almacenamiento para <varname>a</varname> se llevará a
+	  cabo en el área para datos estáticos del programa y la
+	  inicialización para <varname>a</varname> sólo se realizará
+	  una vez, antes de entrar en
+	  <function>main()</function>. Además, la visibilidad de
+	  <varname>a</varname> es global para todas las unidades de
+	  traducción. En términos de visibilidad, lo opuesto a
+	  <kw>static</kw> (visible tan sólo en su :unidad de
+	  traducción) es <kw>extern</kw> que establece explícitamente
+	  que la visibilidad del nombre se extienda a todas las
+	  unidades de traducción.  Es decir, la definición de arriba
+	  equivale a
 	</para>
 
 	<programlisting>
 	extern int a = 0;
 	</programlisting>
-	
+
 	<!--
 	But if you say instead,
 	-->
@@ -626,12 +660,12 @@
 	<para>
 	  Pero si utilizase
 	</para>
-	
+
 	<programlisting>
 	  static int a = 0;
 	</programlisting>
-	
-	<!-- 
+
+	<!--
 	all you've done is change the visibility, so a has internal
 	linkage. The storage class is unchanged - the object resides
 	in the static data area whether the visibility is static or
@@ -639,35 +673,36 @@
 	-->
 
 	<para>
-	  todo lo que habría hecho es cambiar la visibilidad, de forma que
-	  a tiene enlace interno. La clase de almacenamiento no se altera,
-	  el objeto reside en el área de datos estática aunque en un caso
-	  su visibilidad es static y en el otro es extern.
+	  todo lo que habría hecho es cambiar la visibilidad, de forma
+	  que <varname>a</varname> tiene enlace interno. El tipo de
+	  almacenamiento no se altera, el objeto reside en el área de
+	  datos estática aunque en este caso su visibilidad es
+	  <kw>static</kw> y en el otro es <kw>extern</kw>.
 	</para>
 
 	<!--
 	Once you get into local variables, static stops altering the
 	visibility and instead alters the storage class.
 	-->
-	
-	<para>
-	  Cuando pasamos a hablar de variables locales, static deja de
-	  alterar la visibilidad y pasa a alterar la clase de
-	  almacenamiento.
-	</para>
-	
 
-	<!-- 
+	<para>
+	  Cuando pasamos a hablar de variables locales,
+	  <kw>static</kw> deja de alterar la visibilidad y pasa a
+	  alterar el tipo de almacenamiento.
+	</para>
+
+
+	<!--
 	If you declare what appears to be a local variable as
 	extern, it means that the storage exists elsewhere (so the
 	variable is actually global to the function). For example:
-	-->	
+	-->
 
 	<para>
-	  Si declara lo que parece ser una variable local como extern,
-	  significa que el almacenamiento existe en alguna otra parte (y
-	  por tanto la variable realmente es global a la función). Por
-	  ejemplo:
+	  Si declara lo que parece ser una variable local como
+	  <kw>extern</kw>, significa que el almacenamiento existe en
+	  alguna otra parte (y por tanto la variable realmente es
+	  global a la función). Por ejemplo:
 	</para>
 
 
@@ -681,14 +716,14 @@
 
 	<para>
 	  Para nombres de funciones (sin tener en cuenta las funciones
-	  miembro), static y extern sólo pueden alterar la visibilidad,
-	  de forma que si encontramos
+	  miembro), <kw>static</kw> y <kw>extern</kw> sólo pueden
+	  alterar la visibilidad, de forma que si escribe
 	</para>
-	
+
 	<programlisting>
 	  extern void f();
 	</programlisting>
-	
+
 	<!--
 	it's the same as the unadorned declaration
 	-->
@@ -696,11 +731,11 @@
 	<para>
 	  es lo mismo que la menos adornada declaración
 	</para>
-	
+
 	<programlisting>
 	  void f();
 	</programlisting>
-	
+
 	<!--
 	and if you say,
 	-->
@@ -708,29 +743,29 @@
 	<para>
 	  y si utiliza
 	</para>
-	
+
 	<programlisting>
 	  static void f();
 	</programlisting>
-	
+
 	<!--
 	it means f( ) is visible only within this translation unit
 	- this is sometimes called file static.
 	-->
-	
-	<para> 
-	  significa que f() es visible sólo para la
-	  (FIXME:translation unit:unidad de traducción), (esto suele
-	  llamarse (FIXME:file static:archivo estático)).
+
+	<para>
+	  significa que <function>f()</function> es visible sólo para
+	  la unidad de traducción, (esto suele llamarse <emphasis>estático a
+	  fichero</emphasis> (<foreignphrase>file static</foreignphrase>).
 	</para>
-	
+
       </sect3>
     </sect2>
 
     <sect2>
       <title>Otros especificadores para almacenamiento de clases</title>
-      
-      <!-- 
+
+      <!--
       You will see static and extern used commonly. There are two other
       storage class specifiers that occur less often. The auto specifier
       is almost never used because it tells the compiler that this is a
@@ -741,17 +776,18 @@
       -->
 
       <para>
-      	El uso de static y extern está muy extendido. Hay dos
-      	especificadores de clase de almacenamiento bastante menos
-      	conocidos. El especificador auto no se utiliza prácticamente
-      	nunca porque le dice al compilador que esa es una variable
-      	local. auto es la abreviatura de "automático" y se refiere a la
+      	El uso de <kw>static</kw> y <kw>extern</kw> está muy
+      	extendido. Existen otros dos especificadores de tipo de
+      	almacenamiento bastante menos conocidos. El especificador
+      	<kw>auto</kw> no se utiliza prácticamente nunca porque le dice
+	  al compilador que esa es una variable local. <kw>auto</kw> es
+      	la abreviatura de automático<quote></quote> y se refiere a la
       	forma en la que el compilador reserva espacio automáticamente
-      	para la variable. El compilador siempre puede determinar este
+      	para la variable. El compilador siempre puede determinar ese
       	hecho por el contexto en que la variable se define por lo que
-      	auto es redundante.
+	<kw>auto</kw> es redundante.
       </para>
-        
+
       <!--
       A register variable is a local (auto) variable, along with a hint
       to the compiler that this particular variable will be heavily used
@@ -761,21 +797,21 @@
       address of the variable, the register specifier will almost
       certainly be ignored. You should avoid using register because the
       compiler can usually do a better job of optimization than you.
-      -->      
-      
+      -->
+
       <para>
-	El especificador register aplicado a una variable indica que es
-      	una variable local (auto), junto con la pista para el compilador
-      	de que esa variable en concreto va a ser ampliamente utilizada
-      	por lo que debería ser almacenada en un registro si fuese
-      	posible. Por tanto, es una ayuda para la
+	El especificador <kw>register</kw> aplicado a una variable
+      	indica que es una variable local (<kw>auto</kw>), junto con la
+      	pista para el compilador de que esa variable en concreto va a
+      	ser ampliamente utilizada por lo que debería ser almacenada en
+      	un registro si es posible. Por tanto, es una ayuda para la
       	optimización. Diferentes compiladores responden de diferente
       	manera ante dicha pista; incluso tienen la opción de
-      	ignorarla. Si toma la dirección de la variable, el especificador
-      	register va a ser, casi con total seguridad, ignorado. Se
-      	recomienda evitar el uso de register porque, generalmente, el
-      	compilador suele realizar las labores de optimización mejor que
-      	el usuario.
+      	ignorarla. Si toma la dirección de la variable, el
+      	especificador <kw>register</kw> va a ser ignorado casi con
+      	total seguridad. Se recomienda evitar el uso de
+      	<kw>register</kw> porque, generalmente, el compilador suele
+      	realizar las labores de optimización mejor que el usuario.
       </para>
 
     </sect2>
@@ -783,7 +819,7 @@
 
   <sect1>
     <title>Espacios de nombres</title>
-    
+
     <!-- Although names can be nested inside classes, the names of
     global functions, global variables, and classes are still in a
     single global name space. The static keyword gives you some control
@@ -794,125 +830,151 @@
     complicated names that are unlikely to clash, but then you're stuck
     typing those names. (A typedef is often used to simplify this.) It's
     not an elegant, language-supported solution.  -->
-    
+
     <para>
-      Pese a que los nombres pueden estar anidados dentro de clases, los
-      nombres de funciones globales, variables globales y clases se
-      encuentran incluidos dentro de un único espacio de
-      nombres. La palabra reservada static le da control sobre éste
-      permitiéndole darle tanto a variables como a funciones enlazado
-      interno (es decir convirtiéndolas en (FIXEME:file static:archivo
-      estático)).  Pero en un proyecto grande, la falta de control sobre
-      el espacio de nombres global puede causar
-      problemas. Con el fin de solventar esos problemas para clases, los
-      vendedores se suelen crear nombres largos y complicados que tienen
-      baja probabilidad de crear conflictos pero que suponen hartarse a
-      teclear para escribirlos. (Para simplificar este problema se suele
-      utilizar typedef). Pese a que el lenguaje la soporta, no es una
-      solución elegante.
-    
+      Pese a que los nombres pueden estar anidados dentro de clases,
+      los nombres de funciones globales, variables globales y clases
+      se encuentran incluidos dentro de un único espacio de
+      nombres. La palabra reservada <kw>static</kw> le da control
+      sobre éste permitiéndole darle tanto a variables como a
+      funciones enlazado interno (es decir convirtiéndolas en
+      estáticas al fichero).  Pero en un proyecto grande, la falta de
+      control sobre el espacio de nombres global puede causar
+      problemas. Con el fin de solventar esos problemas para clases,
+      los programadores suelen crear nombres largos y complicados que
+      tienen baja probabilidad de crear conflictos pero que suponen
+      hartarse a teclear para escribirlos. (Para simplificar este
+      problema se suele utilizar <kw>typedef</kw>). Pese a que el
+      lenguaje la soporta, no es una solución elegante.
     </para>
 
-	<!-- You can subdivide the global name space into more
-	manageable pieces using the namespace feature of C++. The
-	namespace keyword, similar to class, struct, enum, and union,
-	puts the names of its members in a distinct space. While the
-	other keywords have additional purposes, the creation of a new
-	name space is the only purpose for namespace.  -->
-	
+    <!-- You can subdivide the global name space into more manageable
+    pieces using the namespace feature of C++. The namespace keyword,
+    similar to class, struct, enum, and union, puts the names of its
+    members in a distinct space. While the other keywords have
+    additional purposes, the creation of a new name space is the only
+    purpose for namespace.  -->
+
     <para>
       En lugar de eso puede subdividir el espacio de nombres global en
       varias partes más manejables utilizando la característica
-      namespace de C++. La palabra reservada namespace, de forma
-      similar a class, struct, enum y union, sitúa los nombres de sus
-      miembros en un espacio diferente. Mientras que las demás
-      palabras reservadas tienen propósitos adicionales, la única
-      función de namespace es la de crear un nuevo espacio de nombres.
+      <kw>namespace</kw> de C++. La palabra reservada
+      <kw>namespace</kw>, de forma similar a <kw>class</kw>,
+      <kw>struct</kw>, <kw>enum</kw> y <kw>union</kw>, sitúa los
+      nombres de sus miembros en un espacio diferente. Mientras que
+      las demás palabras reservadas tienen propósitos adicionales, la
+      única función de <kw>namespace</kw> es la de crear un nuevo
+      espacio de nombres.
     </para>
-    
+
     <sect2>
       <title>Crear un espacio de nombres</title>
       <!--
       The creation of a namespace is notably similar to the creation of a class:
       -->
-	
+
       <para>
-	La creación de un espacio de nombres es muy similar a la creación de una clase:
+	La creación de un espacio de nombres es muy similar a la
+	creación de una clase:
       </para>
 
 
 //: V1C10:MyLib.cpp
 
 
-		
-      <!--
-      This produces a new namespace containing the enclosed declarations. There are significant 
-      differences from class, struct, union and enum, however:
 
-      * A namespace definition can appear only at global scope, or nested within another namespace.
-      * No terminating semicolon is necessary after the closing brace of a namespace definition.
-      * A namespace definition can be "continúed" over multiple header files using a syntax that, 
+      <!-- This produces a new namespace containing the enclosed
+      declarations. There are significant differences from class,
+      struct, union and enum, however:
+
+      * A namespace definition can appear only at global scope, or
+        nested within another namespace.
+      * No terminating semicolon is necessary after the closing brace
+        of a namespace definition.
+      * A namespace definition can be "continúed" over multiple header
+        files using a syntax that,
       for a class, would appear to be a redefinition:
       -->
-           
-      <para> 
-	Ése código crea un nuevo espacio de nombres que contiene
-	las declaraciones incluidas entre las llaves. De todas formas,
-	existen diferencias significativas entre class, struct, union
-	y enum:
-	  
-	  	* Una definición con namespace solamente puede aparecer en un rango global de visibilidad
-	  	o anidado dentro de otro namespace.
-	  	* No es necesario un punto y coma tras la llave de cierre para finalizar la definición de
-	  	namespace.
-	  	* Una definición namespace puede ser "continuada" en múltiples archivos de cabecera utilizando
-	  	una sintaxis que, para una clase, parecería ser la de una redefinición:
+
+      <para>
+	Ese código crea un nuevo espacio de nombres que contiene las
+	declaraciones incluidas entre las llaves. De todas formas,
+	existen diferencias significativas entre <kw>class</kw>,
+	<kw>struct</kw>, <kw>enum</kw> y <kw>union</kw>:
       </para>
-      
+
+  <itemizedlist>
+	<listitem>
+	  <para>
+	    Una definición con namespace solamente puede aparecer en
+	    un rango global de visibilidad o anidado dentro de otro
+	    namespace.
+	  </para>
+	</listitem>
+	<listitem>
+	   <para>
+	    No es necesario un punto y coma tras la llave de cierre
+      para finalizar la definición de namespace.
+    </para>
+    </listitem>
+  <listitem>
+	<para>
+	  Una definición namespace puede ser "continuada" en
+	  múltiples archivos de cabecera utilizando una sintaxis
+	  que, para una clase, parecería ser la de una
+	  redefinición:
+	  </para>
+      </listitem>
+    </itemizedlist>
+
+
 
 //: V1C10:Header1.h
 
 
-      
-      <!-- 
+
+      <!--
       A namespace name can be aliased to another name, so you don't
       have to type an unwieldy name created by a library vendor: -->
 
       <para>
-	Un namespace puede sobreponerse a otro nombre de forma que no
-	hace falta que teclee un enrevesado nombre creado por algún
-	vendedor de librerías:
+	El posible crear alias de un <kw>namespace</kw> de forma que
+	no hace falta que teclee un enrevesado nombre creado por algún
+	frabricante de librerías:
       </para>
-      
+
 
 
 //: V1C10:BobsSuperDuperLibrary.cpp
 
 
-      
+
       <!--
       You cannot create an instance of a namespace as you can with a class.
       -->
 
       <para>
-	No puede crear una instancia de un namespace tal y como podría con una clase.
+	No puede crear una instancia de un <kw>namespace</kw> tal y
+	como puede hacer con una clase.
       </para>
-      
-      
+
+
       <sect3>
+	<!-- Unnamed namespaces -->
 	<title>Espacios de nombres sin nombre</title>
-	
-	<!-- 
+
+	<!--
 	Each translation unit contains an unnamed namespace that
 	you can add to by saying "namespace" without an
 	identifier: -->
 
 	<para>
-	  Cada (FIXME:translation unit:unidad de traducción) contiene un
-	  espacio de nombres sin nombre al que puede referirse utilizando
-	  "namespace" sin ningún identificador.
+	  Cada unidad de traducción contiene un espacio de nombres sin
+	  nombre al que puede referirse escribiendo
+	  <quote><code>namespace</code></quote> sin ningún
+	  identificador.
 	</para>
-	
+
 	<!-- The names in this space are automatically available in that
 	translation unit without qualification.  It is guaranteed that
 	an unnamed space is unique for each translation unit. If you put
@@ -921,53 +983,55 @@
 
 	C++ deprecates the use of file statics in favor of the unnamed namespace.
 	-->
-	
+
 	<para>
-	  Los nombres en este espacio están disponibles automáticamente
-	en esa unidad de traducción sin calificación. Se garantiza que
-	un espacio sin nombre es único para cada unidad de
-	traducción. Si usted asigna nombres locales en un espacio de
-	nombres sin nombre no necesitará darles enlazado interno
-	utilizando el asignador static.
+	  Los nombres en este espacio están disponibles
+	  automáticamente en esa unidad de traducción sin
+	  cualificación. Se garantiza que un espacio sin nombre es
+	  único para cada unidad de traducción. Si usted asigna
+	  nombres locales en un espacio de nombres no necesitará
+	  darles enlazado interno con <kw>static</kw>.
 	</para>
 
 	<para>
 	  En C++ es preferible utilizar espacios de nombres sin nombre
-	  que archivos estáticos.
+	  que <emphasis>estáticos a fichero</emphasis>.
 	</para>
-
       </sect3>
 
       <sect3>
+	<!-- Friends -->
 	<title>Amigas</title>
 
 	<!-- You can inject a friend declaration into a namespace by
 	declaring it within an enclosed class: -->
 
 	<para>
-	  Es posible añadir una declaración tipo friend dentro de un
-	  espacio de nombres incluyéndola dentro de una clase:
+	  Es posible añadir una declaración tipo <kw>friend</kw>
+	  dentro de un espacio de nombres incluyéndola dentro de una
+	  clase:
 	</para>
-	
+
 
 
 //: V1C10:FriendInjection.cpp
 
 
-	
+
 	<!-- Now the function you( ) is a member of the namespace Me.
-	
+
 	If you introduce a friend within a class in the global
 	namespace, the friend is injected globally.  -->
-	
+
 	<para>
-	Ahora la función you( ) es un miembro del espacio de nombres Me.
+	  Ahora la función <function>you()</function> es un miembro
+	  del espacio de nombres <varname>Me</varname>.
 	</para>
-	
+
 	<para>
-	  Si introduce una declaración tipo friend en una clase dentro
-	  del espacio de nombres global, dicha declaración se inyecta
-	  globalmente.
+	  Si introduce una declaración tipo <kw>friend</kw> en una
+	  clase dentro del espacio de nombres global, dicha
+	  declaración se inyecta globalmente.
 	</para>
       </sect3>
     </sect2>
@@ -981,12 +1045,12 @@
       using declaration to introduce names one at a time.-->
 
       <para>
-	Usted puede referirse a un nombre dentro de un espacio de
-	nombres de tres maneras diferentes: especificando el nombre
-	utilizando el operador de resolución de ámbito, con una directiva
-	using que introduzca todos los nombres en el espacio de nombres o
-	mediante una declaración using para introducir nombres de uno en
-	uno.
+	Puede referirse a un nombre dentro de un espacio de nombres de
+	tres maneras diferentes: especificando el nombre utilizando el
+	operador de resolución de ámbito, con una directiva
+	<kw>using</kw> que introduzca todos los nombres en el espacio
+	de nombres o mediante una declaración <kw>using</kw> para
+	introducir nombres de uno en uno.
       </para>
 
       <sect3>
@@ -1002,10 +1066,11 @@
 	  de ámbito de la misma forma que puede referirse a los nombres
 	  dentro de una clase:
 	</para>
-	
+
 
 
 //: V1C10:ScopeResolution.cpp
+
 
 
 	<!-- Notice that the definition X::Y::i could just as
@@ -1013,16 +1078,18 @@
 	class X instead of a namespace X.
 
 	So far, namespaces look very much like classes.-->
-	
+
 	<para>
-	  Nótese que la definición X::Y::i puede referirse también a una
-	  variable miembro de la clase Y anidado dentro de la clase X en
-	  lugar del espacio de nombres X.
+	  Nótese que la definición <code>X::Y::i</code> puede
+	  referirse también a un atributo de la clase
+	  <classname>Y</classname> anidada dentro de la clase
+	  <classname>X</classname> en lugar del espacio de nombres
+	  <varname>X</varname>.
 	</para>
       </sect3>
 
       <sect3>
-	<title>La directiva using</title>
+	<title>La directiva <kw>using</kw></title>
 
 	<!--Because it can rapidly get tedious to type the full
 	qualification for an identifier in a namespace, the using
@@ -1034,18 +1101,20 @@
 	namespace: -->
 
 	<para>
-	  Puesto que teclear toda la especificación para un identificador
-	  en un espacio de nombres puede resultar rápidamente tedioso, la
-	  palabra clave using le permite importar un espacio denombre
-	  entero a la vez.  Cuando se utiliza en conjunción con la palabra
-	  clave namespace, se dice que utilizamos una directiva using. Las
-	  directivas using hacen que los nombres actúen como si
-	  perteneciesen al ámbito del espacio de nombre que les incluye
-	  más cercano por lo que puede utilizar convenientemente los
-	  nombres sin explicitar completamente su
+	  Puesto que teclear toda la especificación para un
+	  identificador en un espacio de nombres puede resultar
+	  rápidamente tedioso, la palabra clave <kw>using</kw> le
+	  permite importar un espacio de nombres entero de una vez.
+	  Cuando se utiliza en conjunción con la palabra clave
+	  <kw>namespace</kw>, se dice que utilizamos una directiva
+	  <kw>using</kw><emphasis></emphasis>. Las directivas
+	  <kw>using</kw> hacen que los nombres actúen como si
+	  perteneciesen al ámbito del espacio de nombres que les
+	  incluye más cercano por lo que puede utilizar
+	  convenientemente los nombres sin explicitar completamente su
 	  especificación. Considere el siguiente espacio de nombres:
 	</para>
-	
+
 
 
 //: V1C10:NamespaceInt.h
@@ -1057,27 +1126,28 @@
 	the namespace: -->
 
 	<para>
-	  Un uso de las directivas using es incluir todos los nombres en
-	  Int dentro de otro espacio de nombres, dejando aquellos nombres
-	  anidados dentro del espacio de nombres
+	  Un uso de las directivas <kw>using</kw> es incluir todos los
+	  nombres en <varname>Int</varname> dentro de otro espacio de
+	  nombres, dejando aquellos nombres anidados dentro del
+	  espacio de nombres
 	</para>
-	
+
 
 
 //: V1C10:NamespaceMath.h
 
 
-	
+
 	<!-- You can also declare all of the names in Int inside a
 	function, but leave those names nested within the function: -->
 
 
 	<para>
-	  Usted también puede declarar todos los nombres en Int dentro
-	  de la función pero dejando aquellos nombres anidados dentro de
-	  la función:
+	  También puede declarar todos los nombres en
+	  <varname>Int</varname> dentro de la función pero dejando
+	  esos nombres anidados dentro de la función:
 	</para>
-	
+
 
 //: V1C10:Arithmetic.cpp
 
@@ -1094,69 +1164,71 @@
 	-->
 
 	<para>
-	  Sin la directiva using, todos los nombres en el espacio de
-	  nombres requerirían estar completamente explicitados.
+	  Sin la directiva <kw>using</kw>, todos los nombres en el
+	  espacio de nombres requerirían estar completamente
+	  explicitados.
 	</para>
-	
+
 	<para>
-	  Un aspecto de la directiva using podría parecer poco intuitivo
-	  al principio. La visibilidad de los nombres introducidos con una
-	  directiva using es el rango en el que la directiva se crea. Pero
-	  ¡usted puede hacer caso omiso de los nombres definidos en la
-	  directiva using como si estos hubiesen sido declarados
-	  globalmente para ese rango!
+	  Hay un aspecto de la directiva <kw>using</kw> que podría
+	  parecer poco intuitivo al principio. La visibilidad de los
+	  nombres introducidos con una directiva <kw>using</kw> es el
+	  rango en el que se crea la directiva. Pero ¡puede hacer caso
+	  omiso de los nombres definidos en la directiva
+	  <kw>using</kw> como si estos hubiesen sido declarados
+	  globalmente para ese ámbito!
 	</para>
 
 
 
 //: V1C10:NamespaceOverriding1.cpp
 
-	
-	<!--
-	Suppose you have a second namespace that contains some of the names in namespace Math:
-	-->
+
+	<!-- Suppose you have a second namespace that contains some of
+	the names in namespace Math: -->
 
 	<para>
 	  Suponga que tiene un segundo espacio de nombres que contiene
-	  algunos nombres de namespace Math:
+	  algunos nombres en <code>namespace Math</code>:
 	</para>
-	
-	
+
+
 
 //: V1C10:NamespaceOverriding2.h
 
-	
+
 	<!-- Since this namespace is also introduced with a using
 	directive, you have the possibility of a collision. However, the
 	ambiguity appears at the point of use of the name, not at the
 	using directive: -->
 
 	<para>
-	  Puesto que este espacio de nombres también se introduce con
-	  una directiva using, existe la posibilidad de tener una
-	  colisión. De todos modos, la ambigüedad aparece en el momento de
-	  utilizar el nombre, no en la directiva using:
+	  Dado que este espacio de nombres también se introduce con
+	  una directiva <kw>using</kw>, existe la posibilidad de tener
+	  una colisión. De todos modos, la ambigüedad aparece en el
+	  momento de utilizar el nombre, no en la directiva
+	  <kw>using</kw>:
 	</para>
 
 
 
 //: V1C10:OverridingAmbiguity.cpp
 
-	
+
 	<!-- Thus, it's possible to write using directives to introduce
 	a number of namespaces with conflicting names without ever
 	producing an ambiguity.-->
 
 	<para>
-	  Por tanto, es posible escribir directivas using para
-	  introducir un número de espacios de nombre con nombres
+	  Por tanto, es posible escribir directivas <kw>using</kw>
+	  para introducir un número de espacios de nombre con nombres
 	  conflictivos sin producir ninguna ambigüedad.
 	</para>
       </sect3>
 
       <sect3>
-	<title>La declaración using</title>
-	
+	<title>La declaración <kw>using</kw></title>
+
 	<!--You can inject names one at a time into the current scope
 	with a using declaration. Unlike the using directive, which
 	treats names as if they were declared globally to the scope, a
@@ -1165,18 +1237,19 @@
 	-->
 
 	<para>
-	  Usted puede inyectar nombres de uno en uno en el rango actual
-	  utilizando una declaración using.  A diferencia de la directiva
-	  using, que trata los nombres como si hubiesen sido declarados
-	  globalmente para ese rango, una declaración using es una
-	  declaración dentro del rango actual. Esto significa que puede
-	  sobrescribir nombres de una directiva using:
+	  Puede inyectar nombres de uno en uno en el ámbito actual
+	  utilizando una declaración <kw>using</kw>.  A diferencia de
+	  la directiva <kw>using</kw>, que trata los nombres como si
+	  hubiesen sido declarados globalmente para ese ámbito, una
+	  declaración <kw>using</kw> es una declaración dentro del
+	  ámbito actual. Eso significa que puede sobrescribir nombres
+	  de una directiva <kw>using</kw>:
 	</para>
-	
+
 
 //: V1C10:UsingDeclaration.h
 
-	
+
 	<!-- The using declaration just gives the fully specified name
 	of the identifier, but no type information.  This means that if
 	the namespace contains a set of overloaded functions with the
@@ -1194,39 +1267,39 @@
 	A using declaration can also appear within a namespace, and it
 	has the same effect as anywhere else - that name is declared
 	within the space: -->
-	
+
 	<para>
-	  La declaración using simplemente da completamente especificado
-	  el nombre del identificador pero no da información de tipo. Esto
-	  significa que si el espacio de nombres contiene un grupo de
-	  funciones sobrecargadas con el mismo nombre, la declaración
-	  using declara todas las funciones pertenecientes al grupo
-	  sobrecargado.
+	  La declaración <kw>using</kw> simplemente da el nombre
+	  completamente especificado del identificador pero no da
+	  información de tipo. Eso significa que si el espacio de
+	  nombres contiene un grupo de funciones sobrecargadas con el
+	  mismo nombre, la declaración <kw>using</kw> declara todas
+	  las funciones pertenecientes al grupo sobrecargado.
 	</para>
 
 	<para>
-	  Es posible poner una declaración using en cualquier sitio
-	  donde podría ponerse una declaración normal.  Una declaración
-	  using trabaja de la misma manera que cualquier declaración
-	  normal salvo por un aspecto: puesto que no se le da ninguna
-	  lista de argumentos, una declaración using puede provocar la
-	  sobrecarga de una función con los mismos tipos de argumentos
-	  (cosa que no está permitida por el procedimiento de sobrecarga
-	  normal). De todas formas, esta ambigüedad no se muestra hasta
-	  el momento de uso, no apareciendo en el instante de
-	  declaración.
+	  Es posible poner una declaración <kw>using</kw> en cualquier
+	  sitio donde podría ponerse una declaración normal.  Una
+	  declaración <kw>using</kw> funciona de la misma forma que
+	  cualquier declaración normal salvo por un aspecto: puesto
+	  que no se le da ninguna lista de argumentos, una declaración
+	  <kw>using</kw> puede provocar la sobrecarga de una función
+	  con los mismos tipos de argumentos (cosa que no está
+	  permitida por el procedimiento de sobrecarga normal). De
+	  todas formas, esta ambigüedad no se muestra hasta el momento
+	  de uso, no apareciendo en el instante de declaración.
 	</para>
-	
+
 	<para>
-	  Una declaración using puede también aparecer dentro de un
+	  Una declaración <kw>using</kw> puede también aparecer dentro de un
 	  espacio de nombres y tiene el mismo efecto que en cualquier otro
 	  lugar (ese nombre se declara dentro del espacio):
 	</para>
-	
+
 
 //: V1C10:UsingDeclaration2.cpp
 
-	
+
 	<!-- A using declaration is an alias, and it allows you to
 	declare the same function in separate namespaces. If you end up
 	re-declaring the same function by importing different
@@ -1234,12 +1307,11 @@
 	duplications.-->
 
 	<para>
-	  Una declaración using es un alias. Le permite declarar la
-	  misma función en espacios de nombre diferentes. Si acaba
+	  Una declaración <kw>using</kw> es un alias. Le permite declarar la
+	  misma función en espacios de nombres diferentes. Si acaba
 	  redeclarando la misma función importando diferentes espacios de
 	  nombres no hay problema, no habrá ambigüedades o duplicados.
 	</para>
-	
       </sect3>
     </sect2>
 
@@ -1262,62 +1334,71 @@
       simple matter to change that file so that it uses explicit
       qualifications or using declarations to eliminate the clash,
       without modifying other implementation files.
+      -->
 
-      Header files are a different issue. You virtually never want to
-      introduce a global using directive into a header file, because
-      that would mean that any other file that included your header
-      would also have the namespace thrown open (and header files can
-      include other header files).
-
-      So, in header files you should either use explicit
-      qualification or scoped using directives and using
-      declarations. This is the practice that you will find in this
-      book, and by following it you will not "pollute" the
-      global namespace and throw yourself back into the
-      pre-namespace world of C++.  -->
-	    
       <para>
 	Algunas de las reglas de arriba pueden parecer un poco
 	desalentadoras al principio, especialmente si tiene la impresión
 	que las utilizará constantemente. No obstante, en general es
 	posible salir airoso con el uso de espacios de nombres
 	fácilmente siempre y cuando comprenda como funcionan. La clave a
-	recordar es que cuando introduce una directiva using global (vía
+	recordar es que cuando introduce una directiva <kw>using</kw> global (vía
 	"using namespace" fuera de cualquier rango) usted ha abierto el
 	espacio de nombres para ese archivo. Esto suele estar bien para
 	un archivo de implementación (un archivo "cpp") porque la
-	directiva using sólo afecta hasta el final de la compilación de
+	directiva <kw>using</kw> sólo afecta hasta el final de la compilación de
 	dicho archivo. Es decir, no afecta a ningún otro archivo, de
 	forma que puede ajustar el control de los espacios de nombres
 	archivo por archivo.  Por ejemplo, si usted descubre un cruce de
-	nombres debido a que hay demasiadas directivas using en un
+	nombres debido a que hay demasiadas directivas <kw>using</kw> en un
 	archivo de implementación particular, es una cuestión simple
 	cambiar dicho archivo para que use calificaciones explícitas o
-	declaraciones using para eliminar el cruce sin tener que
+	declaraciones <kw>using</kw> para eliminar el cruce sin tener que
 	modificar ningún otro archivo de implementación.
       </para>
-      
+
+      <!--
+      Header files are a different issue. You virtually never want to
+      introduce a global using directive into a header file, because
+      that would mean that any other file that included your header
+      would also have the namespace thrown open (and header files can
+      include other header files).
+      -->
       <para>
-	Los archivos de cabecera ya son otra historia. Usted
-	virtualmente nunca querrá introducir una directiva using global en
-	un archivo de cabecera, puesto que eso significaría que cualquier
-	otro archivo que incluyese la cabecera también tendría el espacios
-	de nombres desplegado (y un archivo de cabecera puede incluir
-	otros archivos de cabecera).
+	Los ficheros de cabecera ya son otra historia. Prácticamente
+	nunca querrá introducir una directiva <kw>using</kw> global en
+	un fichero de cabecera, puesto que eso significaría que
+	cualquier otro archivo que incluyese la cabecera también
+	tendría el espacio de nombres desplegado (y un fichero de
+	cabecera puede incluir otros ficheros de cabecera).
       </para>
 
+
+      <!--
+      So, in header files you should either use explicit
+      qualification or scoped using directives and using
+      declarations. This is the practice that you will find in this
+      book, and by following it you will not "pollute" the
+      global namespace and throw yourself back into the
+      pre-namespace world of C++.
+      -->
       <para>
-	Por tanto, en los archivos de cabecera debería utilizar o bien
-	calificaciones explícitas o bien directivas using bajo rango o
-	declaraciones using. Este es el método que encontrará en este
-	libro.  Siguiendo esta metodología no "contaminará" el espacios de
-	nombres global, volviendo al mundo pre-espacios de nombres de C++.
+	Por tanto, en los ficheros de cabecera debería utilizar o bien
+	cualificación explícita o bien directivas <kw>using</kw> de
+	ámbito y declaraciones <kw>using</kw>. Éste es el método que
+	encontrará en este libro. Siguiendo esta metodología no
+	<quote>contaminará</quote> el espacio de nombres global, que
+	implicaría volver al mundo pre-espacios de nombres de C++.
       </para>
     </sect2>
   </sect1>
 
+
+<!-- revisando por aquí: David Villa -->
+
+
   <sect1>
-    <title>Miembros estáticos en C++</title> 
+    <title>Miembros estáticos en C++</title>
 
     <!--There are times when
     you need a single storage space to be used by all objects of a
@@ -1327,15 +1408,16 @@
     the data could be stored as if it were global, but be hidden inside
     a class, and clearly associated with that class.
     -->
-	
+
     <para>
-      Hay veces en las que necesita un único espacio de almacenamiento
-      para ser utilizado por todos los objetos de una clase. En C, usted
-      utilizaría una variable global pero eso no es muy seguro. Los datos
-      globales pueden ser modificados por todo el mundo y su nombre puede
-      cruzarse con otros idénticos en un proyecto grande. Sería ideal si
-      los datos pudiesen ser almacenados como si fuesen globales pero
-      ocultos dentro de una clase y claramente asociado con esa clase.
+      A veces se necesita un único espacio de almacenamiento para
+      utilizado por todos los objetos de una clase. En C, podría usar
+      una variable global pero eso no es muy seguro. Los datos
+      globales pueden ser modificados por todo el mundo y su nombre
+      puede chocar con otros idénticos si es un proyecto grande. Sería
+      ideal si los datos pudiesen almacenarse como si fuesen
+      globales pero ocultos dentro de una clase y claramente asociados
+      con esa clase.
     </para>
 
     <!--
@@ -1348,94 +1430,96 @@
     be public, private, or protected.  -->
 
     <para>
-      Esto es posible con los datos miembros static dentro de una
-      clase. Existe una única porción de espacio para los datos miembros
-      static, independientemente del número de objetos de dicha clase que
-      se hayan creado. Todos los objetos comparten el mismo espacio de
-      almacenamiento static para ese dato miembro, constituyendo una forma
-      de "comunicarse" entre ellos. Pero los datos static pertenecen a la
-      clase; su nombre está restringido al interior de la clase y puede
-      ser public, private o protected.
+      Esto es posible usando atributos <kw>static</kw>. Existe una
+      única porción de espacio para los atributos <kw>static</kw>,
+      independientemente del número de objetos de dicha clase que se
+      hayan creado. Todos los objetos comparten el mismo espacio de
+      almacenamiento <kw>static</kw> para ese atributo, constituyendo
+      una forma de <quote>comunicarse</quote> entre ellos. Pero los
+      datos <kw>static</kw> pertenecen a la clase; su nombre está
+      restringido al interior de la clase y puede ser <kw>public</kw>,
+      <kw>private</kw> o <kw>protected</kw>.
     </para>
 
     <sect2>
-      <title>Definición del almacenamiento para miembros de datos
-	estáticos</title>
-      
+      <title>Definición del almacenamiento para atributos estáticos</title>
+
       <!-- Because static data has a single piece of storage
       regardless of how many objects are created, that storage must be
       defined in a single place. The compiler will not allocate storage
       for you. The linker will report an error if a static data member
       is declared but not defined.
-      
+      -->
+
+      <para>
+	Puesto que los datos <kw>static</kw> tienen una única porción
+	de memoria donde almacenarse, independientemente del número de
+	objetos creados, esa porción debe ser definida en un único
+	sitio.  El compilador no reservará espacio de almacenamiento
+	por usted. El enlazador reportará un error si un atributo
+	miembro es declarado pero no definido.
+      </para>
+
+      <!--
       The definition must occur outside the class (no inlining is
       allowed), and only one definition is allowed. Thus, it is common
       to put it in the implementation file for the class. The syntax
       sometimes gives people trouble, but it is actually quite
       logical. For example, if you create a static data member inside a
-      class like this: -->
-
-      <para>
-	Puesto que los datos static tienen una única porción de memoria
-	donde almacenarse, independientemente del número de objetos
-	creados, esa porción debe ser definida en un único sitio.  El
-	compilador no reservará espacio de almacenamiento por usted. El
-	enlazador reportará un error si un dato estático miembro es
-	declarado pero no definido.
-      </para>
-
+      class like this:
+      -->
       <para>
 	La definición debe realizarse fuera de la clase (no se permite
-	el uso de la sentencia inline), y sólo está permitida una
-	definición. Es por ello que habitualmente se incluye en el archivo
-	de implementación para la clase. La sintaxis suele traer
-	problemas, pero en realidad es bastante lógica. Por ejemplo, si
-	crea un dato estático miembro dentro de una clase de la siguiente
-	forma:
+	el uso de la sentencia <kw>inline</kw>), y sólo está permitida
+	una definición. Es por ello que habitualmente se incluye en el
+	fichero de implementación de la clase. La sintaxis suele traer
+	problemas, pero en realidad es bastante lógica. Por ejemplo,
+	si crea un atributo estático dentro de una clase de la
+	siguiente forma:
       </para>
-            
-      <programlisting>
-      class A {
- 	   static int i;
-	  public:
-	    //...
-	  }; 
-      </programlisting>
-      
+
+<programlisting>
+class A {
+  static int i;
+public:
+  //...
+};
+</programlisting>
+
       <!-- Then you must define storage for that static data member in
       the definition file like this: -->
 
       <para>
-	Deberá definir el almacenamiento para ese dato estático miembro
-	en el archivo de definición de la siguiente manera:
+	Deberá definir el almacenamiento para ese atributo estático en
+	el fichero de definición de la siguiente manera:
       </para>
 
 
       <programlisting>
-	  int A::i = 1;
+	int A::i = 1;
       </programlisting>
-      
+
       <!--
       If you were to define an ordinary global variable, you would say
       -->
 
       <para>
-	Si usted desease definir una variable global ordinaria, debería
+	Si quisiera definir una variable global ordinaria, debería
 	utilizar
       </para>
-      
+
       <programlisting>
 	int i = 1;
       </programlisting>
-      
+
       <!-- but here, the scope resolution operator and the class name
       are used to specify A::i.  -->
-	  
+
       <para>
-	pero aquí, el operador de resolución de rango y el nombre de la
-	  clase se utilizar para especificar A::i.
+	pero aquí, el operador de resolución de ámbito y el nombre de
+	la clase se utilizan para especificar <code>A::i</code>.
       </para>
-	  
+
       <!-- Some people have trouble with the idea that A::i is private,
       and yet here's something that seems to be manipulating it right
       out in the open. Doesn't this break the protection mechanism? It's
@@ -1448,42 +1532,46 @@
       creator is forced to create the definition or the code won't link
       during testing. This ensures that the definition happens only once
       and that it's in the hands of the class creator.
-     
+
       The entire initialization expression for a static member is in the
-      scope of the class. For example, -->
+      scope of the class. For example,
+      -->
 
       <para>
-	Algunas personas tienen problemas con la idea que A::i es
-	private, y pese a ello parece haber algo que lo está manipulando
-	abiertamente. ¿No rompe esto el mecanismo de protección? Esta es
-	una práctica completamente segura por dos razones. Primera, el
-	único sitio donde esta inicialización es legal es en la
-	definición. Efectivamente, si el dato static fuese un objeto con
-	un constructor, habría llamado al constructor en lugar de utilizar
-	el operador =. Segundo, una vez se ha realizado la definición, el
-	usuario final no puede hacer una segunda definición puesto que el
-	enlazador daría error. Y el creador de la clase está forzado a
-	crear la definición o el código no enlazaría en las pruebas. Esto
-	asegura que la definición sólo sucede una vez y que es el creador
-	de la clase quien la lleva a cabo.
+	Algunas personas tienen problemas con la idea que
+	<code>A::i</code> es <kw>private</kw>, y pese a ello parece
+	haber algo que lo está manipulando abiertamente. ¿No rompe
+	esto el mecanismo de protección? Ésta es una práctica
+	completamente segura por dos razones. Primera, el único sitio
+	donde esta inicialización es legal es en la
+	definición. Efectivamente, si el dato <kw>static</kw> fuese un
+	objeto con un constructor, habría llamado al constructor en
+	lugar de utilizar el operador <oper>=</oper>. Segundo,
+	una vez se ha realizado la definición, el usuario final no
+	puede hacer una segunda definición puesto que el enlazador
+	indicaría un error. Y el creador de la clase está forzado a
+	crear la definición o el código no enlazaría en las
+	pruebas. Esto asegura que la definición sólo sucede una vez y
+	que es el creador de la clase quien la lleva a cabo.
       </para>
 
       <para>
-	La expresión completa de inicialización para un miembro estático
-	se realiza en el rango de la clase.  Por ejemplo,
+	La expresión completa de inicialización para un atributo
+	estático se realiza en el ámbito de la clase.  Por ejemplo,
       </para>
-     
+
 
 //: V1C10:Statinit.cpp
 
-      
-  
+
+
       <!-- Here, the qualification WithStatic:: extends the scope of
       WithStatic to the entire definition.  -->
-	  
+
       <para>
-	Aquí la cualificación WithStatic:: extiende el rango de
-	WithStatic a la definición completa.
+	Aquí el calificador <code>WithStatic::</code> extiende el
+	ámbito de <classname>WithStatic</classname> a la definición
+	completa.
       </para>
 
       <sect3>
@@ -1495,17 +1583,19 @@
 	non-const. The syntax is reasonably consistent: -->
 
 	<para>
-	  El capítulo 8 introdujo la variable static const que le
-	  permite definir un valor constante dentro del cuerpo de una
-	  clase. También es posible crear listas de objetos estáticos, tanto
-	  const como no const. La sintaxis es razonablemente consistente:
+	  El <link linkend="C08">capítulo 8</link> introdujo una
+	  variable <code>static const</code> que le permite definir un
+	  valor constante dentro del cuerpo de una clase. También es
+	  posible crear arrays de objetos estáticos, ya sean
+	  constantes o no constantes. La sintaxis es razonablemente
+	  consistente:
 	</para>
-     
+
 
 //: V1C10:StaticArray.cpp
 
-	
-	
+
+
 	<!-- With static consts of integral types you can provide the
 	definitions inside the class, but for everything else (including
 	arrays of integral types, even if they are static const) you
@@ -1513,43 +1603,46 @@
 	definitions have internal linkage, so they can be placed in
 	header files. The syntax for initializing static arrays is the
 	same as for any aggregate, including automatic counting.
-     
+
 	You can also create static const objects of class types and
 	arrays of such objects. However, you cannot initialize them
 	using the "inline syntax" allowed for static consts of
 	integral built-in types: -->
 
 	<para>
-	  Con static consts de tipo entero puede realizar las
-	  definiciones dentro de la clase, pero para cualquier otro tipo
-	  (incluyendo listas de enteros, incluso si estos son static
-	  const) deberá realizar una única definición externa para el
-	  miembro. Estas definiciones tienen enlazado interno, por lo
-	  que pueden incluirse en archivos de cabecera. La sintaxis para
+	  Usando <code>static const</code> de tipos enteros puede
+	  realizar las definiciones dentro de la clase, pero para
+	  cualquier otro tipo (incluyendo listas de enteros, incluso
+	  si estos son <code>static const</code>) debe realizar una
+	  única definición externa para el atributo. Estas
+	  definiciones tienen enlazado interno, por lo que pueden
+	  incluirse en ficheros de cabecera. La sintaxis para
 	  inicializar listas estáticas es la misma que para cualquier
-	  agregado, incluyendo el contado automático.
+	  agregado, incluyendo el conteo automático<literal
+	  role="FIXME">automatic counting</literal>.
 	</para>
 
 	<para>
-	  También puede crear objetos static const de tipos de clase y
-	  listas de dichos objetos. De todas formas, no puede inicializarlos
-	  utilizando la sintaxis tipo "inline" permitida para static consts
-	  de tipos enteros por defecto:
+	  También puede crear objetos <code>static const</code> de
+	  tipos de clase y listas de dichos objetos. De todas formas,
+	  no puede inicializarlos utilizando la sintaxis tipo
+	  <quote>inline</quote> permitida para <code>static
+	  const</code> de tipos enteros básicos:
 	</para>
-     
+
 
 
 //: V1C10:StaticObjectArrays.cpp
 
-	
-  
+
+
 	<!-- The initialization of both const and non-const static
 	arrays of class objects must be performed the same way,
 	following the typical static definition syntax.  -->
-	
-	<para> 
-	  La inicialización de listas estáticas de objetos de clase
-	  tanto const como no const debe ser realizada de la misma
+
+	<para>
+	  La inicialización de listas estáticas de objetos tanto
+	  constantes como no constantes debe realizarse de la misma
 	  manera, siguiendo la típica sintaxis de definición estática.
 	</para>
 
@@ -1567,36 +1660,36 @@
       function). Thus, -->
 
       <para>
-	Usted puede colocar fácilmente datos estáticos miembros en
-	clases que están anidadas dentro de otras clases. La definición
-	de tales miembros es intuitiva y obvía (tan sólo utiliza otro
-	nivel de resolución de rango). No obstante, usted no puede tener
-	datos estáticos miembros dentro de clases locales (una clase
-	local es una clase definida dentro de una función). Por tanto,
+	Puede colocar fácilmente atributos estáticos en clases que
+	están anidadas dentro de otras clases. La definición de tales
+	miembros es intuitiva y obvia (tan sólo utiliza otro nivel de
+	resolución de ámbito). No obstante, no puede tener atributos
+	estáticos dentro de clases locales (una clase local es una
+	clase definida dentro de una función). Por tanto,
       </para>
-      
+
 
 //: V1C10:Local.cpp
 
-	
-      
+
+
       <!-- You can see the immediate problem with a static member in a
       local class: How do you describe the data member at file scope in
       order to define it? In practice, local classes are used very
       rarely.  -->
-      
+
       <para>
-	Ya puede ver el problema con miembros estáticos en clases
-	locales: ¿Cómo describirá el dato miembro en rango de archivo
-	para poder definirlo? En la práctica, el uso de clases locales
-	es muy poco común.
+	Ya puede ver el problema con atributos estáticos en clases
+	locales: ¿Cómo describirá el dato miembro en el ámbito del
+	fichero para poder definirlo? En la práctica, el uso de clases
+	locales es muy poco común.
       </para>
     </sect2>
 
     <sect2>
       <title>Métodos estáticos</title>
 
-      <!-- 
+      <!--
       You can also create static member functions that, like static
       data members, work for the class as a whole rather than for a
       particular object of a class. Instead of making a global function
@@ -1610,35 +1703,42 @@
       more typical to call a static member function by itself, without
       any specific object, using the scope-resolution operator, like
       this: -->
-	  
-	
+
+
       <para>
-	También puede crear funciones static miembro que, como los datos
-	static miembros, trabajan para la clase como un todo en lugar de
+	También puede crear métodos estáticos que, como los atributos
+	estáticos, trabajan para la clase como un todo en lugar de
 	para un objeto particular de la clase. En lugar de hacer una
-	función global que viva en y "contamine" el espacio de nombres
-	global o local, puede incluir la función dentro de la
-	clase. Cuando crea una función static miembro, está expresando
-	una asociación con una clase particular.
+	función global que viva en y <quote>contamine</quote> el
+	espacio de nombres global o local, puede incluir el método
+	dentro de la clase. Cuando crea un método estático, está
+	expresando una asociación con una clase particular.
       </para>
 
       <para>
-	Puede llamar a una función static miembro de forma ordinaria,
-	con el punto o la flecha, en asociación con un objeto. De todas
-	formas, es más típico llamar a las funciones static miembros por
-	si misma, sin especificar ningún objeto, utilizando el operador de
-	resolución de rango, como en el siguiente ejemplo:
+	Puede llamar a un miembro estáticos de la forma habitual, con
+	el punto o la flecha, en asociación con un objeto. De todas
+	formas, es más típico llamar a los métodos estáticos en si
+	mismos, sin especificar ningún objeto, utilizando el operador
+	de resolución de ámbito, como en el siguiente ejemplo:
       </para>
-      
+
 
 
 //: V1C10:SimpleStaticMemberFunction.cpp
 
-	  
+
       <!-- When you see static member functions in a class, remember
       that the designer intended that function to be conceptually
       associated with the class as a whole.
+      -->
+      <para>
+	Cuando vea métodos estáticos en una clase, recuerde que el
+	diseñador pretendía que esa función estuviese conceptualmente
+	asociada a la clase como un todo.
+      </para>
 
+      <!--
       A static member function cannot access ordinary data members, only
       static data members. It can call only other static member
       functions. Normally, the address of the current object (this) is
@@ -1648,100 +1748,112 @@
       global function because a static member function doesn't have the
       extra overhead of passing this.  At the same time you get the
       benefits of having the function inside the class.
+      -->
+      <para>
+	Un método estático no puede acceder a los atributos
+	ordinarios, sólo a los estáticos. Sólo puede llamar a otros
+	métodos estáticos. Normalmente, la dirección del objeto actual
+	(<kw>this</kw>) se pasa de forma encubierta cuando se llama a
+	cualquier método, pero un miembro <kw>static</kw> no tiene
+	<kw>this</kw>, que es la razón por la cual no puede acceder a
+	los miembros ordinarios.  Por tanto, se obtiene el ligero
+	incremento de velocidad proporcionado por una función global
+	debido a que un método estático no implica la carga extra de
+	tener que pasar <kw>this</kw>. Al mismo tiempo, obtiene los
+	beneficios de tener la función dentro de la clase.
+      </para>
 
+      <!--
       For data members, static indicates that only one piece of storage
       for member data exists for all objects of a class. This parallels
       the use of static to define objects inside a function to mean that
       only one copy of a local variable is used for all calls of that
       function.
+      -->
+      <para>
+	Para atributos, <kw>static</kw> indica que sólo existe un
+	espacio de memoria por atributo para todos los objetos de la
+	clase. Esto establece que el uso de <kw>static</kw> para
+	definir objetos dentro de una función significa que sólo se
+	utiliza una copia de una variable local para todas las
+	llamadas a esa función.
+      </para>
 
+
+      <!--
       Here's an example showing static data members and static member
       functions used together: -->
-	  
       <para>
-	Cuando vea funciones miembro estáticas en una clase, recuerde
-      que el diseñador pretendía que esa función estuviese
-      conceptualmente asociada a la clase como un todo.
-      </para>
-      
-      <para>
-	Una función miembro static no puede acceder a los datos miembro
-	ordinarios, sólo a los datos miembro static. Sólo puede llamar a
-	otras funciones miembro static. Normalmente, la dirección del
-	objeto actual (this) se pasa de forma encubierta cuando se llama
-	a cualquier función miembro, pero un miembro static no tiene
-	this, que es la razón por la cual no puede acceder a los
-	miembros ordinarios.  Por tanto, se obtiene el ligero incremento
-	de velocidad proporcionado por una función global debido a que
-	una función static miembro no lleva la carga extra de tener que
-	pasar this. Al mismo tiempo, obtiene los beneficios de tener la
-	función dentro de la clase.
-      </para>      
-
-      <para>
-	Para datos miembro, static indica que sólo existe un espacio de
-	memoria por dato miembro para todos los objetos de la
-	clase. Esto establece que el uso de static para definir objetos
-	dentro de una función significa que sólo se utiliza una copia de
-	una variable local para todas las llamadas a esa función.
-      </para>
-
-      <para>
-	Aquí se muestra un ejemplo mostrando datos miembro static y
-	funciones miembro static utilizadas conjuntamente:
+	Aquí aparece un ejemplo mostrando atributos y métodos
+	estáticos utilizados conjuntamente:
       </para>
 
 
 //: V1C10:StaticMemberFunctions.cpp
 
-      
+
       <!-- Because they have no this pointer, static member functions
       can neither access non-static data members nor call non-static
       member functions.
+      -->
+      <para>
+	Puesto que no tienen el puntero <kw>this</kw>, los métodos
+	estáticos no pueden acceder a atributos no estáticos ni llamar
+	a métodos no estáticos.
+      </para>
 
+      <!--
       Notice in main( ) that a static member can be selected using the
       usual dot or arrow syntax, associating that function with an
       object, but also with no object (because a static member is
       associated with a class, not a particular object), using the class
       name and scope resolution operator.
+      -->
+      <para>
+	Note el lector que en <function>main()</function> un miembro
+	estático puede seleccionarse utilizando la habitual sintaxis
+	de punto o flecha, asociando la función con el objeto, pero
+	también sin objeto (ya que un miembro estático está asociado
+	con una clase, no con un objeto particular), utilizando el
+	nombre de la clase y el operador de resolución de ámbito.
+      </para>
 
+      <!--
       Here's an interesting feature: Because of the way initialization
       happens for static member objects, you can put a static data
       member of the same class inside that class. Here's an example that
       allows only a single object of type Egg to exist by making the
       constructor private. You can access that object, but you can't
       create any new Egg objects: -->
-	  
+
       <para>
-	Puesto que no tienen el puntero this, las funciones miembro
-	static no pueden ni acceder a datos miembro no static ni llamar a
-	funciones miembro no static.
-      
-	Note el lector que en main() un miembro static puede
-	seleccionarse utilizando la habitual sintaxis de punto o flecha,
-	asociando la función con el objeto, pero también sin objeto (ya
-	que un miembro static está asociado con una clase, no con un
-	objeto particular), utilizando el nombre de la clase y el
-	operador de resolución de rango.
-      
-	He aquí una interesante característica: Debido a la forma en la
-	que se inicializan los objetos miembro static, es posible poner un
-	dato miembro static de la misma clase dento de dicha clase. He
-	aquí un ejemplo que tan solo permite la existencia de un único
-	objeto de tipo Egg definiendo el constructor privado. Puede
-	acceder a este objeto pero no puede crear ningún otro objeto tipo
-	Egg:
+	He aquí una interesante característica: Debido a la forma en
+	la que se inicializan los objetos miembro estáticos, es
+	posible poner un atributos estático de la misma clase dento de
+	dicha clase. He aquí un ejemplo que tan solo permite la
+	existencia de un único objeto de tipo
+	<classname>Egg</classname> definiendo el constructor
+	privado. Puede acceder a este objeto pero no puede crear
+	ningún otro objeto tipo <classname>Egg</classname>:
       </para>
-      
+
 
 //: V1C10:Singleton.cpp
 
 
-      
+
       <!-- The initialization for E happens after the class declaration
       is complete, so the compiler has all the information it needs to
       allocate storage and make the constructor call.
+      -->
+      <para>
+	La inicialización de <varname>e</varname> ocurre una vez se
+	completa la declaración de la clase, por lo que el compilador
+	tiene toda la información que necesita para reservar espacio y
+	llamar al constructor.
+      </para>
 
+      <!--
       To completely prevent the creation of any other objects, something
       else has been added: a second private constructor called the
       copy-constructor. At this point in the book, you cannot know why
@@ -1749,30 +1861,23 @@
       introduced until the next chapter.  However, as a sneak preview,
       if you were to remove the copy-constructor defined in the example
       above, you'd be able to create an Egg object like this: -->
-	  
-      
-      <para>
-	La inicialización de E acontece una vez se completa la
-      declaración de la clase, por lo que el compilador tiene toda la
-      información que necesita para reservar espacio y llamar al
-      constructor.
-      </para>
 
       <para>
-	Para prevenir completamente la creación de cualquier otro
+	Para impedir completamente la creación de cualquier otro
 	objeto, se ha añadido algo más: un segundo constructor privado
-	llamado copy-constructor. Llegados a este punto del libro, usted
-	no puede saber porque es esto necesario puesto que el
-	constructor copia no será estudiado hasta el capítulo
-	siguiente. De todas formas, como un breve adelanto, si se
-	propusiese retirar el constructor copia definido en el ejemplo
-	anterior, sería posible crear objetos Egg de la siguiente forma:
+	llamado <emphasis>constructor de copia</emphasis>. Llegados a
+	este punto del libro, usted no puede saber porqué esto es
+	necesario puesto que el constructor de copia no se estudiará
+	hasta el <link linkend="C11">siguiente capítulo</link>. De
+	todas formas, como un breve adelanto, si se propusiese retirar
+	el constructor de copia definido en el ejemplo anterior, sería
+	posible crear objetos Egg de la siguiente forma:
       </para>
-      
-      <programlisting>
-	  Egg e = *Egg::instance();
-	  Egg e2(*Egg::instance());
-      </programlisting>
+
+<programlisting>
+Egg e = *Egg::instance();
+Egg e2(*Egg::instance());
+</programlisting>
 
       <!-- Both of these use the copy-constructor, so to seal off that
       possibility the copy-constructor is declared as private (no
@@ -1781,121 +1886,131 @@
       copy-constructor so it should become clear to you then.  -->
 
       <para>
-	Ambos utilizan el constructor copia, por lo que para evitar esta
-	posibilidad, se declara el constructor copia como privado (no se
-	requiere definición porque nunca va a ser llamado). Buena parte
-	del siguiente capítulo es una discusión sobre el constructor
-	copia por lo que esto quedará más claro entonces.
+	Ambos utilizan el constructor de copia, por lo que para evitar
+	esta posibilidad, se declara el constructor de copia como
+	privado (no se requiere definición porque nunca va a ser
+	llamado). Buena parte del siguiente capítulo es una discusión
+	sobre el constructor de copia por lo que esto quedará más
+	claro entonces.
       </para>
     </sect2>
   </sect1>
 
   <sect1>
-    <title>FIXME static initialization dependency</title>
+    <title>Dependencia en la inicialización de variables
+      estáticas</title>
 
     <!-- Within a specific translation unit, the order of initialization
     of static objects is guaranteed to be the order in which the object
     definitions appear in that translation unit. The order of
     destruction is guaranteed to be the reverse of the order of
     initialization.
-
-    However, there is no guarantee concerning the order of
-    initialization of static objects across translation units, and the
-    language provides no way to specify this order. This can cause
-    significant problems. As an example of an instant disaster (which
-    will halt primitive operating systems and kill the process on
-    sophisticated ones), if one file contains -->
-	
+    -->
     <para>
       Dentro de una unidad de traducción específica, está garantizado
       que el orden de inicialización de los objetos estáticos será el
       mismo que el de aparición de sus definiciones en la unidad de
       traducción.
     </para>
-    
+
+    <!--
+    However, there is no guarantee concerning the order of
+    initialization of static objects across translation units, and the
+    language provides no way to specify this order. This can cause
+    significant problems. As an example of an instant disaster (which
+    will halt primitive operating systems and kill the process on
+    sophisticated ones), if one file contains -->
     <para>
-      No obstante, no hay garantías sobre el orden en que se inicializan
-      los objetos estáticos entre (FIXME:translation units:unidades de
-      traducción), y el lenguaje no provee ninguna forma de
+      No obstante, no hay garantías sobre el orden en que se
+      inicializan los objetos estáticos entre diferentes unidades de
+      traducción, y el lenguaje no proporciona ninguna forma de
       averiguarlo. Esto puede producir problemas significativos. Como
-      ejemplo de desastre posible(que provocará el cuelgue de sistemas
-      operativos primitivos o la necesidad de matar el proceso en otros
-      más sofisticados), si un archivo contiene
+      ejemplo de desastre posible (que provocará el cuelgue de
+      sistemas operativos primitivos o la necesidad de matar el
+      proceso en otros más sofisticados), si un archivo contiene:
     </para>
-      
+
 
 //: V1C10:Out.cpp
 
-	
+
     <!--
     and another file uses the out object in one of its initializers
     -->
-	
+
     <para>
-      y otro archivo utiliza el objeto out en uno de sus inicializadores
+      y otro archivo utiliza el objeto <varname>out</varname> en uno
+      de sus inicializadores
     </para>
 
 
 //: V1C10:Oof.cpp
 
 
-	
+
     <!-- the program may work, and it may not. If the programming
     environment builds the program so that the first file is initialized
     before the second file, then there will be no problem. However, if
     the second file is initialized before the first, the constructor for
     Oof relies upon the existence of out, which hasn't been constructed
     yet and this causes chaos.
+    -->
+    <para>
+      el programa puede funcionar, o puede que no. Si el entorno de
+      programación construye el programa de forma que el primer
+      archivo sea inicializado después del segundo, no habrá
+      problemas. Pero si el segundo archivo se inicializa antes que el
+      primero, el constructor para <classname>Oof</classname> se
+      sustenta en la existencia de <varname>out</varname>, que todavía
+      no ha sido construido, lo que causa el caos.
+    </para>
 
+    <!--
     This problem only occurs with static object initializers that depend
     on each other. The statics in a translation unit are initialized
     before the first invocation of a function in that unit - but it
     could be after main( ). You can't be sure about the order of
     initialization of static objects if they're in different files.
+    -->
+    <para>
+      Este problema sólo ocurre con inicializadores de objetos
+      estáticos que dependen el uno del otro. Los estáticos dentro de
+      cada unidad de traducción son inicializados antes de la primera
+      invocación a cualquier función de esa unidad, aunque puede que
+      después de <function>main()</function>. No puede estar seguro
+      del orden de inicialización de objetos estáticos si están en
+      archivos diferentes.
+    </para>
 
+
+    <!--
+    FIXME: referencia bibliográfica
     A subtler example can be found in the ARM.[47] In one file you have
-    at the global scope: -->
-	
+    at the global scope:
+    -->
     <para>
-      el programa puede funcionar, o puede que no. Si el entorno de
-      programación monta el programa de forma que el primer archivo sea
-      inicializado despues del segundo, no habrá problemas. Pero si el
-      segundo archivo se inicializa antes que el primero, el constructor
-      para Oof se sustenta en la existencia de out, que todavía no ha
-      sido construido, lo que causa el caos.
-    </para>
-
-    <para>
-      Este problema sólo ocurre con inicializadores de objetos estáticos
-      que dependen el uno del otro. Los estáticos dentro de cada unidad
-      de traducción son inicializados antes de la primera invocación a
-      cualquier función de esa unidad, aunque puede que despues de
-      main(). No puede estar seguro del orden de inicialización de
-      objetos estáticos si están en archivos diferentes.
-    </para>
-
-    <para>
-      Un ejemplo sutil puede encontrarse en ARM.[47] en un archivo que
+      Un ejemplo sutil puede encontrarse en ARM.<footnote><para>Bjarne
+	  Stroustrup and Margaret Ellis, The Annotated C++ Reference Manual,
+	  Addison-Wesley, 1990, pp. 20-21.</para></footnote> en un archivo que
       aparece en el rango global:
     </para>
-    
-    <programlisting>
-	extern int y;
-	int x = y + 1;
-    </programlisting>
+
+<programlisting>
+extern int y;
+int x = y + 1;
+</programlisting>
 
     <!--
     and in a second file you have at the global scope:
     -->
-	
     <para>
-      y en un segundo archivo también en el rango global:
+      y en un segundo archivo también en el ámbitoglobal:
     </para>
-    
-    <programlisting>
-	extern int x;
-	int y = x + 1;
-    </programlisting>
+
+<programlisting>
+extern int x;
+int y = x + 1;
+</programlisting>
 
 
     <!-- For all static objects, the linking-loading mechanism
@@ -1910,27 +2025,24 @@
     two. However, if the files are initialized in the opposite order, x
     is statically initialized to zero, y is dynamically initialized to
     one, and x then becomes two.
-
-    Programmers must be aware of this because they can create a program
-    with static initialization dependencies and get it working on one
-    platform, but move it to another compiling environment where it
-    suddenly, mysteriously, doesn't work.  -->
-    
+    -->
     <para>
       Para todos los objetos estáticos, el mecanismo de carga-enlazado
       garantiza una inicialización estática a cero antes de la
       inicialización dinámica especificada por el programador. En el
       ejemplo anterior, la inicialización a cero de la zona de memoria
-      ocupada por el objeto fstream out no tiene especial relevancia,
-      por lo que está realmente indefinido hasta que se llama al
-      constructor. Pese a ello, en el caso de los tipos predefinidos, la
-      inicialización a cero sí tiene importancia, y si los archivos son
-      inicializados en el orden mostrado arriba, y empieza estáticamente
-      inicializada a cero, por lo que x se convierte en uno, e y es
-      dinámicamente inicializada a dos. Pero si los archivos fuesen
-      inicializados en orden opuesto, x sería estáticamente inicializada
-      a cero, y dinámicamente inicializada a uno y despues, x pasaría a
-      valer dos.
+      ocupada por el objeto <code>fstream out</code> no tiene especial
+      relevancia, por lo que realmente no está definido hasta que se
+      llama al constructor. Pese a ello, en el caso de los tipos
+      predefinidos, la inicialización a cero sí tiene importancia, y
+      si los archivos son inicializados en el orden mostrado arriba, y
+      empieza estáticamente inicializada a cero, por lo que
+      <varname>x</varname> se convierte en uno, e <varname>y</varname>
+      es dinámicamente inicializada a dos. Pero si los archivos fuesen
+      inicializados en orden opuesto, <varname>x</varname> sería
+      estáticamente inicializada a cero, <varname>y</varname>
+      dinámicamente inicializada a uno y después, <varname>x</varname>
+      pasaría a valer dos.
     </para>
 
     <!--
@@ -1943,7 +2055,7 @@
     <para>
       Los programadores deben estar al tanto de esto porque puede darse
       el caso de crear un programa con dependencias de inicialización
-      estáticas que funciones en una plataforma determinada y, de golpe
+      estáticas que funcionen en una plataforma determinada y, de golpe
       y misteriosamente, compilarlo en otro entorno y que deje de
       funcionar.
     </para>
@@ -1953,46 +2065,77 @@
       <!--
       There are three approaches to dealing with this problem:
 
-  		1. Don't do it. Avoiding static initialization dependencies is the best solution.
- 	  	2. If you must do it, put the critical static object definitions in a single file, so you can 
- 	  	portably control their initialization by putting them in the correct order.
-		3. If you're convinced it's unavoidable to scatter static objects across translation units - as 
-		in the case of a library, where you can't control the programmer who uses it - there are two 
-		programmatic techniques to solve the problem.
+      1. Don't do it. Avoiding static initialization dependencies is the best solution.
+      2. If you must do it, put the critical static object definitions
+      in a single file, so you can
+      portably control their initialization by putting them in the correct order.
+      3. If you're convinced it's unavoidable to scatter static
+      objects across translation units - as in the case of a library,
+      where you can't control the programmer  who uses it - there are
+      two programmatic techniques to solve the problem.
+      -->
 
+      <para>
+	Existen tres aproximaciones para tratar con este problema:
+      </para>
+
+      <orderedlist>
+	<listitem>
+	  <para>
+	    No hacerlo. Evitar las dependencias de inicialización
+	    estática es la mejor solución.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Si debe hacerlo, coloque las definiciones de objetos
+	    estáticos críticos en un único fichero, de forma que pueda
+	    controlar, de forma portable, su inicialización
+	    colocándolos en el orden correcto.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Si está convencido que es inevitable dispersar objetos
+	    estáticos entre unidades de traducción diferentes (como
+	    en el caso de una librería, donde no puede controlar el
+	    programa que la usa), hay dos técnicas de programación
+	    para solventar el problema.
+	  </para>
+	</listitem>
+      </orderedlist>
+
+
+      <sect3>
+	<title>Técnica uno</title>
+
+      <!--
       Technique one This technique was pioneered by Jerry Schwarz
       while creating the iostream library (because the definitions
       for cin, cout, and cerr are static and live in a separate
       file). It's actually inferior to the second technique but it's
       been around a long time and so you may come across code that
       uses it; thus it's important that you understand how it works.
+      -->
+      <para>
+	  El pionero de esta técnica fue <author>
+	    <firstname>Jerry</firstname>
+	    <surname>Schwarz</surname></author> mientras creaba la
+	    librería <filename>iostream</filename> (puesto que las
+	    definiciones para <varname>cin</varname>,
+	    <varname>cout</varname> y <varname>cerr</varname> son
+	    <kw>static</kw> y residen en archivos
+	    diferentes). Realmente es inferior a la segunda técnica
+	    pero ha pululado durante mucho tiempo por lo que puede
+	    encontrarse con código que la utilice; así pues, es
+	    importante que entienda como funciona.
+      </para>
 
+      <!--
       This technique requires an additional class in your library header
       file. This class is responsible for the dynamic initialization
       of your library's static objects. Here is a simple example:
       -->
-
-      <para>
-	Existen tres aproximaciones para tratar con este problema:
-	  
-	  1. No hacerlo. Evitar las dependencias de inicialización estática es la mejor solución.
-	  2. Si lo debe hacer, coloque las definiciones de objetos estáticos críticos en una única línea,
-	  de forma que pueda controlar, de forma portable, su inicialización colocándolos en el orden correcto.
-	  3. Si está convencido que es inevitable dispersar objetos estáticos entre (FIXME:translation units:unidades de traducción)
-	  diferentes (como en el caso de una librería, donde no puede controlar el programa que la usa), 
-	  hay dos técnicas de programación para solventar el problema.
-      </para>  
-	
-      <para>
-	Técnica uno El pionero de esta técnica fue Jerry Schwarz
-	mientras creaba la librería iostream (puesto que las
-	definiciones para cin, cout y cerr son static y viven en
-	diferentes archivos). Realmente es inferior a la segunda
-	técnica pero ha pululado durante mucho tiempo por lo que puede
-	encontrarse con código que la utilice; así pues, es importante
-	que entienda como trabaja.
-      </para>
-      
       <para>
 	Esta técnica requiere una clase adicional en su archivo de
 	cabecera. Esta clase es la responsable de la inicialización
@@ -2001,39 +2144,40 @@
       </para>
 
 
-
-
 //: V1C10:Initializer.h
 
-      
+
       <!-- The declarations for x and y announce only that these objects
       exist, but they don't allocate storage for the objects. However,
       the definition for the Initializer init allocates storage for that
       object in every file where the header is included. But because the
-      name is static (controlling visibility this time, not the way
+      name is <kw>static</kw> (controlling visibility this time, not the way
       storage is allocated; storage is at file scope by default), it is
       visible only within that translation unit, so the linker will not
       complain about multiple definition errors.
 
       Here is the file containing the definitions for x, y, and initCount:
       -->
-	  
+
       <para>
-	Las declaraciones para x e y anuncian tan sólo que esos objetos
-	existen, pero no reservan espacio para los objetos. No obstante,
-	la definición para el Initializer init reserva espacio para ese
-	objeto en cada archivo en que se incluya el archivo de
-	cabecera. Pero como el nombre es static (en esta ocasión
-	controlando la visibilidad, no la forma en la que se almacena;
-	el almacenamiento se produce a nivel de archivo por defecto),
-	sólo es visible en esa unidad de traducción, por lo que el
-	enlazador no se quejará por múltiples errores de definición.
+	  Las declaraciones para <varname>x</varname> e
+	<varname>y</varname> anuncian tan sólo que esos objetos
+	existen, pero no reservan espacio para los objetos. No
+	obstante, la definición para el <code>Initializer init</code>
+	reserva espacio para ese objeto en cada archivo en que se
+	incluya el archivo de cabecera. Pero como el nombre es
+	<kw>static</kw> (en esta ocasión controlando la visibilidad,
+	no la forma en la que se almacena; el almacenamiento se
+	produce a nivel de archivo por defecto), sólo es visible en
+	esa unidad de traducción, por lo que el enlazador no se
+	quejará por múltiples errores de definición.
       </para>
 
       <para>
-	He aquí el archivo conteniendo las definiciones para x, y e initCount:
+	  He aquí el archivo con las definiciones para
+	  <varname>x</varname>, <varname>y</varname> e
+	  <varname>initCount</varname>:
       </para>
-
 
 
 //: V1C10:InitializerDefs.cpp
@@ -2042,22 +2186,19 @@
       <!-- (Of course, a file static instance of init is also placed in
       this file when the header is included.)  Suppose that two other
       files are created by the library user: -->
-	  
-      <para>
-	(Por supuesto, una instancia estática de archivo de init también
-	se incluye en este archivo cuando se incluye el archivo de
-	cabecera. Suponga que otros dos archivos son creados por la
-	librería de usuario:
+
+	<para>
+	  (Por supuesto, una instancia <emphasis>estática de
+	    fichero</emphasis> de <varname>init</varname> también se
+	    incluye en este archivo cuando se incluye el archivo de
+	    cabecera. Suponga que otros dos archivos se crean por
+	    la librería del usuario:
       </para>
-      
+
 
 //: V1C10:Initializer.cpp
 
-      
-      <!--
-      and
-      -->
-      
+
       <para>
 	y
       </para>
@@ -2066,7 +2207,7 @@
 //: V1C10:Initializer2.cpp
 
 
-      
+
       <!-- Now it doesn't matter which translation unit is initialized
       first. The first time a translation unit containing Initializer.h
       is initialized, initCount will be zero so the initialization will
@@ -2076,7 +2217,23 @@
       will be nonzero and the initialization will be skipped. Cleanup
       happens in the reverse order, and ~Initializer( ) ensures that it
       will happen only once.
-      
+	-->
+      <para>
+	Ahora no importa en qué unidad de traducción se inicializa
+	primero. La primera vez que una unidad de traducción que
+	contenga <filename>Initializer.h</filename> se inicialice,
+	<varname>initCount</varname> será cero por lo que la
+	inicialización será llevada a cabo. (Esto depende en gran
+	medida en el hecho que la zona de almacenamiento estático está
+	a cero antes de que cualquier inicialización dinámica se lleve
+	a cabo). Para el resto de unidades de traducción,
+	<varname>initCount</varname> no será cero y se eludirá la
+	inicialización. La limpieza ocurre en el orden inverso, y
+	<function>~Initializer()</function> asegura que sólo ocurrirá
+	una vez.
+      </para>
+
+	<!--
       This example used built-in types as the global static objects. The
       technique also works with classes, but those objects must then be
       dynamically initialized by the Initializer class. One way to do
@@ -2085,47 +2242,58 @@
       functions using different names. A more common approach, however,
       is to have pointers to objects and to create them using new inside
       Initializer( ).  -->
-
       <para>
-	Ahora no importa en qué unidad de traducción se inicializa
-	primero. La primera vez que una unidad de traducción que
-	contenga Initializer.h se inicialice, initCount será cero por lo
-	que la inicialización será llevada a cabo. (Esto depende en gran
-	medida en el hecho que la zona de almacenamiento estático está a
-	cero antes de que cualquier inicialización dinámica se lleve a
-	cabo). Para el resto de (FIXME:translation units:unidades de
-	traducción), initCount no será cero y se eludirá la
-	inicialización. La limpieza ocurre en el orden inverso, y
-	~Initializer() asegura que sólo ocurrirá una vez.
-      </para>
-      
-      <para>
-	Este ejemplo utiliza tipos por defecto como objetos globales
-	estáticos. Esta técnica también trabaja con clases, pero esos
+	Este ejemplo utiliza tipos del lenguaje como objetos estáticos
+	globales. Esta técnica también funciona con clases, pero esos
 	objetos deben ser inicializados dinámicamente por la clase
-	Initializer.  Una forma de hacer esto es creando clases sin
-	constructores ni destructores, pero sí con funciones miembro de
-	inicialización y limpieza utilizando nombres diferentes. Una
-	aproximación más común, de todas formas, es tener punteros a
-	objetos y crearlos utilizando new dentro de Initializer().
+	<classname>Initializer</classname>.  Una forma de hacer esto
+	es creando clases sin constructores ni destructores, pero sí
+	con métodos de inicialización y limpieza con nombres
+	diferentes. Una aproximación más común, de todas formas, es
+	tener punteros a objetos y crearlos utilizando <kw>new</kw>
+	  dentro de <function>Initializer()</function>.
       </para>
-      
-      <!--
-      Technique two
+      </sect3>
 
+      <sect3>
+	<!-- Technique two -->
+	<title>Técnica dos</title>
+
+      <!--
       Long after technique one was in use, someone (I don't know who)
       came up with the technique explained in this section, which is
       much simpler and cleaner than technique one. The fact that it took
       so long to discover is a tribute to the complexity of C++.
-      
-      This technique relies on the fact that static objects inside
+      -->
+      <para>
+	Bastante después de la aparición de la técnica uno, alguien
+	(no sé quien) llegó con la técnica explicada en esta sección,
+	que es mucho más simple y limpia que la anterior. El hecho de
+	que tardase tanto en descubrirse es un tributo a la
+	complejidad de C++.
+      </para>
+
+
+	<!--
+	This technique relies on the fact that static objects inside
       functions are initialized the first time (only) that the function
       is called. Keep in mind that the problem we're really trying to
       solve here is not when the static objects are initialized (that
       can be controlled separately) but rather making sure that the
       initialization happens in the proper order.
-      
-      This technique is very neat and clever. For any initialization
+	-->
+      <para>
+	Esta técnica se sustenta en el hecho de que los objetos
+	estáticos dentro de funciones (sólo) se inicializan la primera
+	vez que se llama a la función. Tenga presente que el problema
+	que estamos intentando resolver aquí no es cuando se
+	inicializan los objetos estáticos (que se puede controlar
+	separadamente) sino más bien asegurarnos de que la
+	inicialización ocurre en el orden adecuado.
+      </para>
+
+	<!--
+	 This technique is very neat and clever. For any initialization
       dependency, you place a static object inside a function that
       returns a reference to that object. This way, the only way you can
       access the static object is by calling the function, and if that
@@ -2135,61 +2303,45 @@
       place. The order of static initialization is guaranteed to be
       correct because of the design of the code, not because of an
       arbitrary order established by the linker.
-      
-      To set up an example, here are two classes that depend on each
+	-->
+      <para>
+	Esta técnica es muy limpia y astuta. Para cualquier
+	dependencia de inicialización, se coloca un objeto estático
+	dentro de una función que devuelve una referencia a ese
+	objeto. De esta forma, la única manera de acceder al objeto
+	estático es llamando a la función, y si ese objeto necesita
+	acceder a otros objetos estáticos de los que depende, debe
+	llamar a sus funciones. Y la primera vez que se llama a una
+	función, se fuerza a llevar a cabo la inicialización. Está
+	garantizado que el orden de la inicialización será correcto
+	debido al diseño del código, no al orden que arbitrariamente
+	decide el enlazador.
+      </para>
+
+	<!--
+	To set up an example, here are two classes that depend on each
       other. The first one contains a bool that is initialized only by
       the constructor, so you can tell if the constructor has been
       called for a static instance of the class (the static storage área
       is initialized to zero at program startup, which produces a false
-      value for the bool if the constructor has not been called): -->
-	  
+      value for the bool if the constructor has not been called):
+	-->
       <para>
-      Técnica dos
-      
-	Bastante despues de la aparición de la técnica uno, alguien (no
-	sé quien) llegó con la técnica explicada en esta sección, que es
-	mucho más simple y limpia que la anterior. El hecho que tardase
-	tanto en descubrirse es un tributo a la complejidad de C++.
-      </para>
-      
-      <para>
-	Esta técnica se sustenta en el hecho que los objetos estáticos
-	dentro de funciones (sólo) se inicializan la primera vez que se
-	llama a la función. Mantenga en mente que el problema que
-	estamos intentando resolver aquí no es cuando se inicializan los
-	objetos estáticos (que puede ser controlado separadamente) sino
-	más bien el asegurarnos que la inicialización acontece en el
-	orden adecuado.
-      </para>
-
-      <para>
-	Esta técnica es muy limpia y astuta. Para cualquier dependencia
-	de inicialización, usted coloca un objeto estático dentro de una
-	función que devuelve una referencia a ese objeto. De esta forma,
-	la única manera de acceder al objeto estático es llamando a la
-	función, y si ese objeto necesita acceder a otros objetos
-	estáticos de los que depende, debe llamar a sus funciones. Y la
-	primera vez que se llama a una función, se fuerza a llevar a
-	cabo la inicialización. Está garantizado que el orden de la
-	inicialización estática será correcto debido al diseño del
-	código, no al orden que arbitrariamente decide el enlazador.
-      </para>
-
-      <para>
-	Para mostrar un ejemplo, aquí tenemos dos clases que dependen la
-	una de la otra. La primera contiene un bool que sólo se
-	inicializa por el constructor, por lo que se puede decir si se
-	ha llamado el constructor por una instancia estática de la clase
-	(el área de almacenamiento estático se inicializa a cero al
-	inicio del programa, lo que produce un valor false para el bool
-	si el constructor no ha sido llamado)
+	  Para mostrar un ejemplo, aquí tenemos dos clases que
+	  dependen la una de la otra. La primera contiene un
+	  <type>bool</type> que sólo se inicializa por el constructor,
+	  por lo que se puede decir si se ha llamado el constructor
+	  por una instancia estática de la clase (el área de
+	  almacenamiento estático se inicializa a cero al inicio del
+	  programa, lo que produce un valor <kw>false</kw> para el
+	  <type>bool</type> si el constructor no ha sido llamado).
       </para>
 
 
 
 //: V1C10:Dependency1.h
 
-   
+
       <!-- The constructor also announces when it is being called, and
       you can print( ) the state of the object to find out if it has
       been initialized.
@@ -2198,16 +2350,15 @@
       class, which is what will cause the dependency: -->
 
       <para>
-	El constructor también indica cuando ha sido llamado, y usted
-	puede print() el estado del objeto para averiguar si ha sido
+	El constructor también indica cuando ha sido llamado, y es
+	posible el estado del objeto para averiguar si ha sido
 	inicializado.
       </para>
-      
+
       <para>
 	La segunda clase es inicializada por un objeto de la primera
 	clase, que es lo que causa la dependencia:
       </para>
-
 
 
 //: V1C10:Dependency2.h
@@ -2223,35 +2374,38 @@
       before the Dependency1 object. Then the order is reversed to show
       how it works correctly if the order happens to be "right."
       Lastly, technique two is demonstrated.  -->
-	  
+
       <para>
 	El constructor se anuncia a si mismo y imprime el estado del
-	objeto d1 por lo que puede ver si este se ha inicializado cuando
-	se llama al constructor.
+	  objeto <varname>d1</varname> por lo que puede ver si éste se
+	  ha inicializado cuando se llama al constructor.
       </para>
 
       <para>
-	Para demostrar lo que puede ir mal, el siguiente archivo primero
-	pone las definiciones de los objetos estáticos en el orden
-	incorrecto, tal y como sucedería si el enlazador inicializase el
-	objeto Dependency2 antes del Dependency1. Despues se invierte el
-	orden para mostrar como funciona correctamente si el orden
-	resulta ser el correcto. Finalmente, se muestra la técnica dos.
+	Para demostrar lo que puede ir mal, el siguiente archivo
+	primero pone las definiciones de los objetos estáticos en el
+	orden incorrecto, tal y como sucedería si el enlazador
+	inicializase el objeto <classname>Dependency2</classname>
+	antes del <classname>Dependency1</classname>. Después se
+	invierte el orden para mostrar que funciona correctamente si
+	el orden resulta ser el correcto. Finalmente, se muestra la
+	técnica dos.
       </para>
-	  
+
       <!-- To provide more readable output, the function separator( ) is
       created. The trick is that you can't call a function globally
       unless that function is being used to perform the initialization
       of a variable, so separator( ) returns a dummy value that is used
       to initialize a couple of global variables.  -->
-
       <para>
-	Para proveer una salida más legible, ha sido creada la función
-	separator(). El truco está en que usted no puede llamar a la
-	función globalmente a menos que la función sea utilizada para
-	llevar a cabo la inicialización de la variable, por lo que
-	separator() devuelve un valor absurdo que es utilizado para
-	inicializar un par de variables globales.
+	  Para proporcionar una salida más legible, se ha creado la
+	  función <function>separator()</function>. El truco está en
+	  que usted no puede llamar a la función globalmente a menos
+	  que la función sea utilizada para llevar a cabo la
+	  inicialización de la variable, por lo que
+	  <function>separator()</function> devuelve un valor absurdo
+	  que es utilizado para inicializar un par de variables
+	  globales.
       </para>
 
 
@@ -2264,7 +2418,20 @@
       static initialization on the first function call. This means that
       initialization is guaranteed to be correct, which you'll see when
       you run the program and look at the output.
+	-->
+      <para>
+	  Las funciones <function>d1()</function> y
+	<function>d2()</function> contienen instancias estáticas de
+	los objetos <classname>Dependency1</classname> y
+	<classname>Dependency2</classname>.  Ahora, la única forma de
+	acceder a los objetos estáticos es llamando a las funciones y
+	eso fuerza la inicialización estática en la primera llamada a
+	la función. Esto significa que se garantiza la inicialización
+	correcta, cosa que verá cuando lance el programa y observe la
+	salida.
+      </para>
 
+	<!--
       Here's how you would actually organize the code to use the
       technique. Ordinarily, the static objects would be defined in
       separate files (because you're forced to for some reason; remember
@@ -2272,39 +2439,29 @@
       the problem), so instead you define the wrapping functions in
       separate files. But they'll need to be declared in header files:
       -->
-	  
-      <para>
-	Las funciones d1() y d2() contienen instancias estáticas de los
-	objetos Dependency1 y Dependency2.  Ahora, la única forma de
-	acceder a los objetos estáticos es llamando a las funciones y
-	eso fuerza la inicialización estática en la primera llamada a la
-	función. Esto significa que se garantiza la correcta
-	inicialización, cosa que verá cuando lance el programa y observe
-	la salida.
-      </para>
-
       <para>
 	He aquí como debe organizar el código para usar esta
 	técnica. Ordinariamente, los objetos estáticos deben ser
-	definidos en archivos diferentes (puesto que se ha visto forzado
-	a ello por alguna razón; recuerde que definir objetos estáticos
-	en archivos diferentes es lo que causa el problema), por lo que
-	definirá las (FIXME:wrapping functions:funciones contenedoras)
-	en archivos diferentes. Pero estas necesitan ser declaradas en
-	los archivos de cabecera:
+	definidos en archivos diferentes (puesto que se ha visto
+	forzado a ello por alguna razón; recuerde que definir objetos
+	estáticos en archivos diferentes es lo que causa el problema),
+	por lo que definirá las funciones envoltorio <literal
+	role="FIXME">wrapping functions</literal>) en archivos
+	diferentes. Pero éstas necesitan estar declaradas en los
+	archivos de cabecera:
       </para>
-
 
 
 //: V1C10:Dependency1StatFun.h
 
-      
+
       <!-- Actually, the "extern" is redundant for the function
       declaration. Here's the second header file: -->
-	  
+
       <para>
-	En realidad, el "extern" es redundante para la declaración de la
-	función. Este es el segundo archivo de cabecera:
+	  En realidad, el <quote>extern</quote> es redundante para la
+	declaración de la función. Éste es el segundo archivo de
+	cabecera:
       </para>
 
 
@@ -2314,22 +2471,21 @@
       <!-- Now, in the implementation files where you would previously
       have placed the static object definitions, you instead place the
       wrapping function definitions: -->
-	  
+
       <para>
 	Ahora, en los archivos de implementación donde previamente
-	habría sitúado las definiciones de los objetos estáticos, sitúará
-	las definiciones de las (FIXME:wrapping functions:funciones
-	contenedoras):
+	habría situado las definiciones de los objetos estáticos, situará
+	las definiciones de las funciones envoltorio:
       </para>
 
 
 //: V1C10:Dependency1StatFun.cpp
 
 
-      <!--	  
+      <!--
       Presumably, other code might also be placed in these files. Here's the other file:
       -->
-	  
+
       <para>
 	Presumiblemente, otro código puede también componer esos
 	archivos. He aquí otro archivo:
@@ -2339,29 +2495,38 @@
 
 //: V1C10:Dependency2StatFun.cpp
 
-      
+
       <!-- So now there are two files that could be linked in any order
       and if they contained ordinary static objects could produce any
       order of initialization. But since they contain the wrapping
       functions, there's no threat of incorrect initialization: -->
-	  
       <para>
 	Ahora hay dos archivos que pueden ser enlazados en cualquier
 	orden y si contuviesen objetos estáticos ordinarios podría
-	producirse cualquier orden de inicialización. Pero como contienen
-	(FIXME:wrapping functions:funciones contenedoras), no hay
-	posibilidad de inicialización incorrecta:
+	producirse cualquier orden de inicialización. Pero como
+	contienen funciones envoltorio, no hay posibilidad de
+	inicialización incorrecta:
       </para>
 
 
 //: V1C10:Technique2b.cpp
 
-	  
+
       <!-- When you run this program you'll see that the initialization
       of the Dependency1 static object always happens before the
       initialization of the Dependency2 static object. You can also see
       that this is a much simpler approach than technique one.
+	-->
+      <para>
+	Cuando ejecute este programa verá que la inicialización del
+	  objeto estático <classname>Dependency1</classname> siempre
+	  se lleva a cabo antes de la inicialización del objeto
+	  estático <classname>Dependency2</classname>. También puede
+	  ver que ésta es una solución bastante más simple que la de
+	  la uno.
+      </para>
 
+	<!--
       You might be tempted to write d1( ) and d2( ) as inline functions
       inside their respective header files, but this is something you
       must definitely not do. An inline function can be duplicated in
@@ -2372,30 +2537,22 @@
       units, which would certainly cause problems.  So you must ensure
       that there is only one definition of each wrapping function, and
       this means not making the wrapping functions inline.  -->
-      
       <para>
-	Cuando ejecute este programa verá que la inicialización del
-	objeto estático Dependency1 siempre se lleva a cabo antes de la
-	inicialización del objeto estático Dependency2. También puede
-	ver que esta es una solución bastante más simple que la de la
-	técnica uno.
+	  Puede verse tentado a escribir <function>d1()</function> y
+	  <function>d2()</function> como funciones <kw>inline</kw>
+	  dentro de sus respectivos archivos de cabecera, pero eso es
+	  algo que, definitivamente, no debe hacer. Una función
+	  <kw>inline</kw> puede ser duplicada en cada archivo en el
+	  que aparezca y esa duplicación incluye la definición de los
+	  objetos estáticos. Puesto que las funciones <kw>inline</kw>
+	  llevan asociado por defecto enlazado interno, esto provocará
+	  la aparición de múltiples objetos estáticos entre las
+	  diversas unidades de traducción, lo que ciertamente causará
+	  problemas. Es por eso que debe asegurarse que sólo existe
+	  una única definición para cada función contenedora, y eso
+	  significa no hacerlas <kw>inline</kw>.
       </para>
-      
-      <para>
-	Puede verse tentado a escribir d1() y d2() como funciones inline
-	dentro de sus respectivos archivos de cabecera, pero eso es algo
-	que, definitivamente, no debe hacer. Una función inline puede
-	ser duplicada en cada archivo en el que aparezca y esa
-	duplicación incluye la definición de los objetos
-	estáticos. Puesto que las funciones inline llevan asociado por
-	defecto enlazado interno, esto provocará el tener múltiples
-	objetos estáticos entre las diversas (FIXME:translation units:
-	unidades de traducción), lo que ciertamente causará
-	problemas. Es por ello que debe asegurarse que sólo existe una
-	única definición para cada (FIXME:wrapping functions:funciones
-	contenedoras), y eso significa no hacer las (FIXME:wrapping
-	functions:funciones contenedoras) inline.
-      </para>
+      </sect3>
     </sect2>
   </sect1>
 
@@ -2406,109 +2563,111 @@
     use a C library? If you make the C function declaration, -->
 
     <para>
-      ¿Qué pasa si usted está escribiendo un programa en C++ y quiere
-      usar una librería de C? Si hace uso de la declaración de funciones
-      de C,
+      ¿Qué pasa si está escribiendo un programa en C++ y quiere usar
+      una librería de C? Si hace uso de la declaración de funciones de
+      C,
     </para>
 
     <programlisting>
 	float f(int a, char b);
     </programlisting>
-	    
+
     <!-- the C++ compiler will decorate this name to something like
     _f_int_char to support function overloading (and type-safe
     linkage). However, the C compiler that compiled your C library has
     most definitely not decorated the name, so its internal name will be
     _f. Thus, the linker will not be able to resolve your C++ calls to
     f( ).
-	    
+    -->
+    <para>
+      el compilador de C++ adornará el nombre como algo tipo
+      <literal>_f_int_char</literal> para permitir la sobrecarga de la
+      función (y el enlazado con verificación de tipos). De todas
+      formas, el compilador de C que compiló su librería C
+      definitivamente no decoró ese nombre, por lo que su nombre
+      interno será <literal>_f</literal>. Así pues, el enlazador no
+      será capaz de resolver sus llamadas tipo C++ a
+      <function>f()</function>.
+    </para>
+
+    <!--
     The escape mechanism provided in C++ is the alternate linkage
     specification, which was produced in the language by overloading the
     extern keyword. The extern is followed by a string that specifies
     the linkage you want for the declaration, followed by the
     declaration: -->
-
-
     <para>
-      el compilador de C++ adornará el nombre como algo tipo _f_int_char
-      para permitir la sobrecarga de la función (y el (FIXME:type-safe
-      linkage:enlazado asegurando los tipos)). De todas formas, el
-      compilador de C que compiló su librería C definitivamente no
-      decoró su nombre, por lo que su nombre interno será _f. Así pues,
-      el enlazador no será capaz de resolver sus llamadas tipo C++ a
-      f().
+      La forma de resolver esto que se propone en C++ es la
+      <emphasis>especificación de enlazado alternativo</emphasis>, que
+      se produjo en el lenguaje sobrecargando la palabra clave
+      <kw>extern</kw>. A la palabra clave <kw>extern</kw> le sigue una
+      cadena que especifica el enlazado deseado para la declaración,
+      seguido por la declaración:
     </para>
-    
-    <para>
-      La forma de escapar a esto que se propone en C++ es la
-      especificación de enlazado alternativo, que se produjo en el
-      lenguaje sobrecargando la palabra clave extern. A la palabra clave
-      extern le sigue una cadena que especifica el enlazado deseado para
-      la declaración, seguido por la declaración:
-    </para>
-    
+
     <programlisting>
 	extern "C" float f(int a, char b);
     </programlisting>
-	
+
     <!-- This tells the compiler to give C linkage to f( ) so that the
 	compiler doesn't decorate the name.  The only two types of
 	linkage specifications supported by the standard are "C"
 	and "C++," but compiler vendors have the option of
 	supporting other languages in the same way.
-	    
+
     If you have a group of declarations with alternate linkage, put them
     inside braces, like this: -->
-	
+
     <para>
-      Esto le dice al compilador que f() tiene enlazado tipo C, de forma
-      que el compilador no decora el nombre. Las dos únicas
-      especificaciones de enlazado soportadas por el estándar son "C" y
-      "C++", pero algunos vendedores ofrecen compiladores que también
-      soportan otros lenguajes.
+      Esto le dice al compilador que <function>f()</function> tiene
+      enlazado tipo C, de forma que el compilador no decora el
+      nombre. Las dos únicas especificaciones de enlazado soportadas
+      por el estándar son <quote role="en">C</quote> y <quote
+      role="en">C++</quote>, pero algunos vendedores ofrecen
+      compiladores que también soportan otros lenguajes.
     </para>
-    
+
     <para>
       Si tiene un grupo de declaraciones con enlazado alternativo,
-      póngalas entre llaves, como a continuación: 
+      póngalas entre llaves, como a continuación:
     </para>
-    
 
-    <programlisting>
-	extern "C" {
-	  float f(int a, char b);
-	  double d(int a, char b);
-	}   
-    </programlisting>
-	
-    <!--    
+
+<programlisting>
+extern "C" {
+    float f(int a, char b);
+    double d(int a, char b);
+}
+</programlisting>
+
+    <!--
     Or, for a header file,
     -->
     <para>
       O, para archivos de cabecera,
     </para>
-    
+
     <programlisting>
-	extern "C" {
-	#include "Myheader.h"
-	}   
+extern "C" {
+    #include "Myheader.h"
+}
     </programlisting>
-	
+
     <!-- Most C++ compiler vendors handle the alternate linkage
     specifications inside their header files that work with both C and
     C++, so you don't have to worry about it.  -->
-    
+
     <para>
-      La mayoría de compiladores de C++ a la venta manejan las
+      La mayoría de compiladores disponibles de C++ manejan las
       especificaciones de enlazado alternativo dentro de sus propios
-      archivos de cabecera que trabajan tanto con C como con C++, por lo
-      que no tiene que preocuparse de eso.
+      archivos de cabecera que trabajan tanto con C como con C++, por
+      lo que no tiene que preocuparse de eso.
     </para>
   </sect1>
 
   <sect1>
     <title>Resumen</title>
-    
+
     <!-- The static keyword can be confusing because in some sitúations
     it controls the location of storage, and in others it controls
     visibility and linkage of a name.
@@ -2520,27 +2679,27 @@
     The use of static inside classes is one more way to control names in
     a program. The names do not clash with global names, and the
     visibility and access is kept within the program, giving you greater
-    control in the maintenance of your code.  --> 
+    control in the maintenance of your code.  -->
 
-    <para> 
-      La palabra clave static puede llevar a confusión porque en algunas
-      sitúaciones controla la reserva de espacio en memoria, y en otras
-      controla la visibilidad y enlazado del nombre.
+    <para>
+      La palabra clave <kw>static</kw> puede llevar a confusión porque
+      en algunas situaciones controla la reserva de espacio en
+      memoria, y en otras controla la visibilidad y enlazado del
+      nombre.
     </para>
 
     <para>
-      Con la introducción de los espacios de
-      nombres de C++, dispone de una alternativa mejorada y más
-      flexible para controlar la proliferación de nombres en proyectos
-      grandes.
+      Con la introducción de los espacios de nombres de C++, dispone
+      de una alternativa mejorada y más flexible para controlar la
+      proliferación de nombres en proyectos grandes.
     </para>
 
     <para>
-      El uso de static dentro de clases es un método más para controlar
-      los nombres de un programa. Los nombres no colisionan con nombres
-      globales, y la visibilidad y acceso se mantiene dentro del
-      programa, dándole un mayor control para el mantenimiento de su
-      código.
+      El uso de <kw>static</kw> dentro de clases es un método más para
+      controlar los nombres de un programa. Los nombres no colisionan
+      con nombres globales, y la visibilidad y acceso se mantiene
+      dentro del programa, dándole un mayor control para el
+      mantenimiento de su código.
     </para>
   </sect1>
 
@@ -2576,45 +2735,52 @@
      -->
 
     <xi:include parse="xml" href="./ejercicios.xml"/>
-    
+
     <orderedlist>
       <listitem>
 	<para>
-	  Cree una función con una variable estática que sea un puntero
-	  (con argumento por defecto cero).  Cuando la función que
-	  realice la llamada provea un valor para ese argumento se usará
-	  para apuntar al principio de una tabla de int. Si se llama a
-	  la función con el argumento cero (utilizando el argumento por
-	  defecto), la función devuelve el siguiente valor de la tabla,
-	  hasta que llegue a un valor "-1" en la tabla (que actuará como
-	  señal de final de tabla). Ejercite esta función en main().
+	  Cree una función con una variable estática que sea un
+	  puntero (con un argumento por defecto igual cero).  Cuando
+	  la función que realice la llamada proporcione un valor para
+	  ese argumento se usará para apuntar al principio de un
+	  array de <type>int</type>. Si se llama a la función con el
+	  argumento cero (utilizando el argumento por defecto), la
+	  función devuelve el siguiente valor del array, hasta que
+	  llegue a un valor <literal>-1</literal> en el array (que
+	  actuará como señal de final). Experimente con esta función en
+	  <function>main()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree una función que devuelva el siguiente valor de una serie
-	  de Fibonacci cada vez que sea llamada. Añada un argumento que
-	  sea tipo bool con valor por defecto false tal que cuando el
-	  argumento valga true "reinicie" la función al principio de la
-	  serie de Fibonacci. Ejercite esta función en main().
+	  Cree una función que devuelva el siguiente valor de una
+	  serie de Fibonacci cada vez que sea llamada. Añada un
+	  argumento que de tipo <type>bool</type> con valor por
+	  defecto <kw>false</kw> tal que cuando el argumento valga
+	  <kw>true</kw> <quote>reinicie</quote> la función al
+	  principio de la serie de Fibonacci. Experimente con esta función en
+	  <function>main()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree una clase que contenga una tabla de ints. Especifique la
-	  dimensión del array utilizando static const int dentro de la
-	  clase. Añada una variable const int e inicialícela en la lista
-	  de inicialización del constructor. Haga al contructor
-	  inline. Añada una variable miembro static int e inicialícela a
-	  un valor específico. Añada una función miembro estática que
-	  imprima el dato static miembro. Añada una función miembro
-	  inline llamada print() que imprima todos los valores de la
-	  tabla y que llame a la función miembro estática. Ejercite esta
-	  clase en main().
+	  Cree una clase que contenga un array de
+	  <type>int</type>. Especifique la dimensión del array
+	  utilizando <code>static const int</code> dentro de la
+	  clase. Añada una variable <code>const int</code> e
+	  inicialícela en la lista de inicialización del
+	  constructor. Haga al constructor <kw>inline</kw>. Añada un
+	  atributo <type>static int</type> e inicialícelo a un valor
+	  específico. Añada un método estático que imprima el atributo
+	  estático. Añada un miembro <kw>inline</kw> llamado
+	  <function>print()</function> que imprima todos los valores
+	  del array y que llame al método estático. Experimente con esta
+	  clase en <function>main()</function>.
 	</para>
       </listitem>
-     
-    <!-- 4. Create a class called Monitor that keeps track of thenumber
+
+    <!--
+      4. Create a class called Monitor that keeps track of thenumber
     of times that its incident( ) member function has been called. Add a
     print( ) member function that displays the number of incidents. Now
     create a global function (not a member function) containing a static
@@ -2630,7 +2796,45 @@
     object of Monitor2 inside a function. Inside main( ), experiment
     with calling the function and not calling the function to see what
     happens with the destructor of Monitor2.
+      -->
 
+      <listitem>
+	<para>
+	  Cree una clase llamada <classname>Monitor</classname> que
+	  mantenga el registro del número de veces que ha sido llamado
+	  su método <function>incident()</function>. Añada un método
+	  <function>print()</function> que muestre por pantalla el
+	  número de incidentes. Ahora cree una función global (no un
+	  método) que contenga un objeto estático
+	  <classname>Monitor</classname>. Cada vez que llame a la
+	  función debe llamar a <function>incident()</function>,
+	  después al método <function>print()</function> para sacar
+	  por pantalla el contador de incidentes. Experimente con la función
+	  en <function>main()</function>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Modifique la clase <classname>Monitor</classname> del
+	  Ejercicio 4 de forma que pueda decrementar
+	  (<function>decrement()</function>) el contador de
+	  incidentes. Cree una clase llamada
+	  <classname>Monitor2</classname> que tome como argumento del
+	  constructor un puntero a <classname>Monitor1</classname>, y
+	  que almacene ese puntero y llame a
+	  <function>incident()</function> y
+	  <function>print()</function>. En el destructor para
+	  <classname>Monitor2</classname>, llame a
+	  <function>decrement()</function> y
+	  <function>print()</function>. Cree ahora un objeto estático
+	  de <classname>Monitor2</classname> dentro de una
+	  función. Dentro de <function>main()</function>, experimente
+	  llamando y no llamando a la función para ver qué pasa con el
+	  destructor de <classname>Monitor2</classname>.
+	</para>
+      </listitem>
+
+      <!--
     6. Make a global object of Monitor2 and see what happens.
 
     7. Create a class with a destructor that prints a message and then
@@ -2640,84 +2844,63 @@
     8. In StaticDestructors.cpp, experiment with the order of
     constructor and destructor calls by calling f( ) and g( ) inside
     main( ) in different orders. Does your compiler get it right?
-    
+
     9. In StaticDestructors.cpp, test the default error handling of your
     implementation by turning the original definition of out into an
     extern declaration and putting the actual definition after the
     definition of a (whose Obj constructor sends information to
     out). Make sure there's nothing else important running on your
     machine when you run the program or that your machine will handle
-    faults robustly.  
+    faults robustly.
 
     10. Prove that file static variables in header files don't clash
     with each other when included in more than one cpp file.  -->
-       
+
       <listitem>
 	<para>
-	  Cree una clase llamada Monitor que mantenga el registro del
-	  número de veces que ha sido llamada su función miembro
-	  incident(). Añada una función miembro print() que muestre por
-	  pantalla el número de incidentes. Ahora cree una función
-	  global (no una función miembro) que contenga un objeto static
-	  Monitor. Cada vez que llame a la función debe llamar a
-	  incident(), despues a la función miembro print() para sacar
-	  por pantalla el contador de incidentes. Ejercite la función en
-	  main().
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Modifique la clase Monitor del Ejercicio 4 de forma que pueda
-	  decrementar (decrement()) el contador de incidentes. Cree una
-	  clase llamada Monitor2 que tome como argumento de constructor
-	  un puntero a Monitor1, y que almacene ese puntero llame a
-	  incident() y print(). En el destructor para Monitor2, llame a
-	  decrement() y print(). Cree ahora un objeto static de Monitor2
-	  dentro de una función. Dentro de main(), experimente llamando
-	  y no llamando la función para ver que pasa con el destructor
-	  de Monitor2.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Cree un objeto global de Monitor2 y vea que sucede.
+	  Cree un objeto global de clase
+	  <classname>Monitor2</classname> y vea qué sucede.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Cree una clase con un destructor que imprima un mensaje y
-	  después llame a exit(). Cree un objeto global de esta clase y
-	  vea que pasa.
+	  después llame a <function>exit()</function>. Cree un objeto
+	  global de esa clase y vea qué pasa.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  En StaticDestructors.cpp, experimente con el orden de llamada
-	  de los constructores y destructores llamando a f() y g()
-	  dentro de main() en diferentes órdenes. ¿Su compilador
-	  inicializa los objetos de la forma correcta?
+	  En <filename>StaticDestructors.cpp</filename>, experimente
+	  con el orden de llamada de los constructores y destructores
+	  llamando a <function>f()</function> y
+	  <function>g()</function> dentro de
+	  <function>main()</function> en diferentes órdenes. ¿Su
+	  compilador inicializa los objetos de la forma correcta?
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  En StaticDestructors.cpp, pruebe el manejo de errores por
-	  defecto de su implementación convirtiendo la definición
-	  original de out dentro de una declaración extern, y poniendo
-	  la definición real despues de la definición de a (donde el
-	  constructor de Obj manda información a out). Asegúrese que no
-	  hay ningún otro programa importante funcionando en su máquina
-	  cuando ejecute el código o que su máquina maneje las faltas
-	  robustamente.
+	  En <filename>StaticDestructors.cpp</filename>, pruebe el
+	  manejo de errores por defecto de su implementación
+	  convirtiendo la definición original de
+	  <varname>out</varname> dentro de una declaración
+	  <kw>extern</kw>, y poniendo la definición real después de la
+	  definición de <varname>a</varname> (donde el constructor de
+	  <classname>Obj</classname> manda información a
+	  <varname>out</varname>). Asegúrese que no hay ningún otro
+	  programa importante funcionando en su máquina cuando ejecute
+	  el código o que su máquina maneje las faltas robustamente.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Pruebe que las variables estáticas de archivo en los archivos
-	  de cabecera no chocan entre sí cuando son incluidas en más de un
-	  archivo cpp.
+	  Pruebe que las variables estáticas de fichero en los
+	  archivos de cabecera no chocan entre sí cuando son incluidas
+	  en más de un archivo <filename>cpp</filename>.
 	</para>
       </listitem>
-	
+
     <!-- 11. Create a simple class containing an int, a constructor that
     initializes the int from its argument, a member function to set the
     int from its argument, and a print( ) function that prints the
@@ -2739,46 +2922,52 @@
     something that could actually work as an interrupt service
     routine. Hint: an interrupt service routine doesn't take any
     arguments.  -->
-    
+
 
       <listitem>
 	<para>
-	  Cree una única clase que contenga un int, un constructor que
-	  inicialice el int con su argumento, una función miembro que
-	  cambie el valor del int con su argumento y una función print()
-	  que muestre por pantalla el int. Coloque su clase en un
-	  archivo de cabecera e incluya dicho archivo en dos archivos
-	  cpp. En uno de ellos cree una instancia de la clase y en la
-	  otra declare ese identificador como extern y pruebe dentro de
-	  main(). Recuerde, debe enlazar los dos archivos objeto o de lo
-	  contrario el enlazador no encontrará el objeto.
+	  Cree una única clase que contenga un <type>int</type>, un
+	  constructor que inicialice el <type>int</type> con su
+	  argumento, un método que cambie el valor del
+	  <type>int</type> con su argumento y una función
+	  <function>print()</function> que muestre por pantalla el
+	  <type>int</type>. Coloque su clase en un archivo de cabecera
+	  e incluya dicho archivo en dos archivos
+	  <filename>cpp</filename>. En uno de ellos cree una instancia
+	  de la clase y en la otra declare ese identificador como
+	  <kw>extern</kw> y pruebe dentro de
+	  <function>main()</function>. Recuerde, debe enlazar los dos
+	  archivos objeto o de lo contrario el enlazador no encontrará
+	  el objeto.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree la instancia del objeto del Ejercicio 11 como static y
-	  verifique que, debido a eso, no puede ser hallada por el
-	  enlazador.
+	  Cree la instancia del objeto del Ejercicio 11 como <kw>static</kw> y
+	  verifique que, debido a eso, el enlazador es incapaz de encontrarla.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Declare una función en un archivo de cabecera. Defina la
-	  función en un archivo cpp y llámela dentro de main() en un
-	  segundo archivo cpp. Compile y verifique que funciona. Ahora
-	  cambie la definición de la función de forma que sea static y
-	  verifique que el enlazador no puede encontrarla.
+	  función en un archivo <filename>cpp</filename> y llámela
+	  desde <function>main()</function> en un segundo archivo
+	  <filename>cpp</filename>. Compile y verifique que
+	  funciona. Ahora cambie la definición de la función de forma
+	  que sea <kw>static</kw> y verifique que el enlazador no
+	  puede encontrarla.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Modifique Volatile.cpp del Capítulo 8 para hacer que
-	  comm::isr() funcione realmente como una rutina de servicio de
-	  interrupción. Pista: una rutina de servicio de interrupción no
-	  toma ningún argumento.
+	  Modifique <filename>Volatile.cpp</filename> del Capítulo 8
+	  para hacer que <function>comm::isr()</function> funcione
+	  realmente como una rutina de servicio de
+	  interrupción. Pista: una rutina de servicio de interrupción
+	  no toma ningún argumento.
 	</para>
       </listitem>
-    
+
     <!--
     15. Write and compile a simple program that uses the auto and
     register keywords.
@@ -2793,7 +2982,34 @@
     definition, write a using directive to introduce your namespace into
     that function scope, and show that you don't need scope resolution
     to call the functions from your namespace.
+      -->
+      <listitem>
+	<para>
+	  Escriba y compile un único programa que utilice las palabras
+	  clave <kw>auto</kw> y <kw>register</kw>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree un archivo de cabecera que contenga un espacio de
+	  nombres. Dentro del espacio de nombres cree varias
+	  declaraciones de funciones. Cree ahora un segundo archivo de
+	  cabecera que incluya el primero y continúe el espacio de
+	  nombres, añadiendo varias declaraciones de funciones
+	  más. Cree ahora un archivo <filename>cpp</filename> que
+	  incluya el segundo archivo de cabecera. Cambie su espacio de
+	  nombres a otro nombre (más corto). Dentro de una definición
+	  de función, llame a una de sus funciones utilizando la
+	  resolución de ámbito. Dentro de una definición de función
+	  separada, escriba una directiva <kw>using</kw> para
+	  introducir su espacio de nombres en el ámbito de esa
+	  función, y demuestre que no necesita utilizar la resolución
+	  de ámbito para llamar a las funciones desde su espacio de
+	  nombres.
+	</para>
+      </listitem>
 
+      <!--
     17. Create a header file with an unnamed namespace. Include the
     header in two separate cpp files and show that an unnamed space is
     unique for each translation unit.
@@ -2808,61 +3024,34 @@
     20. In Arithmetic.cpp, demonstrate that the using directive does not
     extend outside the function in which the directive was made.
     -->
-
-
       <listitem>
 	<para>
-	  Escriba y compile un único programa que utilice las palabras
-	  clave auto y register.
+	  Cree un archivo de cabecera con un espacio de nombres sin
+	  nombre. Incluya la cabecera en dos archivos
+	  <filename>cpp</filename> diferentes y demuestre que un
+	  espacio sin nombre es único para cada :unidad de traducción.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree un archivo de cabecera que contenga un
-	  espacio de nombres. Dentro del
-	  espacio de nombres cree varias declaraciones
-	  de funciones. Cree ahora un segundo archivo de cabecera que
-	  incluya el primero y continúe el espacio de
-	  nombres, añadiendo varias declaraciones de funciones
-	  más. Cree ahora un archivo cpp que incluya el segundo archivo
-	  de cabecera. Cambie su espacio de nombres a
-	  otro nombre (más corto).  Dentro de una definición de función,
-	  llame a una de sus funciones utilizando la resolución de
-	  rango. Dentro de una definición de función separada, escriba
-	  una directiva using para introducir su
-	  espacio de nombres dentro de ese rango de
-	  función, y demuestre que no necesita utilizar la resolución de
-	  rango para llamar a las funciones desde su
-	  espacio de nombres.
+	  Utilizando el archivo de cabecera del Ejercicio 17,
+	  demuestre que los nombres de un espacio de nombres sin
+	  nombre están disponibles automáticamente en una :unidad de
+	  traducción sin calificación.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree un archivo de cabecera con un (FIXME:namespace:espacio de
-	  nombres) sin nombre. Incluya la cabecera en dos archivos cpp
-	  diferentes y demuestre que un espacio sin nombre es único para
-	  cada (FIXME:translation unit:unidad de traducción).
+	  Modifique <filename>FriendInjection.cpp</filename> para
+	  añadir una definición para la función amiga y para llamar a
+	  la función desde <function>main()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Utilizando el archivo de cabecera del Ejercicio 17, demuestre
-	  que los nombres de un espacio de nombres sin nombre están
-	  disponibles automáticamente en una (FIXME:translation
-	  unit:unidad de traducción) sin calificación.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Modifique FriendInjection.cpp para añadir una definición para
-	  la función amiga y para llamar a la función desde dentro de
-	  main().
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  En Arithmetic.cpp, demuestre que la directiva using no se
-      extiende fuera de la función en la que fue creada.
+	  En <filename>Arithmetic.cpp</filename>, demuestre que la
+	  directiva <kw>using</kw> no se extiende fuera de la función en
+	  la que fue creada.
     	</para>
       </listitem>
 
@@ -2882,7 +3071,41 @@
 
     23. Repair the problem in Exercise 22 with a using declaration that
     forces the compiler to choose one of the identical class names.
+      -->
 
+      <listitem>
+	<para>
+	  Repare el problema de
+	  <filename>OverridingAmbiguity.cpp</filename>, primero con
+	  resolución de ámbito y luego, con una declaración
+	  <kw>using</kw> que fuerce al compilador a escojer uno de los
+	  nombres de función idénticos.
+    	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  En dos archivos de cabecera, cree dos espacios de nombres,
+	  cada uno conteniendo una clase (con todas las definiciones
+	  <kw>inline</kw>) con idéntico nombre que el del otro espacio
+	  de nombres. Cree un archivo <filename>cpp</filename> que
+	  incluya ambos archivos. Cree una función y, dentro de la
+	  función, utilice la directiva <kw>using</kw> para introducir
+	  ambos espacios de nombres. Pruebe a crear un objeto de la
+	  clase y vea que sucede. Haga las directivas <kw>using</kw>
+	  globales (fuera de la función) para ver si existe alguna
+	  diferencia. Repare el problema usando la resolución de
+	  ámbito, y cree objetos de ambas clases.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Repare el problema del Ejercicio 22 con una declaración
+	  <kw>using</kw> que fuerce al compilador a escojer uno de los
+	  nombres de clase idénticos.
+	</para>
+      </listitem>
+
+      <!--
     24. Extract the namespace declarations in BobsSuperDuperLibrary.cpp
     and UnnamedNamespaces.cpp and put them in separate header files,
     giving the unnamed namespace a name in the process. In a third
@@ -2900,82 +3123,78 @@
     string. Create a cpp file and exercise your class in main( ).
 
     26. Create a class containing a static double and long. Write a
-    static member function that prints out the values.  --> 
+    static member function that prints out the values.  -->
 
       <listitem>
 	<para>
-	  Repare el problema en OverridingAmbiguity.cpp, primero con
-    resolución de rango y luego, con una declaración using que fuerce al
-    compilador a escojer uno de los idénticos nombres de función.
-    	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  En dos archivos de cabecera, cree dos espacios
-    de nombres, cada uno conteniendo una clase (con todas las
-    definiciones inline) con idéntico nombre que el del otro
-    espacio de nombres. Cree un archivo cpp que
-    incluya ambos archivos. Cree una función y, dentro de la función,
-    utilice la directiva using para introducir ambos
-    espacios de nombres. Pruebe a crear un objeto de
-    la clase y vea que sucede. Haga las directivas using globales (fuera
-    de la función) para ver si existe alguna diferencia. Repare el
-    problema usando la resolución de rango, y cree objetos de ambas
-    clases.  
+	  Extraiga las declaraciones de espacios de nombres de
+	  <filename>BobsSuperDuperLibrary.cpp</filename> y
+	  <filename>UnnamedNamespaces.cpp</filename> y póngalos en
+	  archivos separados, dando un nombre al espacio de nombres
+	  sin nombre en el proceso. En un tercer archivo de cabecera,
+	  cree un nuevo espacio de nombres que combine los elementos
+	  de los otros dos espacios de nombres con declaraciones
+	  <kw>using</kw>. En <function>main()</function>, introduzca
+	  su nuevo espacio de nombres con una directiva <kw>using</kw>
+	  y acceda a todos los elementos de su espacio de nombres.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Repare el problema del Ejercicio 22 con una declaración using
-    que fuerce al compilador a escojer uno de los idénticos nombres de
-    clase. 	</para>
-      </listitem>
-      <listitem>
-	<para> 
-	  Extraiga las declaraciones de (FIXME:namespaces:espacios
-    de nombres) en BobsSuperDuperLibrary.cpp y UnnamedNamespaces.cpp y
-    póngalos en archivos separados, dando un nombre al
-    (FIXME:namespace:espacio de nombres) sin nombre en el proceso. En un
-    tercer archivo de cabecera, cree un nuevo espacio
-    de nombres que combine los elementos de los otros dos
-    espacios de nombres con declaraciones using. En
-    main(), introduzca su nuevo espacio de nombres con
-    una directiva using y acceda a todos los elementos de su
-    espacio de nombres.  
+	  Cree un archivo de cabecera que incluya
+	  <filename>&lt;string></filename> y
+	  <filename>&lt;iostream></filename> pero que no use ninguna
+	  directiva <kw>using</kw> ni ninguna declaración
+	  <kw>using</kw>. Añada guardas de inclusión como ha visto en
+	  los archivos de cabecera del libro. Cree una clase con todas
+	  las funciones <kw>inline</kw> que muestre por pantalla el
+	  <type>string</type>. Cree un archivo
+	  <filename>cpp</filename> y ejercite su clase en
+	  <function>main()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree un archivo de cabecera que incluya &lt;string> y
-      &lt;iostream> pero que no use ninguna directiva using ni ninguna
-      declaración using. Añada (FIXME:"include guards":"protecciones de
-      inclusión") como ha visto en los archivos de cabecera del
-      libro. Cree una clase con todas las funciones inline que muestre
-      por pantalla el string. Cree un archivo cpp y ejercite su clase en
-      main().
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Cree una clase que contenga un static double y
-      long. Escriba una función miembro static que imprima los valores.
+	  Cree una clase que contenga un <type>static double</type> y
+	  <type>long</type>. Escriba un método estático que imprima
+	  los valores.
    	</para>
       </listitem>
 
-	
+
 	<!-- 27. Create a class containing an int, a constructor that
     initializes the int from its argument, and a print( ) function to
     display the int. Now create a second class that contains a static
     object of the first one. Add a static member function that calls the
-    static object's print( ) --> 
-    
-    <!--function. Exercise your class in
+    static object's print( ) function. Exercise your class in
     main( ).
 
     28. Create a class containing both a const and a non-const static
     array of int. Write static methods to print out the arrays. Exercise
     your class in main( ).
+      -->
+      <listitem>
+	<para>
+	  Cree una clase que contenga un <type>int</type>, un
+	  constructor que inicialice el <type>int</type> con su
+	  argumento, y una función <function>print()</function> que
+	  muestre por pantalla el <type>int</type>. Cree ahora una
+	  segunda clase que contenga un objeto estático de la
+	  primera. Añada un método estático que llame a la función
+	  <function>print()</function> del objeto estático.  Ejercitu
+	  su clase en <function>main()</function>.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  Cree una clase que contenga un array estático de
+	  <type>int</type> constante y otro no constante. Escriba
+	  métodos estáticos que impriman los arrays. Experimente con su clase
+	  en <function>main()</function>.
+	</para>
+      </listitem>
 
+      <!--
     29. Create a class containing a string, with a constructor that
     initializes the string from its argument, and a print( ) function to
     display the string. Create another class that contains both const
@@ -2991,42 +3210,27 @@
 
     31. Create a class that represents a printer connection, and that
     only allows you to have one printer.  -->
-
-
       <listitem>
 	<para>
-	  Cree una clase que contenga un int, un constructor que
-	  inicialice el int con su argumento, y una función print() que
-	  muestre por pantalla el int. Cree ahora una segunda clase que
-	  contenga un objeto static de la primera. Añada una función
-	  miembro static que llame a la función static print() del
-	  objeto.  Ejercitu su clase en main().
+	  Cree una clase que contenga un <type>string</type>, con un
+	  constructor que inicialice el <type>string</type> a partir
+	  de su argumento, y una función <function>print()</function>
+	  que imprima el <type>string</type>. Cree otra clase que
+	  contenga un array estático, tanto constante como no
+	  constante, de objetos de la primera clase, y métodos
+	  estáticos para imprimir dichos arrays. Experimente con la
+	  segunda clase en <function>main()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Cree una clase que contenga una tabla de ints estática const y
-	  otra no const. Escriba métodos static que impriman las
-	  tablas. Ejercite su clase en main().
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Cree una clase que contenga un string, con un constructor que
-	  inicialice el string a partir de su argumento, y una función
-	  print() que imprima el string. Cree otra clase que contenga
-	  una tabla estática tanto const como no const de objetos de la
-	  primera clase, y métodos static para imprimir dichas
-	  tablas. Ejercite la segunda clase en main().
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Cree una struct que contenga un int y un constructor por
-	  defecto que inicialice el int a cero.  Haga esta struct local
-	  a una función. Dentro de dicha función, cree una tabla de
-	  objetos de su struct y demuestre que cada int de la tabla ha
-	  sido inicializado a cero automáticamente.
+	  Cree una <kw>struct</kw> que contenga un <type>int</type> y
+	  un constructor por defecto que inicialice el
+	  <type>int</type> a cero.  Haga ese <kw>struct</kw> local a
+	  una función. Dentro de dicha función, cree un array de
+	  objetos de su <kw>struct</kw> y demuestre que cada
+	  <type>int</type> del array ha sido inicializado a cero
+	  automáticamente.
 	</para>
       </listitem>
       <listitem>
@@ -3068,27 +3272,35 @@
 
       <listitem>
 	<para>
-	  En un archivo de cabecera, cree una clase Mirror que contiene
-	  dos miembros dato: un puntero a un objeto Mirror y un
-	  bool. Déle dos constructores: el constructor por defecto
-	  inicializa el bool a true y el puntero a Mirror a cero. El
-	  segundo constructor toma como argumento un puntero a un objeto
-	  Mirror, que asigna al puntero interno del objeto; pone el bool
-	  a false. Añada una función miembro test(): si el puntero del
-	  objeto es distinto de cero, devuelve el valor de test()
-	  llamado a traves del puntero. Si el puntero es cero, devuelve
-	  el bool. Cree ahora cinco archivos cpp, cada uno incluyendo la
-	  cabecera Mirror. El primer archivo cpp define un objeto Mirror
-	  global utilizando el constructor por defecto. El segundo
-	  archivo declara el objeto del primer archivo como extern, y
-	  define un objeto Mirror global utilizando el segundo
-	  constructor, con un puntero al primer objeto. Siga haciendo lo
-	  mismo hasta que llegue al último archivo, que también
-	  contendrá una definición de objeto global. En este archivo,
-	  main() debe llamar a la función test() y aportar el
-	  resultado. Si el resultado es true, encuentre la forma de
-	  cambiar el orden de enlazado de su enlazador y cámbielo hasta
-	  que el resultado sea false.
+	  En un archivo de cabecera, cree una clase
+	  <classname>Mirror</classname> que contiene dos atributos:
+	  un puntero a un objeto <classname>Mirror</classname> y un
+	  <type>bool</type>. Déle dos constructores: el constructor
+	  por defecto inicializa el <type>bool</type> a <kw>true</kw>
+	  y el puntero a <classname>Mirror</classname> a cero. El
+	  segundo constructor toma como argumento un puntero a un
+	  objeto <classname>Mirror</classname>, que asigna al puntero
+	  interno del objeto; pone el <type>bool</type> a
+	  <kw>false</kw>. Añada un método <function>test()</function>:
+	  si el puntero del objeto es distinto de cero, devuelve el
+	  valor de <function>test()</function> llamado a través del
+	  puntero. Si el puntero es cero, devuelve el
+	  <type>bool</type>. Cree ahora cinco archivos
+	  <filename>cpp</filename>, cada uno incluyendo la cabecera
+	  <classname>Mirror</classname>. El primer archivo
+	  <filename>cpp</filename> define un objeto
+	  <classname>Mirror</classname> global utilizando el
+	  constructor por defecto. El segundo archivo declara el
+	  objeto del primer archivo como <kw>extern</kw>, y define un
+	  objeto <classname>Mirror</classname> global utilizando el
+	  segundo constructor, con un puntero al primer objeto. Siga
+	  haciendo lo mismo hasta que llegue al último archivo, que
+	  también contendrá una definición de objeto global. En este
+	  archivo, <function>main()</function> debe llamar a la
+	  función <function>test()</function> e informar del
+	  resultado. Si el resultado es <kw>true</kw>, encuentre la
+	  forma de cambiar el orden de enlazado de su enlazador y
+	  cámbielo hasta que el resultado sea <kw>false</kw>.
 	</para>
       </listitem>
       <listitem>
@@ -3107,7 +3319,7 @@
 	<para>
 	  Sin incluir ningún archivo de cabecera, declare la función
 	  <function>puts()</function> de la Librería Estándar de C.
-	  Llame a esta función desde main().
+	  Llame a esa función desde <function>main()</function>.
 	</para>
       </listitem>
     </orderedlist>
