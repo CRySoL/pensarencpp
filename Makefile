@@ -1,8 +1,7 @@
 # -*- coding:utf-8 -*-
 
-XSLSTYLETEX=/usr/share/xml/docbook/stylesheet/db2latex/latex/docbook.xsl
-
-XSL_HTML=stylesheets/plainhtml.xsl
+CHUNK_XSL=stylesheets/htmlchunk.xsl
+SINGLE_XSL=stylesheets/htmlsingle.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
 FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
@@ -10,27 +9,37 @@ FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 all: make_images vol1 Volumen1.pdf Volumen1.rst vol2 Volumen2.pdf
 
-Volumen%-html.bz2: vol%
+Volumen%-html.tar.bz2: vol%
 	tar cfj $@ $<
 
-vol%: tagged-Volumen%.xml
+vol%: tagged-Volumen%.xml stylesheets/highlight.css
 	@-mkdir -p $@/images
 	xsltproc  --xinclude \
-	  --stringparam chunker.output.encoding ISO-8859-1 \
-	  --stringparam chunker.output.indent yes \
 	  --stringparam base.dir $@/ \
-	  --output  $@  $(XSL_HTML)  $<
+	  --output  $@  $(CHUNK_XSL)  $<
+
+	xsltproc  --xinclude \
+	  --stringparam base.dir $@/ \
+	  --output $@/$@.html $(SINGLE_XSL)  $<
 
 	cp images/*.png $@/images
 	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images/
+
 	cp stylesheets/*.css $@/
+
+#	ln -s ../stylesheets/common.css $@/
+#	ln -s ../stylesheets/single.css $@/
+#	ln -s ../stylesheets/chunk.css $@/
+#	ln -s ../stylesheets/highlight.css $@/
 
 	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
 	$(RM) $@/*.code
 
-	highlight --print-style --data-dir ./stylesheets/highlight --style emacs21 code_v1/C02/Hello.cpp
-	mv highlight.css $@/
+
+stylesheets/highlight.css: code_v1/C02/Hello.cpp stylesheets/highlight/themes/emacs21.style
+	highlight --print-style --data-dir ./stylesheets/highlight --style emacs21 --outdir stylesheets $<
+
 
 tagged-Volumen%.xml: Volumen%.xml
 	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO"
@@ -70,8 +79,8 @@ code_v%: code_orig_v%
 make_images:
 	$(MAKE) -C images
 
-products: Volumen1-html.bz2 vol1 Volumen1.pdf Volumen1.rst \
-	  Volumen2-html.bz2 vol2 Volumen2.pdf
+products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf Volumen1.rst \
+	  Volumen2-html.tar.bz2 vol2 Volumen2.pdf
 	@-mkdir products
 	cp -r $^ products/
 
