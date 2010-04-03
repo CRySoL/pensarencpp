@@ -7,7 +7,7 @@ XSL_PDF=stylesheets/plainprint.xsl
 FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 
-all: make_images vol1 Volumen1.pdf Volumen1.rst vol2 Volumen2.pdf
+all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
 
 Volumen%-html.tar.bz2: vol%
 	tar cfj $@ $<
