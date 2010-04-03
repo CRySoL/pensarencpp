@@ -10,8 +10,12 @@
   <xsl:param name="callout.graphics.path">./images/callouts/</xsl:param>
   <xsl:param name="section.autolabel" select="1" />
   <xsl:param name="make.valid.html" select="1" />
+
+<!-- todavía no
   <xsl:param name="collect.xref.targets" select="'yes'" />
   <xsl:param name="targets.filename" select="'pec-xrefs.xml'" />
+-->
+
   <xsl:param name="toc.section.depth" select="1" />
   <!-- doesn't work correctly currently
   <xsl:param name="chunk.tocs.and.lots" select="1" />
@@ -26,6 +30,15 @@
   <xsl:param name="navig.graphics" select="1" />
   <xsl:param name="navig.graphics.extension">.png</xsl:param>
   <xsl:param name="navig.graphics.path">./images/</xsl:param>
+
+  <!-- colocación de los caption en los flotantes -->
+  <xsl:param name="formal.title.placement">
+    figure after
+    example after
+    equation before
+    table after
+    procedure before
+  </xsl:param>
 
   <!-- Add NotInToc role to simplesect, which is using in fdl.xml to
        deal with FDL-In-TOC issue.
@@ -117,6 +130,19 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
+
+  <xsl:param name="local.l10n.xml" select="document('')"/>
+  <l:i18n xmlns:l="http://docbook.sourceforge.net/xmlns/l10n/1.0">
+    <l:l10n language="es">
+      <l:gentext key="ListofExamples" text="Índice de listados"/>
+      <l:context name="title-numbered">
+	<l:template name="chapter" text="%t: "/>
+      </l:context>
+      <l:context name="title">
+	<l:template name="example" text="Listado %n. %t"/>
+      </l:context>
+    </l:l10n>
+  </l:i18n>
 
   <xsl:template match="revision[@role='svn']/date" mode="titlepage.mode">
     <xsl:value-of select="substring(.,8,10)"/>

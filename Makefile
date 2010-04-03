@@ -14,24 +14,25 @@ Volumen%-html.tar.bz2: vol%
 
 vol%: tagged-Volumen%.xml stylesheets/highlight.css
 	@-mkdir -p $@/images
-	xsltproc  --xinclude \
-	  --stringparam base.dir $@/ \
-	  --output  $@  $(CHUNK_XSL)  $<
-
-	xsltproc  --xinclude \
-	  --stringparam base.dir $@/ \
-	  --output $@/$@.html $(SINGLE_XSL)  $<
 
 	cp images/*.png $@/images
 	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images/
 
-	cp stylesheets/*.css $@/
+#	cp stylesheets/*.css $@/
 
-#	ln -s ../stylesheets/common.css $@/
-#	ln -s ../stylesheets/single.css $@/
-#	ln -s ../stylesheets/chunk.css $@/
-#	ln -s ../stylesheets/highlight.css $@/
+	ln -s ../stylesheets/common.css $@/
+	ln -s ../stylesheets/single.css $@/
+	ln -s ../stylesheets/chunk.css $@/
+	ln -s ../stylesheets/highlight.css $@/
+
+	xsltproc  --xinclude \
+	  --stringparam base.dir $@/ \
+	  --output $@/$@.html $(SINGLE_XSL)  $<
+
+	xsltproc  --xinclude \
+	  --stringparam base.dir $@/ \
+	  --output  $@  $(CHUNK_XSL)  $<
 
 	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
 	$(RM) $@/*.code
@@ -45,7 +46,7 @@ tagged-Volumen%.xml: Volumen%.xml
 	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO"
 	python utils/xml_tag_codes.py $< > $@
 
-%.pdf: %.xml
+%.pdf: %.xml dblatex/pec.sty dblatex/param.xsl
 	dblatex --debug --style dblatex/pecstyle $<
 
 %.rst: %.xml
@@ -68,7 +69,7 @@ Volumen%.xml: code_v%
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
 	sed -e "s/\/\/\/:~//" |\
 	python utils/db_filter.py > $@
-	xmllint --noout --postvalid $@
+#	xmllint --noout --postvalid $@
 
 code_v%: code_orig_v%
 	rm -rf $@
@@ -81,6 +82,9 @@ make_images:
 
 products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf \
 	  Volumen2-html.tar.bz2 vol2 Volumen2.pdf # Volumen1.rst
+	$(RM) vol1/*.css vol2/*.css
+	cp stylesheets/*.css vol1/
+	cp stylesheets/*.css vol2/
 	@-mkdir products
 	cp -r $^ products/
 

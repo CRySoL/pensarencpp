@@ -93,5 +93,8 @@
     <xsl:text>\end{listing}&#10;</xsl:text>
   </xsl:template>
 
+  <xsl:template match="example">
+    <xsl:apply-templates select="programlisting"/>
+  </xsl:template>
 
 </xsl:stylesheet>

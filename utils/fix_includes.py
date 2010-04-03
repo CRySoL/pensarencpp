@@ -5,9 +5,15 @@ import sys, re
 regex = [
     ['\s*(<xi:include.*)', '\n\\1'],
     ['\n\s*\n\s*//:\s*V(\d)C(\d{2}):([\w\d\.]+).*\n',
-     '\n\n<programlisting language="C++">\n' + \
-     '<xi:include parse="text" href="./code_v\\1/C\\2/\\3"/>\n' + \
-     '</programlisting>\n\n'],
+     '''
+
+<example>
+<title>C\\2/\\3</title>
+<programlisting language="C++">
+<xi:include parse="text" href="./code_v\\1/C\\2/\\3"/>
+</programlisting>
+</example>
+'''],
     ['\$Date:\s(\d{4}-\d{2}-\d{2}).*\$', '\\1'],
     ['\$Revision:\s(\d+).*\$','\\1'],
     ]
