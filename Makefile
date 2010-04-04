@@ -4,6 +4,9 @@ CHUNK_XSL=stylesheets/htmlchunk.xsl
 SINGLE_XSL=stylesheets/htmlsingle.xsl
 XSL_PDF=stylesheets/plainprint.xsl
 
+XSL_COMMON_OPTS=--stringparam base.dir $@/
+#--stringparam  rootid  C11
+
 FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 
@@ -26,13 +29,8 @@ vol%: tagged-Volumen%.xml stylesheets/highlight.css
 	ln -s ../stylesheets/chunk.css $@/
 	ln -s ../stylesheets/highlight.css $@/
 
-	xsltproc  --xinclude \
-	  --stringparam base.dir $@/ \
-	  --output $@/$@.html $(SINGLE_XSL)  $<
-
-	xsltproc  --xinclude \
-	  --stringparam base.dir $@/ \
-	  --output  $@  $(CHUNK_XSL)  $<
+	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@/$@.html $(SINGLE_XSL) $<
+	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@ $(CHUNK_XSL) $<
 
 	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
 	$(RM) $@/*.code
@@ -66,10 +64,11 @@ Volumen%.xml: code_v%
 	@echo "--- INCLUYENDO LISTADOS"
 	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
 	@echo "--- ELIMINANDO XMLNS Y TRADUCCIÓN DE TAGS EXTRA"
-	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |\
-	sed -e "s/\/\/\/:~//" |\
-	python utils/db_filter.py > $@
-#	xmllint --noout --postvalid $@
+#	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |
+#	sed -e "s/\/\/\/:~//" |
+	python utils/db_filter.py < join.xml > $@
+
+
 
 code_v%: code_orig_v%
 	rm -rf $@
@@ -91,9 +90,9 @@ products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf \
 install: products
 	scp -r products repo:public_html/pensar_en_C++/
 
-
-validate:
-	xsltproc --xinclude --noout stylesheets/profile.xsl Volumen%.xml
+validate: Volumen1.xml Volumen2.xml
+	xmllint --noout --postvalid $^
+#	xsltproc --xinclude --noout --postvalid stylesheets/profile.xsl Volumen%.xml
 
 
 # Limpieza

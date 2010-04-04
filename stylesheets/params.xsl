@@ -8,7 +8,9 @@
   <xsl:param name="admon.graphics" select="1" />
   <xsl:param name="admon.graphics.path">./images/</xsl:param>
   <xsl:param name="callout.graphics.path">./images/callouts/</xsl:param>
+
   <xsl:param name="section.autolabel" select="1" />
+  <xsl:param name="section.label.includes.component.label">1</xsl:param>
   <xsl:param name="make.valid.html" select="1" />
 
 <!-- todavía no
@@ -161,7 +163,7 @@
   </xsl:template>
 
   <xsl:template match="type">
-    <tt><xsl:apply-templates/></tt>
+    <code class="type"><xsl:apply-templates/></code>
   </xsl:template>
 
   <xsl:template match="quote">
