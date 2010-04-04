@@ -138,7 +138,7 @@
     <l:l10n language="es">
       <l:gentext key="ListofExamples" text="Índice de listados"/>
       <l:context name="title-numbered">
-	<l:template name="chapter" text="%t: "/>
+	<l:template name="chapter" text="%n: %t"/>
       </l:context>
       <l:context name="title">
 	<l:template name="example" text="Listado %n. %t"/>
@@ -170,5 +170,28 @@
     <xsl:text>«</xsl:text><xsl:apply-templates/><xsl:text>»</xsl:text>
   </xsl:template>
 
+  <xsl:template match="literal[@role='keyword']">
+    <code class="keyword"><xsl:apply-templates/></code>
+  </xsl:template>
+
+
+  <xsl:template match="para[@role='validate']">
+    <div id="site-colophon">
+      <ul>
+	<li>
+	  <a href="http://validator.w3.org/check/referer"
+	    class="colophonIcon colophonIconXHTML"
+	    title="This site is valid XHTML">
+	    <span>Valid XHTML 1.0</span></a>
+	</li>
+	<li>
+	  <a href="http://jigsaw.w3.org/css-validator/check/referer?profile=css3"
+	    class="colophonIcon colophonIconCSS"
+	    title="This site was built with valid CSS">
+	    <span>Valid CSS</span></a>
+	</li>
+      </ul>
+    </div>
+  </xsl:template>
 
 </xsl:stylesheet>

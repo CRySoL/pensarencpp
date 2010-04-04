@@ -3,7 +3,6 @@
 import sys, re
 
 regex = [
-    ['\s*(<xi:include.*)', '\n\\1'],
     ['\n\s*\n\s*//:\s*V(\d)C(\d{2}):([\w\d\.]+).*\n',
      '''
 
@@ -14,8 +13,15 @@ regex = [
 </programlisting>
 </example>
 '''],
+    ['\s*(<xi:include.*)',               '\n\\1'],
     ['\$Date:\s(\d{4}-\d{2}-\d{2}).*\$', '\\1'],
-    ['\$Revision:\s(\d+).*\$','\\1'],
+    ['\$Revision:\s(\d+).*\$',           '\\1'],
+    ['<kw>',                             '<literal role="keyword">'],
+    ['</kw>',                            '</literal>'],
+    ['<oper>',                           '<literal role="operator">'],
+    ['</oper>',                          '</literal>'],
+    [' ///:~\n',                         ''],
+#    ['xmlns[:\w]*=".*?"',                '']
     ]
 
 # compile regex

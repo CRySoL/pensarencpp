@@ -15,13 +15,14 @@ all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
 Volumen%-html.tar.bz2: vol%
 	tar cfj $@ $<
 
-vol%: tagged-Volumen%.xml stylesheets/highlight.css
+vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	@-mkdir -p $@/images
 
 	cp images/*.png $@/images
 	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images/
 
+	-rm $@/*.css
 #	cp stylesheets/*.css $@/
 
 	ln -s ../stylesheets/common.css $@/
@@ -41,10 +42,10 @@ stylesheets/highlight.css: code_v1/C02/Hello.cpp stylesheets/highlight/themes/em
 
 
 tagged-Volumen%.xml: Volumen%.xml
-	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO"
+	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO HTML"
 	python utils/xml_tag_codes.py $< > $@
 
-%.pdf: %.xml dblatex/pec.sty dblatex/param.xsl
+%.pdf: %.xml dblatex/pec.sty dblatex/param.xsl make_images
 	dblatex --debug --style dblatex/pecstyle $<
 
 %.rst: %.xml
@@ -52,22 +53,23 @@ tagged-Volumen%.xml: Volumen%.xml
 	python db2rst/db2rst.py $< >> $@
 
 
-Volumen1.xml: master_Volumen1.xml $(wildcard V1-*.xml)
-Volumen2.xml: master_Volumen2.xml $(wildcard V2-*.xml)
+%.ok.xml: %.xml
+	python utils/fix_includes.py $< > $@
 
+Volumen1.xml: $(shell utils/included.sh master_Volumen1.xml)
+Volumen2.xml: $(shell utils/included.sh master_Volumen2.xml)
 
-Volumen%.xml: code_v%
+Volumen%.xml: master_Volumen%.xml code_v%
 	@echo "--- MONTANDO EL DOCUMENTO"
-	xsltproc --xinclude stylesheets/profile.xsl master_$(basename $@).xml > fase1.xml
-	@echo "--- RUTAS A LOS LISTADOS"
-	python utils/fix_includes.py fase1.xml > fase2.xml
-	@echo "--- INCLUYENDO LISTADOS"
-	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
-	@echo "--- ELIMINANDO XMLNS Y TRADUCCIÓN DE TAGS EXTRA"
-#	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" join.xml |
+	xsltproc --xinclude stylesheets/profile.xsl $< > fase1.xml
+#	@echo "--- RUTAS A LOS LISTADOS"
+#	python utils/fix_includes.py fase1.xml > fase2.xml
+#	@echo "--- INCLUYENDO LISTADOS"
+#	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
+#	@echo "--- ELIMINANDO XMLNS Y TRADUCCIÓN DE TAGS EXTRA"
+	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" fase1.xml > $@
 #	sed -e "s/\/\/\/:~//" |
-	python utils/db_filter.py < join.xml > $@
-
+#	python utils/db_filter.py < join.xml > $@
 
 
 code_v%: code_orig_v%
@@ -79,8 +81,9 @@ code_v%: code_orig_v%
 make_images:
 	$(MAKE) -C images
 
-products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf \
-	  Volumen2-html.tar.bz2 vol2 Volumen2.pdf # Volumen1.rst
+products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf # Volumen1.rst
+products: Volumen2-html.tar.bz2 vol2 Volumen2.pdf # Volumen2.rst
+products:
 	$(RM) vol1/*.css vol2/*.css
 	cp stylesheets/*.css vol1/
 	cp stylesheets/*.css vol2/
@@ -98,7 +101,7 @@ validate: Volumen1.xml Volumen2.xml
 # Limpieza
 clean:
 	$(RM) fase?.xml join.xml *.bz2
-	$(RM) Volumen?.xml *-tagged.xml
+	$(RM) Volumen?.xml *-tagged.xml *.ok.xml
 	$(RM) *.pdf *.tex *.log *.glo *.aux *.idx *.out *.toc *.ilg *.ind
 	$(RM) Volumen?.rst
 	$(RM) stylesheets/highlight.css
