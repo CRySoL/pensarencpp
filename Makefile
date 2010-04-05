@@ -12,9 +12,6 @@ FILES=$(wildcard V1-*.xml V2-*.xml master_Volumen*.xml)
 
 all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
 
-Volumen%-html.tar.bz2: vol%
-	tar cfj $@ $<
-
 vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	@-mkdir -p $@/images
 
@@ -48,11 +45,6 @@ tagged-Volumen%.xml: Volumen%.xml
 %.pdf: %.xml dblatex/pec.sty dblatex/param.xsl make_images
 	dblatex --debug --style dblatex/pecstyle $<
 
-%.rst: %.xml
-	echo "-*- coding:utf-8 -*-" > $@
-	python db2rst/db2rst.py $< >> $@
-
-
 %.ok.xml: %.xml
 	python utils/fix_includes.py $< > $@
 
@@ -77,21 +69,29 @@ code_v%: code_orig_v%
 	cp -r $< $@
 	python utils/patch_sources.py $@
 
-
 make_images:
 	$(MAKE) -C images
 
-products: Volumen1-html.tar.bz2 vol1 Volumen1.pdf # Volumen1.rst
-products: Volumen2-html.tar.bz2 vol2 Volumen2.pdf # Volumen2.rst
+pensar_en_cpp-vol%.rst: Volumen%.xml
+	echo "-*- coding:utf-8 -*-" > $@
+	python db2rst/db2rst.py $< >> $@
+
+pensar_en_cpp-vol%.tar.bz2: vol%
+	tar cfj $@ $<
+
+products: pensar_en_cpp-vol1.tar.bz2 vol1 Volumen1.pdf # pensar_en_cpp-vol1.rst
+products: pensar_en_cpp-vol2.tar.bz2 vol2 Volumen2.pdf # pensar_en_cpp-vol2.rst
 products:
 	$(RM) vol1/*.css vol2/*.css
 	cp stylesheets/*.css vol1/
 	cp stylesheets/*.css vol2/
 	@-mkdir products
 	cp -r $^ products/
+	mv products/Volumen1.pdf products/pensar_en_cpp-vol1.pdf
+	mv products/Volumen2.pdf products/pensar_en_cpp-vol2.pdf
 
 install: products
-	scp -r products repo:public_html/pensar_en_C++/
+	scp -r products/* repo:public_html/pensar_en_C++/
 
 validate: Volumen1.xml Volumen2.xml
 	xmllint --noout --postvalid $^
