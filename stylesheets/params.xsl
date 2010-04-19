@@ -21,6 +21,8 @@
 -->
 
   <xsl:param name="toc.section.depth" select="1" />
+  <xsl:param name="section.autolabel.max.depth" select="2" />
+
   <!-- doesn't work correctly currently
   <xsl:param name="chunk.tocs.and.lots" select="1" />
   <xsl:param name="chunk.seperate.lots" select="1" />
