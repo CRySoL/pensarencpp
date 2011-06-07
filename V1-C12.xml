@@ -248,7 +248,7 @@
       Aunque puede sobrecargar casi todos los operadores disponibles en C, el uso de
       operadores sobrecargados es bastante restrictivo. En particular, no puede combinar
       operadores que actualmente no tienen significado en C (como <oper>**</oper> para
-      representar la potencia), no puede cambiar la prioridad de evaluación de operadores,
+      representar la potencia), no puede cambiar la precedencia de evaluación de operadores,
       y tampoco el número de argumentos requeridos por un operador. Estas restricciones
       existen para prevenir que la creación de nuevos operadores ofusquen el significado
 	  en lugar de clarificarlo.
@@ -597,8 +597,6 @@
       </para>
 
 
-<!-- revisando por aquí -->
-
       <sect3>
 		<!-- : Return by value as const -->
 		<title>Retorno por valor como constante</title>
@@ -611,13 +609,13 @@
         return value const or not has no effect.
         -->
 		<para>
-		  La devolución por valor como una constante puede parecer un poco sutil en
-		  principio, asi que es digna de un poco mas de explicación. Considere el operador
+		  El retorno por valor como una constante puede parecer un poco sutil al
+		  principio, así que es digno de un poco más de explicación. Considere el operador
 		  binario <function>operator+</function>. Si lo ve en una expresión como
 		  <code>f(a+b)</code>, el resultado de <code>a+b</code> se convierte en un objeto
 		  temporal que se usará en la llamada a <function>f()</function>. Debido a que es
-		  temporal, es automáticamente <kw>const</kw>, así que aunque usted de, forma
-		  explicita, haga el valor de retorno <kw>const</kw>o no, no tendrá efecto.
+		  temporal, es automáticamente <kw>const</kw>, así que aunque, de forma
+		  explicita, haga el valor de retorno <kw>const</kw> o no, no tendrá efecto.
 		</para>
 
         <!--
@@ -628,39 +626,34 @@
         const-correct, because it prevents you from storing potentially valuable information in
         an object that will most likely be lost.
         -->
-	<para>
-	  Sin embargo es también posible mandar un mensaje para devolver
-	  el valor <code>a+b</code>, mejor que
-	  simplemente pasarlo a la función. Por ejemplo, puede decir
-	  <code>(a+b).g()</code> en la que
-	  <function>g()</function> es alguna función miembro de
-	  <classname>Integer</classname>, en este caso. Haciendo el
-	  valor de retorno <kw>const</kw>,
-	  declara que sólo una función miembro <kw>const</kw> puede ser llamada para ese
-	  valor de retorno. Esto es correcto desde el punto de vista del
-	  <kw>const</kw>, porque previene de
-	  que almacene información potencialmente importante en un
-	  objeto que será casi seguro destruido.
-	</para>
+		<para>
+		  Sin embargo, también es posible mandar un mensaje al valor de retorno de
+		  <code>a+b</code>, mejor que simplemente pasarlo a la función. Por ejemplo, puede
+		  decir <code>(a+b).g()</code> en la que <function>g()</function> es algún método
+		  de <classname>Integer</classname>, en este caso. Haciendo el valor de retorno
+		  <kw>const</kw>, está indicando que sólo un método <kw>const</kw> puede ser
+		  llamado sobre ese valor de retorno. Esto es correcto desde el punto de vista del
+		  <kw>const</kw>, porque le evita almacenar información potencialmente importante
+		  en un objeto que probablemente será destruido.
+		</para>
       </sect3>
 
       <sect3>
         <!-- : The return optimization -->
-	<title>Optimización del retorno</title>
+		<title>Optimización del retorno</title>
 
         <!--
         When new objects are created to return by value, notice the form used. In operator+, for
         example:
         -->
-	<para>
-	  Advierta la manera que se usa cuando se crean nuevos objetos
-	  para ser devueltos. En <function>operator+</function>, por
-	  ejemplo:
-	</para>
+		<para>
+		  Advierta la manera que se usa cuando se crean nuevos objetos para ser devueltos
+		  por valor. En <function>operator+</function>, por ejemplo:
+		</para>
 
 
 <programlisting>
-    return Integer(left. i + right. i);
+    return Integer(left.i + right.i);
 </programlisting>
 
         <!--
@@ -670,20 +663,18 @@
         named local object and returning that. However, it's quite different. If you were to say
         instead:
         -->
-	<para>
-	  Esto puede parecer en principio como una función de llamada de
-	  a un constructor pero no lo es. La sintaxis es la de un objeto
-	  temporal;la sentencia dice <quote>crea un objeto
-	  <classname>Integer</classname> temporal y
-	  desvuélvelo</quote>. A causa de esto, puede pensar que el
-	  resultado es el mismo que crear un objeto local con nombre y
-	  devolverle. Sin embargo, es algo diferente. Si quisiera decir
-	  en cambio:
-	</para>
+		<para>
+		  Esto puede parecer en principio como una <quote>función de llamada a un
+		  constructor</quote> pero no lo es. La sintaxis es la de un objeto temporal; la
+		  sentencia dice <quote>crea un objeto <classname>Integer</classname> temporal y
+		  desvuélvelo</quote>. A causa de esto, puede pensar que el resultado es el mismo
+		  que crear un objeto local con nombre y devolverlo. Sin embargo, es algo
+		  diferente. Si en su lugar escribiera:
+		</para>
 
 
 <programlisting>
-    Integer tmp(left. i + right. i);
+    Integer tmp(left.i + right.i);
     return tmp;
 </programlisting>
 
@@ -692,40 +683,36 @@
         call. Second, the copy-constructor copies the tmp to the location of the outside return
         value. Third, the destructor is called for tmp at the end of the scope.
         -->
-	<para>
-	  tres cosas sucederán. La primera, el objeto
-	  <varname>tmp</varname> es creado incluyendo la llamada a su
-	  constructor. La segunda, el constructor de copia duplica
-	  <varname>tmp</varname> a la localización del valor de retorno
-	  externo. La tercera, se llama al destructor para
-	  <varname>tmp</varname> cuando sale del ámbito.
-	</para>
+		<para>
+		  sucederían tres cosas. La primera, se crea el objeto <varname>tmp</varname>
+		  incluyendo la llamada a su constructor. La segunda, el constructor de copia
+		  duplica <varname>tmp</varname> en la localización del valor de retorno
+		  externo. La tercera, se llama al destructor para <varname>tmp</varname> cuando
+		  sale del ámbito.
+		</para>
 
         <!--
-        In contrast, the "returning a temporary" approach works quite differently. When the
-        compiler sees you do this, it knows that you have no other need for the object it's
-        creating than to return it. The compiler takes advantage of this by building the object
-        directly into the location of the outside return value. This requires only a single
-        ordinary constructor call (no copy-constructor is necessary) and there's no destructor
-        call because you never actually create a local object. Thus, while it doesn't cost
-        anything but programmer awareness, it's significantly more efficient. This is often
-        called the return value optimization.
+		In contrast, the "returning a temporary" approach works quite
+        differently. When the compiler sees you do this, it knows that you have no other
+        need for the object it's creating than to return it. The compiler takes advantage
+        of this by building the object directly into the location of the outside return
+        value. This requires only a single ordinary constructor call (no copy-constructor
+        is necessary) and there's no destructor call because you never actually create a
+        local object. Thus, while it doesn't cost anything but programmer awareness, it's
+        significantly more efficient. This is often called the return value optimization.
         -->
-	<para>
-	  En contraste, la aproximación de <quote>devolver un objeto
-	  temporal</quote> funciona de manera bastante diferente. Cuando
-	  el compilador ve que usted hace esto, sabe que no tiene otra
-	  razón para crearlo mas que para devolverlo. El compilador
-	  aprovecha la ventaja que esto da para construir el objeto
-	  directamente en la localización del valor de retorno externo a
-	  la función. Esto necesita de una sola y ordinaria llamada al
-	  constructor(la llamada al constructor de copia no es
-	  necesaria) y no hay llamadas al destructor porque nunca se
-	  crea un objeto local. De esta manera, mientras que no cuesta
-	  nada mas que el conocimiento del programador, es
-	  significativamente mas eficiente. Esto es llamado a menudo la
-	  optimización del valor de retorno.
-	</para>
+		<para>
+		  En contraste, la aproximación de <quote>devolver un objeto temporal</quote>
+		  funciona de manera bastante diferente. Cuando el compilador ve eso, sabe que no
+		  tiene otra razón para crearlo mas que para devolverlo. El compilador aprovecha
+		  la ventaja que ofrece para construir el objeto directamente en la localización
+		  del valor de retorno externo a la función. Esto necesita de una sola y ordinaria
+		  llamada al constructor (la llamada al constructor de copia no es necesaria) y no
+		  hay llamadas al destructor porque nunca se crea un objeto local. De esta manera,
+		  no requiere nada más que el conocimiento del programador, y es
+		  significativamente mas eficiente. Esto a menudo se llama optimización del valor
+		  de retorno.
+		</para>
       </sect3>
     </sect2>
 
@@ -736,6 +723,10 @@
 
       <!-- Several additional operators have a slightly different
       syntax for overloading. -->
+	  <para>
+		Varios operadores adicionales tienen una forma ligeramente diferente de ser
+		sobrecargados.
+	  </para>
 
       <!--
       The subscript, operator[ ], must be a member function and it requires a single argument.
@@ -745,16 +736,12 @@
       examples in the rest of the book.
       -->
       <para>
-	Varios operadores adicionales tienen una forma ligeramente
-	diferente de ser sobrecargados.  El subíndice,
-	<function>operator[]</function> debe ser una función miembro y
-	precisa de un argumento simple. Dado que
-	<function>operator[]</function> implica que el objeto que está
-	siendo utilizado como un array, usted a menudo devolverá una
-	referencia de este operador, asi que puede ser convenientemente
-	usado en la parte derecha de un signo de igualdad. Esto operador
-	es muy comónmente sobrecargado;verá ejemplos en el resto del
-	libro.
+		El subíndice, <function>operator[]</function> debe ser un método y precisa de un
+		único argumento. Dado que <function>operator[]</function> implica que el objeto
+		que está siendo utilizado como un array, a menudo devolverá una referencia de este
+		operador, así que puede ser convenientemente usado en la parte derecha de un signo
+		de igualdad. Este operador es muy comúnmente sobrecargado; verá ejemplos en el
+		resto del libro.
       </para>
 
       <!--
@@ -762,15 +749,15 @@
       a number of different ways. This topic is covered in the Chapter 13.
       -->
       <para>
-	Los operadores <kw>new</kw> y <kw>delete</kw> controlan la reserva dinámica
-	de almacenamiento y pueden ser sobrecargados de muchas maneras
-	diferentes. Este tema esta cubierto en el capitulo 13.
+		Los operadores <kw>new</kw> y <kw>delete</kw> controlan la reserva dinámica de
+		almacenamiento y se pueden sobrecargar de muchas maneras diferentes. Este tema se
+		cubre en el capitulo 13. <!-- FIXME referencia -->
       </para>
-<!-- FIXME referencia -->
+
 
       <sect3>
-	<!-- : Operator comma -->
-	<title>El operador coma</title>
+		<!-- : Operator comma -->
+		<title>El operador coma</title>
 
         <!--
         The comma operator is called when it appears next to an object of the type the comma is
@@ -780,16 +767,14 @@
         example showing how the comma function can be called when the comma appears before an
         object, as well as after:
         -->
-	<para>
-	  El operador coma es llamado cuando aparece siguiendo a un
-	  objeto del tipo para el que está definido. Sin embargo,
-	  <quote><function>operator,</function></quote> no se llama para
-	  listas de argumentos de funciones, sólo para objetos fuera de
-	  ese lugar separados por comas. No parece haber un montón de
-	  usos prácticos para este operador, solo es por consistencia
-	  del lenguaje. He aquí un ejemplo que muestra como la función
-	  coma puede ser llamada cuando aparece antes de un objeto, así
-	  como después:
+		<para>
+		  El operador coma se llama cuando aparece después de un objeto del tipo para el
+		  que está definido. Sin embargo, <quote><function>operator,</function></quote> no
+		  se llama para listas de argumentos de funciones, sólo para objetos fuera de ese
+		  lugar separados por comas. No parece haber un montón de usos prácticos para este
+		  operador, solo es por consistencia del lenguaje. He aquí un ejemplo que muestra
+		  como la función coma se puede llamar cuando aparece antes de un objeto, así como
+		  después:
 	</para>
 
 
@@ -803,17 +788,17 @@
         comma-separated list as part of a more complex expression, it's too subtle to use in
         most situations.
         -->
-	<para>
-	  Las funciones globales permiten a la coma ser situada antes
-	  del objeto en cuestión. El uso mostrado es bastante oscuro y
-	  cuestionable. Aunque usted podría probablemente usar una lista
-	  separada por comas como parte de una expresión mas complicada,
-	  es demasiado refinado en la mayoría de las ocasiones.
-	</para>
+		<para>
+		  Las funciones globales permiten situar la coma antes del objeto en cuestión. El
+		  uso mostrado es bastante oscuro y cuestionable. Probablemente podría una lista
+		  separada por comas como parte de una expresión más complicada, es demasiado
+		  refinado en la mayoría de las ocasiones.
+		</para>
       </sect3>
+
       <sect3>
         <!-- : Operator-> -->
-	<title>El operador -></title>
+		<title>El operador -></title>
 
         <!--
         The operator-> is generally used when you want to make an object appear to be a pointer.
@@ -825,23 +810,20 @@
         implementation of the container. (You'll often find containers and iterators in class
         libraries, such as in the Standard C++ Library, described in Volume 2 of this book.)
         -->
-	<para>
-	  El operador <oper>-></oper> se usa
-	  generalmente cuando quiera hacer que un objeto aparezca como
-	  un puntero. Un objeto como este es llamado a menudo un
-	  <emphasis>puntero inteligente</emphasis>. Estos son
-	  especialmente utiles si usted quiere <quote>envolver</quote>
-	  una clase con un puntero para hacer que ese puntero sea
-	  seguro, o en la forma común de un
-	  <classname>iterador</classname>, que es un objeto que se mueve
-	  a través de una <classname>colección</classname> o
-	  <classname>contenedor</classname> de otros objetos y los
-	  selecciona de uno en uno cada vez, si proporcionar acceso
-	  directo a la implementación del contenedor. (A menudo
-	  encontrará iteradores y contenedores en las librerías de
-	  clases, como en la Libreria Standar de C++, descrita en el
-	  volumen 2 de este libro).
-	</para>
+		<para>
+		  El operador <oper>-></oper> se usa generalmente cuando quiere hacer que un
+		  objeto parezca un puntero. Este tipo de objeto se suele llamar <emphasis>puntero
+		  inteligente</emphasis> o más a menudo por su equivalente en inglés:
+		  <emphasis>smart pointer</emphasis>. Resultan especialmente utiles si quiere
+		  <quote>envolver</quote> una clase con un puntero para hacer que ese puntero sea
+		  seguro, o en la forma común de un <classname>iterador</classname>, que es un
+		  objeto que se mueve a través de una <classname>colección</classname> o
+		  <classname>contenedor</classname> de otros objetos y los selecciona de uno en
+		  uno cada vez, sin proporcionar acceso directo a la implementación del
+		  contenedor. (A menudo encontrará iteradores y contenedores en las librerías de
+		  clases, como en la Biblioteca Estándar de C++, descrita en el volumen 2 de este
+		  libro).
+		</para>
 
         <!--
         A pointer dereference operator must be a member function. It has additional, atypical
@@ -849,15 +831,13 @@
         pointer dereference operator, or it must return a pointer that can be used to select
         what the pointer dereference operator arrow is pointing at. Here's a simple example:
         -->
-	<para>
-	  El operador de indirección de punteros (*) debe ser una
-	  función miembro. Tiene otras obligaciones atípicas: debe
-	  devolver un objeto( o una referencia a un objeto) que también
-	  tenga un operador de indirección de punteros, o debe devolver
-	  un puntero que pueda ser usado para encontrar a lo que apunta
-	  la flecha del operador de indireción de punteros. He aquí un
-	  ejemplo simple:
-	</para>
+		<para>
+		  El operador de indirección de punteros (*) debe ser un método. Tiene otras
+		  restricciones atípicas: debe devolver un objeto (o una referencia a un objeto)
+		  que también tenga un operador de indirección de punteros, o debe devolver un
+		  puntero que pueda ser usado para encontrar a lo que apunta la flecha del
+		  operador de indireción de punteros. He aquí un ejemplo simple:
+		</para>
 
 
 
@@ -879,45 +859,37 @@
         about the smart pointers called "iterators" in the last chapter of this book and in
         Volume 2 (downloadable from www.BruceEckel.com).
         -->
-	<para>
-	  La clase <classname>Obj</classname> define los objetos que son
-	  manipulados en este programa. Las funciones
-	  <function>f()</function> y <function>g()</function>
-	  simplemente escriben en pantalla los valores interesantes
-	  usando miembros de datos estáticos. Los punteros a estos
-	  objetos son almacenados en el interior de los contenedores del
-	  tipo <classname>ObjContainer</classname> usando su función
-	  <function>add()</function>. <classname>ObjContanier</classname>
-	  parece un array de punteros, pero advertirá que no hay forma
-	  de traer de nuevo los punteros. Sin embargo,
-	  <classname>SmartPointer</classname> se declara como una clase
-	  <classname>friend</classname>, asi que tiene permiso para
-	  mirar dentro del contenedor. La clase
-	  <classname>SmartPointer</classname> parece mucho más un
-	  puntero inteligente-usted puede moverlo hacia adelante usando
-	  <function>operator++</function>(también puede definir un
-	  <function>operator--</function>, no pasará del final del
-	  contenedor al que apunta, y genera( a través del operador de
-	  indireccion de punteros) el valor al que apunta. Advierta que
-	  <classname>SmartPointer</classname> está hecho a medida sobre
-	  el contenedor para el que se crea;a diferencia de un puntero
-	  normal, no hay punteros inteligentes de "propósito
-	  general". Aprenderá mas sobre los punteros inteligentes
-	  llamados <quote>iteradores</quote> en el ultimo capitulo de
-	  este libro y en el volumen 2(descargable desde
-	  FIXME:url www. BruceEckel. com).
-	</para>
+		<para>
+		  La clase <classname>Obj</classname> define los objetos que son manipulados en
+		  este programa. Las funciones <function>f()</function> y <function>g()</function>
+		  simplemente escriben en pantalla los valores interesantes usando miembros de
+		  datos estáticos. Los punteros a estos objetos son almacenados en el interior de
+		  los contenedores del tipo <classname>ObjContainer</classname> usando su función
+		  <function>add()</function>. <classname>ObjContanier</classname> parece un array
+		  de punteros, pero advertirá que no hay forma de traer de nuevo los punteros. Sin
+		  embargo, <classname>SmartPointer</classname> se declara como una clase
+		  <classname>friend</classname>, así que tiene permiso para mirar dentro del
+		  contenedor. La clase <classname>SmartPointer</classname> se parece mucho a un
+		  puntero inteligente - puede moverlo hacia adelante usando
+		  <function>operator++</function> (también puede definir un
+		  <function>operator--</function>, no pasará del final del contenedor al que
+		  apunta, y genera (a través del operador de indireccion de punteros) el valor al
+		  que apunta. Advierta que <classname>SmartPointer</classname> está hecho a medida
+		  sobre el contenedor para el que se crea; a diferencia de un puntero normal, no
+		  hay punteros inteligentes de <quote>propósito general</quote>. Aprenderá más
+		  sobre los punteros inteligentes llamados <quote>iteradores</quote> en el último
+		  capitulo de este libro y en el volumen 2 (descargable desde FIXME:url
+		  www. BruceEckel. com).
+		</para>
 
         <!--
         In main( ), once the container oc is filled with Obj objects, a SmartPointer sp is
         created. The smart pointer calls happen in the expressions:
         -->
-	<para>
-	  En <function>main()</function>, una vez que el contenedor
-	  <varname>oc</varname> se rellena con objetos
-	  <classname>Obj</classname> un <varname>SmartPointer
-	  sp</varname> se crea. La llamada al puntero inteligente sucede
-	  en las expresiones:
+		<para>
+		  En <function>main()</function>, una vez que el contenedor <varname>oc</varname>
+		  se rellena con objetos <classname>Obj</classname> se crea un <code>SmartPointer
+		  sp</code>. La llamada al puntero inteligente sucede en las expresiones:
 	</para>
 
 
@@ -932,44 +904,42 @@
         by SmartPointer::operator->. The compiler performs all the checking to make sure the
         function call works properly.
         -->
-	<para>
-	  Aquí, incluso aunque <varname>sp</varname> no tiene funciones
-	  miembro <function>f()</function> y <function>g()</function>,
-	  el operador de indirección de punteros automáticamente llama a
-	  esas funciones para <type>Obj*</type> que es devuelto por
-	  <function>SmartPointer::operator-></function>. El compilador
-	  realiza todas las comprobaciones pertinentes para asegurar que
-	  la llamada a función funciona de forma correcta.
-	</para>
+		<para>
+		  Aquí, incluso aunque <varname>sp</varname> no tiene métodos
+		  <function>f()</function> y <function>g()</function>, el operador de indirección
+		  de punteros automáticamente llama a esas funciones para <type>Obj*</type> que es
+		  devuelto por <function>SmartPointer::operator-></function>. El compilador
+		  realiza todas las comprobaciones pertinentes para asegurar que la llamada a
+		  función funciona de forma correcta.
+		</para>
 
         <!--
         Although the underlying mechanics of the pointer dereference operator are more complex
         than the other operators, the goal is exactly the same: to provide a more convenient
         syntax for the users of your classes.
         -->
-	<para>
-	  Aunque la mecánica subyacente de los operadores de
-	  indirección de punteros es más compleja que la de los otros
-	  operadores, la meta es exactamente la misma:proporcionar una
-	  sintaxis mas conveniente para los usuarios de sus clases.
-	</para>
+		<para>
+		  Aunque la mecánica subyacente de los operadores de indirección de punteros es
+		  más compleja que la de los otros operadores, el objetivo es exactamente el
+		  mismo: proporcionar una sintaxis más conveniente para los usuarios de sus
+		  clases.
+		</para>
       </sect3>
 
       <sect3>
         <!-- : A nested iterator -->
-	<title>Un operador anidado</title>
+		<title>Un operador anidado</title>
 
         <!--
         It's more common to see a "smart pointer" or "iterator" class nested within the class
         that it services. The previous example can be rewritten to nest SmartPointer inside
         ObjContainer like this:
         -->
-	<para>
-	  Es más común ver un puntero inteligente o un clase iteradora
-	  anidada dentro de la clase a la que sirve. El ejemplo previo
-	  puede ser reescrito para anidar
-	  <classname>SmartPointer</classname> dentro de
-	  <classname>ObjContainer</classname> así:
+		<para>
+		  Es más común ver un puntero inteligente o un clase iteradora anidada dentro de
+		  la clase a la que sirve. Se puede reescribir el ejemplo anterior para anidar
+		  <classname>SmartPointer</classname> dentro de
+		  <classname>ObjContainer</classname> así:
 	</para>
 
 
@@ -981,61 +951,55 @@
         Besides the actual nesting of the class, there are only two differences here. The first
         is in the declaration of the class so that it can be a friend:
         -->
-	<para>
-	  Además del actual anidamiento de la clase, hay solo dos
-	  diferencias aquí. La primera es la declaración de la clase
-	  para que pueda ser <kw>friend</kw>:
-	</para>
+		<para>
+		  Además del anidamiento de la clase, hay solo dos diferencias aquí. La primera es
+		  la declaración de la clase para que pueda ser <kw>friend</kw>:
+		</para>
 
 
 <programlisting>
-    class SmartPointer;
-    friend SmartPointer;
+		  class SmartPointer;
+		  friend SmartPointer;
 </programlisting>
+
 
         <!--
         The compiler must first know that the class exists before it can be told that it's a
         friend.
         -->
-	<para>
-	  El compilador debe saber primero que la clase existe, antes de
-	  que se le diga que es <kw>amiga</kw>.
-	</para>
+		<para>
+		  El compilador debe saber primero que la clase existe, antes de que se le diga
+		  que es <quote>amiga</quote>.
+		</para>
 
-        <!--
-        The second difference is in the ObjContainer member function begin( ), which produces a
-        SmartPointer that points to the beginning of the ObjContainer sequence. Although it's
-        really only a convenience, it's valuable because it follows part of the form used in the
-        Standard C++ Library.
-        -->
-	<para>
-	  La segunda diferencia es en
-	  <classname>ObjContainer</classname>donde la función miembro
-	  <function>begin()</function> produce el
-	  <classname>SmartPointer</classname> que apunta al principio de
-	  la secuencia del <classname>ObjContainer</classname>. Aunque
-	  realmente es sólo por conveniencia, es adecuado porque sigue
-	  la manera habitual de la librería estándar de C++.
-	</para>
+        <!-- The second difference is in the ObjContainer member function begin( ), which
+        produces a SmartPointer that points to the beginning of the ObjContainer
+        sequence. Although it's really only a convenience, it's valuable because it
+        follows part of the form used in the Standard C++ Library.  -->
+		<para>
+		  La segunda diferencia es en <classname>ObjContainer</classname> donde el método
+		  <function>begin()</function> produce el <classname>SmartPointer</classname> que
+		  apunta al principio de la secuencia del
+		  <classname>ObjContainer</classname>. Aunque realmente es sólo por conveniencia,
+		  es adecuado porque sigue la manera habitual de la librería estándar de C++.
+		</para>
       </sect3>
 
       <sect3>
         <!-- : Operator->* -->
-	<title>Operador ->*</title>
+		<title>Operador ->*</title>
 
         <!--
         The operator->* is a binary operator that behaves like all the other binary operators.
         It is provided for those situations when you want to mimic the behavior provided by the
         built-in pointer-to-member syntax, described in the previous chapter.
         -->
-	<para>
-	  El operador <oper>->*</oper> es un
-	  operador binario que se comporta como todos los otros
-	  operadores binarios. Se proporciona para aquellas situaciones
-	  en las que quiera imitar el comportamiento producido por la
-	  sintaxis incorporada <emphasis>puntero a miembro</emphasis>,
-	  descrita en el capitulo anterior.
-	</para>
+		<para>
+		  El operador <oper>->*</oper> es un operador binario que se comporta como todos
+		  los otros operadores binarios. Se proporciona para aquellas situaciones en las
+		  que quiera imitar el comportamiento producido por la sintaxis incorporada
+		  <emphasis>puntero a miembro</emphasis>, descrita en el capitulo anterior.
+		</para>
 
         <!--
         Just like operator->, the pointer-to-member dereference operator is generally used with
@@ -1044,17 +1008,15 @@
         must return an object for which the operator( ) can be called with the arguments for the
         member function you're calling.
         -->
-	<para>
-	  Igual que <oper>operator-></oper>, el
-	  operador de indirección de puntero a miembro es usado
-	  normalmente con alguna clase de objetos que representan un
-	  <quote>puntero inteligente</quote>, aunque el ejemplo mostrado
-	  aqui será más simple para que sea comprensible. El truco
-	  cuando se define <oper>operator->*</oper> es que debe devolver un
-	  objeto para el que <function>operator()</function> pueda ser
-	  llamado con los argumentos para la función miembro que usted
-	  llama.
-	</para>
+		<para>
+		  Igual que <oper>operator-></oper>, el operador de indirección de puntero a
+		  miembro se usa normalmente con alguna clase de objetos que representan un
+		  <quote>puntero inteligente</quote>, aunque el ejemplo mostrado aquí será más
+		  simple para que sea comprensible. El truco cuando se define
+		  <function>operator->*</function> es que debe devolver un objeto para el que
+		  <function>operator()</function> pueda ser llamado con los argumentos para la
+		  función miembro que usted llama.
+		</para>
 
         <!--
         The function call operator( ) must be a member function, and it is unique in that it
@@ -1064,18 +1026,15 @@
         especially prominent one. You'll see in Volume 2 that the Standard C++ Library uses the
         function call operator in order to create "function objects."
         -->
-	<para>
-	  La llamada a función <function>operator()</function> debe ser
-	  una función miembro, y es ónica en que permite cualquier
-	  nómero de argumentos. Hace su objeto parecer como si fuera
-	  realmente una función. Aunque usted prodría definir varias
-	  funciones sobrecargadas <function>operator()</function> con
-	  diferentes argumentos, a menudo se usa para tipos que solo
-	  tienen una operación simple, o al menos una especialmente
-	  destacada. Usted verá en el Volumen2 que la librería estándar
-	  de C++ usa el operador de llamada a función para crear
-	  <quote>objetos función</quote>.
-	</para>
+		<para>
+		  La llamada a función <function>operator()</function> debe ser un método, y es
+		  único en que permite cualquier número de argumentos. Hace que el objeto parezca
+		  realmente una función. Aunque podría definir varias funciones sobrecargadas
+		  <function>operator()</function> con diferentes argumentos, a menudo se usa para
+		  tipos que solo tienen una operación simple, o al menos una especialmente
+		  destacada. En el Volumen2 verá que la Librería Estándar de C++ usa el operador
+		  de llamada a función para crear <quote>objetos-función</quote>.
+		</para>
 
         <!--
         To create an operator->* you must first create a class with an operator( ) that is the
@@ -1086,22 +1045,17 @@
         to the object and the pointer to the member function, and then the operator( ) uses
         those to make the actual pointer-to-member call:
         -->
-	<para>
-	  Para crear un <oper>operator->*</oper>
-	  debe primero crear una clase con un
-	  <function>operator()</function> que sea el tipo de objeto que
-	  <oper>operator->*</oper> devolverá.
-	</para>
-	<para>
-	  Esta clase debe, de algón modo, capturar la información
-	  necesaria para que cuando <function>operator()</function> sea
-	  llamada( lo que sucede automáticamente), el puntero a miembro
-	  sea indireccionado para el objeto. En el ejemplo siguiente, el
-	  constructor de <classname>FunctionObject</classname>captura y
-	  almacena el puntero al objeto y el puntero a la función
-	  miembro, y entonces <function>operator()</function> los usa
-	  para hacer la actual llamada a "puntero a miembro":
-	</para>
+		<para>
+		  Para crear un <oper>operator->*</oper> debe primero crear una clase con un
+		  <function>operator()</function> que sea el tipo de objeto que
+		  <oper>operator->*</oper> devolverá.  Esta clase debe, de algún modo, capturar la
+		  información necesaria para que cuando <function>operator()</function> sea
+		  llamada (lo que sucede automáticamente), el puntero a miembro sea indireccionado
+		  para el objeto. En el siguiente ejemplo, el constructor de
+		  <classname>FunctionObject</classname> captura y almacena el puntero al objeto y
+		  el puntero a la función miembro, y entonces <function>operator()</function> los
+		  usa para hacer la verdadera llamada puntero a miembro:
+		</para>
 
 
 
@@ -1112,13 +1066,12 @@
         Dog has three member functions, all of which take an int argument and return an int. PMF
         is a typedef to simplify defining a pointer-to-member to Dog's member functions.
         -->
-	<para>
-	  <classname>Dog</classname> tiene tres funciones miembro, todas
-	  las cuales toman un argumento entero y devuelven un
-	  entero. <varname>PMC</varname> es un <type>typedef</type> para
-	  simplificar el definir un puntero a miembro para las funciones
-	  miembro de <classname>Dog</classname>.
-	</para>
+		<para>
+		  <classname>Dog</classname> tiene tres métodos, todos toman un argumento entero y
+		  devuelven un entero. <varname>PMC</varname> es un <type>typedef</type> para
+		  simplificar la definición de un puntero a miembro para los métodos de
+		  <classname>Dog</classname>.
+		</para>
 
         <!--
         A FunctionObject is created and returned by operator->*. Notice that operator->* knows
@@ -1130,35 +1083,31 @@
         dereferences the "real" pointer-to-member using its stored object pointer and
         pointer-to-member.
         -->
-	<para>
-	  Una <function>FunctionObject</function> es creada y devuelta
-	  por <oper>operator->*</oper>. Dese
-	  cuenta que <oper>operator->*</oper>
-	  conoce el objeto para el que puntero a miembro esta siendo
-	  llamado(<varname>this</varname>) y el puntero a miembro, y los
-	  pasa al constructor <function>FunctionObject</function> que
-	  almacena sus valores. Cuando <oper>operator->*</oper> es llamado, el
-	  compilador inmediatamente se revuelve y llama a
-	  <function>operator()</function> para el valor de retorno de
-	  <oper>operator->*</oper>, pasandole los
-	  argumentos que le fueron pasados a <oper>operator->*</oper>.
-	  <function>FunctionObject::operator()</function> toma los
-	  argumentos y entonces indirecciona el puntero a miembro
-	  <quote>real</quote> usando los punteros a objeto y a miembro
-	  almacenados.
-	</para>
+		<para>
+		  Una <function>FunctionObject</function> es creada y devuelta por
+		  <oper>operator->*</oper>. Dese cuenta que <oper>operator->*</oper> conoce el
+		  objeto para el que puntero a miembro está siendo llamado
+		  (<varname>this</varname>) y el puntero a miembro, y los pasa al constructor
+		  <function>FunctionObject</function> que almacena sus valores. Cuando se llama a
+		  <oper>operator->*</oper>, el compilador inmediatamente lo revuelve y llama a
+		  <function>operator()</function> para el valor de retorno de
+		  <oper>operator->*</oper>, pasándole los argumentos que le fueron pasados a
+		  <oper>operator->*</oper>.  <function>FunctionObject::operator()</function> toma
+		  los argumentos e desreferencia el puntero a miembro <quote>real</quote> usando
+		  los punteros a objeto y a miembro almacenados.
+		</para>
 
         <!--
         Notice that what you are doing here, just as with operator->, is inserting yourself in
         the middle of the call to operator->*. This allows you to perform some extra operations
         if you need to.
         -->
-	<para>
-	  Percátese de que lo que está haciendo aquí, justo como con
-	  <oper>operator-></oper>, es insertarse
-	  en la mitad de la llamada a <oper>operator->*</oper>. Esto permite realizar
-	  algunas operaciones adicionales si las necesitara.
-	</para>
+		<para>
+		  Percátese de que lo que está ocurriendo aquí, justo como con
+		  <oper>operator-></oper>, se inserta en la mitad de la llamada a
+		  <oper>operator->*</oper>. Esto permite realizar algunas operaciones adicionales
+		  si se necesita.
+		</para>
 
         <!--
         The operator->* mechanism implemented here only works for member functions that take an
@@ -1167,18 +1116,18 @@
         Fortunately, C++'s template mechanism (described in the last chapter of this book, and
         in Volume 2) is designed to handle just such a problem.
         -->
-	<para>
-	  El mecanismo <oper>operator->*</oper>
-	  implementado aquí solo trabaja para funciones miembro que
-	  toman un argumento entero y devuelven otro entero. Esto es una
-	  limitación, pero si intenta crear mecanismos sobrecargados
-	  para cada diferente posibilidad, verá que es una tarea
-	  prohibitiva. Afortunadamente, el mecanismo de plantillas de
-	  C++(descrito el el ultimo capitulo de este libro, y en el
-	  volumen2) esta diseñado para manejar semejante problema.
-	</para>
+		<para>
+		  El mecanismo <oper>operator->*</oper> implementado aquí solo trabaja para
+		  funciones miembro que toman un argumento entero y devuelven otro entero. Esto es
+		  una limitación, pero si intenta crear mecanismos sobrecargados para cada
+		  posibilidad diferente, verá que es una tarea prohibitiva. Afortunadamente, el
+		  mecanismo de plantillas de C++ (descrito el el ultimo capitulo de este libro, y
+		  en el volumen2) está diseñado para manejar semejante problema.
+		</para>
       </sect3>
     </sect2>
+
+
 
     <sect2>
       <!-- : Operators you can't overload -->
@@ -1191,12 +1140,11 @@
       practice.
       -->
       <para>
-	Hay cierta clase de operadores en el conjunto disponible que no
-	pueden ser sobrecargados. La razón general para esta restricción
-	es la seguridad. Si estos operadores fuesen sobrecargabales,
-	podría de algón modo arriesgar o romper los mecanismos de
-	seguridad, hacer las cosas mas difíciles o confundir las
-	costumbres existentes.
+		Hay cierta clase de operadores en el conjunto disponible que no pueden ser
+		sobrecargados. La razón general para esta restricción es la seguridad. Si estos
+		operadores fuesen sobrecargables, podría de algún modo arriesgar o romper los
+		mecanismos de seguridad, hacer las cosas mas difíciles o confundir las costumbres
+		existentes.
       </para>
 
       <!--
@@ -1217,53 +1165,51 @@
       without letting people play with them.
       -->
       <orderedlist>
-	<listitem>
-	  <para>
-	    El operador de selección de miembros <kw>operator</kw>. Actualmente, el punto
-	    tiene significado para cualquier miembro de una clase, pero
-	    si le permite ser sobrecargado, no podría acceder a miembros
-	    de la forma normal;en lugar de eso debería usar un puntero y
-	    la flecha <literal>operator-></literal>.
+		<listitem>
+		  <para>
+			El operador de selección de miembros <kw>operator.</kw>. Actualmente, el punto
+			tiene significado para cualquier miembro de una clase, pero si se pudiera
+			sobrecargar, no se podría acceder a miembros de la forma normal; en lugar de
+			eso debería usar un puntero y la flecha <function>operator-><</function>.
 	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    La indirección de punteros a miembros <literal>operator *</literal> por la misma razón que
-	    <literal>operator</literal>.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    No hay un operador de potencia. La elección mas popular para
-	    este era <literal>operator**</literal> de
-	    Fortram, pero provoca casos de análisis gramatical
-	    dificiles. C tampoco tiene un operador de potencia, así que
-	    C++ no parece tener necesidad de uno porque siempre puede
-	    realizar una llamada a una función. Un operador de potencia
-	    añadirá una notación adecuada, pero ninguna nueva
-	    funcionalidad a cuenta de una mayor complejidad del
-	    compilador.
-	  </para>
-	</listitem>
-	<listitem>
-	  <para>
-	    No hay operadores definidos por el usuario. Esto es, no
-	    puede crear nuevos operadores que no estén ya en el actual
-	    conjunto. Una parte del problema es como determinar la
-	    prioridad, y otra parte es la falta de necesidad a costa del
-	    problema inherente.
-	  </para>
-	</listitem>
-	<listitem>
+		</listitem>
+		<listitem>
+		  <para>
+			La indirección de punteros a miembros <literal>operator.*</literal> por la
+			misma razón que <literal>operator.</literal>.
+		  </para>
+		</listitem>
+		<listitem>
+		  <para>
+			No hay un operador de potencia. La elección más popular para éste era
+			<literal>operator**</literal> de Fortram, pero provoca casos de análisis
+			gramatical difíciles. C tampoco tiene un operador de potencia, así que C++ no
+			parece tener necesidad de uno porque siempre puede realizar una llamada a una
+			función. Un operador de potencia añadirá una notación adecuada, pero ninguna
+			nueva funcionalidad a cuenta de una mayor complejidad del compilador.
+		  </para>
+		</listitem>
+		<listitem>
+		  <para>
+			No hay operadores definidos por el usuario. Esto es, no puede crear nuevos
+			operadores que no existan ya. Una parte del problema es como determinar la
+			precedencia, y otra parte es la falta de necesidad a costa del problema
+			inherente.
+		  </para>
+		</listitem>
+		<listitem>
           <para>
-            Usted no puede cambiar las reglas de prioridad. Son lo
-            suficientemente difíciles de recordad como son sin dejar a
-            la gente jugar con ellas.
+            No puede cambiar las reglas de precedencia. Son lo suficientemente difíciles de
+            recordar como son sin dejar a la gente jugar con ellas.
           </para>
         </listitem>
       </orderedlist>
     </sect2>
   </sect1>
+
+
+<!-- revisando por aquí -->
+
 
   <sect1>
     <!-- : Non-member operators -->
@@ -1504,7 +1450,7 @@
       ¿Pero qué constructor?, <varname>a</varname> se crea desde un
       objeto existente <classname>MyType</classname>
       (<varname>b</varname>, en el lado derecho del signo de igualdad),
-      asi que hay solo un elección: el constructor de copia. Incluso
+      así que hay solo un elección: el constructor de copia. Incluso
       aunque el signo de igualdad está involucrado, se llama al
       constructor de copia.
     </para>
@@ -1715,7 +1661,7 @@
 	  un constructor de copia excepto que toma un puntero a
 	  <classname>Dog</classname> en vez de una referencia, y tiene
 	  un segundo argumento que es un mensaje a ser concatenado con
-	  el nombre del perro. Esto se hace asi para ayudar a rastrear
+	  el nombre del perro. Esto se hace así para ayudar a rastrear
 	  el comportamiento del programa.
 	</para>
 
@@ -2309,7 +2255,7 @@
 	  cosas son diferentes. El compilador necesita rellenar ambos
 	  argumentos como quiera que pueda; no está restringido a tener
 	  un <type>Number</type> como argumento de la parte
-	  izquierda. Asi que si ve:
+	  izquierda. así que si ve:
 	</para>
 
 
@@ -2440,7 +2386,7 @@
 	tiene un constructor que toma un argumento simple de tipo
 	<classname>X</classname>, esto representa la conversión de tipos
 	por identidad. El compilador ahora tiene dos formas de ir de
-	<classname>X</classname> a <classname>Y</classname>, asi que se
+	<classname>X</classname> a <classname>Y</classname>, así que se
 	generará una error de ambigüedad cuando esa conversión ocurra:
       </para>
 
@@ -2542,7 +2488,7 @@
 	  especiales que el compilador puede crear por usted. (El
 	  constructor por defecto, el constructor de copia y
 	  <oper>operator=</oper>) y el destructor puede sintetizarse
-	  automáticamente por el compilador. Asi que para la
+	  automáticamente por el compilador. Así que para la
 	  relativamente inocua expresión:
 	</para>
 
