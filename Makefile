@@ -34,8 +34,11 @@ vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	$(RM) $@/*.code
 
 
-stylesheets/highlight.css: code_v1/C02/Hello.cpp stylesheets/highlight/themes/emacs21.style
-	highlight --print-style --data-dir ./stylesheets/highlight --style emacs21 --outdir stylesheets $<
+# stylesheets/highlight.css: code_v1/C02/Hello.cpp stylesheets/highlight/themes/emacs21.theme
+# 	highlight --print-style --data-dir ./stylesheets/highlight --style emacs21 --outdir stylesheets $<
+
+stylesheets/highlight.css: code_v1/C02/Hello.cpp
+	highlight --style edit-emacs --outdir stylesheets $<
 
 
 tagged-Volumen%.xml: Volumen%.xml
@@ -116,4 +119,3 @@ vclean: clean
 	$(MAKE) -C images clean
 	rm -rf code_v1 code_v2
 	$(RM) pec-xrefs.xml
-

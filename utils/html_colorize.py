@@ -42,8 +42,10 @@ def colorize(fname):
         tmpfd = open(tmpname, 'w')
         tmpfd.write(listing)
         tmpfd.close()
-        command = 'highlight --data-dir ./stylesheets/highlight ' +\
-                  '--style emacs21 -fS c++ %s' % tmpname
+#        command = 'highlight --data-dir ./stylesheets/highlight ' +\
+#                  '--style emacs21 -fS c++ %s' % tmpname
+
+        command = 'highlight --style=edit-emacs -fS c++ %s' % tmpname
 
 #        command = 'highlight -fS c++ %s' % tmpname
         fo.write(os.popen(command).read())
