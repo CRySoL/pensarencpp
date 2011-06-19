@@ -324,7 +324,7 @@
 		<para>
 		  Los operadores de incremento<oper>++</oper> y de decremento <oper>--</oper>
 		  provocan un conflicto porque querrá ser capaz de llamar diferentes funciones
-		  dependiendo de si aparecen antes (prefijo) o después (sufijo) del objeto sobre
+		  dependiendo de si aparecen antes (prefijo) o después (postfijo) del objeto sobre
 		  el que actúan. La solución es simple, pero la gente a veces lo encuentra un poco
 		  confusa inicialmente. Cuando el compilador ve, por ejemplo, <code>++a</code> (un
 		  pre-incremento), genera una llamada al <function>operator++(a)</function> pero
@@ -347,11 +347,11 @@
         -->
 		<para>
 		  Todo lo que el usuario ve es que se llama a una función diferente para las
-		  versiones sufija y prefija. Internamente, sin embargo, las dos llamadas de
+		  versiones postfija y prefija. Internamente, sin embargo, las dos llamadas de
 		  funciones tienen diferentes firmas, así que conectan con dos cuerpos
 		  diferentes. El compilador pasa un valor constante ficticio para el argumento
 		  <type>int</type> (el cual nunca se proporcionada por un identificador porque el
-		  valor nunca se usa) para generar las diferentes firmas para la versión sufija.
+		  valor nunca se usa) para generar las diferentes firmas para la versión postfija.
 		</para>
       </sect3>
     </sect2>
@@ -571,13 +571,13 @@
 
       <para>
 		Los operadores de incremento y decremento presentan un dilema a causa de las
-		versiones sufija y prefija. Ambas versiones cambian el objeto y por tanto no
+		versiones postfija y prefija. Ambas versiones cambian el objeto y por tanto no
 		pueden tratar el objeto como un <kw>const</kw>. La versión prefija devuelve el
 		valor del objeto después de cambiarlo, así que usted espera recuperar el objeto
 		que fue cambiado. De este modo, con la versión prefija puede simplemente revolver
-		<varname>*this</varname> como una referencia. Se supone que la versión sufija
+		<varname>*this</varname> como una referencia. Se supone que la versión postfija
 		devolverá el valor antes de que sea cambiado, luego está forzado a crear un objeto
-		separado para representar el valor y devolverlo. Así que con la versión sufija
+		separado para representar el valor y devolverlo. Así que con la versión postfija
 		debe devolverlo por valor si quiere mantener el significado esperado. (Advierta
 		que a veces encontrará operadores de incremento y decremento que devuelven un
 		<type>int</type> o un <type>bool</type> para indicar, por ejemplo, que un objeto
@@ -587,10 +587,10 @@
 		<code>(a++).func()</code>, <function>func</function> operará en la propia
 		<varname>a</varname>, pero con <code>(++a).func()</code>,
 		<function>func</function>opera en el objeto temporal devuelto por el operador
-		sufijo <function>operator++</function>. Los objetos temporales son automáticamente
+		postfijo <function>operator++</function>. Los objetos temporales son automáticamente
 		<kw>const</kw>, así que esto podría ser rechazado por el compilador, pero en favor
 		de la consistencia tendría más sentido hacerlos ambos <kw>const</kw> como hemos
-		hecho aquí. O puede elegir hacer la versión prefija no <kw>const</kw> y la sufija
+		hecho aquí. O puede elegir hacer la versión prefija no <kw>const</kw> y la postfija
 		<kw>const</kw>. Debido a la variedad de significados que puede darle a los
 		operadores de incremento y decremento, deben considerarse en términos del caso
 		individual.
@@ -2358,23 +2358,19 @@
       </para>
 
 
-<!-- revisando por aquí -->
-x
-
       <sect3>
         <!-- : Hidden activities -->
-	<title>Actividades ocultas</title>
+		<title>Actividades ocultas</title>
 
         <!--
         Automatic type conversion can introduce more underlying activities than you may expect.
         As a little brain teaser, look at this modification of CopyingVsInitialization.cpp:
         -->
-	<para>
-	  La conversión automática de tipos puede producir mas actividad
-	  subyacente de la que podría esperar. Mire esta modificación de
-	  <filename>CopyingVsInitialization.cpp</filename> como un juego
-	  de inteligencia:
-	</para>
+		<para>
+		  La conversión automática de tipos puede producir mas actividad subyacente de la
+		  que se podría esperar. Mire esta modificación de
+		  <filename>CopyingVsInitialization.cpp</filename> como un pequeño rompecabezas:
+		</para>
 
 
 
@@ -2388,19 +2384,17 @@ x
         default constructor, copy-constructor, operator=, and destructor can be synthesized
         automatically by the compiler.) So for the relatively innocuous statement
         -->
-	<para>
-	  No hay un constructor para crear <varname>Fee fee</varname> de
-	  un objeto <classname>Fo</classname>. Sin embargo,
-	  <classname>Fo</classname> tiene una conversión automática de
-	  tipos a <classname>Fee</classname>. No hay un constructor de
-	  copia para crear un <classname>Fee</classname> de un
-	  <classname>Fee</classname>, pero esta es una de las funciones
-	  especiales que el compilador puede crear por usted. (El
-	  constructor por defecto, el constructor de copia y
-	  <oper>operator=</oper>) y el destructor puede sintetizarse
-	  automáticamente por el compilador. Así que para la
-	  relativamente inocua expresión:
-	</para>
+		<para>
+		  No hay un constructor para crear <varname>Fee fee</varname> de un objeto
+		  <classname>Fo</classname>. Sin embargo, <classname>Fo</classname> tiene una
+		  conversión automática de tipos a <classname>Fee</classname>. No hay un
+		  constructor de copia para crear un <classname>Fee</classname> a partir de un
+		  <classname>Fee</classname>, pero ésa es una de las funciones especiales que el
+		  compilador puede crear. (El constructor por defecto, el constructor de
+		  copia y <oper>operator=</oper>) y el destructor pueden sintetizarse
+		  automáticamente por el compilador. Así que, para la relativamente inocua
+		  expresión:
+		</para>
 
 
 <programlisting>
@@ -2409,25 +2403,25 @@ Fee fee = fo;
 
 
         <!-- the automatic type conversion operator is called, and a copy-constructor is created. -->
-	<para>
-	  el operador de conversión automática es llamado, y se crea un
-	  constructor de copia.
-	</para>
+		<para>
+		  se invoca el operador de conversión automático de tipo, y se crea un constructor
+		  de copia.
+		</para>
 
         <!--
         Use automatic type conversion carefully. As with all operator overloading, it's
-        excellent when it significantly reduces a coding task, but it's usually not worth using
-        gratuitously.
+        excellent when it significantly reduces a coding task, but it's usually not worth
+        using gratuitously.
         -->
-	<para>
-	  Use la conversión automática de tipos con precaución. Como con
-	  toda la sobrecarga de operadores, es excelente cuando reduce
-	  la tarea de codificación significativamente, pero no vale la
-	  pena usarla de forma gratuita.
-	</para>
+		<para>
+		  Use la conversión automática de tipos con precaución. Como con toda la
+		  sobrecarga de operadores, es excelente cuando reduce la tarea de codificación
+		  significativamente, pero no vale la pena usarla de forma gratuita.
+		</para>
       </sect3>
     </sect2>
   </sect1>
+
 
   <sect1>
     <title>Resumen</title>
@@ -2441,15 +2435,12 @@ Fee fee = fo;
     the class, don't confuse the issue by adding it.
     -->
     <para>
-      La completa razón para la existencia de la sobrecarga de
-      operadores es para aquellas situaciones cuando simplifica la
-      vida. No hay nada particularmente mágico sobre ello;los operadores
-      sobrecargados son solo funciones con nombres divertidos, y las
-      llamadas a función son llamadas por el compilador para usted
-      cuando se satisface el patrón adecuado. Pero si la sobrecarga de
-      operadores no proporciona un beneficio significativo para usted(el
-      creador de la clase) o para el usuario de la clase, no complique
-      el asunto añadiéndolo.
+      El motivo de la existencia de la sobrecarga de operadores es para aquellas
+      situaciones en la que la vida. No hay nada particularmente mágico en ello; los
+      operadores sobrecargados son solo funciones con nombres divertidos, y el compilador
+      realiza las invocaciones a esas funciones cuando aparece el patrón adecuado. Pero si
+      la sobrecarga de operadores no proporciona un beneficio significativo el creador de
+      la clase o para el usuario de la clase, no complique el asunto añadiéndolos.
     </para>
   </sect1>
 
@@ -2460,78 +2451,75 @@ Fee fee = fo;
 
     <orderedlist>
       <listitem>
-	<!-- Create a simple class with an overloaded operator++. Try
-	calling this operator in both pre- and postfix form and see
-	what kind of compiler warning you get.  -->
-	<para>
-	  Cree una clase sencilla con un operador sobrecargado
-	  <oper>++</oper>. Intente llamar a este operador en la forma
-	  prefija y posfija y vea que clase de advertencia del
-	  compilador obtiene.
-	</para>
+		<!-- 1
+	    Create a simple class with an overloaded operator++. Try calling this operator in
+	    both pre- and postfix form and see what kind of compiler warning you get.  -->
+		<para>
+		  Cree una clase sencilla con un operador sobrecargado <oper>++</oper>. Intente
+		  llamar a este operador en la forma prefija y postfija y vea qué clase de
+		  advertencia obtiene del compilador.
+		</para>
       </listitem>
       <listitem>
-	<!-- Create a simple class containing an int and overload the
-	operator+ as a member function. Also provide a print( ) member
-	function that takes an ostream& as an argument and prints to
-	that ostream&. Test your class to show that it works
-	correctly.  -->
-	<para>
-	  Cree una clase sencilla que contenga un <type>int</type> y
-	  sobrecargue el operador <oper>+</oper>
-	  como una función miembro. También cree una función miembro
-	  <function>print()</function> que tome un
-	  <classname>ostream&amp;</classname> como un argumento y lo
-	  imprima a un
-	  <classname>ostream&amp;</classname>. Experimente con su
-	  clase para comprobar que funciona correctamente.
-	</para>
+		<!-- 2
+		Create a simple class containing an int and overload the
+		operator+ as a member function. Also provide a print( ) member function
+		that takes an ostream& as an argument and prints to that ostream&. Test
+		your class to show that it works correctly.  -->
+		<para>
+		  Cree una clase sencilla que contenga un <type>int</type> y sobrecargue
+		  el operador <oper>+</oper> como un método. Cree también un método
+		  <function>print()</function> que tome un
+		  <classname>ostream&amp;</classname> como un argumento y lo imprima a
+		  un <classname>ostream&amp;</classname>. Pruebe su clase para comprobar
+		  que funciona correctamente.
+		</para>
       </listitem>
       <listitem>
+		<!-- 3
+		Add a binary operator- to Exercise 2 as a member function. Demonstrate that
+		     you can use your objects in complex expressions like -->
+		<para>
+		  Añada un operador binario <oper>-</oper> al ejercicio 2 como un
+		  método. Demuestre que puede usar sus objetos en expresiones complejas
+		  como <code>a + b -c</code>.
+		</para>
+      </listitem>
+      <listitem>
+		<!-- 4
+        Add an operator++ and operator-.- to Exercise 2, both the prefix
+		and the postfix versions, such that they return the incremented or
+		decremented object. Make sure that the postfix versions return the
+		correct value.
+		-->
+		<para>
+		  Añada un operador <oper>++</oper> y otro <oper>--</oper> al ejercicio
+	      2, ambos con las versiones prefijas y postfijas, tales que devuelvan
+	      el objeto incrementado o decrementado. Asegúrese de que la versión
+	      postfija devuelve el valor correcto.
+	    </para>
+      </listitem>
+      <listitem>
+		<!-- Modify the increment and decrement operators in Exercise 4 so that
+		the prefix versions return a non-const reference and the postfix
+		versions return a const object. Show that they work correctly and
+		explain why this would be done in practice.  -->
+		<para>
+		  Modifique los operadores de incremento y decremento del ejercicio 4
+		  para que la versión prefija devuelva una referencia no <kw>const</kw> y
+		  la postfija devuelva un objeto <kw>const</kw>. Muestre que funcionan
+		  correctamente y explique porqué esto se puede hacer en la práctica.
+	    </para>
+	</listitem>
+      <listitem>
+		<!-- Change the print( ) function in Exercise 2 so that it is
+		the overloaded operator<< as in
+		IostreamOperatorOverloading.cpp.  -->
 
-	<!-- Add a binary operator- to Exercise 2 as a member
-	function. Demonstrate that you can use your objects in complex
-	expressions like --><para> Añada un operador binario
-	<oper>-</oper> al ejercicio 2 como una función
-	miembro. Demuestre que puede usar sus objetos in expresiones
-	complejas como <literal>a + b -c</literal>.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Add a binary operator- to Exercise 2 as a member
-	function. Demonstrate that you can use your objects in complex
-	expressions like -->
-	<para>
-	  Añada un operador <oper>++</oper> y
-	  otro <oper>--</oper> al ejercicio 2,
-	  ambos con las versiones prefijas y postfijas, tales que
-	  devuelvan el objeto incrementado o decrementado. Asegurese
-	  que la versión posfija devuelve el valor adecuado.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Add an operator++ and operator -.- to Exercise 2, both the
-	prefix and the postfix versions, such that they return the
-	incremented or decremented object. Make sure that the postfix
-	versions return the correct value.  -->
-	<para>
-	  Modifique los operadores de incremento y de decremento del
-	  ejercicio 4 para que la versión prefija devuelva a
-	  referencia no <kw>const</kw> y la
-	  posfija devuelva un objeto <kw>const</kw>. Muestre que funcionan
-	  correctamente y explique por qué esto se puede hacer en la
-	  práctica.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Change the print( ) function in Exercise 2 so that it is
-	the overloaded operator<< as in
-	IostreamOperatorOverloading.cpp.  -->
-
-	<para>
-	  Cambie la función <function>print()</function> del
-	  ejercicio2 para que use el operador sobrecargado <oper>&#60;&#60;</oper> como en
-	  <filename>IostreamOperatorOverloading.cpp</filename>.
+		<para>
+		  Cambie la función <function>print()</function> del ejercicio2 para que
+		  use el operador sobrecargado <oper>&lt;&lt;</oper> como en
+		  <filename>IostreamOperatorOverloading.cpp</filename>.
 	</para>
       </listitem>
       <listitem>
@@ -2539,9 +2527,9 @@ Fee fee = fo;
 	non-member functions. Demonstrate that they still work
 	correctly.  -->
 	<para>
-	  Modifique el ejercicio 3 para que los operadores
-	  <oper>+</oper> y <oper>-</oper> sean funciones no
-	  miembro. Demuestre que todavía funcionan correctamente.
+	  Modifique el ejercicio 3 para que los operadores <oper>+</oper> y
+	  <oper>-</oper> no sean métodos. Demuestre que todavía funcionan
+	  correctamente.
 	</para>
       </listitem>
       <listitem>
@@ -2559,13 +2547,12 @@ Fee fee = fo;
 	them with fstreams, stringstreams, and cin and cout.  -->
 	<para>
 	  Cree una clase que contenga un único <type>private
-	    char</type>. Sobrecargue los operadores de flujos de
-	  entrada/salida <oper>&#60;&#60;</oper> y
-	  <oper>>></oper>(como en
-	  <filename>IostreamOperatorOverloading.cpp</filename>) y
-	  pruebelos. Puede probarlos con <literal>fstreams</literal>,
-	  <literal>stringstreams</literal> y <literal>cin</literal> y
-	  <literal>cout</literal> .
+	    char</type>. Sobrecargue los operadores de flujos de entrada/salida
+	    <oper>&lt;&lt;</oper> y <oper>>></oper> (como en
+	    <filename>IostreamOperatorOverloading.cpp</filename>) y pruébelos. Puede
+	    probarlos con <literal>fstreams</literal>,
+	    <literal>stringstreams</literal> y <literal>cin</literal> y
+	    <literal>cout</literal>.
 	</para>
       </listitem>
       <listitem>
@@ -2573,36 +2560,33 @@ Fee fee = fo;
 	passes for postfix operator++ and operator-.-.  -->
 	<para>
 	  Determine el valor constante ficticio que su compilador pasa
-	  a los operadores posfijos <oper>++</oper> y
+	  a los operadores postfijos <oper>++</oper> y
 	  <oper>--</oper>.
 	</para>
       </listitem>
       <listitem>
-	<!-- Write a Number class that holds a double, and add
-	overloaded operators for +, , *, /, and assignment. Choose the
-	return values for these functions so that expressions can be
-	chained together, and for efficiency. Write an automatic type
-	conversion operator intdouble( ).  -->
-	<para>
-	  Escriba una clase <classname>Number</classname> que contenga
-	  un <type>double</type> y añada operadores sobrecargados para
-	  <oper>+</oper>, <oper>-</oper>, <oper>*</oper>, <oper>/</oper> y la asignación. Elija los
-	  valores de retorno para estas funciones para que las
-	  expresiones puedan ser encadenadas juntas y para que sea
-	  eficiente.  Escriba una conversión automática de tipos
-	  <type>operator int()</type>.
+	  <!-- Write a Number class that holds a double, and add overloaded
+	  operators for +, , *, /, and assignment. Choose the return values for
+	  these functions so that expressions can be chained together, and for
+	  efficiency. Write an automatic type conversion operator intdouble( ).  -->
+	  <para>
+		Escriba una clase <classname>Number</classname> que contenga un
+		<type>double</type> y añada operadores sobrecargados para
+		<oper>+</oper>, <oper>-</oper>, <oper>*</oper>, <oper>/</oper> y la
+		asignación. Elija los valores de retorno para estas funciones para que
+		las expresiones se puedan encadenar y que sea eficiente.
+		Escriba una conversión automática de tipos <type>operator int()</type>.
 	</para>
       </listitem>
       <listitem>
-	<!-- Modify Exercise 11 so that the return value optimization
-	is used, if you have not already done so.  -->
-	<para>
-	  Modifique el ejercicio 11 para que use la
-	  <emphasis>optimización del valor de retorno</emphasis>, si
-	  todavía no lo ha hecho.
-	</para>
-      </listitem>
-      <listitem>
+	  <!-- Modify Exercise 11 so that the return value optimization
+	  is used, if you have not already done so.  -->
+	  <para>
+		Modifique el ejercicio 11 para que use la <emphasis>optimización del
+		valor de retorno</emphasis>, si todavía no lo ha hecho.
+	  </para>
+	</listitem>
+	<listitem>
 	<!-- Create a class that contains a pointer, and demonstrate
 	that if you allow the compiler to synthesize the operator= the
 	result of using that operator will be pointers that are
@@ -2611,13 +2595,12 @@ Fee fee = fo;
 	aliasing. Make sure you check for self-assignment and handle
 	that case properly.  -->
 	<para>
-	  Cree una clase que contenga un puntero, y demuestre que si
-	  permite al compilador sintetizar el operador <oper>=</oper> el resultado de usar ese
-	  operador serán punteros que estarán solapados en la misma
-	  localización de memoria. Ahora arregle el problema
-	  definiendo su propio operador <oper>=</oper> y demuestre que corrige el
-	  solapamiento. Asegórese que comprueba la auto asignación y
-	  que maneja el caso apropiadamente.
+	  Cree una clase que contenga un puntero, y demuestre que si permite al
+	  compilador sintetizar el operador <oper>=</oper> el resultado de usar ese
+	  operador serán punteros que estarán solapados en la misma ubicación de
+	  memoria. Ahora arregle el problema definiendo su propio operador
+	  <oper>=</oper> y demuestre que corrige el solapamiento. Asegúrese que
+	  comprueba la auto-asignación y que maneja el caso apropiadamente.
 	</para>
       </listitem>
       <listitem>
@@ -2630,17 +2613,15 @@ Fee fee = fo;
 	copy-constructor. In main( ), verify that everything works
 	correctly.  -->
 	<para>
-	  Escriba una clase llamada <classname>Bird</classname> que
-	  contenga un miembro <type>string</type> y un <type>static
-	    int</type>. El el constructor por defecto, use el
-	  <type>int</type> para generar automáticamente un
-	  identificador que usted construya en la <type>string</type>
-	  junto con el nombre de la clase(<varname>Bird #1</varname>,
-	  <varname>Bird #2</varname>, etc). Añada un operador <oper>&#60;&#60;</oper> para flujos de salida
-	  para imprimir los objetos
-	  <classname>Bird</classname>-Escriba un operador de
-	  asignación <oper>=</oper> y un
-	  constructor de copia. En <function>main()</function>
+	  Escriba una clase llamada <classname>Bird</classname> que contenga un
+	  miembro <type>string</type> y un <type>static int</type>. En el
+	  constructor por defecto, use el <type>int</type> para generar
+	  automáticamente un identificador que usted construya en el
+	  <type>string</type> junto con el nombre de la clase(<varname>Bird
+	  #1</varname>, <varname>Bird #2</varname>, etc). Añada un operador
+	  <oper>&lt;;&lt;</oper> para flujos de salida para imprimir los objetos
+	  <classname>Bird</classname>-Escriba un operador de asignación
+	  <oper>=</oper> y un constructor de copia. En <function>main()</function>
 	  verifique que todo funciona correctamente.
 	</para>
       </listitem>
@@ -2648,24 +2629,18 @@ Fee fee = fo;
 	<!-- Write a class called BirdHouse that contains an object, a
 	pointer and a reference for class Bird from Exercise 14. The
 	constructor should take the three Birds as arguments. Add an
-	operator<< for ostreams for BirdHouse. Write anDisallow the
-	assignment operator= and a copy-constructor. In main( ),
-	verify that everything works correctly. Make sure that you can
-	chain assignments for BirdHouse objects and build expressions
-	involving multiple operators.  -->
+	operator<< for ostreams for BirdHouse. Disallow the
+	assignment operator= and copy-constructor. In main( ),
+	verify that everything works correctly. -->
 	<para>
-	  Escriba una clase llamada <classname>BirdHouse</classname>
-	  que contenga un objeto, un puntero y una referencia para la
-	  clase <classname>Bird</classname> del ejercicio 14. El
-	  constructor debería tomar 3 <classname>Birds</classname>
-	  como argumentos. Añada un operador <oper>&#60;&#60;</oper> de flujo de salida para
-	  <classname>BirdHouse</classname>. Deshabilite el operador de
-	  asignación <oper>=</oper> y el
-	  constructor de copia. En <function>main()</function>
-	  verifique que todo funciona correctamente. Asegórese de que
-	  puede encadenar asignaciones para objetos
-	  <classname>BirdHouse </classname> y construya expresiones
-	  que involucren a móltiples operadores.
+	  Escriba una clase llamada <classname>BirdHouse</classname> que contenga un
+	  objeto, un puntero y una referencia para la clase
+	  <classname>Bird</classname> del ejercicio 14. El constructor debería tomar
+	  3 <classname>Birds</classname> como argumentos. Añada un operador
+	  <oper>&lt;&lt;</oper> de flujo de salida para
+	  <classname>BirdHouse</classname>. Deshabilite el operador de asignación
+	  <oper>=</oper> y el constructor de copia. En <function>main()</function>
+	  verifique que todo funciona correctamente.
 	</para>
       </listitem>
       <listitem>
@@ -2673,30 +2648,27 @@ Fee fee = fo;
 	Exercise 15. Add member operators +, -, *, and / that use the
 	int members to perform the operations on the respective
 	members. Verify that these work.  -->
-	<para>
-	  Añada un miembro de datos <type>int</type> a
-	  <classname>Bird</classname> y a
-	  <classname>BirdHouse</classname> en el ejercicio 15. Añada
-	  operadores miembros <oper>+</oper>,
-	  <oper>-</oper>, <oper>*</oper> y <oper>/</oper> que usen el miembro
-	  <type>int</type> para realizar las operaciones en los
-	  respectivos miembros. Verifique ques estas funcionan.
-	</para>
+	  <para>
+		Añada un miembro de datos <type>int</type> a <classname>Bird</classname>
+		y a <classname>BirdHouse</classname> en el ejercicio 15. Añada
+		operadores miembros <oper>+</oper>, <oper>-</oper>, <oper>*</oper> y
+		<oper>/</oper> que usen el miembro <type>int</type> para realizar las
+		operaciones en los respectivos miembros. Verifique que funcionan.
+	  </para>
       </listitem>
       <listitem>
-	<!-- Repeat Exercise 16 using non-member operators.  -->
-	<para>
-	  Repita el ejercicio 16 usando operadores no miembros.
-	</para>
+	  <!-- Repeat Exercise 16 using non-member operators.  -->
+	  <para>
+		Repita el ejercicio 16 usando operadores no miembro.
+	  </para>
       </listitem>
       <listitem>
 
-	<!-- Add an operator-.- to SmartPointer.cpp and
-	NestedSmartPointer.cpp.  -->
-	<para>
-	  Añada un operador <oper>-</oper> a
-	  <filename>SmartPointer.cpp</filename> y a
-	  <filename>NestedSmartPointer.cpp</filename>.
+	  <!-- Add an operator-.- to SmartPointer.cpp and
+	  NestedSmartPointer.cpp.  -->
+	  <para>
+		Añada un operador <oper>-</oper> a <filename>SmartPointer.cpp</filename>
+		y a <filename>NestedSmartPointer.cpp</filename>.
 	</para>
       </listitem>
       <listitem>
@@ -2706,192 +2678,174 @@ Fee fee = fo;
 	on. Now verify that the two forms of calls to the
 	copy-constructor (the assignment form and the parenthesized
 	form) are equivalent.  -->
-	<para>
-	  Modifique <filename>CopyingVsInitialization.cpp</filename>
-	  para que todos los constructores impriman un mensaje que
-	  cuente que está pasando. Ahora verifique que las dos maneras
-	  de llamar al constructor de copia(la de asignación y la de
-	  parentesis) son equivalentes.
-	</para>
-      </listitem>
-      <listitem>
+	  <para>
+		Modifique <filename>CopyingVsInitialization.cpp</filename> para que
+		todos los constructores impriman un mensaje que explique qué está
+		pasando. Ahora verifique que las dos maneras de llamar al constructor de
+		copia (la de asignación y la de paréntesis) son equivalentes.
+	  </para>
+	</listitem>
+	<listitem>
 
-	<!-- Attempt to create a non-member operator= for a class and
-	see what kind of compiler message you get.  -->
-	<para>
-	  Intente crear un operador no miembro <oper>=</oper> para una clase y vea que clase
-	  de mensaje del compilador recibe.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Create a class with an copy-constructor assignment
-	operator that has a second argument, a string that has a
-	default value that says CC op= call. Create a function that
-	takes assigns an object of your class by value to another one
-	and show that your copy-constructorassignment operator is
-	called correctly.  -->
-	<para>
-	  Cree una clase con un operador de asignación que tenga un
-	  segundo argumento, una <classname>string</classname> que
-	  tenga un valor por defecto que diga <quote>op =
-	    call</quote>. Cree una función que asigne un objeto de su
-	  clase a otro y muestre que su operador de asignación es
-	  llamado correctamente.
-	</para>
+	  <!-- Attempt to create a non-member operator= for a class and
+		   see what kind of compiler message you get.  -->
+	  <para>
+		Intente crear un operador no miembro <oper>=</oper> para una clase y vea qué clase
+		de mensaje del compilador recibe.
+	  </para>
+	</listitem>
+	<listitem>
+		<!--
+	    Create a class with a assignment operator that has a second argument, a string
+	    that has a default value that says "op= call". Create a function that assigns an
+	    object of your class to another one and show that your assignment
+	    operator is called correctly.
+		     -->
+		<para>
+		  Cree una clase con un operador de asignación que tenga un segundo argumento, un
+		  <classname>string</classname> que tenga un valor por defecto que diga <code>op =
+		  call</code>. Cree una función que asigne un objeto de su clase a otro y muestre
+		  que su operador de asignación es llamado correctamente.
+		</para>
       </listitem>
       <listitem>
 	<!-- In CopyingWithPointers.cpp, remove the operator= in
 	DogHouse and show that the compiler-synthesized operator=
 	correctly copies the string but simply aliases the Dog
 	pointer.  -->
-	<para>
-	  En <filename>CopyingWithPointers.cpp</filename> elimine el
-	  operador <oper>=</oper> en
-	  <classname>DogHouse</classname> y muestre el el operador
-	  <oper>=</oper> sintetizado por el
-	  compilador copia correctamente <classname>string</classname>
-	  pero simplemente solapa el puntero a
-	  <classname>Dog</classname>.
+	  <para>
+		En <filename>CopyingWithPointers.cpp</filename> elimine el operador
+		<oper>=</oper> en <classname>DogHouse</classname> y muestre que el
+		operador <oper>=</oper> sintetizado por el compilador copia
+		correctamente <classname>string</classname> pero es simplemente un alias
+		del puntero <classname>Dog</classname>.
 	</para>
       </listitem>
       <listitem>
-	<!-- In ReferenceCounting.cpp, add a static int and an
-	ordinary int as data members to both Dog and DogHouse. In all
-	constructors for both classes, increment the static int and
-	assign the result to the ordinary int to keep track of the
-	number of objects that have been created. Make the necessary
-	modifications so that all the printing statements will say the
-	int identifiers of the objects involved.  -->
-	<para>
-	  En <filename>ReferenceCounting.cpp</filename> añada un
-	  <type>static int</type> y un <type>int</type> ordinario como
-	  miembros de datos a <classname>Dog</classname> y a
-	  <classname>DogHouse</classname>. En todos los constructores
-	  para ambas clases, incremente el <type>static int</type> y
-	  asigne el resultado al <type>int</type> ordinario para
-	  mantener un seguimiento del nómero de objetos que están
-	  siendo creados. Haga las modificaciones necesarias para que
-	  todas las sentencias de impresin muestren los
-	  identificadores <type>int</type> de los objetos
-	  involucrados.
+	  <!-- In ReferenceCounting.cpp, add a static int and an ordinary int as
+	  data members to both Dog and DogHouse. In all constructors for both
+	  classes, increment the static int and assign the result to the ordinary
+	  int to keep track of the number of objects that have been created. Make
+	  the necessary modifications so that all the printing statements will say
+	  the int identifiers of the objects involved.  -->
+	  <para>
+		En <filename>ReferenceCounting.cpp</filename> añada un <type>static
+		  int</type> y un <type>int</type> ordinario como atributos a
+		  <classname>Dog</classname> y a <classname>DogHouse</classname>. En
+		  todos los constructores para ambas clases, incremente el <type>static
+		  int</type> y asigne el resultado al <type>int</type> ordinario para
+		  mantener un seguimiento del número de objetos que están siendo
+		  creados. Haga las modificaciones necesarias para que todas las
+		  sentencias de impresión muestren los identificadores <type>int</type>
+		  de los objetos involucrados.
 	</para>
       </listitem>
       <listitem>
-	<!-- Create a class containing a string as a data
-	member. Initialize the string in the constructor, but do not
-	create a copy-constructor or operator=. Make a second class
-	that has a member object of your first class; do not create a
-	copy-constructor or operator= for this class
-	either. Demonstrate that the copy-constructor and operator=
-	are properly synthesized by the compiler.  -->
+	  <!-- Create a class containing a string as a data member. Initialize the
+	  string in the constructor, but do not create a copy-constructor or
+	  operator=. Make a second class that has a member object of your first
+	  class; do not create a copy-constructor or operator= for this class
+	  either. Demonstrate that the copy-constructor and operator= are properly
+	  synthesized by the compiler.  -->
 
-	<para>
-	  Cree una clase que contenga un <classname>string</classname>
-	  como un mimebro de datos. Inicialice el
-	  <classname>string</classname> en el constructor, pero no cree
-	  un constructor de copia o un operador <oper>=</oper>. Haga una
-	  segunda clase que tenga un objeto miembro de su primera
-	  clase;no cree un constructor de copia o un operador
-	  <oper>=</oper> para esta clase tampoco. Demuestre que el
-	  constructor de copia y el operador <oper>=</oper> son
-	  sintetizados correctamente por el compilador.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Combine the classes in OverloadingUnaryOperators.cpp and
-	Integer.cpp.  -->
-	<para>
-	  Combine las clases en
-	  <filename>OverloadingUnaryOperators.cpp</filename> y en
-	  <filename>Integer.cpp</filename>.
-	</para>
-      </listitem>
-      <listitem>
+	  <para>
+		Cree una clase que contenga un <classname>string</classname> como
+		atributo. Inicialice el <classname>string</classname> en el constructor,
+		pero no cree un constructor de copia o un operador <oper>=</oper>. Haga
+		una segunda clase que tenga un atributo de su primera clase; no cree un
+		constructor de copia o un operador <oper>=</oper> para esta clase
+		tampoco. Demuestre que el constructor de copia y el operador
+		<oper>=</oper> son sintetizados correctamente por el compilador.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Combine the classes in OverloadingUnaryOperators.cpp and
+	  Integer.cpp.  -->
+	  <para>
+		Combine las clases en <filename>OverloadingUnaryOperators.cpp</filename>
+		y en <filename>Integer.cpp</filename>.
+	  </para>
+	</listitem>
+	<listitem>
 	<!-- Modify PointerToMemberOperator.cpp by adding two new
 	member functions to Dog that take no arguments and return
 	void. Create and test an overloaded operator->* that works
 	with your two new functions.  -->
-	<para>
-	  Modifique <filename>PointerToMemmberOperator.cpp</filename>
-	  añadiendo dos nuevas funciones miembro a
-	  <classname>Dog</classname> que no tomen argumentos y
-	  devuelvan <type>void</type>. Cree y compruebe un operador
-	  sobrecargado <oper>->*</oper> que
-	  funcione con sus dos nuevas funciones.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Add an operator->* to NestedSmartPointer.cpp.  -->
-	<para>
-	  Añada un operador <oper>->*</oper> a
-	  <filename>NestedSmartPointer.cpp</filename>.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Create two classes, Apple and Orange. In Apple, create a
-	constructor that takes an Orange as an argument. Create a
-	function that takes an Apple and call that function with an
-	Orange to show that it works. Now make the Apple constructor
-	explicit to demonstrate that the automatic type conversion is
-	thus prevented. Modify the call to your function so that the
-	conversion is made explicitly and thus succeeds.  -->
-	<para>
-	  Cree dos clases, <classname>Apple</classname> y
-	  <classname>Orange</classname>. En
-	  <classname>Apple</classname>, cree un constructor que tome
-	  una <classname>Orange</classname> como un argumento. Cree
-	  una función que tome un <classname>Apple</classname> y llame
-	  a esa función con una una <classname>Orange</classname> para
-	  demostrar que funciona. Ahora haga explicito el constructor
-	  de <classname>Apple</classname> para demostrar que la
-	  conversión automática de tipos es prevenida así. Modifique
-	  la llamada a su función para que la la conversión se haga
-	  explicitamente y así funcione.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Add a global operator* to ReflexivityInOverloading.cpp
-	and demonstrate that it is reflexive.  -->
-	<para>
-	  Añada un operador global <oper>*</oper> a
-	  <filename>ReflexivityInOverloading.cpp</filename> y
-	  demuestre que es reflexivo.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Create two classes and create an operator+ and the
-	conversion functions such that addition is reflexive for the
-	two classes.  -->
-	<para>
-	  Cree dos clases y un operador <oper>+</oper> y las funciones de conversión de
-	  tal manera que la adicción sea reflexiva para las dos clases.
-	</para>
-      </listitem>
-      <listitem>
-
-	<!-- Fix TypeConversionFanout.cpp by creating an explicit
-	function to call to perform the type conversion, instead of
-	one of the automatic conversion operators.  -->
-	<para>
-	  Arregle <filename>TypeConversionFanout.cpp</filename> creando
-	  una  función explicita para realizar la conversión de tipo,
-	  en lugar de uno de los operadoes de conversión automáticos.
-	</para>
-      </listitem>
-      <listitem>
-	<!-- Write simple code that uses the +, -, *, and / operators
-	for doubles. Figure out how your compiler generates assembly
-	code and look at the assembly language that's generated to
-	discover and explain what's going on under the hood.  -->
-	<para>
-	  Escriba un código simple que use los operadores
-	  <oper>+</oper>, <oper>-</oper>, <oper>*</oper>, <oper>/</oper>
-	  para <type>double</type>. Imaginese como el compilador genera
-	  el codigo ensamblador y mire el ensamblador que se genera para
-	  descubir y explicar que está ocurriendo bajo el envoltorio.
-	</para>
-      </listitem>
-    </orderedlist>
+	  <para>
+		Modifique <filename>PointerToMemmberOperator.cpp</filename> añadiendo
+		dos nuevas funciones miembro a <classname>Dog</classname> que no tomen
+		argumentos y devuelvan <type>void</type>. Cree y compruebe un operador
+		sobrecargado <oper>->*</oper> que funcione con sus dos nuevas funciones.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Add an operator->* to NestedSmartPointer.cpp.  -->
+	  <para>
+		Añada un operador <oper>->*</oper> a
+		<filename>NestedSmartPointer.cpp</filename>.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Create two classes, Apple and Orange. In Apple, create a constructor
+	  that takes an Orange as an argument. Create a function that takes an Apple
+	  and call that function with an Orange to show that it works. Now make the
+	  Apple constructor explicit to demonstrate that the automatic type
+	  conversion is thus prevented. Modify the call to your function so that the
+	  conversion is made explicitly and thus succeeds.  -->
+	  <para>
+		Cree dos clases, <classname>Apple</classname> y
+		<classname>Orange</classname>. En <classname>Apple</classname>, cree un
+		constructor que tome una <classname>Orange</classname> como
+		argumento. Cree una función que tome un <classname>Apple</classname> y
+		llame a esa función con una una <classname>Orange</classname> para
+		demostrar que funciona. Ahora haga explícito el constructor de
+		<classname>Apple</classname> para demostrar que así se evita la
+		conversión automática de tipos. Modifique la llamada a su función para
+		que la la conversión se haga explícitamente y de ese modo, funcione.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Add a global operator* to ReflexivityInOverloading.cpp
+	  and demonstrate that it is reflexive.  -->
+	  <para>
+		Añada un operador global <oper>*</oper> a
+		<filename>ReflexivityInOverloading.cpp</filename> y demuestre que es
+		reflexivo.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Create two classes and create an operator+ and the conversion
+	  functions such that addition is reflexive for the two classes.  -->
+	  <para>
+		Cree dos clases y un operador <oper>+</oper> y las funciones de
+		conversión de tal manera que la adicción sea reflexiva para las dos
+		clases.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Fix TypeConversionFanout.cpp by creating an explicit function to call
+	  to perform the type conversion, instead of one of the automatic conversion
+	  operators.  -->
+	  <para>
+		Arregle <filename>TypeConversionFanout.cpp</filename> creando una
+		función explícita para realizar la conversión de tipo, en lugar de uno
+		de los operadores de conversión automáticos.
+	  </para>
+	</listitem>
+	<listitem>
+	  <!-- Write simple code that uses the +, -, *, and / operators for
+	  doubles. Figure out how your compiler generates assembly code and look at
+	  the assembly language that's generated to discover and explain what's
+	  going on under the hood.  -->
+	  <para>
+		Escriba un código simple que use los operadores <oper>+</oper>,
+		<oper>-</oper>, <oper>*</oper>, <oper>/</oper> para
+		<type>double</type>. Imagine cómo el compilador genera el codigo
+		ensamblador y mire el ensamblador que se genera en realidad para
+		descubrir y explicar qué está ocurriendo <quote>bajo el capó</quote>.
+	  </para>
+	</listitem>
+  </orderedlist>
   </sect1>
 </chapter>
 
