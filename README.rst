@@ -1,6 +1,3 @@
-.. -*- coding:utf-8 -*-
-
-
 Pensar en C++
 =============
 
@@ -62,3 +59,9 @@ página del libro original en su versión HTML.
 
 
 David Villa -- Coordinador del proyecto
+
+
+
+.. Local Variables:
+.. coding: utf-8
+.. End:
