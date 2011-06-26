@@ -1,6 +1,6 @@
 .. -*- coding:utf-8 -*-
 
-=============
+
 Pensar en C++
 =============
 
@@ -17,7 +17,7 @@ Lista de correo:
 
 
 Cómo colaborar
-==============
+--------------
 
 Puedes colaborar con el proyecto revisando o traduciendo. En ambos casos, debes
 solicitar al coordinador un capítulo sobre el que trabajar (usa la lista de
@@ -37,7 +37,7 @@ de codificación en el fichero DOCBOOK
 
 
 Cómo usar el repositorio
-========================
+------------------------
 
 Todo el trabajo de traducción se hace directamente sobre el repositorio. Para
 trabajar con bitbucket debes seguir los siguientes pasos:
@@ -53,7 +53,7 @@ trabajar con bitbucket debes seguir los siguientes pasos:
 
 
 VERSIÓN del original
-====================
+--------------------
 
 El libro original en inglés sufrió múltiples revisiones para corregir
 errores. Para evitar ambigüedades utilizamos la revisión 13, que lleva
