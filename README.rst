@@ -56,7 +56,5 @@ fecha 09/27/2001. Puedes comprobarlo en la última línea de la primera
 página del libro original en su versión HTML.
 
 
-
-
-                                                         David Villa
-                                            Coordinador del proyecto
+David Villa
+Coordinador del proyecto
