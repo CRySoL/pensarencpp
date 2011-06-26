@@ -6,9 +6,14 @@ Pensar en C++
 
 Proyecto de traducción de traducción del libro «Thinking in C++».
 
-Web:             http://arco.esi.uclm.es/~dvilla/pensarC++.html
-Repositorio:     https://bitbucket.org/crysol_org/pensarenc
-Lista de correo: http://groups.google.com/group/pensar-en-cpp
+Web:
+  http://arco.esi.uclm.es/~dvilla/pensarC++.html
+
+Repositorio:
+  https://bitbucket.org/crysol_org/pensarenc
+
+Lista de correo:
+  http://groups.google.com/group/pensar-en-cpp
 
 
 Cómo colaborar
