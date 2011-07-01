@@ -15,6 +15,10 @@
 
   <title>Creación dinámica de objetos</title>
 
+  <!--
+  Sometimes you know the exact quantity, type, and lifetime of the objects in your
+  program. But not always.
+  -->
   <highlights>
     <para>
       A veces se conoce el número exacto, el tipo y la duración de la
@@ -22,12 +26,22 @@
     </para>
   </highlights>
 
+  <!--
+  How many planes will an air-traffic system need to handle? How many shapes will a CAD
+  system use? How many nodes will there be in a network?
+  -->
   <para>
     ¿Cuántos aviones tendrá que supervisar un sistema de
     control de tráfico aéreo? ¿Cuántas formas o figuras se usarán en
     un sistema CAD? ¿Cuántos nodos habrá en una red?
   </para>
 
+  <!--
+  To solve the general programming problem, it’s essential that you be able to create and
+  destroy objects at runtime. Of course, C has always provided the dynamic memory
+  allocation functions malloc( ) and free( ) (along with variants of malloc( )) that
+  allocate storage from the heap (also called the free store) at runtime.
+  -->
   <para>
     Para resolver un problema general de programación, es imprescindible
     poder crear y destruir un número indeterminado de objetos en tiempo
@@ -44,6 +58,11 @@
     </footnote> mientras se ejecuta el programa.
   </para>
 
+  <!--
+  However, this simply won’t work in C++. The constructor doesn’t allow you to hand it the
+  address of the memory to initialize, and for good reason. If you could do that, you
+  might:
+  -->
   <para>
     Este método sin embargo, no funcionará en
     C++. El constructor no le permite
@@ -82,6 +101,13 @@
 
   </orderedlist>
 
+
+  <!--
+  And of course, even if you did everything correctly, anyone who modifies your program is
+  prone to the same errors. Improper initialization is responsible for a large portion of
+  programming problems, so it’s especially important to guarantee constructor calls for
+  objects created on the heap.
+  -->
   <para>
     Y por supuesto, incluso si se hizo todo correctamente, cualquiera
     que modifique el programa estaría expuesto a cometer esos mismos
@@ -92,11 +118,23 @@
     montículo.
   </para>
 
+  <!--
+  So how does C++ guarantee proper initialization and cleanup, but allow you to create
+  objects dynamically on the heap?
+  -->
   <para>
     ¿Cómo se garantiza en C++ la correcta inicialización y limpieza,
     permitiendo la creación dinámica de objetos?
   </para>
 
+ <!--
+  The answer is by bringing dynamic object creation into the core of the language. malloc
+  ( ) and free( ) are library functions, and thus outside the control of the compiler.
+  However, if you have an operator to perform the combined act of dynamic storage
+  allocation and initialization and another operator to perform the combined act of
+  cleanup and releasing storage, the compiler can still guarantee that constructors and
+  destructors will be called for all objects.
+  -->
   <para>
     La respuesta está en integrar en el lenguaje mismo la creación
     dinámica de objetos. <function>malloc()</function> y <function>
@@ -109,6 +147,10 @@
     los constructores y destructores de los objetos.
   </para>
 
+  <!--
+  In this chapter, you’ll learn how C++’s new and delete elegantly solve this problem by
+  safely creating objects on the heap.
+  -->
   <para>
     En este capítulo verá cómo se resuelve de modo elegante este
     problema con los operadores <kw>new</kw> y
@@ -116,16 +158,23 @@
   </para>
 
   <sect1>
+    <!-- : Object creation -->
     <title>Creación de objetos</title>
+
+    <!-- When a C++ object is created, two events occur: -->
     <para>
       La creación de un objeto en C++ tiene
       lugar en dos pasos:
     </para>
+
+    <!--
+    1. Storage is allocated for the object.
+    2. The constructor is called to initialize that storage.
+    -->
     <orderedlist numeration="arabic">
       <listitem>
 	<para>Asignación de memoria para el objeto.</para>
       </listitem>
-
       <listitem>
 	<para>
 	  Llamada al constructor.
@@ -133,6 +182,11 @@
       </listitem>
     </orderedlist>
 
+    <!--
+    By now you should believe that step two always happens. C++ enforces it because
+    uninitialized objects are a major source of program bugs. It doesn’t matter where or how
+    the object is created – the constructor is always called.
+    -->
     <para>
       Aceptemos por ahora que este segundo paso ocurre
       <emphasis>siempre</emphasis>. C++ lo
@@ -142,11 +196,29 @@
       objeto.
     </para>
 
+
+    <!-- Step one, however, can occur in several ways, or at alternate times: -->
     <para>
       El primero de estos pasos puede ocurrir de varios modos y en
       diferente momento:
     </para>
 
+    <!--
+    1. Storage can be allocated before the program begins, in the static storage area. This
+    storage exists for the life of the program.
+    2. Storage can be created on the stack whenever a particular execution point is reached
+    (an opening brace). That storage is released automatically at the complementary
+    execution point (the closing brace). These stack-allocation operations are built
+    into the instruction set of the processor and are very efficient. However, you have
+    to know exactly how many variables you need when you’re writing the program so the
+    compiler can generate the right code.
+    3. Storage can be allocated from a pool of memory called the heap (also known as the
+    free store). This is called dynamic memory allocation. To allocate this memory, a
+    function is called at runtime; this means you can decide at any time that you want
+    some memory and how much you need. You are also responsible for determining when to
+    release the memory, which means the lifetime of that memory can be as long as you
+    choose – it isn’t determined by scope.
+    -->
     <orderedlist numeration="arabic">
 
       <listitem>
@@ -189,6 +261,15 @@
       </listitem>
     </orderedlist>
 
+
+    <!--
+    Often these three regions are placed in a single contiguous piece of physical memory:
+    the static area, the stack, and the heap (in an order determined by the compiler
+    writer). However, there are no rules. The stack may be in a special place, and the heap
+    may be implemented by making calls for chunks of memory from the operating system. As a
+    programmer, these things are normally shielded from you, so all you need to think about
+    is that the memory is there when you call for it.
+    -->
     <para>
       A menudo, las tres regiones de memoria referidas se disponen
       en una zona contigua de la memoria física: área estática, la
@@ -203,8 +284,17 @@
     </para>
 
     <sect2>
+      <!-- : C’s approach to the heap -->
       <title>Asignación dinámica en C</title>
 
+      <!--
+      To allocate memory dynamically at runtime, C provides functions in its standard library:
+      malloc( ) and its variants calloc( ) and realloc( ) to produce memory from the heap, and
+      free( ) to release the memory back to the heap. These functions are pragmatic but
+      primitive and require understanding and care on the part of the programmer. To create an
+      instance of a class on the heap using C’s dynamic memory functions, you’d have to do
+      something like this:
+      -->
       <para>
 	Cproporciona las funciones de su
 	biblioteca estándar <function>malloc()</function> y sus
@@ -222,6 +312,7 @@
 //: V1C13:MallocClass.cpp
 
 
+      <!-- You can see the use of malloc( ) to create storage for the object in the line: -->
       <para>
 	Observe el uso de <function>malloc()</function> para la
 	obtención de espacio para el objeto:
@@ -231,6 +322,12 @@
 	Obj* obj = (Obj*)malloc(sizeof(Obj));
       </programlisting>
 
+
+      <!--
+      Here, the user must determine the size of the object (one place for an error). malloc( )
+      returns a void* because it just produces a patch of memory, not an object. C++ doesn’t
+      allow a void* to be assigned to any other pointer, so it must be cast.
+      -->
       <para>
 	Se debe pasar como parámetro a <function>malloc()</function> el
 	tamaño del objeto. El tipo de retorno de
@@ -242,12 +339,19 @@
 	tipo (molde)
       </para>
 
+
+      <!--
+      Because malloc( ) may fail to find any memory (in which case it returns zero), you must
+      check the returned pointer to make sure it was successful.
+      -->
       <para>
 	Puede ocurrir que <function>malloc()</function> no encuentre
 	un bloque adecuado, en cuyo caso devolverá un puntero nulo,
 	de ahí la necesidad de comprobar la validez del puntero
 	devuelto.
       </para>
+
+      <!-- But the worst problem is this line: -->
 
       <para>
 	El principal escollo está en la línea:
@@ -256,6 +360,21 @@
       <programlisting>
 	obj->initialize();
       </programlisting>
+
+
+      <!--
+      If users make it this far correctly, they must remember to initialize the object before
+      it is used. Notice that a constructor was not used because the constructor cannot be
+      called explicitly[50] – it’s called for you by the compiler when an object is created.
+      The problem here is that the user now has the option to forget to perform the
+      initialization before the object is used, thus reintroducing a major source of bugs.
+      -->
+
+    <!--
+    [50] There is a special syntax called placement new that allows you to call a
+    constructor for a pre-allocated piece of memory. This is introduced later in the
+    chapter.
+    -->
 
       <para>
 	El usuario deberá asegurarse de inicializar el objeto antes de
@@ -270,6 +389,15 @@
 	usarlo, introduciendo así una importante fuente de problemas.
       </para>
 
+
+      <!--
+      It also turns out that many programmers seem to find C’s dynamic memory functions too
+      confusing and complicated; it’s not uncommon to find C programmers who use virtual
+      memory machines allocating huge arrays of variables in the static storage area to avoid
+      thinking about dynamic memory allocation. Because C++ is attempting to make library use
+      safe and effortless for the casual programmer, C’s approach to dynamic memory is
+      unacceptable.
+      -->
       <para>
 	Como consecuencia, muchos programadores encuentran muy confusas
 	y complicadas las funciones de asignación dinámica de la memoria
@@ -285,7 +413,15 @@
     </sect2>
 
     <sect2>
+      <!-- : operator new -->
       <title>Operador <kw>new</kw></title>
+
+      <!--
+      The solution in C++ is to combine all the actions necessary to create an object into a
+      single operator called new. When you create an object with new (using a new-expression),
+      it allocates enough storage on the heap to hold the object and calls the constructor for
+      that storage. Thus, if you say
+      -->
       <para>
 	La solución que ofrece C++ consiste
 	en combinar la serie de acciones necesarias para la creación de
@@ -300,6 +436,14 @@
 	MyType *fp = new MyType(1,2);
       </programlisting>
 
+
+      <!--
+      at runtime, the equivalent of malloc(sizeof(MyType)) is called (often, it is literally a
+      call to malloc( )), and the constructor for MyType is called with the resulting address
+      as the this pointer, using (1,2) as the argument list. By the time the pointer is
+      assigned to fp, it’s a live, initialized object – you can’t even get your hands on it
+      before then. It’s also automatically the proper MyType type so no cast is necessary.
+      -->
       <para> se asigna espacio mediante alguna llamada equivalente a
 	<literal>>malloc(sizeof(MyType))</literal> --con frecuencia es
 	así, literalmente--, y usando la dirección obtenida como
@@ -311,6 +455,13 @@
 	innecesaria la conversión.
       </para>
 
+
+      <!--
+      The default new checks to make sure the memory allocation was successful before passing
+      the address to the constructor, so you don’t have to explicitly determine if the call
+      was successful. Later in the chapter you’ll find out what happens if there’s no memory
+      left.
+      -->
       <para>
 	El operador <kw>new</kw> por defecto, comprueba el
 	éxito o fracaso de la asignación de memoria como paso previo
@@ -319,6 +470,12 @@
 	capítulo se verá qué sucede si se produce este fallo.
       </para>
 
+
+      <!--
+      You can create a new-expression using any constructor available for the class. If the
+      constructor has no arguments, you write the new-expression without the constructor
+      argument list:
+      -->
       <para>
 	En las expresiones con <kw>new</kw> se puede usar
 	cualquiera de los constructores disponibles para una
@@ -330,6 +487,12 @@
 	MyType *fp = new MyType;
       </programlisting>
 
+
+      <!--
+      Notice how simple the process of creating objects on the heap becomes – a single
+      expression, with all the sizing, conversions, and safety checks built in. It’s as easy
+      to create an object on the heap as it is on the stack.
+      -->
       <para>
 	Es notable la simpleza alcanzada en la creación dinámica de
 	objetos: una única expresión realiza todo el trabajo de cálculo
@@ -341,9 +504,16 @@
     </sect2>
 
     <sect2>
-
+      <!-- : operator delete -->
       <title>Operador <kw>delete</kw></title>
 
+
+      <!--
+      The complement to the new-expression is the delete-expression, which first calls the
+      destructor and then releases the memory (often with a call to free( )). Just as a
+      new-expression returns a pointer to the object, a delete-expression requires the address
+      of an object.
+      -->
       <para>
 	El complemento a la expresión <kw>new</kw> es la
 	expresión <kw>delete</kw>, que primero llama al
@@ -357,11 +527,23 @@
 	delete fp;
       </programlisting>
 
+
+      <!--
+      This destructs and then releases the storage for the dynamically allocated MyType object
+      created earlier.
+      -->
       <para>
 	Esta expresión destruye el objeto y después libera el espacio
 	dinámicamente asignado al objeto <type>MyType</type>
       </para>
 
+
+      <!--
+      delete can be called only for an object created by new. If you malloc( ) (or calloc( )
+      or realloc( )) an object and then delete it, the behavior is undefined. Because most
+      default implementations of new and delete use malloc( ) and free( ), you’d probably end
+      up releasing the memory without calling the destructor.
+      -->
       <para>
 	El uso del operador <kw>delete</kw> debe reservarse
 	sólo para los objetos que hayan sido creados mediante
@@ -376,6 +558,12 @@
 	llamada al destructor.
       </para>
 
+      <!--
+      If the pointer you’re deleting is zero, nothing will happen. For this reason, people
+      often recommend setting a pointer to zero immediately after you delete it, to prevent
+      deleting it twice. Deleting an object more than once is definitely a bad thing to do,
+      and will cause problems.
+      -->
       <para>
 	No ocurre nada si el puntero que se le pasa a
 	<kw>delete</kw> es nulo. Por esa razón, a menudo se
@@ -389,9 +577,10 @@
     </sect2>
 
     <sect2>
-
+      <!-- : A simple example -->
       <title>Un ejemplo sencillo</title>
 
+      <!-- This example shows that initialization takes place: -->
       <para>
 	El siguiente ejemplo demuestra que la inicialización tiene lugar:
       </para>
@@ -411,7 +600,7 @@
  a global function and not a class member function. Also notice that the
  return value is the result of the entire output expression, which is an
  ostream&amp; (which it must be, to satisfy the return value type of the
- function
+ function)
 -->
       <para>
 	Se puede probar que el constructor es invocado imprimiendo el
@@ -431,7 +620,16 @@
     </sect2>
 
     <sect2>
+      <!-- : Memory manager overhead -->
       <title>Trabajo extra para el gestor de memoria</title>
+
+      <!--
+      When you create automatic objects on the stack, the size of the objects and their
+      lifetime is built right into the generated code, because the compiler knows the exact
+      type, quantity, and scope. Creating objects on the heap involves additional overhead,
+      both in time and in space. Here’s a typical scenario. (You can replace malloc( ) with
+      calloc( ) or realloc( ).)
+      -->
       <para>
 	El compilador conoce con exactitud el tipo, la cantidad y el
 	ámbito de los objetos automáticos que se crean en la pila;
@@ -463,6 +661,11 @@
 	tiempo en cada búsqueda.
       </para>
 
+      <!--
+      Before a pointer to that block is returned, the size and location of the block must be
+      recorded so further calls to malloc( ) won’t use it, and so that when you call free( ),
+      the system knows how much memory to release.
+      -->
       <para>
 	Antes de entregar el puntero del bloque obtenido, hay que
 	registrar en alguna parte su tamaño y localización para que
@@ -471,6 +674,13 @@
 	el sistema sepa cuánto espacio ha de liberar.
       </para>
 
+      <!--
+      The way all this is implemented can vary widely. For example, there’s nothing to prevent
+      primitives for memory allocation being implemented in the processor. If you’re curious,
+      you can write test programs to try to guess the way your malloc( ) is implemented. You
+      can also read the library source code, if you have it (the GNU C sources are always
+      available).
+      -->
       <para>
 	El modo en que se implementan todas estas operaciones puede
 	variar mucho. No hay nada que impida que puedan implementarse
@@ -486,7 +696,14 @@
   </sect1>
 
   <sect1>
+    <!-- : Early examples redesigned -->
     <title>Rediseño de los ejemplos anteriores</title>
+
+    <!--
+    Using new and delete, the Stash example introduced previously in this book can be
+    rewritten using all the features discussed in the book so far. Examining the new code
+    will also give you a useful review of the topics.
+    -->
     <para>
 	Puede resescribirse el ejemplo <classname>Stash</classname> que
       vimos anteriormente en el libro, haciendo uso de los operadores
@@ -495,6 +712,14 @@
       nuevo código se pueden repasar estas cuestiones.
     </para>
 
+    <!--
+    At this point in the book, neither the Stash nor Stack classes will “own” the objects
+    they point to; that is, when the Stash or Stack object goes out of scope, it will not
+    call delete for all the objects it points to. The reason this is not possible is
+    because, in an attempt to be generic, they hold void pointers. If you delete a void
+    pointer, the only thing that happens is the memory gets released, because there’s no
+    type information and no way for the compiler to know what destructor to call.
+    -->
     <para>
 	Hasta este punto del libro, ninguna de las clases
 	<classname>Stash</classname> ni <classname>Stack</classname>
@@ -511,8 +736,16 @@
     </para>
 
     <sect2>
+      <!-- : delete void* is probably a bug -->
 	<title><kw>delete</kw> <type>void*</type> probablemente es un
       error</title>
+
+      <!--
+      It’s worth making a point that if you call delete for a void*, it’s almost certainly
+      going to be a bug in your program unless the destination of that pointer is very simple;
+      in particular, it should not have a destructor. Here’s an example to show you what
+      happens:
+      -->
       <para>
 	  Es necesario puntualizar que, llamar a
 	  <kw>delete</kw> con un argumento <type>void*</type>
@@ -525,6 +758,12 @@
 //: V1C13:BadVoidPointerDeletion.cpp
 
 
+      <!--
+      The class Object contains a void* that is initialized to “raw” data (it doesn’t point to
+      objects that have destructors). In the Object destructor, delete is called for this
+      void* with no ill effects, since the only thing we need to happen is for the storage to
+      be released.
+      -->
       <para>
 	La clase <classname>Object</classname> contiene la variable
 	<varname>data</varname> de tipo <type>void*</type> que es
@@ -536,6 +775,10 @@
 	aquí es liberar la memoria.
       </para>
 
+      <!--
+      However, in main( ) you can see that it’s very necessary that delete know what type of
+      object it’s working with. Here’s the output:
+      -->
       <para>
 	Ahora bien, se puede ver en <function>main()</function> la
 	necesidad de que <kw>delete</kw> conozca el tipo del
@@ -549,6 +792,16 @@
 	Objeto b en construcción, tamaño = 40
       </screen>
 
+
+      <!--
+      Because delete a knows that a points to an Object, the destructor is called and thus the
+      storage allocated for data is released. However, if you manipulate an object through a
+      void* as in the case of delete b, the only thing that happens is that the storage for
+      the Object is released – but the destructor is not called so there is no release of the
+      memory that data points to. When this program compiles, you probably won’t see any
+      warning messages; the compiler assumes you know what you’re doing. So you get a very
+      quiet memory leak.
+      -->
       <para>
 	Como <kw>delete</kw> sabe que <varname>a</varname> es
 	un puntero a <classname>Object</classname>, se lleva a cabo la
@@ -566,6 +819,12 @@
 	con una silenciosa fuga de memoria.
       </para>
 
+      <!--
+      If you have a memory leak in your program, search through all the delete statements and
+      check the type of pointer being deleted. If it’s a void* then you’ve probably found one
+      source of your memory leak (C++ provides ample other opportunities for memory leaks,
+      however).
+      -->
       <para>
 	Cuando se tiene una fuga de memoria, se debe buscar entre todas
 	las llamadas a <kw>delete</kw> para comprobar el tipo
@@ -577,11 +836,19 @@
     </sect2>
 
     <sect2>
+      <!-- : Cleanup responsibility with pointers -->
+
       <title>
 	  Responsabilidad de la limpieza cuando se usan
 	  punteros
 	</title>
 
+      <!--
+      To make the Stash and Stack containers flexible (able to hold any type of object), they
+      will hold void pointers. This means that when a pointer is returned from the Stash or
+      Stack object, you must cast it to the proper type before using it; as seen above, you
+      must also cast it to the proper type before deleting it or you’ll get a memory leak.
+      -->
       <para>
 	Para hacer que los contenedores <classname>Stack</classname>
 	y <classname>Stash</classname> sean flexibles, capaces de
@@ -596,6 +863,18 @@
 	memoria.
       </para>
 
+      <!--
+      The other memory leak issue has to do with making sure that delete is actually called
+      for each object pointer held in the container. The container cannot “own” the pointer
+      because it holds it as a void* and thus cannot perform the proper cleanup. The user must
+      be responsible for cleaning up the objects. This produces a serious problem if you add
+      pointers to objects created on the stack and objects created on the heap to the same
+      container because a delete-expression is unsafe for a pointer that hasn’t been allocated
+      on the heap. (And when you fetch a pointer back from the container, how will you know
+      where its object has been allocated?) Thus, you must be sure that objects stored in the
+      following versions of Stash and Stack are made only on the heap, either through careful
+      programming or by creating classes that can only be built on the heap.
+      -->
       <para>
 	Hay otro problema, derivado de la necesidad de llamar a
 	<kw>delete</kw> para cada puntero a objeto
@@ -616,6 +895,12 @@
 	montículo.
       </para>
 
+      <!--
+      It’s also important to make sure that the client programmer takes responsibility for
+      cleaning up all the pointers in the container. You’ve seen in previous examples how the
+      Stack class checks in its destructor that all the Link objects have been popped. For a
+      Stash of pointers, however, another approach is needed.
+      -->
       <para>
 	Es muy importante asegurarse también de que el programador
 	cliente se responsabilice de la limpieza de los punteros del
@@ -629,7 +914,15 @@
     </sect2>
 
     <sect2>
+      <!-- : Stash for pointers -->
       <title>Stash para punteros</title>
+
+      <!--
+      This new version of the Stash class, called PStash, holds pointers to objects that exist
+      by themselves on the heap, whereas the old Stash in earlier chapters copied the objects
+      by value into the Stash container. Using new and delete, it’s easy and safe to hold
+      pointers to objects that have been created on the heap.
+      -->
       <para>
 	Esta nueva versión de la clase <classname>Stash</classname>,
 	que llamamos <classname>PStash</classname>, almacena
@@ -640,6 +933,7 @@
 	punteros a objetos creados en el montículo.
       </para>
 
+      <!-- Here’s the header file for the “pointer Stash”: -->
       <para>
 	He aquí el archivo de cabecera de <quote><classname>Stash</classname>
 	para punteros</quote>:
@@ -649,6 +943,11 @@
 //: V1C13:PStash.h
 
 
+      <!--
+      The underlying data elements are fairly similar, but now storage is an array of void
+      pointers, and the allocation of storage for that array is performed with new instead of
+      malloc( ). In the expression
+      -->
       <para>
 	Los elementos de datos subyacentes no han cambiado mucho, pero
 	ahora el almacenamiento se hace sobre un vector de punteros
@@ -661,11 +960,20 @@
 	void** st = new void*[ quantity + increase ];
       </programlisting>
 
+      <!--
+      the type of object allocated is a void*, so the expression allocates an array of void
+      pointers.
+      -->
       <para>
 	se asigna espacio para un vector de punteros a
 	<type>void</type>.
       </para>
 
+      <!--
+      The destructor deletes the storage where the void pointers are held rather than
+      attempting to delete what they point at (which, as previously noted, will release their
+      storage and not call the destructors because a void pointer has no type information).
+      -->
       <para>
 	El destructor de la clase libera el espacio en el que se
 	almacenan los punteros sin tratar de borrar los objetos
@@ -675,6 +983,12 @@
 	falta de información de tipo.
       </para>
 
+      <!--
+      The other change is the replacement of the fetch( ) function with operator[ ], which
+      makes more sense syntactically. Again, however, a void* is returned, so the user must
+      remember what types are stored in the container and cast the pointers when fetching them
+      out (a problem that will be repaired in future chapters).
+      -->
       <para>
 	El otro cambio realizado es el reemplazo de la función
 	<function>fetch()</function> por <function>operator
@@ -685,6 +999,7 @@
 	contenedor. Resolveremos este problema en capítulos posteriores.
       </para>
 
+      <!-- Here are the member function definitions: -->
       <para>
 	Sigue la definición de los métodos de
 	<classname>PStash</classname>:
@@ -694,6 +1009,10 @@
 //: V1C13:PStash.cpp
 
 
+      <!--
+      The add( ) function is effectively the same as before, except that a pointer is stored
+      instead of a copy of the whole object.
+      -->
       <para>
 	La función <function>add()</function> es, en efecto, la
 	misma que antes si exceptuamos el hecho de que lo que se
@@ -701,6 +1020,19 @@
 	copia del objeto.
       </para>
 
+      <!--
+      The inflate( ) code is modified to handle the allocation of an array of void* instead of
+      the previous design, which was only working with raw bytes. Here, instead of using the
+      prior approach of copying by array indexing, the Standard C library function memset( )
+      is first used to set all the new memory to zero (this is not strictly necessary, since
+      the PStash is presumably managing all the memory correctly – but it usually doesn’t hurt
+      to throw in a bit of extra care). Then memcpy( ) moves the existing data from the old
+      location to the new. Often, functions like memset( ) and memcpy( ) have been optimized
+      over time, so they may be faster than the loops shown previously. But with a function
+      like inflate( ) that will probably not be used that often you may not see a performance
+      difference. However, the fact that the function calls are more concise than the loops
+      may help prevent coding errors.
+      -->
       <para>
 	El código de <function>inflate()</function> ha sido modificado
 	para gestionar la asignación de memoria para un vector de
@@ -725,6 +1057,16 @@
 	ayudar a prevenir errores de programación.
       </para>
 
+      <!--
+      To put the responsibility of object cleanup squarely on the shoulders of the client
+      programmer, there are two ways to access the pointers in the PStash: the operator[],
+      which simply returns the pointer but leaves it as a member of the container, and a
+      second member function remove( ), which returns the pointer but also removes it from the
+      container by assigning that position to zero. When the destructor for PStash is called,
+      it checks to make sure that all object pointers have been removed; if not, you’re
+      notified so you can prevent a memory leak (more elegant solutions will be forthcoming in
+      later chapters).
+      -->
       <para>
 	Para dejar definitivamente la responsabilidad de la limpieza de
 	los objetos sobre los hombros del programador cliente, se
@@ -740,8 +1082,12 @@
 	que es posible prevenir la fuga de memoria. Se verán otras
 	soluciones mas elegantes en capítulos posteriores.
       </para>
+
       <sect3>
+        <!-- : A test -->
 	<title>Una prueba</title>
+
+        <!-- Here’s the old test program for Stash rewritten for the PStash: -->
 	<para>
 	  Aquí aparece el programa de prueba de
 	  <classname>Stash</classname>, reescrito para
@@ -751,6 +1097,12 @@
 
 //: V1C13:PStashTest.cpp
 
+
+        <!--
+        As before, Stashes are created and filled with information, but this time the
+        information is the pointers resulting from new-expressions. In the first case, note the
+        line:
+        -->
 
 	<para>
 	  Igual que antes, se crean y rellenan varias
@@ -763,6 +1115,10 @@
 	  intStash.add( new int(i) );
 	</programlisting>
 
+        <!--
+        The expression new int(i) uses the pseudo-constructor form, so storage for a new int
+        object is created on the heap, and the int is initialized to the value i.
+        -->
 	<para> Se ha usado una forma de pseudo constructor en la
 	  espresión <programlisting>new int(i)</programlisting>, con lo
 	  que que además de crear un objeto <type>int</type> en el área
@@ -770,6 +1126,13 @@
 	  <varname>i</varname>.
 	</para>
 
+
+        <!--
+        During printing, the value returned by PStash::operator[ ] must be cast to the proper
+        type; this is repeated for the rest of the PStash objects in the program. It’s an
+        undesirable effect of using void pointers as the underlying representation and will be
+        fixed in later chapters.
+        -->
 	<para>
 	  Para imprimir, es necesario convertir al tipo adecuado el
 	  puntero obtenido de <function>PStash::operator[]</function>;
@@ -780,6 +1143,15 @@
 	  posteriores.
 	</para>
 
+
+
+        <!--
+        The second test opens the source code file and reads it one line at a time into another
+        PStash. Each line is read into a string using getline( ), then a new string is created
+        from line to make an independent copy of that line. If we just passed in the address of
+        line each time, we’d get a whole bunch of pointers pointing to line, which would only
+        contain the last line that was read from the file.
+        -->
 	<para>
 	  En la segunda prueba, se lee línea a línea el propio archivo
 	  fuente. Mediante <function>getline()</function> se lee cada
@@ -790,12 +1162,20 @@
 	  línea leida.
 	</para>
 
+        <!-- When fetching the pointers, you see the expression: -->
 	<para>
 	  Obsérvese la expresión, en la recuperación de los punteros:
+	</para>
+
 	  <programlisting>
 	    *(string*)stringStash[v];
 	  </programlisting>
-	</para>
+
+        <!--
+        The pointer returned from operator[ ] must be cast to a string* to give it the proper
+        type. Then the string* is dereferenced so the expression evaluates to an object, at
+        which point the compiler sees a string object to send to cout.
+        -->
 
 	<para>
 	  El puntero obtenido por medio de
@@ -806,6 +1186,13 @@
 	  <varname>cout</varname>.
 	</para>
 
+        <!--
+        The objects created on the heap must be destroyed through the use of the remove( )
+        statement or else you’ll get a message at runtime telling you that you haven’t
+        completely cleaned up the objects in the PStash. Notice that in the case of the int
+        pointers, no cast is necessary because there’s no destructor for an int and all we need
+        is memory release:
+        -->
 	<para>
 	  Antes de destruir los objetos, se han de eliminar las
 	  referencias correspondientes mediante el uso de
@@ -817,24 +1204,32 @@
 	  es liberar la memoria:
 	</para>
 
-	<para>
+
 	  <programlisting>
 	    delete intStash.remove(k);
 	  </programlisting>
-	</para>
 
+
+        <!--
+        However, for the string pointers, if you forget to do the cast you’ll have another
+        (quiet) memory leak, so the cast is essential:
+        -->
 	<para>
 	  En cambio, para los punteros a <type>string</type>, hace falta
 	  la conversión de tipo, so pena de crear otro discreto punto de
 	  fuga de memoria:
 	</para>
 
-	<para>
+
 	  <programlisting>
 	    delete (string*) stringStash.remove(k);
 	  </programlisting>
-	</para>
 
+
+        <!--
+        Some of these issues (but not all) can be removed using templates (which you’ll learn
+        about in Chapter 16).
+        -->
 	<para>
 	  Algunas de estas dificultades pueden resolverse mediante el
 	  uso de plantillas, que veremos en el capítulo 16.
@@ -846,11 +1241,19 @@
   <sect1>
     <!-- 592 -->
 
+    <!-- : new & delete for arrays -->
     <title>
       <kw>new</kw> y <kw>delete</kw> para
       vectores
     </title>
 
+    <!--
+    In C++, you can create arrays of objects on the stack or on the heap with equal ease,
+    and (of course) the constructor is called for each object in the array. There’s one
+    constraint, however: There must be a default constructor, except for aggregate
+    initialization on the stack (see Chapter 6), because a constructor with no arguments
+    must be called for every object.
+    -->
     <para>
       En C++ se pueden crear vectores de objetos es igualmente fácil ya
       sea en la pila o en el montículo, con la certeza de que se
@@ -859,6 +1262,11 @@
       defecto, o sea, sin argumentos, que es el que será llamado para
       cada objeto.
     </para>
+
+    <!--
+    When creating arrays of objects on the heap using new, there’s something else you must
+    do. An example of such an array is
+    -->
     <para>
       Cuando se crean vectores de objetos dinámicamente, usando
       <kw>new</kw>, hay otras cosas que hay que tener en
@@ -868,6 +1276,12 @@
     <programlisting>
       MyType* fp = new MyType[100];
     </programlisting>
+
+    <!--
+    This allocates enough storage on the heap for 100 MyType objects and calls the
+    constructor for each one. Now, however, you simply have a MyType*, which is exactly the
+    same as you’d get if you said
+    -->
     <para>
       Esta sentencia asigna espacio suficiente en el motículo para
       100 objetos <classname>MyType</classname> y llama al
@@ -880,17 +1294,32 @@
       MyType* fp2 = new MyType;
     </programlisting>
 
+    <!--
+    to create a single object. Because you wrote the code, you know that fp is actually the
+    starting address of an array, so it makes sense to select array elements using an
+    expression like fp[3]. But what happens when you destroy the array? The statements
+    -->
     <para>
       El escritor del programa sabe que <varname>fp</varname> es la
       dirección del primer elemento de un vector, por lo que tiene
       sentido selecionar elementos del mismo mediante una expresión como
       <literal>fp[3]</literal>, pero ¿qué pasa cuando destruimos el
       vector?. Las sentencias
+    </para>
+
       <programlisting>
 	delete fp2; // Correcta.
 	delete fp;  // Esta no tendrá el efecto deseado.
       </programlisting>
-    </para>
+
+    <!--
+    look exactly the same, and their effect will be the same. The destructor will be called
+    for the MyType object pointed to by the given address, and then the storage will be
+    released. For fp2 this is fine, but for fp this means that the other 99 destructor calls
+    won’t be made. The proper amount of storage will still be released, however, because it
+    is allocated in one big chunk, and the size of the whole chunk is stashed somewhere by
+    the allocation routine.
+    -->
     <para>
       parecen iguales, y sus efectos serán los mismos. Se llamará al
       destructor del objeto <classname>MyType</classname> al que apunta
@@ -903,6 +1332,10 @@
       parte por las rutinas de asignación.
     </para>
 
+    <!--
+    The solution requires you to give the compiler the information that this is actually the
+    starting address of an array. This is accomplished with the following syntax:
+    -->
     <para>
       Esto se soluciona indicando al compilador que el puntero que
       pasamos es la dirección de inicio de un vector, usando la
@@ -913,6 +1346,12 @@
       delete [] fp;
     </programlisting>
 
+    <!--
+    The empty brackets tell the compiler to generate code that fetches the number of objects
+    in the array, stored somewhere when the array is created, and calls the destructor for
+    that many array objects. This is actually an improved syntax from the earlier form,
+    which you may still occasionally see in old code:
+    -->
     <para>
       Los corchetes indican al compilador la necesidad de generar el
       código para obtener el número de objetos en el vector, que fue
@@ -926,6 +1365,12 @@
       delete [100] fp;
     </programlisting>
 
+    <!--
+    which forced the programmer to include the number of objects in the array and introduced
+    the possibility that the programmer would get it wrong. The additional overhead of
+    letting the compiler handle it was very low, and it was considered better to specify the
+    number of objects in one place instead of two.
+    -->
     <para>
       que forzaba al programador a incluir el número de objetos
       contenidos en el vector, introduciendo con ello una posible fuente
@@ -936,6 +1381,7 @@
     </para>
 
     <sect2>
+      <!-- : Making a pointer more like an array -->
       <title>Cómo hacer que un puntero sea más parecido a un
       vector</title>
 
@@ -969,6 +1415,10 @@
 	const int* q = new int[10];
       </programlisting>
 
+      <!--
+      but in both cases the const will bind to the int, that is, what is being pointed to,
+      rather than the quality of the pointer itself. Instead, you must say
+      -->
       <para>
 	pero en ambos casos el especificador <kw>const</kw>
 	queda asociado al <type>int</type>, es decir, al valor al que
@@ -980,6 +1430,10 @@
 	int* const q = new int[10];
       </programlisting>
 
+      <!--
+      Now the array elements in q can be modified, but any change to q (like q++) is illegal,
+      as it is with an ordinary array identifier.
+      -->
       <para>
 	Ahora es posible modificar el valor de los elementos del vector,
 	siendo ilegal cualquier intento posterior de modificar
@@ -990,8 +1444,15 @@
     </sect2>
 
     <sect2>
+    <!-- : Running out of storage -->
       <title>Cuando se supera el espacio de almacenamiento</title>
 
+    <!--
+    What happens when the operator new( ) cannot find a contiguous block of storage large
+    enough to hold the desired object? A special function called the new-handler is called.
+    Or rather, a pointer to a function is checked, and if the pointer is nonzero, then the
+    function it points to is called.
+    -->
       <para>
 	¿Qué ocurre cuando el <literal>operator new()</literal> no puede
 	encontrar un bloque contiguo suficientemente grande para alojar
@@ -1002,6 +1463,13 @@
 	llamada a la función a la que apunta.
       </para>
 
+    <!--
+    The default behavior for the new-handler is to throw an exception, a subject covered in
+    Volume 2. However, if you’re using heap allocation in your program, it’s wise to at
+    least replace the new-handler with a message that says you’ve run out of memory and then
+    aborts the program. That way, during debugging, you’ll have a clue about what happened.
+    For the final program you’ll want to use more robust recovery.
+    -->
       <para>
 	El comportamiento por defecto del gestor de errores de
 	<kw>new</kw> es disparar una excepción, asunto del que
@@ -1014,6 +1482,10 @@
 	implementar una recuperación de errores más elaborada.
       </para>
 
+    <!--
+    You replace the new-handler by including new.h and then calling set_new_handler( ) with
+    the address of the function you want installed:
+    -->
       <para>
 	La forma de reemplazar el gestor de <quote>new-handler</quote>
 	por defecto consiste en incluir el archivo
@@ -1026,6 +1498,12 @@
 //: V1C13:NewHandler.cpp
 
 
+    <!--
+    The new-handler function must take no arguments and have a void return value. The while
+    loop will keep allocating int objects (and throwing away their return addresses) until
+    the free store is exhausted. At the very next call to new, no storage can be allocated,
+    so the new-handler will be called.
+    -->
       <para>
 	La función a instalar debe retornar <type>void</type> y no tomar
 	argumentos. El bucle <kw>while</kw> seguirá pidiendo
@@ -1036,6 +1514,12 @@
 	<kw>new</kw></emphasis>.
       </para>
 
+    <!--
+    The behavior of the new-handler is tied to operator new( ), so if you overload operator
+    new( ) (covered in the next section) the new-handler will not be called by default. If
+    you still want the new-handler to be called you’ll have to write the code to do so
+    inside your overloaded operator new( ).
+    -->
       <para>
 	Este comportamiento del
 	<foreignphrase>new-handler</foreignphrase> está asociado al
@@ -1047,6 +1531,12 @@
 	en el <literal>operator new()</literal> que substituya al
 	original.
       </para>
+
+    <!--
+    Of course, you can write more sophisticated new-handlers, even one to try to reclaim
+    memory (commonly known as a garbage collector). This is not a job for the novice
+    programmer.
+    -->
 
       <para>
 	Por supuesto, es posible escribir gestores
@@ -1060,10 +1550,20 @@
     </sect2>
 
     <sect2>
+    <!-- : Overloading new & delete -->
       <title>
 	Sobrecarga de los operadores <kw>new</kw> y
 	<kw>delete</kw>
       </title>
+
+    <!--
+    When you create a new-expression, two things occur. First, storage is allocated using
+    the operator new( ), then the constructor is called. In a delete-expression, the
+    destructor is called, then storage is deallocated using the operator delete( ). The
+    constructor and destructor calls are never under your control (otherwise you might
+    accidentally subvert them), but you can change the storage allocation functions operator
+    new( ) and operator delete( ).
+    -->
       <para>
 	Cuando se ejecuta una <emphasis>expresión con
 	<kw>new</kw></emphasis>, ocurren dos cosas. Primero se
@@ -1080,7 +1580,14 @@
       </para>
 
 
-
+    <!--
+    The memory allocation system used by new and delete is designed for general-purpose use.
+    In special situations, however, it doesn’t serve your needs. The most common reason to
+    change the allocator is efficiency: You might be creating and destroying so many objects
+    of a particular class that it has become a speed bottleneck. C++ allows you to overload
+    new and delete to implement your own storage allocation scheme, so you can handle
+    problems like this.
+    -->
       <para>
 	El sistema de asignación de memoria usado por
 	<kw>new</kw> y <kw>delete</kw> es un
@@ -1094,7 +1601,13 @@
 	implementar un esquema particular más adecuado que permita
 	manejar situaciones como esta.
       </para>
-
+    <!--
+    Another issue is heap fragmentation. By allocating objects of different sizes it’s
+    possible to break up the heap so that you effectively run out of storage. That is, the
+    storage might be available, but because of fragmentation no piece is big enough to
+    satisfy your needs. By creating your own allocator for a particular class, you can
+    ensure this never happens.
+    -->
       <para>
 	Otra cuestión es la fragmentación del montículo. Cuando
 	los objetos tienen tamaños diferentes es posible llegar a
@@ -1106,6 +1619,13 @@
 	asignador para una clase específica.
       </para>
 
+    <!--
+    In embedded and real-time systems, a program may have to run for a very long time with
+    restricted resources. Such a system may also require that memory allocation always take
+    the same amount of time, and there’s no allowance for heap exhaustion or fragmentation.
+    A custom memory allocator is the solution; otherwise, programmers will avoid using new
+    and delete altogether in such cases and miss out on a valuable C++ asset.
+    -->
       <para>
 	En los sistemas de tiempo real y en los sistemas integrados,
 	suele ser necesario que los programas funcionen por largo tiempo
@@ -1120,6 +1640,14 @@
 	C++.
       </para>
 
+    <!--
+    When you overload operator new( ) and operator delete( ), it’s important to remember
+    that you’re changing only the way raw storage is allocated. The compiler will simply
+    call your new instead of the default version to allocate storage, then call the
+    constructor for that storage. So, although the compiler allocates storage and calls the
+    constructor when it sees new, all you can change when you overload new is the storage
+    allocation portion. (delete has a similar limitation.)
+    -->
       <para>
 	A la hora de sobrecargar <function>operator new()</function> y
 	<function>operator delete()</function> es importante tener en
@@ -1135,6 +1663,12 @@
 	tiene una limitación similar.
       </para>
 
+    <!--
+    When you overload operator new( ), you also replace the behavior when it runs out of
+    memory, so you must decide what to do in your operator new( ): return zero, write a loop
+    to call the new-handler and retry allocation, or (typically) throw a bad_alloc exception
+    (discussed in Volume 2, available at www.BruceEckel.com).
+    -->
       <para>
 	Cuando se sobrecarga <function>operator new()</function>, se
 	está reemplazando también el modo de tratar los posibles fallos
@@ -1146,6 +1680,11 @@
 	Volumen 2).
       </para>
 
+    <!--
+    Overloading new and delete is like overloading any other operator. However, you have a
+    choice of overloading the global allocator or using a different allocator for a
+    particular class.
+    -->
       <para>
 	La sobrecarga de <kw>new</kw> y
 	<kw>delete</kw> es como la de cualquier otro
@@ -1154,9 +1693,16 @@
       </para>
 
       <sect3>
+      <!-- : Overloading global new & delete -->
 	<title>Sobrecarga global de <kw>new</kw> y
 	<kw>delete</kw></title>
 
+      <!--
+      This is the drastic approach, when the global versions of new and delete are
+      unsatisfactory for the whole system. If you overload the global versions, you make the
+      defaults completely inaccessible – you can’t even call them from inside your
+      redefinitions.
+      -->
 	<para>
 	  Este es el modo más drástico de abordar el asunto, resulta
 	  útil cuando el comportamiento de <kw>new</kw> y
@@ -1166,6 +1712,16 @@
 	  desde dentro de las funciones sobrecargadas.
 	</para>
 
+      <!--
+      The overloaded new must take an argument of size_t (the Standard C standard type for
+      sizes). This argument is generated and passed to you by the compiler and is the size of
+      the object you’re responsible for allocating. You must return a pointer either to an
+      object of that size (or bigger, if you have some reason to do so), or to zero if you
+      can’t find the memory (in which case the constructor is not called!). However, if you
+      can’t find the memory, you should probably do something more informative than just
+      returning zero, like calling the new-handler or throwing an exception, to signal that
+      there’s a problem.
+      -->
 	<para>
 	  El <kw>new</kw> sobrecargado debe tomar un argumento
 	  del tipo <type>size_t</type> (el estándar de
@@ -1182,6 +1738,11 @@
 	  indicar que hubo un problema.
 	</para>
 
+      <!--
+      The return value of operator new( ) is a void*, not a pointer to any particular type.
+      All you’ve done is produce memory, not a finished object – that doesn’t happen until the
+      constructor is called, an act the compiler guarantees and which is out of your control.
+      -->
 	<para>
 	  El valor de retorno del <function>operator new()</function> es
 	  <type>void*</type>, no un puntero a un tipo particular. Lo que
@@ -1191,6 +1752,11 @@
 	  operador.
 	</para>
 
+      <!--
+      The operator delete( ) takes a void* to memory that was allocated by operator new. It’s
+      a void* because operator delete only gets the pointer after the destructor is called,
+      which removes the object-ness from the piece of storage. The return type is void.
+      -->
 	<para>
 	  El operador <function>operator delete()</function> toma como
 	  argumento un puntero <type>void*</type> a un bloque obtenido
@@ -1203,6 +1769,7 @@
 	  <type>void</type>.
 	</para>
 
+      <!-- Here’s a simple example showing how to overload the global new and delete: -->
 	<para>
 	  A continuación se expone un ejemplo del modo de sobrecargar
 	  globalmente <kw>new</kw> y
@@ -1213,6 +1780,15 @@
 //: V1C13:GlobalOperatorNew.cpp
 
 
+      <!--
+      Here you can see the general form for overloading new and delete. These use the Standard
+      C library functions malloc( ) and free( ) for the allocators (which is probably what the
+      default new and delete use as well!). However, they also print messages about what they
+      are doing. Notice that printf( ) and puts( ) are used rather than iostreams. This is
+      because when an iostream object is created (like the global cin, cout, and cerr), it
+      calls new to allocate memory. With printf( ), you don’t get into a deadlock because it
+      doesn’t call new to initialize itself.
+      -->
 	<para>
 	  Aquí puede verse la forma general de sobrecarga de operadores
 	  <kw>new</kw> y <kw>delete</kw>.  Estos
@@ -1234,6 +1810,14 @@
 	  no hace llamadas a <kw>new</kw>.
 	</para>
 
+      <!--
+      In main( ), objects of built-in types are created to prove that the overloaded new and
+      delete are also called in that case. Then a single object of type S is created, followed
+      by an array of S. For the array, you’ll see from the number of bytes requested that
+      extra memory is allocated to store information (inside the array) about the number of
+      objects it holds. In all cases, the global overloaded versions of new and delete are
+      used.
+      -->
 	<para>
 	  En <function>main()</function>, se crean algunos objetos de
 	  tipos básicos para demostrar que también en estos casos se
@@ -1252,11 +1836,20 @@
 
 
       <sect3>
+      <!-- : Overloading new & delete for a class -->
 	<title>
 	  Sobrecarga de <kw>new</kw> y
 	  <kw>delete</kw> específica para una clase
 	</title>
 
+      <!--
+      Although you don’t have to explicitly say static, when you overload new and delete for a
+      class, you’re creating static member functions. As before, the syntax is the same as
+      overloading any other operator. When the compiler sees you use new to create an object
+      of your class, it chooses the member operator new( ) over the global version. However,
+      the global versions of new and delete are used for all other types of objects (unless
+      they have their own new and delete).
+      -->
 	<para>
 	  Aunque no es necesario poner el modificador
 	  <kw>static</kw>, cuando se sobrecarga
@@ -1281,7 +1874,6 @@
  have been allocated, a simple array of bytes is used, one byte for each
  block:
 -->
-
 	<para>
 	  En el siguiente ejemplo se usa un primitivo sistema de
 	  asignación de almacenamiento para la clase
@@ -1297,6 +1889,14 @@
 //: V1C13:Framis.cpp
 
 
+      <!--
+      The pool of memory for the Framis heap is created by allocating an array of bytes large
+      enough to hold psize Framis objects. The allocation map is psize elements long, so
+      there’s one bool for every block. All the values in the allocation map are initialized
+      to false using the aggregate initialization trick of setting the first element so the
+      compiler automatically initializes all the rest to their normal default value (which is
+      false, in the case of bool).
+      -->
 	<para>
 	  El espacio de almacenamiento para el montículo
 	  <classname>Framis</classname> se crea sobre el bloque obtenido
@@ -1312,6 +1912,13 @@
 	  <constant>false</constant>, en el caso de variables lógicas.
 	</para>
 
+      <!--
+      The local operator new( ) has the same syntax as the global one. All it does is search
+      through the allocation map looking for a false value, then sets that location to true to
+      indicate it’s been allocated and returns the address of the corresponding memory block.
+      If it can’t find any memory, it issues a message to the trace file and throws a
+      bad_alloc exception.
+      -->
 	<para>
 	  El <function>operador new()</function> local usa la misma
 	  sintaxis que el global. Lo único que hace es buscar una
@@ -1324,6 +1931,16 @@
 	  de tipo <type>bad_alloc</type>.
 	</para>
 
+      <!--
+      This is the first example of exceptions that you’ve seen in this book. Since detailed
+      discussion of exceptions is delayed until Volume 2, this is a very simple use of them.
+      In operator new( ) there are two artifacts of exception handling. First, the function
+      argument list is followed by throw(bad_alloc), which tells the compiler and the reader
+      that this function may throw an exception of type bad_alloc. Second, if there’s no more
+      memory the function actually does throw the exception in the statement throw bad_alloc.
+      When an exception is thrown, the function stops executing and control is passed to an
+      exception handler, which is expressed as a catch clause.
+      -->
 	<para>
 	  Este es el primer ejemplo con excepción que aparece en este
 	  libro.  En el Volumen 2 se verá una discusión detallada del
@@ -1343,6 +1960,16 @@
 	  <literal>catch(bad_alloc)</literal>.
 	</para>
 
+      <!--
+      In main( ), you see the other part of the picture, which is the try-catch clause. The
+      try block is surrounded by braces and contains all the code that may throw exceptions –
+      in this case, any call to new that involves Framis objects. Immediately following the
+      try block is one or more catch clauses, each one specifying the type of exception that
+      they catch. In this case, catch(bad_alloc) says that that bad_alloc exceptions will be
+      caught here. This particular catch clause is only executed when a bad_alloc exception is
+      thrown, and execution continues after the end of the last catch clause in the group
+      (there’s only one here, but there could be more).
+      -->
 	<para>
 	  En <function>main()</function> se puede ver la cláusula
 	  <emphasis>try-catch</emphasis> que es la otra parte del
@@ -1361,12 +1988,27 @@
 	  podría haber más.
 	</para>
 
+      <!--
+      In this example, it’s OK to use iostreams because the global operator new( ) and delete(
+      ) are untouched.
+      -->
 	<para>
 	  En este ejemplo, el uso de <literal>iostream</literal> es
 	  correcto ya que el <function>operator new()</function> global
 	  no ha sido modificado.
 	</para>
 
+      <!--
+      The operator delete( ) assumes the Framis address was created in the pool. This is a
+      fair assumption, because the local operator new( ) will be called whenever you create a
+      single Framis object on the heap – but not an array of them: global new is used for
+      arrays. So the user might accidentally have called operator delete( ) without using the
+      empty bracket syntax to indicate array destruction. This would cause a problem. Also,
+      the user might be deleting a pointer to an object created on the stack. If you think
+      these things could occur, you might want to add a line to make sure the address is
+      within the pool and on a correct boundary (you may also begin to see the potential of
+      overloaded new and delete for finding memory leaks).
+      -->
 	<para>
 	  El <function>operator delete()</function> asume que la
 	  dirección de <classname>Framis</classname> ha sido obtenida de
@@ -1387,6 +2029,11 @@
 	  memoria).
 	</para>
 
+      <!--
+      operator delete( ) calculates the block in the pool that this pointer represents, and
+      then sets the allocation map’s flag for that block to false to indicate the block has
+      been released.
+      -->
 	<para>
 	  <function>operador delete()</function> calcula el bloque al
 	  que el puntero representa y después pone a
@@ -1395,6 +2042,11 @@
 	  libre.
 	</para>
 
+      <!--
+      In main( ), enough Framis objects are dynamically allocated to run out of memory; this
+      checks the out-of-memory behavior. Then one of the objects is freed, and another one is
+      created to show that the released memory is reused.
+      -->
 	<para>
 	  En la función <function>main()</function>, se crean
 	  dinámicamente suficientes objetos Framis para agotar la
@@ -1404,6 +2056,13 @@
 	  liberado.
 	</para>
 
+
+      <!--
+      Because this allocation scheme is specific to Framis objects, it’s probably much faster
+      than the general-purpose memory allocation scheme used for the default new and delete.
+      However, you should note that it doesn’t automatically work if inheritance is used
+      (inheritance is covered in Chapter 14).
+      -->
 	<para>
 	  Este esquema específico de asignación de memoria es
 	  probablemente mucho más rápido que el esquema de propósito
@@ -1416,10 +2075,21 @@
 
       <!-- 603 -->
       <sect3>
+		      <!-- : Overloading new & delete for arrays -->
 	<title>
 	  Sobrecarga de <kw>new</kw> y
 	  <kw>delete</kw> para vectores
 	</title>
+
+      <!--
+      If you overload operator new and delete for a class, those operators are called whenever
+      you create an object of that class. However, if you create an array of those class
+      objects, the global operator new( ) is called to allocate enough storage for the array
+      all at once, and the global operator delete( ) is called to release that storage. You
+      can control the allocation of arrays of objects by overloading the special array
+      versions of operator new[ ] and operator delete[ ] for the class. Here’s an example that
+      shows when the two different versions are called:
+      -->
 	<para>
 	  Si se sobrecargan los operadores <kw>new</kw> y
 	  <kw>delete</kw> para una clase, esos operadores se
@@ -1438,7 +2108,12 @@
 
 //: V1C13:ArrayOperatorNew.cpp
 
-
+      <!--
+      Here, the global versions of new and delete are called so the effect is the same as
+      having no overloaded versions of new and delete except that trace information is added.
+      Of course, you can use any memory allocation scheme you want in the overloaded new and
+      delete.
+      -->
 	<para>
 	  Si exceptuamos la información de rastreo que se añade aquí,
 	  las llamadas a las versiones globales de
@@ -1449,6 +2124,15 @@
 	  estos operadores modificados.
 	</para>
 
+      <!--
+      You can see that the syntax of array new and delete is the same as for the individual
+      object versions except for the addition of the brackets. In both cases you’re handed the
+      size of the memory you must allocate. The size handed to the array version will be the
+      size of the entire array. It’s worth keeping in mind that the only thing the overloaded
+      operator new( ) is required to do is hand back a pointer to a large enough memory block.
+      Although you may perform initialization on that memory, normally that’s the job of the
+      constructor that will automatically be called for your memory by the compiler.
+      -->
 	<para>
 	  Se puede observar que la sintaxis de <kw>new</kw> y
 	  <kw>delete</kw> para vectores es la misma que la
@@ -1464,6 +2148,10 @@
 	  constructor, que se llamará automáticamente por el compilador.
 	</para>
 
+      <!--
+      The constructor and destructor simply print out characters so you can see when they’ve
+      been called. Here’s what the trace file looks like for one compiler:
+      -->
 	<para>
 	  El constructor y el destructor símplemente imprimen
 	  mensajes para que pueda verse que han sido llamados. A
@@ -1483,8 +2171,13 @@
 	    ~~~~~~~~~~~~~~~~~~~~~~~~~Widget::delete[]
 	</screen>
 
+      <!--
+      Creating an individual object requires 40 bytes, as you might expect. (This machine uses
+      four bytes for an int.) The operator new( ) is called, then the constructor (indicated
+      by the *). In a complementary fashion, calling delete causes the destructor to be
+      called, then the operator delete( ).
+      -->
 	<para>
-
 	  La creación de un único objeto <classname>Widget</classname>
 	  requiere 40 bytes, tal y como se podría esperar para una
 	  máquina que usa 32 bits para un <type>int</type>. Se invoca al
@@ -1496,6 +2189,12 @@
 	  delete()</literal>.
 	</para>
 
+      <!--
+      When an array of Widget objects is created, the array version of operator new( ) is
+      used, as promised. But notice that the size requested is four more bytes than expected.
+      This extra four bytes is where the system keeps information about the array, in
+      particular, the number of objects in the array. That way, when you say
+      -->
 	<para>
 	  Cuando lo que se crea es un vector de objetos
 	  <classname>Widget</classname>, se observa el uso de la versión
@@ -1511,6 +2210,13 @@
 	  delete []Widget;
 	</programlisting>
 
+      <!--
+      the brackets tell the compiler it’s an array of objects, so the compiler generates code
+      to look for the number of objects in the array and to call the destructor that many
+      times. You can see that, even though the array operator new( ) and operator delete( )
+      are only called once for the entire array chunk, the default constructor and destructor
+      are called for each object in the array.
+      -->
 	<para>
 	  informa al compilador que se trata de un vector, con lo cual,
 	  generará el código para extraer la información que indica el
@@ -1524,8 +2230,10 @@
 
 
       <sect3>
+      <!-- : Constructor calls -->
 	<title>Llamadas al constructor</title>
 
+      <!-- Considering that -->
 	<para>
 	  Considerando que
 	</para>
@@ -1558,6 +2266,11 @@
 //: V1C13:NoMemory.cpp
 
 
+      <!--
+      When the program runs, it does not print the constructor message, only the message from
+      operator new( ) and the message in the exception handler. Because new never returns, the
+      constructor is never called so its message is not printed.
+      -->
 	<para>
 	  Cuando se ejecuta, el programa imprime los mensajes del
 	  <function>operator new()</function> y del manejador de
@@ -1566,6 +2279,14 @@
 	  constructor y por tanto no se imprime su mensaje.
 	</para>
 
+      <!--
+      It’s important that nm be initialized to zero because the new expression never
+      completes, and the pointer should be zero to make sure you don’t misuse it. However, you
+      should actually do more in the exception handler than just print out a message and
+      continue on as if the object had been successfully created. Ideally, you will do
+      something that will cause the program to recover from the problem, or at the least exit
+      after logging an error.
+      -->
 	<para>
 	  Para asegurar que no se usa indebidamente, Es importante
 	  inicializar <varname>nm</varname> a cero, debido a que
@@ -1577,6 +2298,13 @@
 	  después de registrar un error.
 	</para>
 
+
+      <!--
+      In earlier versions of C++ it was standard practice to return zero from new if storage
+      allocation failed. That would prevent construction from occurring. However, if you try
+      to return zero from new with a Standard-conforming compiler, it should tell you that you
+      ought to throw bad_alloc instead.
+      -->
 	<para>
 	  En las primeras versiones de C++, el comportamiento estándar
 	  consistía en hacer que <kw>new</kw> retornara un
@@ -1591,15 +2319,25 @@
 
 
       <sect3>
+      <!-- : placement new & delete -->
 	  <title>
 	    Operadores <kw>new</kw> y
 	    <kw>delete</kw> de [FIXME emplazamiento (situación)]
 	  </title>
+
+      <!-- There are two other, less common, uses for overloading operator new( ). -->
 	<para>
 	  He aquí otros dos usos, menos comunes, para la sobrecarga de
 	    <function>operador new()</function>:
 	</para>
 
+
+      <!--
+      1. You may want to place an object in a specific location in memory. This is especially
+      important with hardware-oriented embedded systems where an object may be synonymous
+      with a particular piece of hardware.
+      2. You may want to be able to choose from different allocators when calling new.
+      -->
 	  <orderedlist numeration="arabic">
 	    <listitem>
 	      <para>
@@ -1628,7 +2366,6 @@
  object placed at, a reference to a memory allocation function or object,
  or anything else that is convenient for you.
 -->
-
 	<para>
 	  Ambas situaciones se resuelven mediante el mismo mecanismo: la
 	  función <function>operator new()</function> puede tomar más de
@@ -1641,6 +2378,12 @@
 	  cualquiera otra cosa que se considere conveniente.
 	</para>
 
+      <!--
+      The way that you pass the extra arguments to operator new( ) during a call may seem
+      slightly curious at first. You put the argument list (without the size_t argument, which
+      is handled by the compiler) after the keyword new and before the class name of the
+      object you’re creating. For example,
+      -->
 	<para>
 	  Al principio puede parecer curioso el modo en que se pasan los
 	  argumentos extra al <function>operator
@@ -1655,6 +2398,10 @@
 	  X* xp = new(a) X;
 	</programlisting>
 
+      <!--
+      will pass a as the second argument to operator new( ). Of course, this can work only if
+      such an operator new( ) has been declared.
+      -->
 	<para>
 	  pasará <varname>a</varname> como segundo argumento al operador
 	  <function>operator new()</function>. Por supuesto, sólo
@@ -1662,6 +2409,8 @@
 	  new()</function> adecuado.
 	</para>
 
+
+      <!-- Here’s an example showing how you can place an object at a particular location: -->
 	<para>
 	  He aquí un ejemplo demostrativo de cómo se usa esto para
 	  colocar un objeto en una posición particular:
@@ -1670,7 +2419,11 @@
 
 //: V1C13:PlacementOperatorNew.cpp
 
-
+      <!--
+      Notice that operator new only returns the pointer that’s passed to it. Thus, the caller
+      decides where the object is going to sit, and the constructor is called for that memory
+      as part of the new-expression.
+      -->
 	<para>
 	  Obsérve que lo único que hace el operador
 	  <kw>new</kw> es retornar el puntero que se
@@ -1678,6 +2431,10 @@
 	  que se quiere construir el objeto.
 	</para>
 
+      <!--
+      Although this example shows only one additional argument, there’s nothing to prevent you
+      from adding more if you need them for other purposes.
+      -->
 	<para>
 	  Aunque este ejemplo muestra sólo un argumento adicional, nada
 	  impide añadir otros, si se considera conveniente para sus
@@ -1691,7 +2448,6 @@
  destructor, but you don't want the memory to be released by the
  dynamic memory mechanism because it wasn't allocated on the heap.
 -->
-
 	<para>
 	  Al tratar de destruir estos objetos surge un problema.  Sólo
 	  hay una versión del operador <kw>delete</kw>, de
@@ -1700,6 +2456,7 @@
 	  destructor, pero sin utilizae el mecanismo de memoria
 	  dinámica, ya que el objeto no está alojado en el montículo.
 	</para>
+
 
 
 <!--
@@ -1718,6 +2475,18 @@
 
 <!-- Por aquí me quedé revisando -->
 
+
+      <!--
+      A stern warning is in order here. Some people see this as a way to destroy objects at
+      some time before the end of the scope, rather than either adjusting the scope or (more
+      correctly) using dynamic object creation if they want the object’s lifetime to be
+      determined at runtime. You will have serious problems if you call the destructor this
+      way for an ordinary object created on the stack because the destructor will be called
+      again at the end of the scope. If you call the destructor this way for an object that
+      was created on the heap, the destructor will execute, but the memory won’t be released,
+      which probably isn’t what you want. The only reason that the destructor can be called
+      explicitly this way is to support the placement syntax for operator new.
+      -->
 	<para>
 	  Hay que hacer una llamada de atención al respecto. Algunas
 	  personas ven esto como un modo de destruir objetos en algún
@@ -1737,6 +2506,15 @@
 	  <kw>new</kw>, para emplazamiento en memoria.
 	</para>
 
+
+      <!--
+      There’s also a placement operator delete that is only called if a constructor for a
+      placement new expression throws an exception (so that the memory is automatically
+      cleaned up during the exception). The placement operator delete has an argument list
+      that corresponds to the placement operator new that is called before the constructor
+      throws the exception. This topic will be explored in the exception handling chapter in
+      Volume 2.
+      -->
 	<para>
 	  Existe también una forma de operador <kw>delete</kw>
 	  de emplazamiento que sólo es llamada en caso de que el
@@ -1754,7 +2532,21 @@
   </sect1>
 
   <sect1>
+    <!-- : Summary -->
     <title>Resumen</title>
+
+    <!--
+    It’s convenient and optimally efficient to create automatic objects on the stack, but to
+    solve the general programming problem you must be able to create and destroy objects at
+    any time during a program’s execution, particularly to respond to information from
+    outside the program. Although C’s dynamic memory allocation will get storage from the
+    heap, it doesn’t provide the ease of use and guaranteed construction necessary in C++.
+    By bringing dynamic object creation into the core of the language with new and delete,
+    you can create objects on the heap as easily as making them on the stack. In addition,
+    you get a great deal of flexibility. You can change the behavior of new and delete if
+    they don’t suit your needs, particularly if they aren’t efficient enough. Also, you can
+    modify what happens when the heap runs out of storage.
+    -->
     <para>
       La creación de objetos en la pila es eficaz y conveniente,
       pero para resolver el problema general de programación es
@@ -1777,11 +2569,28 @@
   </sect1>
 
   <sect1>
+    <!-- : Exercises -->
     <title>Ejercicios</title>
 
     <xi:include parse="xml" href="./ejercicios.xml"/>
 
     <orderedlist numeration="arabic">
+    <!--
+    1. Create a class Counted that contains an int id and a static int count. The default
+    constructor should begin:
+    Counted( ) : id(count++) {. It should also print its id and that it’s being created.
+    The destructor should print that it’s being destroyed and its id. Test your class.
+    2. Prove to yourself that new and delete always call the constructors and destructors
+    by creating an object of class Counted (from Exercise 1) with new and destroying it
+    with delete. Also create and destroy an array of these objects on the heap.
+    3. Create a PStash object and fill it with new objects from Exercise 1. Observe what
+    happens when this PStash object goes out of scope and its destructor is called.
+    4. Create a vector< Counted*> and fill it with pointers to new Counted objects (from
+    Exercise 1). Move through the vector and print the Counted objects, then move
+    through again and delete each one.
+    5. Repeat Exercise 4, but add a member function f( ) to Counted that prints a message.
+    Move through the vector and call f( ) for each object.
+-->
       <listitem>
 	<para>
 	  Crear una clase <classname>Counted</classname> que contenga un
@@ -1835,6 +2644,16 @@
 	</para>
       </listitem>
 
+<!--
+    6. Repeat Exercise 5 using a PStash.
+    7. Repeat Exercise 5 using Stack4.h from Chapter 9.
+    8. Dynamically create an array of objects of class Counted (from Exercise 1). Call
+    delete for the resulting pointer, without the square brackets. Explain the results.
+    9. Create an object of class Counted (from Exercise 1) using new, cast the resulting
+    pointer to a void*, and delete that. Explain the results.
+    10. Execute NewHandler.cpp on your machine to see the resulting count. Calculate the
+    amount of free store available for your program.
+-->
       <listitem>
 	<para>
 	  Repita el ejercicio 5 usando un objeto
@@ -1876,6 +2695,32 @@
 	  disponible para su programa.
 	</para>
       </listitem>
+
+	  <!--
+    11. Create a class with an overloaded operator new and delete, both the single-object
+    versions and the array versions. Demonstrate that both versions work.
+    12. Devise a test for Framis.cpp to show yourself approximately how much faster the
+    custom new and delete run than the global new and delete.
+    13. Modify NoMemory.cpp so that it contains an array of int and so that it actually
+    allocates memory instead of throwing bad_alloc. In main( ), set up a while loop like
+    the one in NewHandler.cpp to run out of memory and see what happens if your operator
+    new does not test to see if the memory is successfully allocated. Then add the check
+    to your operator new and throw bad_alloc.
+    14. Create a class with a placement new with a second argument of type string. The class
+    should contain a static vector<string> where the second new argument is stored. The
+    placement new should allocate storage as normal. In main( ), make calls to your
+    placement new with string arguments that describe the calls (you may want to use the
+    preprocessor’s __FILE__ and __LINE__ macros).
+    15. Modify ArrayOperatorNew.cpp by adding a static vector<Widget*> that adds each Widget
+    address that is allocated in operator new( ) and removes it when it is released via
+    operator delete( ). (You may need to look up information about vector in your
+    Standard C++ Library documentation or in the 2^nd volume of this book, available at
+    the Web site.) Create a second class called MemoryChecker that has a destructor that
+    prints out the number of Widget pointers in your vector. Create a program with a
+    single global instance of MemoryChecker and in main( ), dynamically allocate and
+    destroy several objects and arrays of Widget. Show that MemoryChecker reveals memory
+    leaks.
+    -->
 
       <listitem>
 	<para>

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 '''
-Transforma ficheros de texto plano en DocBook listo para traducir. El
+Transforma ficheros de texto plano a DocBook listo para traducir. El
 original debe tener los títulos de las secciones delimitados con:
 
 :SECT:1: Título de la sección
