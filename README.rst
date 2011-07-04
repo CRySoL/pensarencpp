@@ -46,8 +46,8 @@ trabajar con bitbucket debes seguir los siguientes pasos:
 4. Descarga tu repo a tu ordenador. Bitbucket tiene ayuda y documentación para esto.
 5. Edita el capítulo que tengas asignado.
 6. Sube los cambios a tu repositorio.
-7. Cuando hayas terminado el capítulo, pulsa en "create pull request" para que
-   el administrador del repo raíz haga la mezcla (merge) con tus cambios.
+7. Cuando hayas terminado el capítulo, pulsa en «create pull request» para que
+   el administrador del repo raíz incorpore tus cambios a la versión «oficial».
 
 
 VERSIÓN del original
