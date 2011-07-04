@@ -1,0 +1,2206 @@
+Location: http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one/Chapter16.html
+                                        MindView
+       [ Viewing Hints ] [ Exercise Solutions ] [ Volume 2 ] [ Free Newsletter ]
+                   [ Seminars ] [ Seminars on CD ROM ] [ Consulting ]
+
+                           Thinking in C++, 2nd ed. Volume 1
+
+                                  ©2000 by Bruce Eckel
+
+         [ Previous Chapter ] [ Table of Contents ] [ Index ] [ Next Chapter ]
+
+16: Introduction to Templates
+
+Inheritance and composition provide a way to reuse object code. The template feature in
+C++ provides
+a way to reuse source code.
+
+Although C++ templates are a general-purpose programming tool, when they were introduced
+in the language, they seemed to discourage the use of object-based container-class
+hierarchies (demonstrated at the end of Chapter 15). For example, the Standard C++
+containers and algorithms (explained in two chapters of Volume 2 of this book,
+downloadable from www.BruceEckel.com) are built exclusively with templates and are
+relatively easy for the programmer to use.
+
+This chapter not only demonstrates the basics of templates, it is also an introduction
+to containers, which are fundamental components of object-oriented programming and are
+almost completely realized through the containers in the Standard C++ Library. You’ll
+see that this book has been using container examples – the Stash and Stack – throughout,
+precisely to get you comfortable with containers; in this chapter the concept of the
+iterator will also be added. Although containers are ideal examples for use with
+templates, in Volume 2 (which has an advanced templates chapter) you’ll learn that there
+are many other uses for templates as well.
+
+Containers
+
+Suppose you want to create a stack, as we have been doing throughout the book. This
+stack class will hold ints, to keep it simple:
+
+    //: C16:IntStack.cpp
+    // Simple integer stack
+    //{L} fibonacci
+    #include "fibonacci.h"
+    #include "../require.h"
+    #include <iostream>
+    using namespace std;
+
+    class IntStack {
+      enum { ssize = 100 };
+      int stack[ssize];
+      int top;
+    public:
+      IntStack() : top(0) {}
+      void push(int i) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = i;
+      }
+      int pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+    };
+
+    int main() {
+      IntStack is;
+      // Add some Fibonacci numbers, for interest:
+      for(int i = 0; i < 20; i++)
+        is.push(fibonacci(i));
+      // Pop & print them:
+      for(int k = 0; k < 20; k++)
+        cout << is.pop() << endl;
+    } ///:~
+
+The class IntStack is a trivial example of a push-down stack. For simplicity it has been
+created here with a fixed size, but you can also modify it to automatically expand by
+allocating memory off the heap, as in the Stack class that has been examined throughout
+the book.
+
+main( ) adds some integers to the stack, and pops them off again. To make the example
+more interesting, the integers are created with the fibonacci( ) function, which
+generates the traditional rabbit-reproduction numbers. Here is the header file that
+declares the function:
+
+    //: C16:fibonacci.h
+    // Fibonacci number generator
+    int fibonacci(int n); ///:~
+
+Here’s the implementation:
+
+    //: C16:fibonacci.cpp {O}
+    #include "../require.h"
+
+    int fibonacci(int n) {
+      const int sz = 100;
+      require(n < sz);
+      static int f[sz]; // Initialized to zero
+      f[0] = f[1] = 1;
+      // Scan for unfilled array elements:
+      int i;
+      for(i = 0; i < sz; i++)
+        if(f[i] == 0) break;
+      while(i <= n) {
+        f[i] = f[i-1] + f[i-2];
+        i++;
+      }
+      return f[n];
+    } ///:~
+
+This is a fairly efficient implementation, because it never generates the numbers more
+than once. It uses a static array of int, and relies on the fact that the compiler will
+initialize a static array to zero. The first for loop moves the index i to where the
+first array element is zero, then a while loop adds Fibonacci numbers to the array until
+the desired element is reached. But notice that if the Fibonacci numbers through element
+n are already initialized, it skips the while loop altogether.
+
+The need for containers
+
+Obviously, an integer stack isn’t a crucial tool. The real need for containers comes
+when you start making objects on the heap using new and destroying them with delete. In
+the general programming problem, you don’t know how many objects you’re going to need
+while you’re writing the program. For example, in an air-traffic control system you
+don’t want to limit the number of planes your system can handle. You don’t want the
+program to abort just because you exceed some number. In a computer-aided design system,
+you’re dealing with lots of shapes, but only the user determines (at runtime) exactly
+how many shapes you’re going to need. Once you notice this tendency, you’ll discover
+lots of examples in your own programming situations.
+
+C programmers who rely on virtual memory to handle their “memory management” often find
+the idea of new, delete, and container classes disturbing. Apparently, one practice in C
+is to create a huge global array, larger than anything the program would appear to need.
+This may not require much thought (or awareness of malloc( ) and free( )), but it
+produces programs that don’t port well and that hide subtle bugs.
+
+In addition, if you create a huge global array of objects in C++, the constructor and
+destructor overhead can slow things down significantly. The C++ approach works much
+better: When you need an object, create it with new, and put its pointer in a container.
+Later on, fish it out and do something to it. This way, you create only the objects you
+absolutely need. And usually you don’t have all the initialization conditions available
+at the start-up of the program. new allows you to wait until something happens in the
+environment before you can actually create the object.
+
+So in the most common situation, you’ll make a container that holds pointers to some
+objects of interest. You will create those objects using new and put the resulting
+pointer in the container (potentially upcasting it in the process), pulling it out later
+when you want to do something with the object. This technique produces the most
+flexible, general sort of program.
+
+Overview of templates
+
+Now a problem arises. You have an IntStack, which holds integers. But you want a stack
+that holds shapes or aircraft or plants or something else. Reinventing your source code
+every time doesn’t seem like a very intelligent approach with a language that touts
+reusability. There must be a better way.
+
+There are three techniques for source code reuse in this situation: the C way, presented
+here for contrast; the Smalltalk approach, which significantly affected C++; and the C++
+approach: templates.
+
+The C solution. Of course you’re trying to get away from the C approach because it’s
+messy and error prone and completely inelegant. In this approach, you copy the source
+code for a Stack and make modifications by hand, introducing new errors in the process.
+This is certainly not a very productive technique.
+
+The Smalltalk solution. Smalltalk (and Java, following its example) took a simple and
+straightforward approach: You want to reuse code, so use inheritance. To implement this,
+each container class holds items of the generic base class Object (similar to the
+example at the end of Chapter 15). But because the library in Smalltalk is of such
+fundamental importance, you don’t ever create a class from scratch. Instead, you must
+always inherit it from an existing class. You find a class as close as possible to the
+one you want, inherit from it, and make a few changes. Obviously, this is a benefit
+because it minimizes your effort (and explains why you spend a lot of time learning the
+class library before becoming an effective Smalltalk programmer).
+
+But it also means that all classes in Smalltalk end up being part of a single
+inheritance tree. You must inherit from a branch of this tree when creating a new class.
+Most of the tree is already there (it’s the Smalltalk class library), and at the root of
+the tree is a class called Object – the same class that each Smalltalk container holds.
+
+This is a neat trick because it means that every class in the Smalltalk (and Java[59])
+class hierarchy is derived from Object, so every class can be held in every container
+(including that container itself). This type of single-tree hierarchy based on a
+fundamental generic type (often named Object, which is also the case in Java) is
+referred to as an “object-based hierarchy.” You may have heard this term and assumed it
+was some new fundamental concept in OOP, like polymorphism. It simply refers to a class
+hierarchy with Object (or some similar name) at its root and container classes that hold
+Object.
+
+Because the Smalltalk class library had a much longer history and experience behind it
+than did C++, and because the original C++ compilers had no container class libraries,
+it seemed like a good idea to duplicate the Smalltalk library in C++. This was done as
+an experiment with an early C++ implementation[60], and because it represented a
+significant body of code, many people began using it. In the process of trying to use
+the container classes, they discovered a problem.
+
+The problem was that in Smalltalk (and most other OOP languages that I know of), all
+classes are automatically derived from a single hierarchy, but this isn’t true in C++.
+You might have your nice object-based hierarchy with its container classes, but then you
+might buy a set of shape classes or aircraft classes from another vendor who didn’t use
+that hierarchy. (For one thing, using that hierarchy imposes overhead, which C
+programmers eschew.) How do you insert a separate class tree into the container class in
+your object-based hierarchy? Here’s what the problem looks like:
+
+                                        [TIC2Vo]
+
+Because C++ supports multiple independent hierarchies, Smalltalk’s object-based
+hierarchy does not work so well.
+
+The solution seemed obvious. If you can have many inheritance hierarchies, then you
+should be able to inherit from more than one class: Multiple inheritance will solve the
+problem. So you do the following (a similar example was given at the end of Chapter 15):
+
+                                        [TIC2Vo]
+
+Now OShape has Shape’s characteristics and behaviors, but because it is also derived
+from Object it can be placed in Container. The extra inheritance into OCircle, OSquare,
+etc. is necessary so that those classes can be upcast into OShape and thus retain the
+correct behavior. You can see that things are rapidly getting messy.
+
+Compiler vendors invented and included their own object-based container-class
+hierarchies, most of which have since been replaced by template versions. You can argue
+that multiple inheritance is needed for solving general programming problems, but you’ll
+see in Volume 2 of this book that its complexity is best avoided except in special
+cases.
+
+The template solution
+
+Although an object-based hierarchy with multiple inheritance is conceptually
+straightforward, it turns out to be painful to use. In his original book[61] Stroustrup
+demonstrated what he considered a preferable alternative to the object-based hierarchy.
+Container classes were created as large preprocessor macros with arguments that could be
+substituted with your desired type. When you wanted to create a container to hold a
+particular type, you made a couple of macro calls.
+
+Unfortunately, this approach was confused by all the existing Smalltalk literature and
+programming experience, and it was a bit unwieldy. Basically, nobody got it.
+
+In the meantime, Stroustrup and the C++ team at Bell Labs had modified his original
+macro approach, simplifying it and moving it from the domain of the preprocessor into
+the compiler. This new code-substitution device is called a template[62], and it
+represents a completely different way to reuse code. Instead of reusing object code, as
+with inheritance and composition, a template reuses source code. The container no longer
+holds a generic base class called Object, but instead it holds an unspecified parameter.
+When you use a template, the parameter is substituted by the compiler, much like the old
+macro approach, but cleaner and easier to use.
+
+Now, instead of worrying about inheritance or composition when you want to use a
+container class, you take the template version of the container and stamp out a specific
+version for your particular problem, like this:
+
+                                        [TIC2Vo]
+
+The compiler does the work for you, and you end up with exactly the container you need
+to do your job, rather than an unwieldy inheritance hierarchy. In C++, the template
+implements the concept of a parameterized type. Another benefit of the template approach
+is that the novice programmer who may be unfamiliar or uncomfortable with inheritance
+can still use canned container classes right away (as we’ve been doing with vector
+throughout the book).
+
+Template syntax
+
+The template keyword tells the compiler that the class definition that follows will
+manipulate one or more unspecified types. At the time the actual class code is generated
+from the template, those types must be specified so that the compiler can substitute
+them.
+
+To demonstrate the syntax, here’s a small example that produces a bounds-checked array:
+
+    //: C16:Array.cpp
+    #include "../require.h"
+    #include <iostream>
+    using namespace std;
+
+    template<class T>
+    class Array {
+      enum { size = 100 };
+      T A[size];
+    public:
+      T& operator[](int index) {
+        require(index >= 0 && index < size,
+          "Index out of range");
+        return A[index];
+      }
+    };
+
+    int main() {
+      Array<int> ia;
+      Array<float> fa;
+      for(int i = 0; i < 20; i++) {
+        ia[i] = i * i;
+        fa[i] = float(i) * 1.414;
+      }
+      for(int j = 0; j < 20; j++)
+        cout << j << ": " << ia[j]
+             << ", " << fa[j] << endl;
+    } ///:~
+
+You can see that it looks like a normal class except for the line
+
+    template<class T>
+
+which says that T is the substitution parameter, and that it represents a type name.
+Also, you see T used everywhere in the class where you would normally see the specific
+type the container holds.
+
+In Array, elements are inserted and extracted with the same function: the overloaded
+operator [ ] . It returns a reference, so it can be used on both sides of an equal sign
+(that is, as both an lvalue and an rvalue). Notice that if the index is out of bounds,
+the require( ) function is used to print a message. Since operator[] is an inline, you
+could use this approach to guarantee that no array-bounds violations occur, then remove
+the require( ) for the shipping code.
+
+In main( ), you can see how easy it is to create Arrays that hold different types of
+objects. When you say
+
+    Array<int> ia;
+    Array<float> fa;
+
+the compiler expands the Array template (this is called instantiation) twice, to create
+two new generated classes, which you can think of as Array_int and Array_float.
+(Different compilers may decorate the names in different ways.) These are classes just
+like the ones you would have produced if you had performed the substitution by hand,
+except that the compiler creates them for you as you define the objects ia and fa. Also
+note that duplicate class definitions are either avoided by the compiler or merged by
+the linker.
+
+Non-inline function definitions
+
+Of course, there are times when you’ll want to have non-inline member function
+definitions. In this case, the compiler needs to see the template declaration before the
+member function definition. Here’s the example above, modified to show the non-inline
+member definition:
+
+    //: C16:Array2.cpp
+    // Non-inline template definition
+    #include "../require.h"
+
+    template<class T>
+    class Array {
+      enum { size = 100 };
+      T A[size];
+    public:
+      T& operator[](int index);
+    };
+
+    template<class T>
+    T& Array<T>::operator[](int index) {
+      require(index >= 0 && index < size,
+        "Index out of range");
+      return A[index];
+    }
+
+    int main() {
+      Array<float> fa;
+      fa[0] = 1.414;
+    } ///:~
+
+Any reference to a template’s class name must be accompanied by its template argument
+list, as in Array<T>::operator[]. You can imagine that internally, the class name is
+being decorated with the arguments in the template argument list to produce a unique
+class name identifier for each template instantiation.
+
+Header files
+
+Even if you create non-inline function definitions, you’ll usually want to put all
+declarations and definitions for a template into a header file. This may seem to violate
+the normal header file rule of “Don’t put in anything that allocates storage,” (which
+prevents multiple definition errors at link time), but template definitions are special.
+Anything preceded by template<...> means the compiler won’t allocate storage for it at
+that point, but will instead wait until it’s told to (by a template instantiation), and
+that somewhere in the compiler and linker there’s a mechanism for removing multiple
+definitions of an identical template. So you’ll almost always put the entire template
+declaration and definition in the header file, for ease of use.
+
+There are times when you may need to place the template definitions in a separate cpp
+file to satisfy special needs (for example, forcing template instantiations to exist in
+only a single Windows dll file). Most compilers have some mechanism to allow this;
+you’ll have to investigate your particular compiler’s documentation to use it.
+
+Some people feel that putting all of the source code for your implementation in a header
+file makes it possible for people to steal and modify your code if they buy a library
+from you. This might be an issue, but it probably depends on the way you look at the
+problem: Are they buying a product or a service? If it’s a product, then you have to do
+everything you can to protect it, and probably you don’t want to give source code, just
+compiled code. But many people see software as a service, and even more than that, a
+subscription service. The customer wants your expertise, they want you to continue
+maintaining this piece of reusable code so that they don’t have to – so they can focus
+on getting their job done. I personally think most customers will treat you as a
+valuable resource and will not want to jeopardize their relationship with you. As for
+the few who want to steal rather than buy or do original work, they probably can’t keep
+up with you anyway.
+
+IntStack as a template
+
+Here is the container and iterator from IntStack.cpp, implemented as a generic container
+class using templates:
+
+    //: C16:StackTemplate.h
+    // Simple stack template
+    #ifndef STACKTEMPLATE_H
+    #define STACKTEMPLATE_H
+    #include "../require.h"
+
+    template<class T>
+    class StackTemplate {
+      enum { ssize = 100 };
+      T stack[ssize];
+      int top;
+    public:
+      StackTemplate() : top(0) {}
+      void push(const T& i) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = i;
+      }
+      T pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+      int size() { return top; }
+    };
+    #endif // STACKTEMPLATE_H ///:~
+
+Notice that a template makes certain assumptions about the objects it is holding. For
+example, StackTemplate assumes there is some sort of assignment operation for T inside
+the push( ) function. You could say that a template “implies an interface” for the types
+it is capable of holding.
+
+Another way to say this is that templates provide a kind of weak typing mechanism for
+C++, which is ordinarily a strongly-typed language. Instead of insisting that an object
+be of some exact type in order to be acceptable, weak typing requires only that the
+member functions that it wants to call are available for a particular object. Thus,
+weakly-typed code can be applied to any object that can accept those member function
+calls, and is thus much more flexible[63].
+
+Here’s the revised example to test the template:
+
+    //: C16:StackTemplateTest.cpp
+    // Test simple stack template
+    //{L} fibonacci
+    #include "fibonacci.h"
+    #include "StackTemplate.h"
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    using namespace std;
+
+    int main() {
+      StackTemplate<int> is;
+      for(int i = 0; i < 20; i++)
+        is.push(fibonacci(i));
+      for(int k = 0; k < 20; k++)
+        cout << is.pop() << endl;
+      ifstream in("StackTemplateTest.cpp");
+      assure(in, "StackTemplateTest.cpp");
+      string line;
+      StackTemplate<string> strings;
+      while(getline(in, line))
+        strings.push(line);
+      while(strings.size() > 0)
+        cout << strings.pop() << endl;
+    } ///:~
+
+The only difference is in the creation of is. Inside the template argument list you
+specify the type of object the stack and iterator should hold. To demonstrate the
+genericness of the template, a StackTemplate is also created to hold string. This is
+tested by reading in lines from the source-code file.
+
+Constants in templates
+
+Template arguments are not restricted to class types; you can also use built-in types.
+The values of these arguments then become compile-time constants for that particular
+instantiation of the template. You can even use default values for these arguments. The
+following example allows you to set the size of the Array class during instantiation,
+but also provides a default value:
+
+    //: C16:Array3.cpp
+    // Built-in types as template arguments
+    #include "../require.h"
+    #include <iostream>
+    using namespace std;
+
+    template<class T, int size = 100>
+    class Array {
+      T array[size];
+    public:
+      T& operator[](int index) {
+        require(index >= 0 && index < size,
+          "Index out of range");
+        return array[index];
+      }
+      int length() const { return size; }
+    };
+
+    class Number {
+      float f;
+    public:
+      Number(float ff = 0.0f) : f(ff) {}
+      Number& operator=(const Number& n) {
+        f = n.f;
+        return *this;
+      }
+      operator float() const { return f; }
+      friend ostream&
+        operator<<(ostream& os, const Number& x) {
+          return os << x.f;
+      }
+    };
+
+    template<class T, int size = 20>
+    class Holder {
+      Array<T, size>* np;
+    public:
+      Holder() : np(0) {}
+      T& operator[](int i) {
+        require(0 <= i && i < size);
+        if(!np) np = new Array<T, size>;
+        return np->operator[](i);
+      }
+      int length() const { return size; }
+      ~Holder() { delete np; }
+    };
+
+    int main() {
+      Holder<Number> h;
+      for(int i = 0; i < 20; i++)
+        h[i] = i;
+      for(int j = 0; j < 20; j++)
+        cout << h[j] << endl;
+    } ///:~
+
+As before, Array is a checked array of objects and prevents you from indexing out of
+bounds. The class Holder is much like Array except that it has a pointer to an Array
+instead of an embedded object of type Array. This pointer is not initialized in the
+constructor; the initialization is delayed until the first access. This is called lazy
+initialization; you might use a technique like this if you are creating a lot of
+objects, but not accessing them all, and want to save storage.
+
+You’ll notice that the size value in both templates is never stored internally in the
+class, but it is used as if it were a data member inside the member functions.
+
+Stack and Stash
+as templates
+
+The recurring “ownership” problems with the Stash and Stack container classes that have
+been revisited throughout this book come from the fact that these containers haven’t
+been able to know exactly what types they hold. The nearest they’ve come is the Stack
+“container of Object” that was seen at the end of Chapter 15 in OStackTest.cpp.
+
+If the client programmer doesn’t explicitly remove all the pointers to objects that are
+held in the container, then the container should be able to correctly delete those
+pointers. That is to say, the container “owns” any objects that haven’t been removed,
+and is thus responsible for cleaning them up. The snag has been that cleanup requires
+knowing the type of the object, and creating a generic container class requires not
+knowing the type of the object. With templates, however, we can write code that doesn’t
+know the type of the object, and easily instantiate a new version of that container for
+every type that we want to contain. The individual instantiated containers do know the
+type of objects they hold and can thus call the correct destructor (assuming, in the
+typical case where polymorphism is involved, that a virtual destructor has been
+provided).
+
+For the Stack this turns out to be quite simple since all of the member functions can be
+reasonably inlined:
+
+    //: C16:TStack.h
+    // The Stack as a template
+    #ifndef TSTACK_H
+    #define TSTACK_H
+
+    template<class T>
+    class Stack {
+      struct Link {
+        T* data;
+        Link* next;
+        Link(T* dat, Link* nxt):
+          data(dat), next(nxt) {}
+      }* head;
+    public:
+      Stack() : head(0) {}
+      ~Stack(){
+        while(head)
+          delete pop();
+      }
+      void push(T* dat) {
+        head = new Link(dat, head);
+      }
+      T* peek() const {
+        return head ? head->data : 0;
+      }
+      T* pop(){
+        if(head == 0) return 0;
+        T* result = head->data;
+        Link* oldHead = head;
+        head = head->next;
+        delete oldHead;
+        return result;
+      }
+    };
+    #endif // TSTACK_H ///:~
+
+If you compare this to the OStack.h example at the end of Chapter 15, you will see that
+Stack is virtually identical, except that Object has been replaced with T. The test
+program is also nearly identical, except that the necessity for multiply-inheriting from
+string and Object (and even the need for Object itself) has been eliminated. Now there
+is no MyString class to announce its destruction, so a small new class is added to show
+a Stack container cleaning up its objects:
+
+    //: C16:TStackTest.cpp
+    //{T} TStackTest.cpp
+    #include "TStack.h"
+    #include "../require.h"
+    #include <fstream>
+    #include <iostream>
+    #include <string>
+    using namespace std;
+
+    class X {
+    public:
+      virtual ~X() { cout << "~X " << endl; }
+    };
+
+    int main(int argc, char* argv[]) {
+      requireArgs(argc, 1); // File name is argument
+      ifstream in(argv[1]);
+      assure(in, argv[1]);
+      Stack<string> textlines;
+      string line;
+      // Read file and store lines in the Stack:
+      while(getline(in, line))
+        textlines.push(new string(line));
+      // Pop some lines from the stack:
+      string* s;
+      for(int i = 0; i < 10; i++) {
+        if((s = (string*)textlines.pop())==0) break;
+        cout << *s << endl;
+        delete s;
+      } // The destructor deletes the other strings.
+      // Show that correct destruction happens:
+      Stack<X> xx;
+      for(int j = 0; j < 10; j++)
+        xx.push(new X);
+    } ///:~
+
+The destructor for X is virtual, not because it’s necessary here, but because xx could
+later be used to hold objects derived from X.
+
+Notice how easy it is to create different kinds of Stacks for string and for X. Because
+of the template, you get the best of both worlds: the ease of use of the Stack class
+along with proper cleanup.
+
+Templatized pointer Stash
+
+Reorganizing the PStash code into a template isn’t quite so simple because there are a
+number of member functions that should not be inlined. However, as a template those
+function definitions still belong in the header file (the compiler and linker take care
+of any multiple definition problems). The code looks quite similar to the ordinary
+PStash except that you’ll notice the size of the increment (used by inflate( )) has been
+templatized as a non-class parameter with a default value, so that the increment size
+can be modified at the point of instantiation (notice that this means that the increment
+size is fixed; you may also argue that the increment size should be changeable
+throughout the lifetime of the object):
+
+    //: C16:TPStash.h
+    #ifndef TPSTASH_H
+    #define TPSTASH_H
+
+    template<class T, int incr = 10>
+    class PStash {
+      int quantity; // Number of storage spaces
+      int next; // Next empty space
+      T** storage;
+      void inflate(int increase = incr);
+    public:
+      PStash() : quantity(0), next(0), storage(0) {}
+      ~PStash();
+      int add(T* element);
+      T* operator[](int index) const; // Fetch
+      // Remove the reference from this PStash:
+      T* remove(int index);
+      // Number of elements in Stash:
+      int count() const { return next; }
+    };
+
+    template<class T, int incr>
+    int PStash<T, incr>::add(T* element) {
+      if(next >= quantity)
+        inflate(incr);
+      storage[next++] = element;
+      return(next - 1); // Index number
+    }
+
+    // Ownership of remaining pointers:
+    template<class T, int incr>
+    PStash<T, incr>::~PStash() {
+      for(int i = 0; i < next; i++) {
+        delete storage[i]; // Null pointers OK
+        storage[i] = 0; // Just to be safe
+      }
+      delete []storage;
+    }
+
+    template<class T, int incr>
+    T* PStash<T, incr>::operator[](int index) const {
+      require(index >= 0,
+        "PStash::operator[] index negative");
+      if(index >= next)
+        return 0; // To indicate the end
+      require(storage[index] != 0,
+        "PStash::operator[] returned null pointer");
+      // Produce pointer to desired element:
+      return storage[index];
+    }
+
+    template<class T, int incr>
+    T* PStash<T, incr>::remove(int index) {
+      // operator[] performs validity checks:
+      T* v = operator[](index);
+      // "Remove" the pointer:
+      if(v != 0) storage[index] = 0;
+      return v;
+    }
+
+    template<class T, int incr>
+    void PStash<T, incr>::inflate(int increase) {
+      const int psz = sizeof(T*);
+      T** st = new T*[quantity + increase];
+      memset(st, 0, (quantity + increase) * psz);
+      memcpy(st, storage, quantity * psz);
+      quantity += increase;
+      delete []storage; // Old storage
+      storage = st; // Point to new memory
+    }
+    #endif // TPSTASH_H ///:~
+
+The default increment size used here is small to guarantee that calls to inflate( )
+occur. This way we can make sure it works correctly.
+
+To test the ownership control of the templatized PStash, the following class will report
+creations and destructions of itself, and also guarantee that all objects that have been
+created were also destroyed. AutoCounter will allow only objects of its type to be
+created on the stack:
+
+    //: C16:AutoCounter.h
+    #ifndef AUTOCOUNTER_H
+    #define AUTOCOUNTER_H
+    #include "../require.h"
+    #include <iostream>
+    #include <set> // Standard C++ Library container
+    #include <string>
+
+    class AutoCounter {
+      static int count;
+      int id;
+      class CleanupCheck {
+        std::set<AutoCounter*> trace;
+      public:
+        void add(AutoCounter* ap) {
+          trace.insert(ap);
+        }
+        void remove(AutoCounter* ap) {
+          require(trace.erase(ap) == 1,
+            "Attempt to delete AutoCounter twice");
+        }
+        ~CleanupCheck() {
+          std::cout << "~CleanupCheck()"<< std::endl;
+          require(trace.size() == 0,
+           "All AutoCounter objects not cleaned up");
+        }
+      };
+      static CleanupCheck verifier;
+      AutoCounter() : id(count++) {
+        verifier.add(this); // Register itself
+        std::cout << "created[" << id << "]"
+                  << std::endl;
+      }
+      // Prevent assignment and copy-construction:
+      AutoCounter(const AutoCounter&);
+      void operator=(const AutoCounter&);
+    public:
+      // You can only create objects with this:
+      static AutoCounter* create() {
+        return new AutoCounter();
+      }
+      ~AutoCounter() {
+        std::cout << "destroying[" << id
+                  << "]" << std::endl;
+        verifier.remove(this);
+      }
+      // Print both objects and pointers:
+      friend std::ostream& operator<<(
+        std::ostream& os, const AutoCounter& ac){
+        return os << "AutoCounter " << ac.id;
+      }
+      friend std::ostream& operator<<(
+        std::ostream& os, const AutoCounter* ac){
+        return os << "AutoCounter " << ac->id;
+      }
+    };
+    #endif // AUTOCOUNTER_H ///:~
+
+The AutoCounter class does two things. First, it sequentially numbers each instance of
+AutoCounter: the value of this number is kept in id, and the number is generated using
+the static data member count.
+
+Second, and more complex, a static instance (called verifier) of the nested class
+CleanupCheck keeps track of all of the AutoCounter objects that are created and
+destroyed, and reports back to you if you don’t clean all of them up (i.e. if there is a
+memory leak). This behavior is accomplished using a set class from the Standard C++
+Library, which is a wonderful example of how well-designed templates can make life easy
+(you can learn about all the containers in the Standard C++ Library in Volume 2 of this
+book, available online).
+
+The set class is templatized on the type that it holds; here it is instantiated to hold
+AutoCounter pointers. A set will allow only one instance of each distinct object to be
+added; in add( ) you can see this take place with the set::insert( ) function. insert( )
+actually informs you with its return value if you’re trying to add something that’s
+already been added; however, since object addresses are being added we can rely on C++’s
+guarantee that all objects have unique addresses.
+
+In remove( ), set::erase( ) is used to remove an AutoCounter pointer from the set. The
+return value tells you how many instances of the element were removed; in our case we
+only expect zero or one. If the value is zero, however, it means this object was already
+deleted from the set and you’re trying to delete it a second time, which is a
+programming error that will be reported through require( ).
+
+The destructor for CleanupCheck does a final check by making sure that the size of the
+set is zero – this means that all of the objects have been properly cleaned up. If it’s
+not zero, you have a memory leak, which is reported through require( ).
+
+The constructor and destructor for AutoCounter register and unregister themselves with
+the verifier object. Notice that the constructor, copy-constructor, and assignment
+operator are private, so the only way for you to create an object is with the static
+create( ) member function – this is a simple example of a factory, and it guarantees
+that all objects are created on the heap, so verifier will not get confused over
+assignments and copy-constructions.
+
+Since all of the member functions have been inlined, the only reason for the
+implementation file is to contain the static data member definitions:
+
+    //: C16:AutoCounter.cpp {O}
+    // Definition of static class members
+    #include "AutoCounter.h"
+    AutoCounter::CleanupCheck AutoCounter::verifier;
+    int AutoCounter::count = 0;
+    ///:~
+
+With AutoCounter in hand, we can now test the facilities of the PStash. The following
+example not only shows that the PStash destructor cleans up all the objects that it
+currently owns, but it also demonstrates how the AutoCounter class detects objects that
+haven’t been cleaned up:
+
+    //: C16:TPStashTest.cpp
+    //{L} AutoCounter
+    #include "AutoCounter.h"
+    #include "TPStash.h"
+    #include <iostream>
+    #include <fstream>
+    using namespace std;
+
+    int main() {
+      PStash<AutoCounter> acStash;
+      for(int i = 0; i < 10; i++)
+        acStash.add(AutoCounter::create());
+      cout << "Removing 5 manually:" << endl;
+      for(int j = 0; j < 5; j++)
+        delete acStash.remove(j);
+      cout << "Remove two without deleting them:"
+           << endl;
+      // ... to generate the cleanup error message.
+      cout << acStash.remove(5) << endl;
+      cout << acStash.remove(6) << endl;
+      cout << "The destructor cleans up the rest:"
+           << endl;
+      // Repeat the test from earlier chapters:
+      ifstream in("TPStashTest.cpp");
+      assure(in, "TPStashTest.cpp");
+      PStash<string> stringStash;
+      string line;
+      while(getline(in, line))
+        stringStash.add(new string(line));
+      // Print out the strings:
+      for(int u = 0; stringStash[u]; u++)
+        cout << "stringStash[" << u << "] = "
+             << *stringStash[u] << endl;
+    } ///:~
+
+When AutoCounter elements 5 and 6 are removed from the PStash, they become the
+responsibility of the caller, but since the caller never cleans them up they cause
+memory leaks, which are then detected by AutoCounter at run time.
+
+When you run the program, you’ll see that the error message isn’t as specific as it
+could be. If you use the scheme presented in AutoCounter to discover memory leaks in
+your own system, you will probably want to have it print out more detailed information
+about the objects that haven’t been cleaned up. Volume 2 of this book shows more
+sophisticated ways to do this.
+
+Turning ownership on and off
+
+Let’s return to the ownership problem. Containers that hold objects by value don’t
+usually worry about ownership because they clearly own the objects they contain. But if
+your container holds pointers (which is more common with C++, especially with
+polymorphism), then it’s very likely those pointers may also be used somewhere else in
+the program, and you don’t necessarily want to delete the object because then the other
+pointers in the program would be referencing a destroyed object. To prevent this from
+happening, you must consider ownership when designing and using a container.
+
+Many programs are much simpler than this, and don’t encounter the ownership problem: One
+container holds pointers to objects that are used only by that container. In this case
+ownership is very straightforward: The container owns its objects.
+
+The best approach to handling the ownership problem is to give the client programmer a
+choice. This is often accomplished by a constructor argument that defaults to indicating
+ownership (the simplest case). In addition there may be “get” and “set” functions to
+view and modify the ownership of the container. If the container has functions to remove
+an object, the ownership state usually affects that removal, so you may also find
+options to control destruction in the removal function. You could conceivably add
+ownership data for every element in the container, so each position would know whether
+it needed to be destroyed; this is a variant of reference counting, except that the
+container and not the object knows the number of references pointing to an object.
+
+    //: C16:OwnerStack.h
+    // Stack with runtime conrollable ownership
+    #ifndef OWNERSTACK_H
+    #define OWNERSTACK_H
+
+    template<class T> class Stack {
+      struct Link {
+        T* data;
+        Link* next;
+        Link(T* dat, Link* nxt)
+          : data(dat), next(nxt) {}
+      }* head;
+      bool own;
+    public:
+      Stack(bool own = true) : head(0), own(own) {}
+      ~Stack();
+      void push(T* dat) {
+        head = new Link(dat,head);
+      }
+      T* peek() const {
+        return head ? head->data : 0;
+      }
+      T* pop();
+      bool owns() const { return own; }
+      void owns(bool newownership) {
+        own = newownership;
+      }
+      // Auto-type conversion: true if not empty:
+      operator bool() const { return head != 0; }
+    };
+
+    template<class T> T* Stack<T>::pop() {
+      if(head == 0) return 0;
+      T* result = head->data;
+      Link* oldHead = head;
+      head = head->next;
+      delete oldHead;
+      return result;
+    }
+
+    template<class T> Stack<T>::~Stack() {
+      if(!own) return;
+      while(head)
+        delete pop();
+    }
+    #endif // OWNERSTACK_H ///:~
+
+The default behavior is for the container to destroy its objects but you can change this
+by either modifying the constructor argument or using the owns( ) read/write member
+functions.
+
+As with most templates you’re likely to see, the entire implementation is contained in
+the header file. Here’s a small test that exercises the ownership abilities:
+
+    //: C16:OwnerStackTest.cpp
+    //{L} AutoCounter
+    #include "AutoCounter.h"
+    #include "OwnerStack.h"
+    #include "../require.h"
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    using namespace std;
+
+    int main() {
+      Stack<AutoCounter> ac; // Ownership on
+      Stack<AutoCounter> ac2(false); // Turn it off
+      AutoCounter* ap;
+      for(int i = 0; i < 10; i++) {
+        ap = AutoCounter::create();
+        ac.push(ap);
+        if(i % 2 == 0)
+          ac2.push(ap);
+      }
+      while(ac2)
+        cout << ac2.pop() << endl;
+      // No destruction necessary since
+      // ac "owns" all the objects
+    } ///:~
+
+The ac2 object doesn’t own the objects you put into it, thus ac is the “master”
+container which takes responsibility for ownership. If, partway through the lifetime of
+a container, you want to change whether a container owns its objects, you can do so
+using owns( ).
+
+It would also be possible to change the granularity of the ownership so that it is on an
+object-by-object basis, but that will probably make the solution to the ownership
+problem more complex than the problem.
+
+Holding objects by value
+
+Actually creating a copy of the objects inside a generic container is a complex problem
+if you don’t have templates. With templates, things are relatively simple – you just say
+that you are holding objects rather than pointers:
+
+    //: C16:ValueStack.h
+    // Holding objects by value in a Stack
+    #ifndef VALUESTACK_H
+    #define VALUESTACK_H
+    #include "../require.h"
+
+    template<class T, int ssize = 100>
+    class Stack {
+      // Default constructor performs object
+      // initialization for each element in array:
+      T stack[ssize];
+      int top;
+    public:
+      Stack() : top(0) {}
+      // Copy-constructor copies object into array:
+      void push(const T& x) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = x;
+      }
+      T peek() const { return stack[top]; }
+      // Object still exists when you pop it;
+      // it just isn't available anymore:
+      T pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+    };
+    #endif // VALUESTACK_H ///:~
+
+The copy constructor for the contained objects does most of the work by passing and
+returning the objects by value. Inside push( ), storage of the object onto the Stack
+array is accomplished with T::operator=. To guarantee that it works, a class called
+SelfCounter keeps track of object creations and copy-constructions:
+
+    //: C16:SelfCounter.h
+    #ifndef SELFCOUNTER_H
+    #define SELFCOUNTER_H
+    #include "ValueStack.h"
+    #include <iostream>
+
+    class SelfCounter {
+      static int counter;
+      int id;
+    public:
+      SelfCounter() : id(counter++) {
+        std::cout << "Created: " << id << std::endl;
+      }
+      SelfCounter(const SelfCounter& rv) : id(rv.id){
+        std::cout << "Copied: " << id << std::endl;
+      }
+      SelfCounter operator=(const SelfCounter& rv) {
+        std::cout << "Assigned " << rv.id << " to "
+                  << id << std::endl;
+        return *this;
+      }
+      ~SelfCounter() {
+        std::cout << "Destroyed: "<< id << std::endl;
+      }
+      friend std::ostream& operator<<(
+        std::ostream& os, const SelfCounter& sc){
+        return os << "SelfCounter: " << sc.id;
+      }
+    };
+    #endif // SELFCOUNTER_H ///:~
+
+    //: C16:SelfCounter.cpp {O}
+    #include "SelfCounter.h"
+    int SelfCounter::counter = 0; ///:~
+
+    //: C16:ValueStackTest.cpp
+    //{L} SelfCounter
+    #include "ValueStack.h"
+    #include "SelfCounter.h"
+    #include <iostream>
+    using namespace std;
+
+    int main() {
+      Stack<SelfCounter> sc;
+      for(int i = 0; i < 10; i++)
+        sc.push(SelfCounter());
+      // OK to peek(), result is a temporary:
+      cout << sc.peek() << endl;
+      for(int k = 0; k < 10; k++)
+        cout << sc.pop() << endl;
+    } ///:~
+
+When a Stack container is created, the default constructor of the contained object is
+called for each object in the array. You’ll initially see 100 SelfCounter objects
+created for no apparent reason, but this is just the array initialization. This can be a
+bit expensive, but there’s no way around it in a simple design like this. An even more
+complex situation arises if you make the Stack more general by allowing the size to grow
+dynamically, because in the implementation shown above this would involve creating a new
+(larger) array, copying the old array to the new, and destroying the old array (this is,
+in fact, what the Standard C++ Library vector class does).
+
+Introducing iterators
+
+An iterator is an object that moves through a container of other objects and selects
+them one at a time, without providing direct access to the implementation of that
+container. Iterators provide a standard way to access elements, whether or not a
+container provides a way to access the elements directly. You will see iterators used
+most often in association with container classes, and iterators are a fundamental
+concept in the design and use of the Standard C++ containers, which are fully described
+in Volume 2 of this book (downloadable from www.BruceEckel.com). An iterator is also a
+kind of design pattern, which is the subject of a chapter in Volume 2.
+
+In many ways, an iterator is a “smart pointer,” and in fact you’ll notice that iterators
+usually mimic most pointer operations. Unlike a pointer, however, the iterator is
+designed to be safe, so you’re much less likely to do the equivalent of walking off the
+end of an array (or if you do, you find out about it more easily).
+
+Consider the first example in this chapter. Here it is with a simple iterator added:
+
+    //: C16:IterIntStack.cpp
+    // Simple integer stack with iterators
+    //{L} fibonacci
+    #include "fibonacci.h"
+    #include "../require.h"
+    #include <iostream>
+    using namespace std;
+
+    class IntStack {
+      enum { ssize = 100 };
+      int stack[ssize];
+      int top;
+    public:
+      IntStack() : top(0) {}
+      void push(int i) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = i;
+      }
+      int pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+      friend class IntStackIter;
+    };
+
+    // An iterator is like a "smart" pointer:
+    class IntStackIter {
+      IntStack& s;
+      int index;
+    public:
+      IntStackIter(IntStack& is) : s(is), index(0) {}
+      int operator++() { // Prefix
+        require(index < s.top,
+          "iterator moved out of range");
+        return s.stack[++index];
+      }
+      int operator++(int) { // Postfix
+        require(index < s.top,
+          "iterator moved out of range");
+        return s.stack[index++];
+      }
+    };
+
+    int main() {
+      IntStack is;
+      for(int i = 0; i < 20; i++)
+        is.push(fibonacci(i));
+      // Traverse with an iterator:
+      IntStackIter it(is);
+      for(int j = 0; j < 20; j++)
+        cout << it++ << endl;
+    } ///:~
+
+The IntStackIter has been created to work only with an IntStack. Notice that
+IntStackIter is a friend of IntStack, which gives it access to all the private elements
+of IntStack.
+
+Like a pointer, IntStackIter’s job is to move through an IntStack and retrieve values.
+In this simple example, the IntStackIter can move only forward (using both the pre- and
+postfix forms of the operator++). However, there is no boundary to the way an iterator
+can be defined, other than those imposed by the constraints of the container it works
+with. It is perfectly acceptable (within the limits of the underlying container) for an
+iterator to move around in any way within its associated container and to cause the
+contained values to be modified.
+
+It is customary that an iterator is created with a constructor that attaches it to a
+single container object, and that the iterator is not attached to a different container
+during its lifetime. (Iterators are usually small and cheap, so you can easily make
+another one.)
+
+With the iterator, you can traverse the elements of the stack without popping them, just
+as a pointer can move through the elements of an array. However, the iterator knows the
+underlying structure of the stack and how to traverse the elements, so even though you
+are moving through them by pretending to “increment a pointer,” what’s going on
+underneath is more involved. That’s the key to the iterator: It is abstracting the
+complicated process of moving from one container element to the next into something that
+looks like a pointer. The goal is for every iterator in your program to have the same
+interface so that any code that uses the iterator doesn’t care what it’s pointing to –
+it just knows that it can reposition all iterators the same way, so the container that
+the iterator points to is unimportant. In this way you can write more generic code. All
+of the containers and algorithms in the Standard C++ Library are based on this principle
+of iterators.
+
+To aid in making things more generic, it would be nice to be able to say “every
+container has an associated class called iterator,” but this will typically cause naming
+problems. The solution is to add a nested iterator class to each container (notice that
+in this case, “iterator” begins with a lowercase letter so that it conforms to the style
+of the Standard C++ Library). Here is IterIntStack.cpp with a nested iterator:
+
+    //: C16:NestedIterator.cpp
+    // Nesting an iterator inside the container
+    //{L} fibonacci
+    #include "fibonacci.h"
+    #include "../require.h"
+    #include <iostream>
+    #include <string>
+    using namespace std;
+
+    class IntStack {
+      enum { ssize = 100 };
+      int stack[ssize];
+      int top;
+    public:
+      IntStack() : top(0) {}
+      void push(int i) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = i;
+      }
+      int pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+      class iterator;
+      friend class iterator;
+      class iterator {
+        IntStack& s;
+        int index;
+      public:
+        iterator(IntStack& is) : s(is), index(0) {}
+        // To create the "end sentinel" iterator:
+        iterator(IntStack& is, bool)
+          : s(is), index(s.top) {}
+        int current() const { return s.stack[index]; }
+        int operator++() { // Prefix
+          require(index < s.top,
+            "iterator moved out of range");
+          return s.stack[++index];
+        }
+        int operator++(int) { // Postfix
+          require(index < s.top,
+            "iterator moved out of range");
+          return s.stack[index++];
+        }
+        // Jump an iterator forward
+        iterator& operator+=(int amount) {
+          require(index + amount < s.top,
+            "IntStack::iterator::operator+=() "
+            "tried to move out of bounds");
+          index += amount;
+          return *this;
+        }
+        // To see if you're at the end:
+        bool operator==(const iterator& rv) const {
+          return index == rv.index;
+        }
+        bool operator!=(const iterator& rv) const {
+          return index != rv.index;
+        }
+        friend ostream&
+        operator<<(ostream& os, const iterator& it) {
+          return os << it.current();
+        }
+      };
+      iterator begin() { return iterator(*this); }
+      // Create the "end sentinel":
+      iterator end() { return iterator(*this, true);}
+    };
+
+    int main() {
+      IntStack is;
+      for(int i = 0; i < 20; i++)
+        is.push(fibonacci(i));
+      cout << "Traverse the whole IntStack\n";
+      IntStack::iterator it = is.begin();
+      while(it != is.end())
+        cout << it++ << endl;
+      cout << "Traverse a portion of the IntStack\n";
+      IntStack::iterator
+        start = is.begin(), end = is.begin();
+      start += 5, end += 15;
+      cout << "start = " << start << endl;
+      cout << "end = " << end << endl;
+      while(start != end)
+        cout << start++ << endl;
+    } ///:~
+
+When making a nested friend class, you must go through the process of first declaring
+the name of the class, then declaring it as a friend, then defining the class.
+Otherwise, the compiler will get confused.
+
+Some new twists have been added to the iterator. The current( ) member function produces
+the element in the container that the iterator is currently selecting. You can “jump” an
+iterator forward by an arbitrary number of elements using operator+=. Also, you’ll see
+two overloaded operators: == and != that will compare one iterator with another. These
+can compare any two IntStack::iterators, but they are primarily intended as a test to
+see if the iterator is at the end of a sequence in the same way that the “real” Standard
+C++ Library iterators do. The idea is that two iterators define a range, including the
+first element pointed to by the first iterator and up to but not including the last
+element pointed to by the second iterator. So if you want to move through the range
+defined by the two iterators, you say something like this:
+
+      while(start != end)
+      cout << start++ << endl;
+
+where start and end are the two iterators in the range. Note that the end iterator,
+which we often refer to as the end sentinel, is not dereferenced and is there only to
+tell you that you’re at the end of the sequence. Thus it represents “one past the end.”
+
+Much of the time you’ll want to move through the entire sequence in a container, so the
+container needs some way to produce the iterators indicating the beginning of the
+sequence and the end sentinel. Here, as in the Standard C++ Library, these iterators are
+produced by the container member functions begin( ) and end( ). begin( ) uses the first
+iterator constructor that defaults to pointing at the beginning of the container (this
+is the first element pushed on the stack). However, a second constructor, used by end( )
+, is necessary to create the end sentinel iterator. Being “at the end” means pointing to
+the top of the stack, because top always indicates the next available – but unused –
+space on the stack. This iterator constructor takes a second argument of type bool,
+which is a dummy to distinguish the two constructors.
+
+The Fibonacci numbers are used again to fill the IntStack in main( ), and iterators are
+used to move through the whole IntStack and also within a narrowed range of the
+sequence.
+
+The next step, of course, is to make the code general by templatizing it on the type
+that it holds, so that instead of being forced to hold only ints you can hold any type:
+
+    //: C16:IterStackTemplate.h
+    // Simple stack template with nested iterator
+    #ifndef ITERSTACKTEMPLATE_H
+    #define ITERSTACKTEMPLATE_H
+    #include "../require.h"
+    #include <iostream>
+
+    template<class T, int ssize = 100>
+    class StackTemplate {
+      T stack[ssize];
+      int top;
+    public:
+      StackTemplate() : top(0) {}
+      void push(const T& i) {
+        require(top < ssize, "Too many push()es");
+        stack[top++] = i;
+      }
+      T pop() {
+        require(top > 0, "Too many pop()s");
+        return stack[--top];
+      }
+      class iterator; // Declaration required
+      friend class iterator; // Make it a friend
+      class iterator { // Now define it
+        StackTemplate& s;
+        int index;
+      public:
+        iterator(StackTemplate& st): s(st),index(0){}
+        // To create the "end sentinel" iterator:
+        iterator(StackTemplate& st, bool)
+          : s(st), index(s.top) {}
+        T operator*() const { return s.stack[index];}
+        T operator++() { // Prefix form
+          require(index < s.top,
+            "iterator moved out of range");
+          return s.stack[++index];
+        }
+        T operator++(int) { // Postfix form
+          require(index < s.top,
+            "iterator moved out of range");
+          return s.stack[index++];
+        }
+        // Jump an iterator forward
+        iterator& operator+=(int amount) {
+          require(index + amount < s.top,
+            " StackTemplate::iterator::operator+=() "
+            "tried to move out of bounds");
+          index += amount;
+          return *this;
+        }
+        // To see if you're at the end:
+        bool operator==(const iterator& rv) const {
+          return index == rv.index;
+        }
+        bool operator!=(const iterator& rv) const {
+          return index != rv.index;
+        }
+        friend std::ostream& operator<<(
+          std::ostream& os, const iterator& it) {
+          return os << *it;
+        }
+      };
+      iterator begin() { return iterator(*this); }
+      // Create the "end sentinel":
+      iterator end() { return iterator(*this, true);}
+    };
+    #endif // ITERSTACKTEMPLATE_H ///:~
+
+You can see that the transformation from a regular class to a template is reasonably
+transparent. This approach of first creating and debugging an ordinary class, then
+making it into a template, is generally considered to be easier than creating the
+template from scratch.
+
+Notice that instead of just saying:
+
+    friend iterator; // Make it a friend
+
+This code has:
+
+    friend class iterator; // Make it a friend
+
+This is important because the name “iterator” is already in scope, from an included
+file.
+
+Instead of the current( ) member function, the iterator has an operator* to select the
+current element, which makes the iterator look more like a pointer and is a common
+practice.
+
+Here’s the revised example to test the template:
+
+    //: C16:IterStackTemplateTest.cpp
+    //{L} fibonacci
+    #include "fibonacci.h"
+    #include "IterStackTemplate.h"
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    using namespace std;
+
+    int main() {
+      StackTemplate<int> is;
+      for(int i = 0; i < 20; i++)
+        is.push(fibonacci(i));
+      // Traverse with an iterator:
+      cout << "Traverse the whole StackTemplate\n";
+      StackTemplate<int>::iterator it = is.begin();
+      while(it != is.end())
+        cout << it++ << endl;
+      cout << "Traverse a portion\n";
+      StackTemplate<int>::iterator
+        start = is.begin(), end = is.begin();
+      start += 5, end += 15;
+      cout << "start = " << start << endl;
+      cout << "end = " << end << endl;
+      while(start != end)
+        cout << start++ << endl;
+      ifstream in("IterStackTemplateTest.cpp");
+      assure(in, "IterStackTemplateTest.cpp");
+      string line;
+      StackTemplate<string> strings;
+      while(getline(in, line))
+        strings.push(line);
+      StackTemplate<string>::iterator
+        sb = strings.begin(), se = strings.end();
+      while(sb != se)
+        cout << sb++ << endl;
+    } ///:~
+
+The first use of the iterator just marches it from beginning to end (and shows that the
+end sentinel works properly). In the second usage, you can see how iterators allow you
+to easily specify a range of elements (the containers and iterators in the Standard C++
+Library use this concept of ranges almost everywhere). The overloaded operator+= moves
+the start and end iterators to positions in the middle of the range of the elements in
+is, and these elements are printed out. Notice in the output that the end sentinel is
+not included in the range, thus it can be one past the end of the range to let you know
+you’ve passed the end – but you don’t dereference the end sentinel, or else you can end
+up dereferencing a null pointer. (I’ve put guarding in the StackTemplate::iterator, but
+in the Standard C++ Library containers and iterators there is no such code – for
+efficiency reasons – so you must pay attention.)
+
+Lastly, to verify that the StackTemplate works with class objects, one is instantiated
+for string and filled with the lines from the source-code file, which are then printed
+out.
+
+Stack with iterators
+
+We can repeat the process with the dynamically-sized Stack class that has been used as
+an example throughout the book. Here’s the Stack class with a nested iterator folded
+into the mix:
+
+    //: C16:TStack2.h
+    // Templatized Stack with nested iterator
+    #ifndef TSTACK2_H
+    #define TSTACK2_H
+
+    template<class T> class Stack {
+      struct Link {
+        T* data;
+        Link* next;
+        Link(T* dat, Link* nxt)
+          : data(dat), next(nxt) {}
+      }* head;
+    public:
+      Stack() : head(0) {}
+      ~Stack();
+      void push(T* dat) {
+        head = new Link(dat, head);
+      }
+      T* peek() const {
+        return head ? head->data : 0;
+      }
+      T* pop();
+      // Nested iterator class:
+      class iterator; // Declaration required
+      friend class iterator; // Make it a friend
+      class iterator { // Now define it
+        Stack::Link* p;
+      public:
+        iterator(const Stack<T>& tl) : p(tl.head) {}
+        // Copy-constructor:
+        iterator(const iterator& tl) : p(tl.p) {}
+        // The end sentinel iterator:
+        iterator() : p(0) {}
+        // operator++ returns boolean indicating end:
+        bool operator++() {
+          if(p->next)
+            p = p->next;
+          else p = 0; // Indicates end of list
+          return bool(p);
+        }
+        bool operator++(int) { return operator++(); }
+        T* current() const {
+          if(!p) return 0;
+          return p->data;
+        }
+        // Pointer dereference operator:
+        T* operator->() const {
+          require(p != 0,
+            "PStack::iterator::operator->returns 0");
+          return current();
+        }
+        T* operator*() const { return current(); }
+        // bool conversion for conditional test:
+        operator bool() const { return bool(p); }
+        // Comparison to test for end:
+        bool operator==(const iterator&) const {
+          return p == 0;
+        }
+        bool operator!=(const iterator&) const {
+          return p != 0;
+        }
+      };
+      iterator begin() const {
+        return iterator(*this);
+      }
+      iterator end() const { return iterator(); }
+    };
+
+    template<class T> Stack<T>::~Stack() {
+      while(head)
+        delete pop();
+    }
+
+    template<class T> T* Stack<T>::pop() {
+      if(head == 0) return 0;
+      T* result = head->data;
+      Link* oldHead = head;
+      head = head->next;
+      delete oldHead;
+      return result;
+    }
+    #endif // TSTACK2_H ///:~
+
+You’ll also notice the class has been changed to support ownership, which works now
+because the class knows the exact type (or at least the base type, which will work
+assuming virtual destructors are used). The default is for the container to destroy its
+objects but you are responsible for any pointers that you pop( ).
+
+The iterator is simple, and physically very small – the size of a single pointer. When
+you create an iterator, it’s initialized to the head of the linked list, and you can
+only increment it forward through the list. If you want to start over at the beginning,
+you create a new iterator, and if you want to remember a spot in the list, you create a
+new iterator from the existing iterator pointing at that spot (using the iterator’s
+copy-constructor).
+
+To call functions for the object referred to by the iterator, you can use the current( )
+function, the operator*, or the pointer dereference operator-> (a common sight in
+iterators). The latter has an implementation that looks identical to current( ) because
+it returns a pointer to the current object, but is different because the pointer
+dereference operator performs the extra levels of dereferencing (see Chapter 12).
+
+The iterator class follows the form you saw in the prior example. class iterator is
+nested inside the container class, it contains constructors to create both an iterator
+pointing at an element in the container and an “end sentinel” iterator, and the
+container class has the begin( ) and end( ) methods to produce these iterators. (When
+you learn the more about the Standard C++ Library, you’ll see that the names iterator,
+begin( ), and end( ) that are used here were clearly lifted standard container classes.
+At the end of this chapter, you’ll see that this enables these container classes to be
+used as if they were Standard C++ Library container classes.)
+
+The entire implementation is contained in the header file, so there’s no separate cpp
+file. Here’s a small test that exercises the iterator:
+
+    //: C16:TStack2Test.cpp
+    #include "TStack2.h"
+    #include "../require.h"
+    #include <iostream>
+    #include <fstream>
+    #include <string>
+    using namespace std;
+
+    int main() {
+      ifstream file("TStack2Test.cpp");
+      assure(file, "TStack2Test.cpp");
+      Stack<string> textlines;
+      // Read file and store lines in the Stack:
+      string line;
+      while(getline(file, line))
+        textlines.push(new string(line));
+      int i = 0;
+      // Use iterator to print lines from the list:
+      Stack<string>::iterator it = textlines.begin();
+      Stack<string>::iterator* it2 = 0;
+      while(it != textlines.end()) {
+        cout << it->c_str() << endl;
+        it++;
+        if(++i == 10) // Remember 10th line
+          it2 = new Stack<string>::iterator(it);
+      }
+      cout << (*it2)->c_str() << endl;
+      delete it2;
+    } ///:~
+
+A Stack is instantiated to hold string objects and filled with lines from a file. Then
+an iterator is created and used to move through the sequence. The tenth line is
+remembered by copy-constructing a second iterator from the first; later this line is
+printed and the iterator – created dynamically – is destroyed. Here, dynamic object
+creation is used to control the lifetime of the object.
+
+PStash with iterators
+
+For most container classes it makes sense to have an iterator. Here’s an iterator added
+to the PStash class:
+
+    //: C16:TPStash2.h
+    // Templatized PStash with nested iterator
+    #ifndef TPSTASH2_H
+    #define TPSTASH2_H
+    #include "../require.h"
+    #include <cstdlib>
+
+    template<class T, int incr = 20>
+    class PStash {
+      int quantity;
+      int next;
+      T** storage;
+      void inflate(int increase = incr);
+    public:
+      PStash() : quantity(0), storage(0), next(0) {}
+      ~PStash();
+      int add(T* element);
+      T* operator[](int index) const;
+      T* remove(int index);
+      int count() const { return next; }
+      // Nested iterator class:
+      class iterator; // Declaration required
+      friend class iterator; // Make it a friend
+      class iterator { // Now define it
+        PStash& ps;
+        int index;
+      public:
+        iterator(PStash& pStash)
+          : ps(pStash), index(0) {}
+        // To create the end sentinel:
+        iterator(PStash& pStash, bool)
+          : ps(pStash), index(ps.next) {}
+        // Copy-constructor:
+        iterator(const iterator& rv)
+          : ps(rv.ps), index(rv.index) {}
+        iterator& operator=(const iterator& rv) {
+          ps = rv.ps;
+          index = rv.index;
+          return *this;
+        }
+        iterator& operator++() {
+          require(++index <= ps.next,
+            "PStash::iterator::operator++ "
+            "moves index out of bounds");
+          return *this;
+        }
+        iterator& operator++(int) {
+          return operator++();
+        }
+        iterator& operator--() {
+          require(--index >= 0,
+            "PStash::iterator::operator-- "
+            "moves index out of bounds");
+          return *this;
+        }
+        iterator& operator--(int) {
+          return operator--();
+        }
+        // Jump interator forward or backward:
+        iterator& operator+=(int amount) {
+          require(index + amount < ps.next &&
+            index + amount >= 0,
+            "PStash::iterator::operator+= "
+            "attempt to index out of bounds");
+          index += amount;
+          return *this;
+        }
+        iterator& operator-=(int amount) {
+          require(index - amount < ps.next &&
+            index - amount >= 0,
+            "PStash::iterator::operator-= "
+            "attempt to index out of bounds");
+          index -= amount;
+          return *this;
+        }
+        // Create a new iterator that's moved forward
+        iterator operator+(int amount) const {
+          iterator ret(*this);
+          ret += amount; // op+= does bounds check
+          return ret;
+        }
+        T* current() const {
+          return ps.storage[index];
+        }
+        T* operator*() const { return current(); }
+        T* operator->() const {
+          require(ps.storage[index] != 0,
+            "PStash::iterator::operator->returns 0");
+          return current();
+        }
+        // Remove the current element:
+        T* remove(){
+          return ps.remove(index);
+        }
+        // Comparison tests for end:
+        bool operator==(const iterator& rv) const {
+          return index == rv.index;
+        }
+        bool operator!=(const iterator& rv) const {
+          return index != rv.index;
+        }
+      };
+      iterator begin() { return iterator(*this); }
+      iterator end() { return iterator(*this, true);}
+    };
+
+    // Destruction of contained objects:
+    template<class T, int incr>
+    PStash<T, incr>::~PStash() {
+      for(int i = 0; i < next; i++) {
+        delete storage[i]; // Null pointers OK
+        storage[i] = 0; // Just to be safe
+      }
+      delete []storage;
+    }
+
+    template<class T, int incr>
+    int PStash<T, incr>::add(T* element) {
+      if(next >= quantity)
+        inflate();
+      storage[next++] = element;
+      return(next - 1); // Index number
+    }
+
+    template<class T, int incr> inline
+    T* PStash<T, incr>::operator[](int index) const {
+      require(index >= 0,
+        "PStash::operator[] index negative");
+      if(index >= next)
+        return 0; // To indicate the end
+      require(storage[index] != 0,
+        "PStash::operator[] returned null pointer");
+      return storage[index];
+    }
+
+    template<class T, int incr>
+    T* PStash<T, incr>::remove(int index) {
+      // operator[] performs validity checks:
+      T* v = operator[](index);
+      // "Remove" the pointer:
+      storage[index] = 0;
+      return v;
+    }
+
+    template<class T, int incr>
+    void PStash<T, incr>::inflate(int increase) {
+      const int tsz = sizeof(T*);
+      T** st = new T*[quantity + increase];
+      memset(st, 0, (quantity + increase) * tsz);
+      memcpy(st, storage, quantity * tsz);
+      quantity += increase;
+      delete []storage; // Old storage
+      storage = st; // Point to new memory
+    }
+    #endif // TPSTASH2_H ///:~
+
+Most of this file is a fairly straightforward translation of both the previous PStash
+and the nested iterator into a template. This time, however, the operators return
+references to the current iterator, which is the more typical and flexible approach to
+take.
+
+The destructor calls delete for all contained pointers, and because the type is captured
+by the template, proper destruction will take place. You should be aware that if the
+container holds pointers to a base-class type, that type should have a virtual
+destructor to ensure proper cleanup of derived objects whose addresses have been upcast
+when placing them in the container.
+
+The PStash::iterator follows the iterator model of bonding to a single container object
+for its lifetime. In addition, the copy-constructor allows you to make a new iterator
+pointing at the same location as the existing iterator that you create it from,
+effectively making a bookmark into the container. The operator+= and operator-= member
+functions allow you to move an iterator by a number of spots, while respecting the
+boundaries of the container. The overloaded increment and decrement operators move the
+iterator by one place. The operator+ produces a new iterator that’s moved forward by the
+amount of the addend. As in the previous example, the pointer dereference operators are
+used to operate on the element the iterator is referring to, and remove( ) destroys the
+current object by calling the container’s remove( ).
+
+The same kind of code as before (a la the Standard C++ Library containers) is used for
+creating the end sentinel: a second constructor, the container’s end( ) member function,
+and operator== and operator!= for comparison.
+
+The following example creates and tests two different kinds of Stash objects, one for a
+new class called Int that announces its construction and destruction and one that holds
+objects of the Standard library string class.
+
+    //: C16:TPStash2Test.cpp
+    #include "TPStash2.h"
+    #include "../require.h"
+    #include <iostream>
+    #include <vector>
+    #include <string>
+    using namespace std;
+
+    class Int {
+      int i;
+    public:
+      Int(int ii = 0) : i(ii) {
+        cout << ">" << i << ' ';
+      }
+      ~Int() { cout << "~" << i << ' '; }
+      operator int() const { return i; }
+      friend ostream&
+        operator<<(ostream& os, const Int& x) {
+          return os << "Int: " << x.i;
+      }
+      friend ostream&
+        operator<<(ostream& os, const Int* x) {
+          return os << "Int: " << x->i;
+      }
+    };
+
+    int main() {
+      { // To force destructor call
+        PStash<Int> ints;
+        for(int i = 0; i < 30; i++)
+          ints.add(new Int(i));
+        cout << endl;
+        PStash<Int>::iterator it = ints.begin();
+        it += 5;
+        PStash<Int>::iterator it2 = it + 10;
+        for(; it != it2; it++)
+          delete it.remove(); // Default removal
+        cout << endl;
+        for(it = ints.begin();it != ints.end();it++)
+          if(*it) // Remove() causes "holes"
+            cout << *it << endl;
+      } // "ints" destructor called here
+      cout << "\n-------------------\n";
+      ifstream in("TPStash2Test.cpp");
+      assure(in, "TPStash2Test.cpp");
+      // Instantiate for String:
+      PStash<string> strings;
+      string line;
+      while(getline(in, line))
+        strings.add(new string(line));
+      PStash<string>::iterator sit = strings.begin();
+      for(; sit != strings.end(); sit++)
+        cout << **sit << endl;
+      sit = strings.begin();
+      int n = 26;
+      sit += n;
+      for(; sit != strings.end(); sit++)
+        cout << n++ << ": " << **sit << endl;
+    } ///:~
+
+For convenience, Int has an associated ostream operator<< for both an Int& and an Int*.
+
+The first block of code in main( ) is surrounded by braces to force the destruction of
+the PStash<Int> and thus the automatic cleanup by that destructor. A range of elements
+is removed and deleted by hand to show that the PStash cleans up the rest.
+
+For both instances of PStash, an iterator is created and used to move through the
+container. Notice the elegance produced by using these constructs; you aren’t assailed
+with the implementation details of using an array. You tell the container and iterator
+objects what to do, not how. This makes the solution easier to conceptualize, to build,
+and to modify.
+
+Why iterators?
+
+Up until now you’ve seen the mechanics of iterators, but understanding why they are so
+important takes a more complex example.
+
+It’s common to see polymorphism, dynamic object creation, and containers used together
+in a true object-oriented program. Containers and dynamic object creation solve the
+problem of not knowing how many or what type of objects you’ll need. And if the
+container is configured to hold pointers to base-class objects, an upcast occurs every
+time you put a derived-class pointer into the container (with the associated code
+organization and extensibility benefits). As the final code in Volume 1 of this book,
+this example will also pull together various aspects of everything you’ve learned so far
+– if you can follow this example, then you’re ready for Volume 2.
+
+Suppose you are creating a program that allows the user to edit and produce different
+kinds of drawings. Each drawing is an object that contains a collection of Shape
+objects:
+
+    //: C16:Shape.h
+    #ifndef SHAPE_H
+    #define SHAPE_H
+    #include <iostream>
+    #include <string>
+
+    class Shape {
+    public:
+      virtual void draw() = 0;
+      virtual void erase() = 0;
+      virtual ~Shape() {}
+    };
+
+    class Circle : public Shape {
+    public:
+      Circle() {}
+      ~Circle() { std::cout << "Circle::~Circle\n"; }
+      void draw() { std::cout << "Circle::draw\n";}
+      void erase() { std::cout << "Circle::erase\n";}
+    };
+
+    class Square : public Shape {
+    public:
+      Square() {}
+      ~Square() { std::cout << "Square::~Square\n"; }
+      void draw() { std::cout << "Square::draw\n";}
+      void erase() { std::cout << "Square::erase\n";}
+    };
+
+    class Line : public Shape {
+    public:
+      Line() {}
+      ~Line() { std::cout << "Line::~Line\n"; }
+      void draw() { std::cout << "Line::draw\n";}
+      void erase() { std::cout << "Line::erase\n";}
+    };
+    #endif // SHAPE_H ///:~
+
+This uses the classic structure of virtual functions in the base class that are
+overridden in the derived class. Notice that the Shape class includes a virtual
+destructor, something you should automatically add to any class with virtual functions.
+If a container holds pointers or references to Shape objects, then when the virtual
+destructors are called for those objects everything will be properly cleaned up.
+
+Each different type of drawing in the following example makes use of a different kind of
+templatized container class: the PStash and Stack that have been defined in this
+chapter, and the vector class from the Standard C++ Library. The “use”’ of the
+containers is extremely simple, and in general inheritance might not be the best
+approach (composition could make more sense), but in this case inheritance is a simple
+approach and it doesn’t detract from the point made in the example.
+
+    //: C16:Drawing.cpp
+    #include <vector> // Uses Standard vector too!
+    #include "TPStash2.h"
+    #include "TStack2.h"
+    #include "Shape.h"
+    using namespace std;
+
+    // A Drawing is primarily a container of Shapes:
+    class Drawing : public PStash<Shape> {
+    public:
+      ~Drawing() { cout << "~Drawing" << endl; }
+    };
+
+    // A Plan is a different container of Shapes:
+    class Plan : public Stack<Shape> {
+    public:
+      ~Plan() { cout << "~Plan" << endl; }
+    };
+
+    // A Schematic is a different container of Shapes:
+    class Schematic : public vector<Shape*> {
+    public:
+      ~Schematic() { cout << "~Schematic" << endl; }
+    };
+
+    // A function template:
+    template<class Iter>
+    void drawAll(Iter start, Iter end) {
+      while(start != end) {
+        (*start)->draw();
+        start++;
+      }
+    }
+
+    int main() {
+      // Each type of container has
+      // a different interface:
+      Drawing d;
+      d.add(new Circle);
+      d.add(new Square);
+      d.add(new Line);
+      Plan p;
+      p.push(new Line);
+      p.push(new Square);
+      p.push(new Circle);
+      Schematic s;
+      s.push_back(new Square);
+      s.push_back(new Circle);
+      s.push_back(new Line);
+      Shape* sarray[] = {
+        new Circle, new Square, new Line
+      };
+      // The iterators and the template function
+      // allow them to be treated generically:
+      cout << "Drawing d:" << endl;
+      drawAll(d.begin(), d.end());
+      cout << "Plan p:" << endl;
+      drawAll(p.begin(), p.end());
+      cout << "Schematic s:" << endl;
+      drawAll(s.begin(), s.end());
+      cout << "Array sarray:" << endl;
+      // Even works with array pointers:
+      drawAll(sarray,
+        sarray + sizeof(sarray)/sizeof(*sarray));
+      cout << "End of main" << endl;
+    } ///:~
+
+The different types of containers all hold pointers to Shape and pointers to upcast
+objects of classes derived from Shape. However, because of polymorphism, the proper
+behavior still occurs when the virtual functions are called.
+
+Note that sarray, the array of Shape*, can also be thought of as a container.
+
+Function templates
+
+In drawAll( ) you see something new. So far in this chapter, we have been using only
+class templates, which instantiate new classes based on one or more type parameters.
+However, you can as easily create function templates, which create new functions based
+on type parameters. The reason you create a function template is the same reason you use
+for a class template: You’re trying to create generic code, and you do this by delaying
+the specification of one or more types. You just want to say that these type parameters
+support certain operations, not exactly what types they are.
+
+The function template drawAll( ) can be thought of as an algorithm (and this is what
+most of the function templates in the Standard C++ Library are called). It just says how
+to do something given iterators describing a range of elements, as long as these
+iterators can be dereferenced, incremented, and compared. These are exactly the kind of
+iterators we have been developing in this chapter, and also – not coincidentally – the
+kind of iterators that are produced by the containers in the Standard C++ Library,
+evidenced by the use of vector in this example.
+
+We’d also like drawAll( ) to be a generic algorithm, so that the containers can be any
+type at all and we don’t have to write a new version of the algorithm for each different
+type of container. Here’s where function templates are essential, because they
+automatically generate the specific code for each different type of container. But
+without the extra indirection provided by the iterators, this genericness wouldn’t be
+possible. That’s why iterators are important; they allow you to write general-purpose
+code that involves containers without knowing the underlying structure of the container.
+(Notice that, in C++, iterators and generic algorithms require function templates in
+order to work.)
+
+You can see the proof of this in main( ), since drawAll( ) works unchanged with each
+different type of container. And even more interesting, drawAll( ) also works with
+pointers to the beginning and end of the array sarray. This ability to treat arrays as
+containers is integral to the design of the Standard C++ Library, whose algorithms look
+much like drawAll( ).
+
+Because container class templates are rarely subject to the inheritance and upcasting
+you see with “ordinary” classes, you’ll almost never see virtual functions in container
+classes. Container class reuse is implemented with templates, not with inheritance.
+
+Summary
+
+Container classes are an essential part of object-oriented programming. They are another
+way to simplify and hide the details of a program and to speed the process of program
+development. In addition, they provide a great deal of safety and flexibility by
+replacing the primitive arrays and relatively crude data structure techniques found in
+C.
+
+Because the client programmer needs containers, it’s essential that they be easy to use.
+This is where the template comes in. With templates the syntax for source-code reuse (as
+opposed to object-code reuse provided by inheritance and composition) becomes trivial
+enough for the novice user. In fact, reusing code with templates is notably easier than
+inheritance and composition.
+
+Although you’ve learned about creating container and iterator classes in this book, in
+practice it’s much more expedient to learn the containers and iterators in the Standard
+C++ Library, since you can expect them to be available with every compiler. As you will
+see in Volume 2 of this book (downloadable from www.BruceEckel.com), the containers and
+algorithms in the Standard C++ Library will virtually always fulfill your needs so you
+don’t have to create new ones yourself.
+
+The issues involved with container-class design have been touched upon in this chapter,
+but you may have gathered that they can go much further. A complicated container-class
+library may cover all sorts of additional issues, including multithreading, persistence
+and garbage collection.
+
+Exercises
+
+Solutions to selected exercises can be found in the electronic document The Thinking in
+C++ Annotated Solution Guide, available for a small fee from www.BruceEckel.com.
+
+ 1. Implement the inheritance hierarchy in the OShape diagram in this chapter.
+ 2. Modify the result of Exercise 1 from Chapter 15 to use the Stack and iterator in
+    TStack2.h instead of an array of Shape pointers. Add destructors to the class
+    hierarchy so you can see that the Shape objects are destroyed when the Stack goes
+    out of scope.
+ 3. Modify TPStash.h so that the increment value used by inflate( ) can be changed
+    throughout the lifetime of a particular container object.
+ 4. Modify TPStash.h so that the increment value used by inflate( ) automatically
+    resizes itself to reduce the number of times it needs to be called. For example,
+    each time it is called it could double the increment value for use in the next call.
+    Demonstrate this functionality by reporting whenever an inflate( ) is called, and
+    write test code in main( ).
+ 5. Templatize the fibonacci( ) function on the type of value that it produces (so it
+    can produce long, float, etc. instead of just int).
+ 6. Using the Standard C++ Library vector as an underlying implementation, create a Set
+    template class that accepts only one of each type of object that you put into it.
+    Make a nested iterator class that supports the “end sentinel” concept in this
+    chapter. Write test code for your Set in main( ), and then substitute the Standard
+    C++ Library set template to verify that the behavior is correct.
+ 7. Modify AutoCounter.h so that it can be used as a member object inside any class
+    whose creation and destruction you want to trace. Add a string member to hold the
+    name of the class. Test this tool inside a class of your own.
+ 8. Create a version of OwnerStack.h that uses a Standard C++ Library vector as its
+    underlying implementation. You may need to look up some of the member functions of
+    vector in order to do this (or just look at the <vector> header file).
+ 9. Modify ValueStack.h so that it dynamically expands as you push( ) more objects and
+    it runs out of space. Change ValueStackTest.cpp to test the new functionality.
+10. Repeat Exercise 9 but use a Standard C++ Library vector as the internal
+    implementation of the ValueStack. Notice how much easier this is.
+11. Modify ValueStackTest.cpp so that it uses a Standard C++ Library vector instead of a
+    Stack in main( ). Notice the run-time behavior: Does the vector automatically create
+    a bunch of default objects when it is created?
+12. Modify TStack2.h so that it uses a Standard C++ Library vector as its underlying
+    implementation. Make sure that you don’t change the interface, so that
+    TStack2Test.cpp works unchanged.
+13. Repeat Exercise 12 using a Standard C++ Library stack instead of a vector (you may
+    need to look up information about the stack, or hunt through the <stack> header
+    file).
+14. Modify TPStash2.h so that it uses a Standard C++ Library vector as its underlying
+    implementation. Make sure that you don’t change the interface, so that
+    TPStash2Test.cpp works unchanged.
+15. In IterIntStack.cpp, modify IntStackIter to give it an “end sentinel” constructor,
+    and add operator== and operator!=. In main( ), use an iterator to move through the
+    elements of the container until you reach the end sentinel.
+16. Using TStack2.h, TPStash2.h, and Shape.h, instantiate Stack and PStash containers
+    for Shape*, fill them each with an assortment of upcast Shape pointers, then use
+    iterators to move through each container and call draw( ) for each object.
+17. Templatize the Int class in TPStash2Test.cpp so that it holds any type of object
+    (feel free to change the name of the class to something more appropriate).
+18. Templatize the IntArray class in IostreamOperatorOverloading.cpp from Chapter 12,
+    templatizing both the type of object that is contained and the size of the internal
+    array.
+19. Turn ObjContainer in NestedSmartPointer.cpp from Chapter 12 into a template. Test it
+    with two different classes.
+20. Modify C15:OStack.h and C15:OStackTest.cpp by templatizing class Stack so that it
+    automatically multiply inherits from the contained class and from Object. The
+    generated Stack should accept and produce only pointers of the contained type.
+21. Repeat Exercise 20 using vector instead of Stack.
+22. Inherit a class StringVector from vector<void*> and redefine the push_back( ) and
+    operator[] member functions to accept and produce only string* (and perform the
+    proper casting). Now create a template that will automatically make a container
+    class to do the same thing for pointers to any type. This technique is often used to
+    reduce code bloat from too many template instantiations.
+23. In TPStash2.h, add and test an operator- to PStash::iterator, following the logic of
+    operator+.
+24. In Drawing.cpp, add and test a function template to call erase( ) member functions.
+25. (Advanced) Modify the Stack class in TStack2.h to allow full granularity of
+    ownership: Add a flag to each link indicating whether that link owns the object it
+    points to, and support this information in the push( ) function and destructor. Add
+    member functions to read and change the ownership for each link.
+26. (Advanced) Modify PointerToMemberOperator.cpp from Chapter 12 so that the
+    FunctionObject and operator->* are templatized to work with any return type (for
+    operator->*, you’ll have to use member templates, described in Volume 2). Add and
+    test support for zero, one and two arguments in Dog member functions.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[59] With the exception, in Java, of the primitive data types. These were made non-
+Objects for efficiency.
+
+[60] The OOPS library, by Keith Gorlen while he was at NIH.
+
+[61] The C++ Programming Language by Bjarne Stroustrup (1st edition, Addison-Wesley,
+1986).
+
+[62] The inspiration for templates appears to be ADA generics.
+
+[63] All methods in both Smalltalk and Python are weakly typed, and so those languages
+do not need a template mechanism. In effect, you get templates without templates.
+
+         [ Previous Chapter ] [ Table of Contents ] [ Index ] [ Next Chapter ]
+                                 Last Update:09/27/2001
