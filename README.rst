@@ -18,8 +18,8 @@ Cómo colaborar
 --------------
 
 Puedes colaborar con el proyecto revisando o traduciendo. En ambos casos, debes
-solicitar al coordinador un capítulo sobre el que trabajar (usa la lista de
-correo).
+solicitar al coordinador un capítulo sobre el que trabajar. Utiliza para ello el
+«issue tracker» del proyecto bitbucket: https://bitbucket.org/crysol_org/pensarenc/issues/new
 
 Cada capítulo está contenido en un fichero individual. No debes crear
 ficheros nuevos. Incluso aunque traduzcas, los ficheros debe crearlos el
