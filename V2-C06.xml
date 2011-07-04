@@ -1,0 +1,5037 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- -*- sgml; coding: utf-8 -*- -->
+<!--
+  Editor:              Emacs 23/PSGML
+  Traducción original:
+-->
+
+<!-- original de referencia en:
+http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc53985741
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<chapter
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C06"
+  >
+
+  <!-- 6: Generic Algorithms -->
+  <title>Algoritmos genéricos</title>
+
+  <!--
+  Algorithms are at the core of computing. To be able to write an algorithm that
+  works with any type of sequence makes your programs both simpler and safer. The
+  ability to customize algorithms at runtime has revolutionized software
+  development.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  The subset of the Standard C++ library known as the Standard Template Library
+  (STL) was originally designed around generic algorithms—code that processes
+  sequences of any type of values in a type-safe manner. The goal was to use
+  predefined algorithms for almost every task, instead of hand-coding loops every
+  time you need to process a collection of data. This power comes with a bit of a
+  learning curve, however. By the time you get to the end of this chapter, you
+  should be able to decide for yourself whether you find the algorithms addictive
+  or too confusing to remember. If you’re like most people, you’ll resist them at
+  first but then tend to use them more and more as time goes on.
+  -->
+  <para>
+
+  </para>
+
+  <sect1>
+    <!-- A first look -->
+    <title> </title>
+
+    <!--
+    Among other things, the generic algorithms in the standard library provide a
+    vocabulary with which to describe solutions. Once you become familiar with the
+    algorithms, you’ll have a new set of words with which to discuss what you’re
+    doing, and these words are at a higher level than what you had before. You don’t
+    need to say, “This loop moves through and assigns from here to there … oh, I
+    see, it’s copying!” Instead, you just say copy( ). This is what we’ve been doing
+    in computer programming from the beginning—creating high-level abstractions to
+    express what you’re doing and spending less time saying how you’re doing it. The
+    how has been solved once and for all and is hidden in the algorithm’s code,
+    ready to be reused on demand.
+    -->
+    <para>
+
+    </para>
+
+    <!-- Here’s an example of how to use the copy algorithm: -->
+    <para>
+
+    </para>
+
+
+//: C06:CopyInts.cpp
+
+
+    <!--
+    The copy( ) algorithm’s first two parameters represent the range of the input
+    sequence—in this case the array a.  Ranges are denoted by a pair of
+    pointers. The first points to the first element of the sequence, and the second
+    points one position past the end of the array (right after the last
+    element). This may seem strange at first, but it is an old C idiom that comes in
+    quite handy. For example, the difference of these two pointers yields the number
+    of elements in the sequence. More important, in implementing copy, the second
+    pointer can act as a sentinel to stop the iteration through the sequence. The
+    third argument refers to the beginning of the output sequence, which is the
+    array b in this example. It is assumed that the array that b represents has
+    enough space to receive the copied elements.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The copy( ) algorithm wouldn’t be very exciting if it could only process
+    integers. It can copy any kind of sequence.  The following example copies string
+    objects:
+    -->
+    <para>
+
+    </para>
+
+
+//: C06:CopyStrings.cpp
+
+
+    <!--
+    This example introduces another algorithm, equal( ), which returns true only if
+    each element in the first sequence is equal (using its operator==( )) to the
+    corresponding element in the second sequence. This example traverses each
+    sequence twice, once for the copy, and once for the comparison, without a single
+    explicit loop!
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Generic algorithms achieve this flexibility because they are function
+    templates. If you think that the implementation of copy( ) looks like the
+    following, you’re almost right:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    template<typename T> void copy(T* begin, T* end, T* dest) {
+    while(begin != end)
+    *dest++ = *begin++;
+    }
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    We say “almost” because copy( ) can process sequences delimited by anything that
+    acts like a pointer, such as an iterator. In this way, copy( ) can be used to
+    duplicate a vector:
+    -->
+    <para>
+
+    </para>
+
+//: C06:CopyVector.cpp
+
+
+    <!--
+    The first vector, v1, is initialized from the sequence of integers in the array
+    a. The definition of the vector v2 uses a different vector constructor that
+    makes room for SIZE elements, initialized to zero (the default value for
+    integers).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    As with the array example earlier, it’s important that v2 have enough space to
+    receive a copy of the contents of v1.  For convenience, a special library
+    function, back_inserter( ), returns a special type of iterator that inserts
+    elements instead of overwriting them, so memory is expanded automatically by the
+    container as needed. The following example uses back_inserter( ), so it doesn’t
+    have to establish the size of the output vector, v2, ahead of time:
+    -->
+    <para>
+
+    </para>
+
+//: C06:InsertVector.cpp
+
+
+    <!--
+    The back_inserter( ) function is defined in the <iterator> header. We’ll explain
+    how insert iterators work in depth in the next chapter.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Since iterators are identical to pointers in all essential ways, you can write
+    the algorithms in the standard library in such a way as to allow both pointer
+    and iterator arguments. For this reason, the implementation of copy( ) looks
+    more like the following code:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    template<typename Iterator>
+    void copy(Iterator begin, Iterator end, Iterator dest) {
+    while(begin != end)
+    *begin++ = *dest++;
+    }
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Whichever argument type you use in the call, copy( ) assumes it properly
+    implements the indirection and increment operators. If it doesn’t, you’ll get a
+    compile-time error.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- Predicates -->
+      <title> </title>
+
+      <!--
+      At times, you might want to copy only a well-defined subset of one sequence to
+      another, such as only those elements that satisfy a particular condition. To
+      achieve this flexibility, many algorithms have alternate calling sequences that
+      allow you to supply a predicate, which is simply a function that returns a
+      Boolean value based on some criterion.  Suppose, for example, that you only want
+      to extract from a sequence of integers those numbers that are less than or equal
+      to 15. A version of copy( ) called remove_copy_if( ) can do the job, like this:
+      -->
+      <para>
+
+      </para>
+
+//: C06:CopyInts2.cpp
+
+
+      <!--
+      The remove_copy_if( ) function template takes the usual range-delimiting
+      pointers, followed by a predicate of your choosing. The predicate must be a
+      pointer to a function[86] that takes a single argument of the same type as the
+      elements in the sequence, and it must return a bool. Here, the function gt15
+      returns true if its argument is greater than 15. The remove_copy_if( ) algorithm
+      applies gt15( ) to each element in the input sequence and ignores those elements
+      where the predicate yields true when writing to the output sequence.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The following program illustrates yet another variation of the copy algorithm: -->
+      <para>
+
+      </para>
+
+//: C06:CopyStrings2.cpp
+
+
+      <!--
+      Instead of just ignoring elements that don’t satisfy the predicate,
+      replace_copy_if( ) substitutes a fixed value for such elements when populating
+      the output sequence. The output is:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      kiss
+      my
+      lips
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      because the original occurrence of “read,” the only input string containing the
+      letter e, is replaced by the word “kiss,” as specified in the last argument in
+      the call to replace_copy_if( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The replace_if( ) algorithm changes the original sequence in place, instead of
+      writing to a separate output sequence, as the following program shows:
+      -->
+      <para>
+
+      </para>
+
+//: C06:ReplaceStrings.cpp
+
+
+    </sect2>
+    <sect2>
+      <!-- Stream iterators -->
+      <title> </title>
+
+      <!--
+      Like any good software library, the Standard C++ Library attempts to provide
+      convenient ways to automate common tasks.  We mentioned in the beginning of this
+      chapter that you can use generic algorithms in place of looping constructs. So
+      far, however, our examples have still used an explicit loop to print their
+      output. Since printing output is one of the most common tasks, you would hope
+      for a way to automate that too.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      That’s where stream iterators come in. A stream iterator uses a stream as either
+      an input or an output sequence. To eliminate the output loop in the
+      CopyInts2.cpp program, for instance, you can do something like the following:
+      -->
+      <para>
+
+      </para>
+
+//: C06:CopyInts3.cpp
+
+
+      <!--
+      In this example we’ve replaced the output sequence b in the third argument of
+      remove_copy_if( ) with an output stream iterator, which is an instance of the
+      ostream_iterator class template declared in the <iterator> header. Output stream
+      iterators overload their copy-assignment operators to write to their
+      stream. This particular instance of ostream_iterator is attached to the output
+      stream cout. Every time remove_copy_if( ) assigns an integer from the sequence a
+      to cout through this iterator, the iterator writes the integer to cout and also
+      automatically writes an instance of the separator string found in its second
+      argument, which in this case contains the newline character.
+      -->
+      <para>
+
+      </para>
+
+      <!-- It is just as easy to write to a file by providing an output file stream, instead of cout: -->
+      <para>
+
+      </para>
+
+//: C06:CopyIntsToFile.cpp
+
+
+      <!--
+      An input stream iterator allows an algorithm to get its input sequence from an
+      input stream. This is accomplished by having both the constructor and
+      operator++( ) read the next element from the underlying stream and by
+      overloading operator*( ) to yield the value previously read. Since algorithms
+      require two pointers to delimit an input sequence, you can construct an
+      istream_iterator in two ways, as you can see in the program that follows.
+      -->
+      <para>
+
+      </para>
+
+//: C06:CopyIntsFromFile.cpp
+
+
+      <!--
+      The first argument to replace_copy_if( ) in this program attaches an
+      istream_iterator object to the input file stream containing ints. The second
+      argument uses the default constructor of the istream_iterator class. This call
+      constructs a special value of istream_iterator that indicates end-of-file, so
+      that when the first iterator finally encounters the end of the physical file, it
+      compares equal to the value istream_iterator<int>( ), allowing the algorithm to
+      terminate correctly. Note that this example avoids using an explicit array
+      altogether.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Algorithm complexity -->
+      <title> </title>
+
+      <!--
+      Using a software library is a matter of trust. You trust the implementers to not
+      only provide correct functionality, but you also hope that the functions execute
+      as efficiently as possible. It’s better to write your own loops than to use
+      algorithms that degrade performance.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To guarantee quality library implementations, the C++ Standard not only
+      specifies what an algorithm should do, but how fast it should do it and
+      sometimes how much space it should use. Any algorithm that does not meet the
+      performance requirements does not conform to the standard. The measure of an
+      algorithm’s operational efficiency is called its complexity.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      When possible, the standard specifies the exact number of operation counts an
+      algorithm should use. The count_if( ) algorithm, for example, returns the number
+      of elements in a sequence satisfying a given predicate. The following call to
+      count_if( ), if applied to a sequence of integers similar to the examples
+      earlier in this chapter, yields the number of integer elements that are greater
+      than 15:
+      -->
+      <para>
+
+      </para>
+
+      <!-- size_t n = count_if(a, a + SIZE, gt15); -->
+      <para>
+
+      </para>
+
+      <!--
+      Since count_if( ) must look at every element exactly once, it is specified to
+      make a number of comparisons exactly equal to the number of elements in the
+      sequence. The copy( ) algorithm has the same specification.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Other algorithms can be specified to take at most a certain number of
+      operations. The find( ) algorithm searches through a sequence in order until it
+      encounters an element equal to its third argument:
+      -->
+      <para>
+
+      </para>
+
+      <!-- int* p = find(a, a + SIZE, 20); -->
+      <para>
+
+      </para>
+
+      <!--
+      It stops as soon as the element is found and returns a pointer to that first
+      occurrence. If it doesn’t find one, it returns a pointer one position past the
+      end of the sequence (a+SIZE in this example). So find() makes at most a number
+      of comparisons equal to the number of elements in the sequence.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Sometimes the number of operations an algorithm takes cannot be measured with
+      such precision. In such cases, the standard specifies the algorithm’s asymptotic
+      complexity, which is a measure of how the algorithm behaves with large sequences
+      compared to well-known formulas. A good example is the sort( ) algorithm, which
+      the standard says takes “approximately n log n comparisons on average” (n is the
+      number of elements in the sequence).[87] Such complexity measures give a “feel”
+      for the cost of an algorithm and at least give a meaningful basis for comparing
+      algorithms. As you’ll see in the next chapter, the find( ) member function for
+      the set container has logarithmic complexity, which means that the cost of
+      searching for an element in a set will, for large sets, be proportional to the
+      logarithm of the number of elements. This is much smaller than the number of
+      elements for large n, so it is always better to search a set by using its find(
+      ) member function rather than by using the generic find( ) algorithm.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- Function objects -->
+    <title> </title>
+
+    <!--
+    As you study some of the examples earlier in this chapter, you will probably
+    notice the limited utility of the function gt15( ). What if you want to use a
+    number other than 15 as a comparison threshold? You may need a gt20( ) or gt25(
+    ) or others as well. Having to write a separate function is time consuming, but
+    also unreasonable because you must know all required values when you write your
+    application code.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The latter limitation means that you can’t use runtime values[88] to govern your
+    searches, which is unacceptable.  Overcoming this difficulty requires a way to
+    pass information to predicates at runtime. For example, you would need a
+    greater-than function that you can initialize with an arbitrary comparison
+    value. Unfortunately, you can’t pass that value as a function parameter because
+    unary predicates, such as our gt15( ), are applied to each value in a sequence
+    individually and must therefore take only one parameter.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The way out of this dilemma is, as always, to create an abstraction. Here, we
+    need an abstraction that can act like a function as well as store state, without
+    disturbing the number of function parameters it accepts when used. This
+    abstraction is called a function object.[89]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A function object is an instance of a class that overloads operator( ), the
+    function call operator. This operator allows an object to be used with function
+    call syntax. As with any other object, you can initialize it via its
+    constructors. Here is a function object that can be used in place of gt15( ):
+    -->
+    <para>
+
+    </para>
+
+//: C06:GreaterThanN.cpp
+
+
+    <!--
+    The fixed value to compare against (4) is passed when the function object f is
+    created. The expression f(3) is then evaluated by the compiler as the following
+    function call:
+    -->
+    <para>
+
+    </para>
+
+    <!-- f.operator()(3); -->
+    <para>
+
+    </para>
+
+    <!--
+    which returns the value of the expression 3 > value, which is false when value
+    is 4, as it is in this example.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Since such comparisons apply to types other than int, it would make sense to
+    define gt_n( ) as a class template. It turns out you don’t need to do it
+    yourself, though—the standard library has already done it for you. The following
+    descriptions of function objects should not only make that topic clear, but also
+    give you a better understanding of how the generic algorithms work.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- Classification of function objects -->
+      <title> </title>
+
+      <!--
+      The Standard C++ library classifies a function object based on the number of
+      arguments its operator( ) takes and the kind of value it returns. This
+      classification is based on whether a function object’s operator( ) takes zero,
+      one, or two arguments:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Generator: A type of function object that takes no arguments and returns a value
+      of an arbitrary type. A random number generator is an example of a
+      generator. The standard library provides one generator, the function rand( )
+      declared in <cstdlib>, and has some algorithms, such as generate_n( ), which
+      apply generators to a sequence.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Unary Function: A type of function object that takes a single argument of any
+      type and returns a value that may be of a different type (which may be void).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Binary Function: A type of function object that takes two arguments of any two
+      (possibly distinct) types and returns a value of any type (including void).
+      -->
+      <para>
+
+      </para>
+
+      <!-- Unary Predicate: A Unary Function that returns a bool. -->
+      <para>
+
+      </para>
+
+      <!-- Binary Predicate: A Binary Function that returns a bool. -->
+      <para>
+
+      </para>
+
+      <!--
+      Strict Weak Ordering: A binary predicate that allows for a more general
+      interpretation of “equality.” Some of the standard containers consider two
+      elements equivalent if neither is less than the other (using operator<( )). This
+      is important when comparing floating-point values, and objects of other types
+      where operator==( ) is unreliable or unavailable. This notion also applies if
+      you want to sort a sequence of data records (structs) on a subset of the
+      struct’s fields. That comparison scheme is considered a strict weak ordering
+      because two records with equal keys are not really “equal” as total objects, but
+      they are equal as far as the comparison you’re using is concerned. The
+      importance of this concept will become clearer in the next chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In addition, certain algorithms make assumptions about the operations available
+      for the types of objects they process.  We will use the following terms to
+      indicate these assumptions:
+      -->
+      <para>
+
+      </para>
+
+      <!-- LessThanComparable: A class that has a less-than operator<. -->
+      <para>
+
+      </para>
+
+      <!-- Assignable: A class that has a copy-assignment operator= for its own type. -->
+      <para>
+
+      </para>
+
+      <!-- EqualityComparable: A class that has an equivalence operator== for its own type. -->
+      <para>
+
+      </para>
+
+      <!--
+      We will use these terms later in this chapter to describe the generic algorithms
+      in the standard library.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Automatic creation of function objects -->
+      <title> </title>
+
+      <!--
+      The <functional> header defines a number of useful generic function
+      objects. They are admittedly simple, but you can use them to compose more
+      complicated function objects. Consequently, in many instances, you can construct
+      complicated predicates without writing a single function. You do so by using
+      function object adaptors[90]  to take the simple function objects and adapt them
+      for use with other function objects in a chain of operations.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To illustrate, let’s use only standard function objects to accomplish what gt15(
+      ) did earlier. The standard function object, greater, is a binary function
+      object that returns true if its first argument is greater than its second
+      argument. We cannot apply this directly to a sequence of integers through an
+      algorithm such as remove_copy_if( ) because remove_copy_if( ) expects a unary
+      predicate. We can construct a unary predicate on the fly that uses greater to
+      compare its first argument to a fixed value. We fix the value of the second
+      parameter at 15 using the function object adaptor bind2nd, like this:
+      -->
+      <para>
+
+      </para>
+
+//: C06:CopyInts4.cpp
+
+
+      <!--
+      This program produces the same result as CopyInts3.cpp, but without writing our
+      own predicate function gt15( ). The function object adaptor bind2nd( ) is a
+      template function that creates a function object of type binder2nd, which simply
+      stores the two arguments passed to bind2nd( ), the first of which must be a
+      binary function or function object (that is, anything that can be called with
+      two arguments). The operator( ) function in binder2nd, which is itself a unary
+      function, calls the binary function it stored, passing it its incoming parameter
+      and the fixed value it stored.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To make the explanation concrete for this example, let’s call the instance of
+      binder2nd created by bind2nd( ) by the name b. When b is created, it receives
+      two parameters (greater<int>( ) and 15) and stores them. Let’s call the instance
+      of greater<int> by the name g, and call the instance of the output stream
+      iterator by the name o. Then the call to remove_copy_if( ) earlier conceptually
+      becomes the following:
+      -->
+      <para>
+
+      </para>
+
+      <!-- remove_copy_if(a, a + SIZE, o, b(g, 15).operator()); -->
+      <para>
+
+      </para>
+
+      <!--
+      As remove_copy_if( ) iterates through the sequence, it calls b on each element,
+      to determine whether to ignore the element when copying to the destination. If
+      we denote the current element by the name e, that call inside remove_copy_if( )
+      is equivalent to
+      -->
+      <para>
+
+      </para>
+
+      <!-- if(b(e)) -->
+      <para>
+
+      </para>
+
+      <!--
+      but binder2nd’s function call operator just turns around and calls g(e,15), so
+      the earlier call is the same as
+      -->
+      <para>
+
+      </para>
+
+      <!-- if(greater<int>(e, 15)) -->
+      <para>
+
+      </para>
+
+      <!--
+      which is the comparison we were seeking. There is also a bind1st( ) adaptor that
+      creates a binder1st object, which fixes the first argument of the associated
+      input binary function.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As another example, let’s count the number of elements in the sequence not equal
+      to 20. This time we’ll use the algorithm count_if( ), introduced earlier. There
+      is a standard binary function object, equal_to, and also a function object
+      adaptor, not1( ), that takes a unary function object as a parameter and invert
+      its truth value. The following program will do the job:
+      -->
+      <para>
+
+      </para>
+
+//: C06:CountNotEqual.cpp
+
+
+      <!--
+      As remove_copy_if( ) did in the previous example, count_if( ) calls the
+      predicate in its third argument (let’s call it n) for each element of its
+      sequence and increments its internal counter each time true is returned. If, as
+      before, we call the current element of the sequence by the name e, the statement
+      -->
+      <para>
+
+      </para>
+
+      <!-- if(n(e)) -->
+      <para>
+
+      </para>
+
+      <!-- in the implementation of count_if is interpreted as -->
+      <para>
+
+      </para>
+
+      <!-- if(!bind1st(equal_to<int>, 20)(e)) -->
+      <para>
+
+      </para>
+
+      <!-- which ends up as -->
+      <para>
+
+      </para>
+
+      <!-- if(!equal_to<int>(20, e)) -->
+      <para>
+
+      </para>
+
+      <!--
+      because not1( ) returns the logical negation of the result of calling its unary
+      function argument. The first argument to equal_to is 20 because we used bind1st(
+      ) instead of bind2nd( ). Since testing for equality is symmetric in its
+      arguments, we could have used either bind1st( ) or bind2nd( ) in this example.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following table shows the templates that generate the standard function
+      objects, along with the kinds of expressions to which they apply:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ┌───────────────┬────────────────┬────────────────────────────┐
+      │Name           │Type            │Result produced             │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │plus           │BinaryFunction  │arg1 + arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │minus          │BinaryFunction  │arg1 - arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │multiplies     │BinaryFunction  │arg1 * arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │divides        │BinaryFunction  │arg1 / arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │modulus        │BinaryFunction  │arg1 % arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │negate         │UnaryFunction   │- arg1                      │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │equal_to       │BinaryPredicate │arg1 == arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │not_equal_to   │BinaryPredicate │arg1 != arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │greater        │BinaryPredicate │arg1 > arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │less           │BinaryPredicate │arg1 < arg2                 │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │greater_equal  │BinaryPredicate │arg1 >= arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │less_equal     │BinaryPredicate │arg1 <= arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │logical_and    │BinaryPredicate │arg1 && arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │Logical_or     │BinaryPredicate │arg1 || arg2                │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │logical_not    │UnaryPredicate  │!arg1                       │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │unary_negate   │Unary Logical   │!(UnaryPredicate(arg1))     │
+      ├───────────────┼────────────────┼────────────────────────────┤
+      │binary_negate  │Binary Logical  │!(BinaryPredicate(arg1,     │
+      │               │                │arg2))                      │
+      └───────────────┴────────────────┴────────────────────────────┘
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Adaptable function objects -->
+      <title> </title>
+
+      <!--
+      Standard function adaptors such as bind1st( ) and bind2nd( ) make some
+      assumptions about the function objects they process. Consider the following
+      expression from the last line of the earlier CountNotEqual.cpp program:
+      -->
+      <para>
+
+      </para>
+
+      <!-- not1(bind1st(equal_to<int>(), 20)) -->
+      <para>
+
+      </para>
+
+      <!--
+      The bind1st( ) adaptor creates a unary function object of type binder1st, which
+      simply stores an instance of equal_to <int> and the value 20. The
+      binder1st::operator( ) function needs to know its argument type and its return
+      type; otherwise, it will not have a valid declaration. The convention to solve
+      this problem is to expect all function objects to provide nested type
+      definitions for these types. For unary functions, the type names are
+      argument_type and result_type; for binary function objects they are
+      first_argument_type, second_argument_type, and result_type. Looking at the
+      implementation of bind1st( ) and binder1st in the <functional> header reveals
+      these expectations. First inspect bind1st( ), as it might appear in a typical
+      library implementation:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class Op, class T>
+      binder1st<Op> bind1st(const Op& f, const T& val) {
+      typedef typename Op::first_argument_type Arg1_t;
+      return binder1st<Op>(f, Arg1_t(val));
+      }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Note that the template parameter, Op, which represents the type of the binary
+      function being adapted by bind1st( ), must have a nested type named
+      first_argument_type. (Note also the use of typename to inform the compiler that
+      it is a member type name, as explained in Chapter 5.) Now see how binder1st uses
+      the type names in Op in its declaration of its function call operator:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      // Inside the implementation for binder1st<Op>
+      typename Op::result_type
+      operator()(const typename Op::second_argument_type& x)
+      const;
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Function objects whose classes provide these type names are called adaptable
+      function objects.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Since these names are expected of all standard function objects as well as of
+      any function objects you create to use with function object adaptors, the
+      unary_function and binary_function. You simply derive from these classes while
+      filling in the argument types as template parameters. Suppose, for example, that
+      we want to make the function object gt_n, defined earlier in this chapter,
+      adaptable. All we need to do is the following:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      class gt_n : public unary_function<int, bool> {
+      int value;
+      public:
+      gt_n(int val) : value(val) {}
+      bool operator()(int n) {
+      return n > value;
+      }
+      };
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      All unary_function does is to provide the appropriate type definitions, which it
+      infers from its template parameters as you can see in its definition:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class Arg, class Result> struct unary_function {
+      typedef Arg argument_type;
+      typedef Result result_type;
+      };
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      These types become accessible through gt_n because it derives publicly from
+      unary_function. The binary_function template behaves in a similar manner.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- More function object examples -->
+      <title> </title>
+
+      <!--
+      The following FunctionObjects.cpp example provides simple tests for most of the
+      built-in basic function object templates. This way, you can see how to use each
+      template, along with the resulting behavior. This example uses one of the
+      following generators for convenience:
+      -->
+      <para>
+
+      </para>
+
+//: C06:Generators.h
+
+
+//: C06:Generators.cpp {O}
+
+
+      <!--
+      We’ll be using these generating functions in various examples throughout this
+      chapter. The SkipGen function object returns the next number of an arithmetic
+      sequence whose common difference is held in its skp data member. A URandGen
+      object generates a unique random number in a specified range. (It uses a set
+      container, which we’ll discuss in the next chapter.) A CharGen object returns a
+      random alphabetic character. Here is a sample program using UrandGen:
+      -->
+      <para>
+
+      </para>
+
+//: C06:FunctionObjects.cpp {-bor}
+
+
+      <!--
+      This example uses a handy function template, print( ), which is capable of
+      printing a sequence of any type along with an optional message. This template
+      appears in the header file PrintSequence.h, and is explained later in this
+      chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The two template functions automate the process of testing the various function
+      object templates. There are two because the function objects are either unary or
+      binary. The testUnary( ) function takes a source vector, a destination vector,
+      and a unary function object to apply to the source vector to produce the
+      destination vector. In testBinary( ), two source vectors are fed to a binary
+      function to produce the destination vector. In both cases, the template
+      functions simply turn around and call the transform( ) algorithm, which applies
+      the unary function or function object found in its fourth parameter to each
+      sequence element, writing the result to the sequence indicated by its third
+      parameter, which in this case is the same as the input sequence.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      For each test, you want to see a string describing the test, followed by the
+      results of the test. To automate this, the preprocessor comes in handy; the T( )
+      and B( ) macros each take the expression you want to execute. After evaluating
+      the expression, they pass the appropriate range to print( ). To produce the
+      message the expression is “stringized” using the preprocessor. That way you see
+      the code of the expression that is executed followed by the result vector.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The last little tool, BRand, is a generator object that creates random bool
+      values. To do this, it gets a random number from rand( ) and tests to see if
+      it’s greater than (RAND_MAX+1)/2. If the random numbers are evenly distributed,
+      this should happen half the time.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In main( ), three vectors of int are created: x and y for source values, and r
+      for results. To initialize x and y with random values no greater than 50, a
+      generator of type URandGen from Generators.h is used. The standard generate_n( )
+      algorithm populates the sequence specified in its first argument by invoking its
+      third argument (which must be a generator) a given number of times (specified in
+      its second argument). Since there is one operation where elements of x are
+      divided by elements of y, we must ensure that there are no zero values of
+      y. This is accomplished by once again using the transform( ) algorithm, taking
+      the source values from y and putting the results back into y. The function
+      object for this is created with the expression:
+      -->
+      <para>
+
+      </para>
+
+      <!-- bind2nd(plus<int>(), 1) -->
+      <para>
+
+      </para>
+
+      <!--
+      This expression uses the plus function object to add 1 to its first argument. As
+      we did earlier in this chapter, we use a binder adaptor to make this a unary
+      function so it can applied to the sequence by a single call to transform( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Another test in the program compares the elements in the two vectors for
+      equality, so it is interesting to guarantee that at least one pair of elements
+      is equivalent; here element zero is chosen.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Once the two vectors are printed, T( ) tests each of the function objects that
+      produces a numeric value, and then B( ) tests each function object that produces
+      a Boolean result. The result is placed into a vector<bool>, and when this vector
+      is printed, it produces a ‘1’ for a true value and a ‘0’ for a false value. Here
+      is the output from an execution of FunctionObjects.cpp:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      x:
+      4 8 18 36 22 6 29 19 25 47
+      y:
+      4 14 23 9 11 32 13 15 44 30
+      After testBinary(x, y, r, plus<int>()):
+      8 22 41 45 33 38 42 34 69 77
+      After testBinary(x, y, r, minus<int>()):
+      0 -6 -5 27 11 -26 16 4 -19 17
+      After testBinary(x, y, r, multiplies<int>()):
+      16 112 414 324 242 192 377 285 1100 1410
+      After testBinary(x, y, r, divides<int>()):
+      1 0 0 4 2 0 2 1 0 1
+      After testBinary(x, y, r, limit<int>()):
+      0 8 18 0 0 6 3 4 25 17
+      After testUnary(x, r, negate<int>()):
+      -4 -8 -18 -36 -22 -6 -29 -19 -25 -47
+      After testBinary(x, y, br, equal_to<int>()):
+      1 0 0 0 0 0 0 0 0 0
+      After testBinary(x, y, br, not_equal_to<int>()):
+      0 1 1 1 1 1 1 1 1 1
+      After testBinary(x, y, br, greater<int>()):
+      0 0 0 1 1 0 1 1 0 1
+      After testBinary(x, y, br, less<int>()):
+      0 1 1 0 0 1 0 0 1 0
+      After testBinary(x, y, br, greater_equal<int>()):
+      1 0 0 1 1 0 1 1 0 1
+      After testBinary(x, y, br, less_equal<int>()):
+      1 1 1 0 0 1 0 0 1 0
+      After testBinary(x, y, br, not2(greater_equal<int>())):
+      0 1 1 0 0 1 0 0 1 0
+      After testBinary(x,y,br,not2(less_equal<int>())):
+      0 0 0 1 1 0 1 1 0 1
+      b1:
+      0 1 1 0 0 0 1 0 1 1
+      b2:
+      0 1 1 0 0 0 1 0 1 1
+      After testBinary(b1, b2, br, logical_and<int>()):
+      0 1 1 0 0 0 1 0 1 1
+      After testBinary(b1, b2, br, logical_or<int>()):
+      0 1 1 0 0 0 1 0 1 1
+      After testUnary(b1, br, logical_not<int>()):
+      1 0 0 1 1 1 0 1 0 0
+      After testUnary(b1, br, not1(logical_not<int>())):
+      0 1 1 0 0 0 1 0 1 1
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you want the Boolean values to display as “true” and “false” instead of 1 and
+      0, call cout.setf(ios::boolalpha).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A binder doesn’t have to produce a unary predicate; it can also create any unary
+      function (that is, a function that returns something other than bool). For
+      example, you can to multiply every element in a vector by 10 using a binder with
+      the transform( ) algorithm:
+      -->
+      <para>
+
+      </para>
+
+//: C06:FBinder.cpp
+
+
+      <!--
+      Since the third argument to transform( ) is the same as the first, the resulting
+      elements are copied back into the source vector. The function object created by
+      bind2nd( ) in this case produces an int result.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The “bound” argument to a binder cannot be a function object, but it does not
+      have to be a compile-time constant. For example:
+      -->
+      <para>
+
+      </para>
+
+//: C06:BinderValue.cpp
+
+
+      <!--
+      Here, an array is filled with 20 random numbers between 0 and 100, and the user
+      provides a value on the command line.  In the remove_copy_if( ) call, you can
+      see that the bound argument to bind2nd( ) is random number in the same range as
+      the sequence. Here is the output from one run:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Original Sequence:
+      4 12 15 17 19 21 26 30 47 48 56 58 60 63 71 79 82 90 92 95
+      Values <= 41
+      4 12 15 17 19 21 26 30
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Function pointer adaptors -->
+      <title> </title>
+
+      <!--
+      Wherever a function-like entity is expected by an algorithm, you can supply
+      either a pointer to an ordinary function or a function object. When the
+      algorithm issues a call, if it is through a function pointer, than the native
+      function-call mechanism is used. If it is through a function object, then that
+      object’s operator( ) member executes.  In CopyInts2.cpp, we passed the raw
+      function gt15( ) as a predicate to remove_copy_if( ). We also passed pointers to
+      functions returning random numbers to generate( ) and generate_n( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You cannot use raw functions with function object adaptors such as bind2nd( )
+      because they assume the existence of type definitions for the argument and
+      result types. Instead of manually converting your native functions into function
+      objects yourself, the standard library provides a family of adaptors to do the
+      work for you. The ptr_fun( ) adaptors take a pointer to a function and turn it
+      into a function object. They are not designed for a function that takes no
+      arguments—they must only be used with unary functions or binary functions.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The following program uses ptr_fun( ) to wrap a unary function: -->
+      <para>
+
+      </para>
+
+//: C06:PtrFun1.cpp
+
+
+      <!--
+      We can’t simply pass isEven to not1, because not1 needs to know the actual
+      argument type and return type its argument uses. The ptr_fun( ) adaptor deduces
+      those types through template argument deduction. The definition of the unary
+      version of ptr_fun( ) looks something like this:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class Arg, class Result>
+      pointer_to_unary_function<Arg, Result>
+      ptr_fun(Result (*fptr)(Arg)) {
+      return pointer_to_unary_function<Arg, Result>(fptr);
+      }
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As you can see, this version of ptr_fun( ) deduces the argument and result types
+      from fptr and uses them to initialize a pointer_to_unary_function object that
+      stores fptr. The function call operator for pointer_to_unary_function just calls
+      fptr, as you can see by the last line of its code:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class Arg, class Result>
+      class pointer_to_unary_function
+      : public unary_function<Arg, Result> {
+      Result (*fptr)(Arg); // Stores the f-ptr
+      public:
+      pointer_to_unary_function(Result (*x)(Arg)) : fptr(x) {}
+      Result operator()(Arg x) const { return fptr(x); }
+      };
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Since pointer_to_unary_function derives from unary_function, the appropriate
+      type definitions come along for the ride and are available to not1.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      There is also a binary version of ptr_fun( ), which returns a
+      pointer_to_binary_function object (which derives from binary_function) that
+      behaves analogously to the unary case. The following program uses the binary
+      version of ptr_fun ( ) to raise numbers in a sequence to a power. It also
+      reveals a pitfall when passing overloaded functions to ptr_fun ( ).
+      -->
+      <para>
+
+      </para>
+
+//: C06:PtrFun2.cpp {-edg}
+
+
+      <!--
+      The pow( ) function is overloaded in the Standard C++ header <cmath> for each of
+      the floating-point data types, as follows:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      float pow(float, int);  // Efficient int power versions ...
+      double pow(double, int);
+      long double pow(long double, int);
+      float pow(float, float);
+      double pow(double, double);
+      long double pow(long double, long double);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Since there are multiple versions of pow( ), the compiler has no way of knowing
+      which to choose. Here, we have to help the compiler by using explicit function
+      template specialization, as explained in the previous chapter.[91]
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      It’s even trickier to convert a member function into a function object suitable
+      for using with the generic algorithms.  As a simple example, suppose we have the
+      classical “shape” problem and want to apply the draw( ) member function to each
+      pointer in a container of Shape:
+      -->
+      <para>
+
+      </para>
+
+//: C06:MemFun1.cpp
+
+
+      <!--
+      The for_each( ) algorithm passes each element in a sequence to the function
+      object denoted by its third argument.  Here, we want the function object to wrap
+      one of the member functions of the class itself, and so the function object’s
+      “argument” becomes the pointer to the object for the member function call. To
+      produce such a function object, the mem_fun( ) template takes a pointer to a
+      member as its argument.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The mem_fun( ) functions are for producing function objects that are called
+      using a pointer to the object that the member function is called for, while
+      mem_fun_ref( ) calls the member function directly for an object. One set of
+      overloads of both mem_fun( ) and mem_fun_ref( ) is for member functions that
+      take zero arguments and one argument, and this is multiplied by two to handle
+      const vs. non-const member functions. However, templates and overloading take
+      care of sorting all that out—all you need to remember is when to use mem_fun( )
+      vs. mem_fun_ref( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Suppose you have a container of objects (not pointers), and you want to call a
+      member function that takes an argument.  The argument you pass should come from
+      a second container of objects. To accomplish this, use the second overloaded
+      form of the transform( ) algorithm:
+      -->
+      <para>
+
+      </para>
+
+//: C06:MemFun2.cpp
+
+
+      <!--
+      Because the container is holding objects, mem_fun_ref( ) must be used with the
+      pointer-to-member function. This version of transform( ) takes the start and end
+      point of the first range (where the objects live); the starting point of the
+      second range, which holds the arguments to the member function; the destination
+      iterator, which in this case is standard output; and the function object to call
+      for each object. This function object is created with mem_fun_ref( ) and the
+      desired pointer to member. Notice that the transform( ) and for_each( ) template
+      functions are incomplete; transform( ) requires that the function it calls
+      return a value, and there is no for_each( ) that passes two arguments to the
+      function it calls. Thus, you cannot call a member function that returns void and
+      takes an argument using transform( ) or for_each( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Most any member function works with mem_fun_ref( ). You can also use standard
+      library member functions, if your compiler doesn’t add any default arguments
+      beyond the normal arguments specified in the standard.[92] For example, suppose
+      you’d like to read a file and search for blank lines. Your compiler may allow
+      you to use the string::empty( ) member function like this:
+      -->
+      <para>
+
+      </para>
+
+//: C06:FindBlanks.cpp
+
+
+      <!--
+      This example uses find_if( ) to locate the first blank line in the given range
+      using mem_fun_ref( ) with string::empty ( ). After the file is opened and read
+      into the vector, the process is repeated to find every blank line in the file.
+      Each time a blank line is found, it is replaced with the characters “A BLANK
+      LINE.” All you have to do to accomplish this is dereference the iterator to
+      select the current string.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Writing your own function object adaptors -->
+      <title> </title>
+
+      <!--
+      Consider how to write a program that converts strings representing
+      floating-point numbers to their actual numeric values. To get things started,
+      here’s a generator that creates the strings:
+      -->
+      <para>
+
+      </para>
+
+//: C06:NumStringGen.h
+
+
+      <!--
+      You tell it how big the strings should be when you create the NumStringGen
+      object. The random number generator selects digits, and a decimal point is
+      placed in the middle.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following program uses NumStringGen to fill a vector<string>. However, to
+      use the standard C library function atof ( ) to convert the strings to
+      floating-point numbers, the string objects must first be turned into char
+      pointers, since there is no automatic type conversion from string to char*. The
+      transform( ) algorithm can be used with mem_fun_ref( ) and string::c_str( ) to
+      convert all the strings to char*, and then these can be transformed using atof.
+      -->
+      <para>
+
+      </para>
+
+//: C06:MemFun3.cpp
+
+
+      <!--
+      This program does two transformations: one to convert strings to C-style strings
+      (arrays of characters), and one to convert the C-style strings to numbers via
+      atof( ). It would be nice to combine these two operations into one. After all,
+      we can compose functions in mathematics, so why not C++?
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The obvious approach takes the two functions as arguments and applies them in
+      the proper order:
+      -->
+      <para>
+
+      </para>
+
+//: C06:ComposeTry.cpp
+
+
+      <!--
+      The unary_composer object in this example stores the function pointers atof and
+      string::c_str such that the latter function is applied first when its operator(
+      ) is called. The compose( ) function adaptor is a convenience, so we don’t need
+      to supply all four template arguments explicitly—F1 and F2 are deduced from the
+      call.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      It would be much better if we didn’t need to supply any template arguments. This
+      is achieved by adhering to the convention for type definitions for adaptable
+      function objects. In other words, we will assume that the functions to be
+      composed are adaptable. This requires that we use ptr_fun( ) for atof( ). For
+      maximum flexibility, we also make unary_composer adaptable in case it gets
+      passed to a function adaptor. The following program does so and easily solves
+      the original problem:
+      -->
+      <para>
+
+      </para>
+
+//: C06:ComposeFinal.cpp {-edg}
+
+
+      <!--
+      Once again we must use typename to let the compiler know that the member we are
+      referring to is a nested type.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Some implementations[93] support composition of function objects as an
+      extension, and the C++ Standards Committee is likely to add these capabilities
+      to the next version of Standard C++.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- A catalog of STL algorithms -->
+    <title> </title>
+
+    <!--
+    This section provides a quick reference when you’re searching for the
+    appropriate algorithm. We leave the full exploration of all the STL algorithms
+    to other references (see the end of this chapter, and Appendix A), along with
+    the more intimate details of issues like performance. Our goal here is for you
+    to rapidly become comfortable with the algorithms, and we’ll assume you will
+    look into the more specialized references if you need more detail.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although you will often see the algorithms described using their full template
+    declaration syntax, we’re not doing that here because you already know they are
+    templates, and it’s quite easy to see what the template arguments are from the
+    function declarations. The type names for the arguments provide descriptions for
+    the types of iterators required.  We think you’ll find this form is easier to
+    read, and you can quickly find the full declaration in the template header file
+    if you need it.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The reason for all the fuss about iterators is to accommodate any type of
+    container that meets the requirements in the standard library. So far we have
+    illustrated the generic algorithms with only arrays and vectors as sequences,
+    but in the next chapter you’ll see a broad range of data structures that support
+    less robust iteration. For this reason, the algorithms are categorized in part
+    by the types of iteration facilities they require.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The names of the iterator classes describe the iterator type to which they must
+    conform. There are no interface base classes to enforce these iteration
+    operations—they are just expected to be there. If they are not, your compiler
+    will complain. The various flavors of iterators are described briefly as
+    follows.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    InputIterator. An input iterator only allows reading elements of its sequence in
+    a single, forward pass using operator++ and operator*. Input iterators can also
+    be tested with operator== and operator!=. That’s the extent of the constraints.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    OutputIterator. An output iterator only allows writing elements to a sequence in
+    a single, forward pass using operator++ and operator*. OutputIterators cannot be
+    tested with operator== and operator!=, however, because you assume that you can
+    just keep sending elements to the destination and that you don’t need to see if
+    the destination’s end marker was reached. That is, the container that an
+    OutputIterator references can take an infinite number of objects, so no
+    end-checking is necessary. This requirement is important so that an
+    OutputIterator can be used with ostreams (via ostream_iterator), but you’ll also
+    commonly use the “insert” iterators such as are the type of iterator returned by
+    back_inserter( )).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    There is no way to determine whether multiple InputIterators or OutputIterators
+    point within the same range, so there is no way to use such iterators
+    together. Just think in terms of iterators to support istreams and ostreams, and
+    InputIterator and OutputIterator will make perfect sense. Also note that
+    algorithms that use InputIterators or OutputIterators put the weakest
+    restrictions on the types of iterators they will accept, which means that you
+    can use any “more sophisticated” type of iterator when you see InputIterator or
+    OutputIterator used as STL algorithm template arguments.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    ForwardIterator. Because you can only read from an InputIterator and write to an
+    OutputIterator, you can’t use either of them to simultaneously read and modify a
+    range, and you can’t dereference such an iterator more than once. With a
+    ForwardIterator these restrictions are relaxed; you can still only move forward
+    using operator++, but you can both write and read, and you can compare such
+    iterators in the same range for equality. Since forward iterators can both read
+    and write, they can be used in place of an InputIterator or OutputIterator.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    BidirectionalIterator. Effectively, this is a ForwardIterator that can also go
+    backward. That is, a BidirectionalIterator supports all the operations that a
+    ForwardIterator does, but in addition it has an operator--.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    RandomAccessIterator. This type of iterator supports all the operations that a
+    regular pointer does: you can add and subtract integral values to move it
+    forward and backward by jumps (rather than just one element at a time), you can
+    subscript it with operator[ ], you can subtract one iterator from another, and
+    you can compare iterators to see which is greater using operator<, operator>,
+    and so on. If you’re implementing a sorting routine or something similar, random
+    access iterators are necessary to be able to create an efficient algorithm.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The names used for the template parameter types in the algorithm descriptions
+    later in this chapter consist of the listed iterator types (sometimes with a ‘1’
+    or ‘2’ appended to distinguish different template arguments) and can also
+    include other arguments, often function objects.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    When describing the group of elements passed to an operation, mathematical
+    “range” notation is often used. In this, the square bracket means “includes the
+    end point,” and the parenthesis means “does not include the end point.” When
+    using iterators, a range is determined by the iterator pointing to the initial
+    element and by the “past-the-end” iterator, pointing past the last
+    element. Since the past-the-end element is never used, the range determined by a
+    pair of iterators can be expressed as [first, last), where first is the iterator
+    pointing to the initial element, and last is the past-the-end iterator.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Most books and discussions of the STL algorithms arrange them according to
+    side-effects: non-mutating algorithms don’t change the elements in the range,
+    mutating algorithms do change the elements, and so on. These descriptions are
+    based primarily on the underlying behavior or implementation of the
+    algorithm—that is, on the designer’s perspective. In practice, we don’t find
+    this a useful categorization, so instead we’ll organize them according to the
+    problem you want to solve: Are you searching for an element or set of elements,
+    performing an operation on each element, counting elements, replacing elements,
+    and so on? This should help you find the algorithm you want more easily.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If you do not see a different header such as <utility> or <numeric> above the
+    function declarations, it appears in <algorithm>. Also, all the algorithms are
+    in the namespace std.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- Support tools for example creation -->
+      <title> </title>
+
+      <!--
+      It’s useful to create some basic tools to test the algorithms. In the examples
+      that follow we’ll use the generators mentioned earlier in Generators.h, as well
+      as what appears below.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Displaying a range is a frequent task, so here is a function template to print
+      any sequence, regardless of the type contained in that sequence:
+      -->
+      <para>
+
+      </para>
+
+//: C06:PrintSequence.h
+
+
+      <!--
+      By default this function template prints to cout with newlines as separators,
+      but you can change that by modifying the default argument. You can also provide
+      a message to print at the head of the output. Since print( ) uses the copy( )
+      algorithm to send objects to cout via an ostream_iterator, the ostream_iterator
+      must know the type of object it is printing, which we infer from the value_type
+      member of the iterator passed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The std::iterator_traits template enables the print( ) function template to
+      process sequences delimited by any type of iterator. The iterator types returned
+      by the standard containers such as vector define a nested type, value_type,
+      which represents the element type, but when using arrays, the iterators are just
+      pointers, which can have no nested types. To supply the conventional types
+      associated with iterators in the standard library, std::iterator_traits provides
+      the following partial specialization for pointer types:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      template<class T>
+      struct iterator_traits<T*> {
+      typedef random_access_iterator_tag iterator_category;
+      typedef T value_type;
+      typedef ptrdiff_t difference_type;
+      typedef T* pointer;
+      typedef T& reference;
+      };
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This makes the type of the elements pointed at (namely, T) available via the
+      type name value_type.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Stable vs. unstable reordering -->
+        <title> </title>
+
+        <!--
+        A number of the STL algorithms that move elements of a sequence around
+        distinguish between stable and unstable reordering of a sequence. A stable sort
+        preserves the original relative order of the elements that are equivalent as far
+        as the comparison function is concerned. For example, consider a sequence {
+        c(1), b(1), c(2), a(1), b(2), a(2) }.  These elements are tested for equivalence
+        based on their letters, but their numbers indicate how they first appeared in
+        the sequence. If you sort (for example) this sequence using an unstable sort,
+        there’s no guarantee of any particular order among equivalent letters, so you
+        could end up with { a(2), a(1), b(1), b(2), c(2), c(1) }. However, if you use a
+        stable sort, you will get { a(1), a(2), b(1), b(2), c(1), c(2) }. The STL sort(
+        ) algorithm uses a variation of quicksort and is thus unstable, but a
+        stable_sort( ) is also provided.[94]
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To demonstrate the stability versus instability of algorithms that reorder a
+        sequence, we need some way to keep track of how the elements originally
+        appeared. The following is a kind of string object that keeps track of the order
+        in which that particular object originally appeared, using a static map that
+        maps NStrings to Counters. Each NString then contains an occurrence field that
+        indicates the order in which this NString was discovered.
+        -->
+        <para>
+
+        </para>
+
+//: C06:NString.h
+
+
+        <!--
+        We would normally use a map container to associate a string with its number of
+        occurrences, but maps don’t appear until the next chapter, so we use a vector of
+        pairs instead. You’ll see plenty of similar examples in Chapter 7.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The only operator necessary to perform an ordinary ascending sort is
+        NString::operator<( ). To sort in reverse order, the operator>( ) is also
+        provided so that the greater template can call it.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Filling and generating -->
+      <title> </title>
+
+      <!--
+      These algorithms let you automatically fill a range with a particular value or
+      generate a set of values for a particular range. The “fill” functions insert a
+      single value multiple times into the container. The “generate” functions use
+      generators such as those described earlier to produce values to insert into the
+      container.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void fill(ForwardIterator first, ForwardIterator last,
+      const T& value);
+      void fill_n(OutputIterator first, Size n, const T& value);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      fill( ) assigns value to every element in the range [first, last). fill_n( )
+      assigns value to n elements starting at first.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void generate(ForwardIterator first, ForwardIterator last,
+      Generator gen);
+      void generate_n(OutputIterator first, Size n, Generator
+      gen);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      generate( ) makes a call to gen( ) for each element in the range [first, last),
+      presumably to produce a different value for each element. generate_n( ) calls
+      gen( ) n times and assigns each result to n elements starting at first.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        The following example fills and generates into vectors. It also shows the use of
+        print( ):
+        -->
+        <para>
+
+        </para>
+
+//: C06:FillGenerateTest.cpp
+
+
+        <!--
+        A vector<string> is created with a predefined size. Since storage has already
+        been created for all the string objects in the vector, fill( ) can use its
+        assignment operator to assign a copy of “howdy” to each space in the
+        vector. Also, the default newline separator is replaced with a space.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The second vector<string> v2 is not given an initial size, so back_inserter(
+        ) must be used to force new elements in instead of trying to assign to existing
+        locations.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The generate( ) and generate_n( ) functions have the same form as the “fill”
+        functions except that they use a generator instead of a constant value. Here,
+        both generators are demonstrated.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Counting -->
+      <title> </title>
+
+      <!--
+      All containers have a member function size( ) that tells you how many elements
+      they hold. The return type of size( ) is the iterator’s
+      difference_type[95] (usually ptrdiff_t), which we denote by IntegralValue in the
+      following. The following two algorithms count objects that satisfy certain
+      criteria.
+      -->
+      <para>
+
+      </para>
+
+      <!-- IntegralValue count(InputIterator first, InputIterator last, const EqualityComparable& value); -->
+      <para>
+
+      </para>
+
+      <!--
+      Produces the number of elements in [first, last) that are equivalent to value
+      (when tested using operator==).
+      -->
+      <para>
+
+      </para>
+
+      <!-- IntegralValue count_if(InputIterator first, InputIterator last, Predicate pred); -->
+      <para>
+
+      </para>
+
+      <!--
+      Produces the number of elements in [first, last) that each cause pred to return
+      true.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        Here, a vector<char> v is filled with random characters (including some
+        duplicates). A set<char> is initialized from v , so it holds only one of each
+        letter represented in v. This set counts all the instances of all the
+        characters, which are then displayed:
+        -->
+        <para>
+
+        </para>
+
+//: C06:Counting.cpp
+
+
+        <!--
+        The count_if( ) algorithm is demonstrated by counting all the lowercase letters;
+        the predicate is created using the bind2nd( ) and greater function object
+        templates.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Manipulating sequences -->
+      <title> </title>
+
+      <!-- These algorithms let you move sequences around. -->
+      <para>
+
+      </para>
+
+      <!-- OutputIterator copy(InputIterator first, InputIterator last, OutputIterator destination); -->
+      <para>
+
+      </para>
+
+      <!--
+      Using assignment, copies from [first, last) to destination, incrementing
+      destination after each assignment. This is essentially a “shuffle-left”
+      operation, and so the source sequence must not contain the destination. Because
+      assignment is used, you cannot directly insert elements into an empty container
+      or at the end of a container, but instead you must wrap the destination iterator
+      in an insert_iterator (typically by using back_inserter( ) or by using inserter(
+      ) in the case of an associative container).
+      -->
+      <para>
+
+      </para>
+
+      <!-- BidirectionalIterator2 copy_backward(BidirectionalIterator1 first, BidirectionalIterator1 last, BidirectionalIterator2 destinationEnd); -->
+      <para>
+
+      </para>
+
+      <!--
+      Like copy( ), but copies the elements in reverse order. This is essentially a
+      “shuffle-right” operation, and, like copy( ), the source sequence must not
+      contain the destination. The source range [first, last) is copied to the
+      destination, but the first destination element is destinationEnd - 1. This
+      iterator is then decremented after each assignment. The space in the destination
+      range must already exist (to allow assignment), and the destination range cannot
+      be within the source range.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void reverse(BidirectionalIterator first, BidirectionalIterator last);
+      OutputIterator reverse_copy(BidirectionalIterator first, BidirectionalIterator last, OutputIterator destination);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Both forms of this function reverse the range [first, last). reverse( ) reverses
+      the range in place, and reverse_copy ( ) leaves the original range alone and
+      copies the reversed elements into destination, returning the past-the-end
+      iterator of the resulting range.
+      -->
+      <para>
+
+      </para>
+
+      <!-- ForwardIterator2 swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2); -->
+      <para>
+
+      </para>
+
+      <!--
+      Exchanges the contents of two ranges of equal size by swapping corresponding
+      elements.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void rotate(ForwardIterator first, ForwardIterator middle, ForwardIterator last);
+      OutputIterator rotate_copy(ForwardIterator first, ForwardIterator middle, ForwardIterator last, OutputIterator destination);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Moves the contents of [first, middle) to the end of the sequence, and the
+      contents of [middle, last) to the beginning.  With rotate( ), the swap is
+      performed in place; and with rotate_copy( ) the original range is untouched, and
+      the rotated version is copied into destination, returning the past-the-end
+      iterator of the resulting range. Note that while swap_ranges( ) requires that
+      the two ranges be exactly the same size, the “rotate” functions do not.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      bool next_permutation(BidirectionalIterator first,
+      BidirectionalIterator last);
+      bool next_permutation(BidirectionalIterator first, BidirectionalIterator last, StrictWeakOrdering binary_pred);
+      bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last);
+      bool prev_permutation(BidirectionalIterator first, BidirectionalIterator last, StrictWeakOrdering binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A permutation is one unique ordering of a set of elements. If you have n unique
+      elements, there are n! (n factorial) distinct possible combinations of those
+      elements. All these combinations can be conceptually sorted into a sequence
+      using a lexicographical (dictionary-like) ordering and thus produce a concept of
+      a “next” and “previous” permutation.  So whatever the current ordering of
+      elements in the range, there is a distinct “next” and “previous” permutation in
+      the sequence of permutations.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The next_permutation( ) and prev_permutation( ) functions rearrange the elements
+      into their next or previous permutation and, if successful, return true. If
+      there are no more “next” permutations, the elements are in sorted order so
+      next_permutation( ) returns false. If there are no more “previous” permutations,
+      the elements are in descending sorted order so previous_permutation( ) returns
+      false.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The versions of the functions that have a StrictWeakOrdering argument perform
+      the comparisons using binary_pred instead of operator<.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void random_shuffle(RandomAccessIterator first, RandomAccessIterator last);
+      void random_shuffle(RandomAccessIterator first, RandomAccessIterator last RandomNumberGenerator& rand);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This function randomly rearranges the elements in the range. It yields uniformly
+      distributed results if the random-number generator does. The first form uses an
+      internal random number generator, and the second uses a user-supplied
+      random-number generator. The generator must return a value in the range [0, n)
+      for some positive n.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      BidirectionalIterator partition(BidirectionalIterator first, BidirectionalIterator last, Predicate pred);
+      BidirectionalIterator stable_partition(BidirectionalIterator first, BidirectionalIterator last, Predicate pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The “partition” functions move elements that satisfy pred to the beginning of
+      the sequence. An iterator pointing one past the last of those elements is
+      returned (which is, in effect, an “end” iterator” for the initial subsequence of
+      elements that satisfy pred). This location is often called the “partition
+      point.”
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      With partition( ), the order of the elements in each resulting subsequence after
+      the function call is not specified, but with stable_partition( ), the relative
+      order of the elements before and after the partition point will be the same as
+      before the partitioning process.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!-- This gives a basic demonstration of sequence manipulation: -->
+        <para>
+
+        </para>
+
+//: C06:Manipulations.cpp
+
+
+        <!--
+        The best way to see the results of this program is to run it. (You’ll probably
+        want to redirect the output to a file.)
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The vector<int> v1 is initially loaded with a simple ascending sequence and
+        printed. You’ll see that the effect of copy_backward( ) (which copies into v2,
+        which is the same size as v1) is the same as an ordinary copy. Again,
+        copy_backward( ) does the same thing as copy( )—it just performs the operations
+        in reverse order.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        reverse_copy( ) actually does create a reversed copy, and reverse( ) performs
+        the reversal in place. Next, swap_ranges ( ) swaps the upper half of the
+        reversed sequence with the lower half. The ranges could be smaller subsets of
+        the entire vector, as long as they are of equivalent size.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        After re-creating the ascending sequence, rotate( ) is demonstrated by rotating
+        one third of v1 multiple times. A second rotate( ) example uses characters and
+        just rotates two characters at a time. This also demonstrates the flexibility of
+        both the STL algorithms and the print( ) template, since they can both be used
+        with arrays of char as easily as with anything else.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To demonstrate next_permutation( ) and prev_permutation( ), a set of four
+        characters “abcd” is permuted through all n!  (n factorial) possible
+        combinations. You’ll see from the output that the permutations move through a
+        strictly defined order (that is, permuting is a deterministic process).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        A quick-and-dirty demonstration of random_shuffle( ) is to apply it to a string
+        and see what words result. Because a string object has begin( ) and end( )
+        member functions that return the appropriate iterators, it too can be easily
+        used with many of the STL algorithms. An array of char could also have been
+        used.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Finally, the partition( ) and stable_partition( ) are demonstrated, using an
+        array of NString. You’ll note that the aggregate initialization expression uses
+        char arrays, but NString has a char* constructor that is automatically used.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        You’ll see from the output that with the unstable partition, the objects are
+        correctly above and below the partition point, but in no particular order;
+        whereas with the stable partition, their original order is maintained.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Searching and replacing -->
+      <title> </title>
+
+      <!--
+      All these algorithms are used for searching for one or more objects within a
+      range defined by the first two iterator arguments.
+      -->
+      <para>
+
+      </para>
+
+      <!-- InputIterator find(InputIterator first, InputIterator last, const EqualityComparable& value); -->
+      <para>
+
+      </para>
+
+      <!--
+      Searches for value within a range of elements. Returns an iterator in the range
+      [first, last) that points to the first occurrence of value. If value isn’t in
+      the range, find( ) returns last. This is a linear search; that is, it starts at
+      the beginning and looks at each sequential element without making any
+      assumptions about the way the elements are ordered. In contrast, a
+      binary_search( ) (defined later) works on a sorted sequence and can thus be much
+      faster.
+      -->
+      <para>
+
+      </para>
+
+      <!-- InputIterator find_if(InputIterator first, InputIterator last, Predicate pred); -->
+      <para>
+
+      </para>
+
+      <!--
+      Just like find( ), find_if( ) performs a linear search through the
+      range. However, instead of searching for value, find_if( ) looks for an element
+      such that the Predicate pred returns true when applied to that element. Returns
+      last if no such element can be found.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last);
+      ForwardIterator adjacent_find(ForwardIterator first, ForwardIterator last, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Like find( ), performs a linear search through the range, but instead of looking
+      for only one element, it searches for two adjacent elements that are
+      equivalent. The first form of the function looks for two elements that are
+      equivalent (via operator==). The second form looks for two adjacent elements
+      that, when passed together to binary_pred, produce a true result. An iterator to
+      the first of the two elements is returned if a pair is found; otherwise, last is
+      returned.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator1 find_first_of(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+      ForwardIterator1 find_first_of(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Like find( ), performs a linear search through the range. Both forms search for
+      an element in the second range that’s equivalent to one in the first, the first
+      form using operator==, and the second using the supplied predicate. In the
+      second form, the current element from the first range becomes the first argument
+      to binary_pred, and the element from the second range becomes the second
+      argument.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+      ForwardIterator1 search(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2 BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Checks to see if the second range occurs (in the exact order of the second
+      range) within the first range, and if so returns an iterator pointing to the
+      place in the first range where the second range begins. Returns last1 if no
+      subset can be found. The first form performs its test using operator==, and the
+      second checks to see if each pair of objects being compared causes binary_pred
+      to return true.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator1 find_end(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2);
+      ForwardIterator1 find_end(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2, ForwardIterator2 last2, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The forms and arguments are just like search( ) in that they look for the second
+      range appearing as a subset of the first range, but while search( ) looks for
+      the first occurrence of the subset, find_end( ) looks for the last occurrence
+      and returns an iterator to its first element.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator search_n(ForwardIterator first, ForwardIterator last, Size count, const T& value);
+      ForwardIterator search_n(ForwardIterator first, ForwardIterator last, Size count, const T& value, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Looks for a group of count consecutive values in [first, last) that are all
+      equal to value (in the first form) or that all cause a return value of true when
+      passed into binary_pred along with value (in the second form). Returns last if
+      such a group cannot be found.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator min_element(ForwardIterator first, ForwardIterator last);
+      ForwardIterator min_element(ForwardIterator first, ForwardIterator last, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Returns an iterator pointing to the first occurrence of the “smallest” value in
+      the range (as explained below—there may be multiple occurrences of this value.)
+      Returns last if the range is empty. The first version performs comparisons with
+      operator<, and the value r returned is such that *e < *r is false for every
+      element e in the range [first, r).  The second version compares using
+      binary_pred, and the value r returned is such that binary_pred(*e, *r) is false
+      for every element e in the range [first, r).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator max_element(ForwardIterator first, ForwardIterator last);
+      ForwardIterator max_element(ForwardIterator first, ForwardIterator last, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Returns an iterator pointing to the first occurrence of the largest value in the
+      range. (There may be multiple occurrences of the largest value.) Returns last if
+      the range is empty. The first version performs comparisons with operator<, and
+      the value r returned is such that *r < *e is false for every element e in the
+      range [first, r). The second version compares using binary_pred, and the value r
+      returned is such that binary_pred(*r, *e) is false for every element e in the
+      range [first, r).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void replace(ForwardIterator first, ForwardIterator last, const T& old_value, const T& new_value);
+      void replace_if(ForwardIterator first, ForwardIterator last, Predicate pred, const T& new_value);
+      OutputIterator replace_copy(InputIterator first, InputIterator last, OutputIterator result, const T& old_value, const T& new_value);
+      OutputIterator replace_copy_if(InputIterator first, InputIterator last, OutputIterator result, Predicate pred, const T& new_value);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Each of the “replace” forms moves through the range [first, last), finding
+      values that match a criterion and replacing them with new_value. Both replace( )
+      and replace_copy( ) simply look for old_value to replace; replace_if( ) and
+      replace_copy_if( ) look for values that satisfy the predicate pred. The “copy”
+      versions of the functions do not modify the original range but instead make a
+      copy with the replacements into result (incrementing result after each
+      assignment).
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        To provide easy viewing of the results, this example manipulates vectors of
+        int. Again, not every possible version of each algorithm is shown. (Some that
+        should be obvious have been omitted.)
+        -->
+        <para>
+
+        </para>
+
+//: C06:SearchReplace.cpp
+
+
+        <!--
+        The example begins with two predicates: PlusOne, which is a binary predicate
+        that returns true if the second argument is equivalent to one plus the first
+        argument; and MulMoreThan, which returns true if the first argument times the
+        second argument is greater than a value stored in the object. These binary
+        predicates are used as tests in the example.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        In main( ), an array a is created and fed to the constructor for vector<int>
+        v. This vector is the target for the search and replace activities, and you’ll
+        note that there are duplicate elements—these are discovered by some of the
+        search/replace routines.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The first test demonstrates find( ), discovering the value 4 in v. The return
+        value is the iterator pointing to the first instance of 4, or the end of the
+        input range (v.end( )) if the search value is not found.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The find_if( ) algorithm uses a predicate to determine if it has discovered the
+        correct element. In this example, this predicate is created on the fly using
+        greater<int> (that is, “see if the first int argument is greater than the
+        second”) and bind2nd( ) to fix the second argument to 8. Thus, it returns true
+        if the value in v is greater than 8.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Since two identical objects appear next to each other in a number of cases in v,
+        the test of adjacent_find( ) is designed to find them all. It starts looking
+        from the beginning and then drops into a while loop, making sure that the
+        iterator it has not reached the end of the input sequence (which would mean that
+        no more matches can be found). For each match it finds, the loop prints the
+        matches and then performs the next adjacent_find( ), this time using it + 1 as
+        the first argument (this way, it will still find two pairs in a triple).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        You might look at the while loop and think that you can do it a bit more
+        cleverly, like this:
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        while(it != v.end()) {
+        cout << "adjacent_find: " << *it++
+        it = adjacent_find(it, v.end());
+        }
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        This is exactly what we tried first. However, we did not get the output we
+        expected, on any compiler. This is because there is no guarantee about when the
+        increments occur in this expression.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The next test uses adjacent_find( ) with the PlusOne predicate, which discovers
+        all the places where the next number in the sequence v changes from the previous
+        by one. The same while approach finds all the cases.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The find_first_of( ) algorithm requires a second range of objects for which to
+        hunt; this is provided in the array b.  Because the first range and the second
+        range in find_first_of( ) are controlled by separate template arguments, those
+        ranges can refer to two different types of containers, as seen here. The second
+        form of find_first_of( ) is also tested, using PlusOne.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The search( ) algorithm finds exactly the second range inside the first one,
+        with the elements in the same order. The second form of search( ) uses a
+        predicate, which is typically just something that defines equivalence, but it
+        also presents some interesting possibilities—here, the PlusOne predicate causes
+        the range { 4, 5, 6 } to be found.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The find_end( ) test discovers the last occurrence of the entire sequence { 11,
+        11, 11 }. To show that it has in fact found the last occurrence, the rest of v
+        starting from it is printed.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The first search_n( ) test looks for 3 copies of the value 7, which it finds and
+        prints. When using the second version of search_n( ), the predicate is
+        ordinarily meant to be used to determine equivalence between two elements, but
+        we’ve taken some liberties and used a function object that multiplies the value
+        in the sequence by (in this case) 15 and checks to see if it’s greater than
+        100. That is, the search_n( ) test says “find me 6 consecutive values that, when
+        multiplied by 15, each produce a number greater than 100.” Not exactly what you
+        normally expect to do, but it might give you some ideas the next time you have
+        an odd searching problem.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The min_element( ) and max_element( ) algorithms are straightforward, but they
+        look odd, as if the function is being dereferenced with a ‘*’. Actually, the
+        returned iterator is being dereferenced to produce the value for printing.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To test replacements, replace_copy( ) is used first (so it doesn’t modify the
+        original vector) to replace all values of 8 with the value 47. Notice the use of
+        back_inserter( ) with the empty vector v2. To demonstrate replace_if( ), a
+        function object is created using the standard template greater_equal along with
+        bind2nd to replace all the values that are greater than or equal to 7 with the
+        value -1.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Comparing ranges -->
+      <title> </title>
+
+      <!--
+      These algorithms provide ways to compare two ranges. At first glance, the
+      operations they perform seem similar to the search( ) function. However, search(
+      ) tells you where the second sequence appears within the first, and equal( ) and
+      lexicographical_compare( ) simply tell you how two sequences compare. On the
+      other hand, mismatch( ) does tell you where the two sequences go out of sync,
+      but those sequences must be exactly the same length.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      bool equal(InputIterator first1, InputIterator last1, InputIterator first2);
+      bool equal(InputIterator first1, InputIterator last1, InputIterator first2 BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In both these functions, the first range is the typical one, [first1,
+      last1). The second range starts at first2, but there is no “last2” because its
+      length is determined by the length of the first range. The equal( ) function
+      returns true if both ranges are exactly the same (the same elements in the same
+      order). In the first case, the operator== performs the comparison, and in the
+      second case binary_pred decides if two elements are the same.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2);
+      bool lexicographical_compare(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      These two functions determine if the first range is “lexicographically less”
+      than the second. (They return true if range 1 is less than range 2, and false
+      otherwise.) Lexicographical comparison, or “dictionary” comparison, means that
+      the comparison is done in the same way that we establish the order of strings in
+      a dictionary: one element at a time.  The first elements determine the result if
+      these elements are different, but if they’re equal, the algorithm moves on to
+      the next elements and looks at those, and so on until it finds a mismatch. At
+      that point, it looks at the elements, and if the element from range 1 is less
+      than the element from range two, lexicographical_compare( ) returns true;
+      otherwise, it returns false. If it gets all the way through one range or the
+      other (the ranges may be different lengths for this algorithm) without finding
+      an inequality, range 1 is not less than range 2, so the function returns false.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If the two ranges are different lengths, a missing element in one range acts as
+      one that “precedes” an element that exists in the other range, so “abc” precedes
+      “abcd.” If the algorithm reaches the end of one of the ranges without a
+      mismatch, then the shorter range comes first. In that case, if the shorter range
+      is the first range, the result is true, otherwise it is false.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the first version of the function, operator< performs the comparisons, and in
+      the second version, binary_pred is used.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      pair<InputIterator1, InputIterator2>
+      mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2);
+      pair<InputIterator1, InputIterator2>
+      mismatch(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As in equal( ), the length of both ranges is exactly the same, so only the first
+      iterator in the second range is necessary, and the length of the first range is
+      used as the length of the second range. Whereas equal( ) just tells you whether
+      the two ranges are the same, mismatch( ) tells you where they begin to
+      differ. To accomplish this, you must be told (1) the element in the first range
+      where the mismatch occurred and (2) the element in the second range where the
+      mismatch occurred. These two iterators are packaged together into a pair object
+      and returned. If no mismatch occurs, the return value is last1 combined with the
+      past-the-end iterator of the second range. The pair template class is a struct
+      with two elements denoted by the member names first and second and is defined in
+      the <utility> header.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As in equal( ), the first function tests for equality using operator== while the
+      second one uses binary_pred.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        Because the Standard C++ string class is built like a container (it has begin( )
+        and end( ) member functions that produce objects of type string::iterator), it
+        can be used to conveniently create ranges of characters to test with the STL
+        comparison algorithms. However, note that string has a fairly complete set of
+        native operations, so look at the string class before using the STL algorithms
+        to perform operations.
+        -->
+        <para>
+
+        </para>
+
+//: C06:Comparison.cpp
+
+
+        <!--
+        Note that the only difference between s1 and s2 is the capital ‘T’ in s2’s
+        “Test.” Comparing s1 and s1 for equality yields true, as expected, while s1 and
+        s2 are not equal because of the capital ‘T’.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To understand the output of the lexicographical_compare( ) tests, remember two
+        things: first, the comparison is performed character-by-character, and second,
+        on our platform capital letters “precede” lowercase letters. In the first test,
+        s1 is compared to s1. These are exactly equivalent. One is not lexicographically
+        less than the other (which is what the comparison is looking for), and thus the
+        result is false. The second test is asking “does s1 precede s2?” When the
+        comparison gets to the ‘t’ in “test”, it discovers that the lowercase ‘t’ in s1
+        is “greater” than the uppercase ‘T’ in s2, so the answer is again
+        false. However, if we test to see whether s2 precedes s1, the answer is true.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To further examine lexicographical comparison, the next test in this example
+        compares s1 with s2 again (which returned false before). But this time it
+        repeats the comparison, trimming one character off the end of s1 (which is first
+        copied into s3) each time through the loop until the test evaluates to
+        true. What you’ll see is that, as soon as the uppercase ‘T’ is trimmed off s3
+        (the copy of s1), the characters, which are exactly equal up to that point, no
+        longer count. Because s3 is shorter than s2, it lexicographically precedes s2.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The final test uses mismatch( ). To capture the return value, create the
+        appropriate pair p, constructing the template using the iterator type from the
+        first range and the iterator type from the second range (in this case, both
+        string::iterators). To print the results, the iterator for the mismatch in the
+        first range is p.first, and for the second range is p.second. In both cases, the
+        range is printed from the mismatch iterator to the end of the range so you can
+        see exactly where the iterator points.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Removing elements -->
+      <title> </title>
+
+      <!--
+      Because of the genericity of the STL, the concept of removal is a bit
+      constrained. Since elements can only be “removed” via iterators, and iterators
+      can point to arrays, vectors, lists, and so on, it is not safe or reasonable to
+      try to destroy the elements that are being removed and to change the size of the
+      input range [first, last). (An array, for example, cannot have its size
+      changed.) So instead, what the STL “remove” functions do is rearrange the
+      sequence so that the “removed” elements are at the end of the sequence, and the
+      “un-removed” elements are at the beginning of the sequence (in the same order
+      that they were before, minus the removed elements—that is, this is a stable
+      operation). Then the function will return an iterator to the “new last” element
+      of the sequence, which is the end of the sequence without the removed elements
+      and the beginning of the sequence of the removed elements. In other words, if
+      new_last is the iterator that is returned from the “remove” function, [first,
+      new_last) is the sequence without any of the removed elements, and [new_last,
+      last) is the sequence of removed elements.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you are simply using your sequence, including the removed elements, with more
+      STL algorithms, you can just use new_last as the new past-the-end
+      iterator. However, if you’re using a resizable container c (not an array) and
+      you want to eliminate the removed elements from the container, you can use
+      erase( ) to do so, for example:
+      -->
+      <para>
+
+      </para>
+
+      <!-- c.erase(remove(c.begin(), c.end(), value), c.end()); -->
+      <para>
+
+      </para>
+
+      <!--
+      You can also use the resize( ) member function that belongs to all standard
+      sequences (more on this in the next chapter).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The return value of remove( ) is the new_last iterator, so erase( ) deletes all
+      the removed elements from c.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The iterators in [new_last, last) are dereferenceable, but the element values
+      are unspecified and should not be used.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator remove(ForwardIterator first, ForwardIterator last, const T& value);
+      ForwardIterator remove_if(ForwardIterator first, ForwardIterator last, Predicate pred);
+      OutputIterator remove_copy(InputIterator first, InputIterator last, OutputIterator result, const T& value);
+      OutputIterator remove_copy_if(InputIterator first, InputIterator last, OutputIterator result, Predicate pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Each of the “remove” forms moves through the range [first, last), finding values
+      that match a removal criterion and copying the unremoved elements over the
+      removed elements (thus effectively removing them). The original order of the
+      unremoved elements is maintained. The return value is an iterator pointing past
+      the end of the range that contains none of the removed elements. The values that
+      this iterator points to are unspecified.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The “if” versions pass each element to pred( ) to determine whether it should be
+      removed. (If pred( ) returns true, the element is removed.) The “copy” versions
+      do not modify the original sequence, but instead copy the unremoved values into
+      a range beginning at result and return an iterator indicating the past-the-end
+      value of this new range.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      ForwardIterator unique(ForwardIterator first, ForwardIterator last);
+      ForwardIterator unique(ForwardIterator first, ForwardIterator last, BinaryPredicate binary_pred);
+      OutputIterator unique_copy(InputIterator first, InputIterator last, OutputIterator result);
+      OutputIterator unique_copy(InputIterator first, InputIterator last, OutputIterator result, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Each of the “unique” functions moves through the range [first, last), finding
+      adjacent values that are equivalent (that is, duplicates) and “removing” the
+      duplicate elements by copying over them. The original order of the unremoved
+      elements is maintained. The return value is an iterator pointing past the end of
+      the range that has the adjacent duplicates removed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Because only duplicates that are adjacent are removed, it’s likely that you’ll
+      want to call sort( ) before calling a “unique” algorithm, since that will
+      guarantee that all the duplicates are removed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      For each iterator value i in the input range, the versions containing
+      binary_pred call:
+      -->
+      <para>
+
+      </para>
+
+      <!-- binary_pred(*i, *(i-1)); -->
+      <para>
+
+      </para>
+
+      <!-- and if the result is true, *i is considered a duplicate. -->
+      <para>
+
+      </para>
+
+      <!--
+      The “copy” versions do not modify the original sequence, but instead copy the
+      unremoved values into a range beginning at result and return an iterator
+      indicating the past-the-end value of this new range.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        This example gives a visual demonstration of the way the “remove” and “unique”
+        functions work.
+        -->
+        <para>
+
+        </para>
+
+//: C06:Removing.cpp
+
+
+        <!--
+        The string v is a container of characters filled with randomly generated
+        characters. Each character is used in a remove statement, but the entire string
+        v is displayed each time so you can see what happens to the rest of the range,
+        after the resulting endpoint (which is stored in cit).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To demonstrate remove_if( ), the standard C library function isupper( ) (in
+        is passed as the predicate for remove_if( ). This returns true only if a
+        character is uppercase, so only lowercase characters will remain. Here, the end
+        of the range is used in the call to print( ) so only the remaining elements will
+        appear. The copying versions of remove( ) and remove_if( ) are not shown because
+        they are a simple variation on the noncopying versions, which you should be able
+        to use without an example.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The range of lowercase letters is sorted in preparation for testing the “unique”
+        functions. (The “unique” functions are not undefined if the range isn’t sorted,
+        but it’s probably not what you want.) First, unique_copy( ) puts the unique
+        elements into a new vector using the default element comparison, and then uses
+        the form of unique( ) that takes a predicate. The predicate is the built-in
+        function object equal_to( ), which produces the same results as the default
+        element comparison.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Sorting and operations on sorted ranges -->
+      <title> </title>
+
+      <!--
+      A significant category of STL algorithms must operate on a sorted range. STL
+      provides a number of separate sorting algorithms, depending on whether the sort
+      should be stable, partial, or just regular (non-stable). Oddly enough, only the
+      partial sort has a copying version. If you’re using another sort and you need to
+      work on a copy, you’ll have to make your own copy before sorting.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Once your sequence is sorted, you can perform many operations on that sequence,
+      from simply locating an element or group of elements to merging with another
+      sorted sequence or manipulating sequences as mathematical sets.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Each algorithm involved with sorting or operations on sorted sequences has two
+      versions. The first uses the object’s own operator< to perform the comparison,
+      and the second uses operator( )(a, b) to determine the relative order of a and
+      b. Other than this, there are no differences, so this distinction will not be
+      pointed out in the description of each algorithm.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Sorting -->
+        <title> </title>
+
+        <!--
+        The sort algorithms require ranges delimited by random-access iterators, such as
+        a vector or deque. The list container has its own built-in sort( ) function,
+        since it only supports bi-directional iteration.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        void sort(RandomAccessIterator first, RandomAccessIterator last);
+        void sort(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Sorts [first, last) into ascending order. The first form uses operator< and the
+        second form uses the supplied comparator object to determine the order.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        void stable_sort(RandomAccessIterator first, RandomAccessIterator last);
+        void stable_sort(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Sorts [first, last) into ascending order, preserving the original ordering of
+        equivalent elements. (This is important if elements can be equivalent but not
+        identical.)
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        void partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last);
+        void partial_sort(RandomAccessIterator first, RandomAccessIterator middle, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Sorts the number of elements from [first, last) that can be placed in the range
+        [first, middle). The rest of the elements end up in [middle, last) and have no
+        guaranteed order.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        RandomAccessIterator partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator result_first, RandomAccessIterator result_last);
+        RandomAccessIterator partial_sort_copy(InputIterator first, InputIterator last, RandomAccessIterator result_first, RandomAccessIterator result_last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Sorts the number of elements from [first, last) that can be placed in the range
+        [result_first, result_last) and copies those elements into [result_first,
+        result_last). If the range [first, last) is smaller than [result_first,
+        result_last), the smaller number of elements is used.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        void nth_element(RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last);
+        void nth_element(RandomAccessIterator first, RandomAccessIterator nth, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Just like partial_sort( ), nth_element( ) partially orders a range of
+        elements. However, it’s much “less ordered” than partial_sort( ). The only
+        guarantee from nth_element( ) is that whatever location you choose will become a
+        dividing point. All the elements in the range [first, nth) will pair-wise
+        satisfy the binary predicate (operator< by default, as usual), and all the
+        elements in the range (nth, last] will not. However, neither subrange is in any
+        particular order, unlike partial_sort( ) which has the first range in sorted
+        order.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        If all you need is this very weak ordering (if, for example, you’re determining
+        medians, percentiles, and so on), this algorithm is faster than partial_sort( ).
+        -->
+        <para>
+
+        </para>
+
+        <!-- Locating elements in sorted ranges -->
+        <para>
+
+        </para>
+
+        <!--
+        Once a range is sorted, you can use a group of operations to find elements
+        within those ranges. In the following functions, there are always two forms. One
+        assumes that the intrinsic operator< performs the sort, and the second operator
+        must be used if some other comparison function object performs the sort. You
+        must use the same comparison for locating elements as you do to perform the
+        sort; otherwise, the results are undefined. In addition, if you try to use these
+        functions on unsorted ranges, the results will be undefined.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        bool binary_search(ForwardIterator first, ForwardIterator last, const T& value);
+        bool binary_search(ForwardIterator first, ForwardIterator last, const T& value, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!-- Tells you whether value appears in the sorted range [first, last). -->
+        <para>
+
+        </para>
+
+        <!--
+        ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last, const T& value);
+        ForwardIterator lower_bound(ForwardIterator first, ForwardIterator last, const T& value, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Returns an iterator indicating the first occurrence of value in the sorted range
+        [first, last). If value is not present, an iterator to where it would fit in the
+        sequence is returned.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last, const T& value);
+        ForwardIterator upper_bound(ForwardIterator first, ForwardIterator last, const T& value, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Returns an iterator indicating one past the last occurrence of value in the
+        sorted range [first, last). If value is not present, an iterator to where it
+        would fit in the sequence is returned.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        pair<ForwardIterator, ForwardIterator> equal_range(ForwardIterator first, ForwardIterator last, const T& value);
+        pair<ForwardIterator, ForwardIterator> equal_range(ForwardIterator first, ForwardIterator last, const T& value, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Essentially combines lower_bound( ) and upper_bound( ) to return a pair
+        indicating the first and one-past-the-last occurrences of value in the sorted
+        range [first, last). Both iterators indicate the location where value would fit
+        if it is not found.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        You may find it surprising that the binary search algorithms take a forward
+        iterator instead of a random access iterator. (Most explanations of binary
+        search use indexing.) Remember that a random access iterator “is-a” forward
+        iterator, and can be used wherever the latter is specified. If the iterator
+        passed to one of these algorithms in fact supports random access, then the
+        efficient logarithmic-time procedure is used, otherwise a linear search is
+        performed.  [96]
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        The following example turns each input word into an NString and adds it to a
+        vector<NString>. The vector is then used to demonstrate the various sorting and
+        searching algorithms.
+        -->
+        <para>
+
+        </para>
+
+//: C06:SortedSearchTest.cpp
+
+
+        <!--
+        This example uses the NString class seen earlier, which stores an occurrence
+        number with copies of a string. The call to stable_sort( ) shows how the
+        original order for objects with equal strings is preserved. You can also see
+        what happens during a partial sort (the remaining unsorted elements are in no
+        particular order). There is no “partial stable sort.”
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Notice in the call to nth_element( ) that, whatever the nth element turns out to
+        be (which will vary from one run to another because of URandGen), the elements
+        before that are less, and after that are greater, but the elements have no
+        particular order other than that. Because of URandGen, there are no duplicates,
+        but if you use a generator that allows duplicates, you’ll see that the elements
+        before the nth element will be less than or equal to the nth element.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        This example also illustrates all three binary search algorithms. As advertised,
+        lower_bound( ) refers to the first element in the sequence equal to a given key,
+        upper_bound( ) points one past the last, and equal_range( ) returns both results
+        as a pair.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+      <sect3>
+        <!-- Merging sorted ranges -->
+        <title> </title>
+
+        <!--
+        As before, the first form of each function assumes that the intrinsic operator<
+        performs the sort. The second form must be used if some other comparison
+        function object performs the sort. You must use the same comparison for locating
+        elements as you do to perform the sort; otherwise, the results are undefined. In
+        addition, if you try to use these functions on unsorted ranges, the results will
+        be undefined.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        OutputIterator merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+        OutputIterator merge(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Copies elements from [first1, last1) and [first2, last2) into result, such that
+        the resulting range is sorted in ascending order. This is a stable operation.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        void inplace_merge(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last);
+        void inplace_merge(BidirectionalIterator first, BidirectionalIterator middle, BidirectionalIterator last, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        This assumes that [first, middle) and [middle, last) are each sorted ranges in
+        the same sequence. The two ranges are merged so that the resulting range [first,
+        last) contains the combined ranges in sorted order.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        It’s easier to see what goes on with merging if ints are used. The following
+        example also emphasizes how the algorithms (and our own print template) work
+        with arrays as well as containers:
+        -->
+        <para>
+
+        </para>
+
+//: C06:MergeTest.cpp
+
+
+        <!--
+        In main( ), instead of creating two separate arrays, both ranges are created end
+        to end in the array a. (This will come in handy for the inplace_merge.) The
+        first call to merge( ) places the result in a different array, b. For
+        comparison, set_union( ) is also called, which has the same signature and
+        similar behavior, except that it removes duplicates from the second
+        set. Finally, inplace_merge( ) combines both parts of a.
+        -->
+        <para>
+
+        </para>
+
+        <!-- Set operations on sorted ranges -->
+        <para>
+
+        </para>
+
+        <!-- Once ranges have been sorted, you can perform mathematical set operations on them. -->
+        <para>
+
+        </para>
+
+        <!--
+        bool includes(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2);
+        bool includes(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Returns true if [first2, last2) is a subset of [first1, last1). Neither range is
+        required to hold only unique elements, but if [first2, last2) holds n elements
+        of a particular value, [first1, last1) must also hold at least n elements if the
+        result is to be true.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        OutputIterator set_union(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+        OutputIterator set_union(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Creates the mathematical union of two sorted ranges in the result range,
+        returning the end of the output range.  Neither input range is required to hold
+        only unique elements, but if a particular value appears multiple times in both
+        input sets, the resulting set will contain the larger number of identical
+        values.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        OutputIterator set_intersection(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+        OutputIterator set_intersection(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Produces, in result, the intersection of the two input sets, returning the end
+        of the output range—that is, the set of values that appear in both input
+        sets. Neither input range is required to hold only unique elements, but if a
+        particular value appears multiple times in both input sets, the resulting set
+        will contain the smaller number of identical values.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        OutputIterator set_difference(InputIterator1 first1,
+        InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+        OutputIterator set_difference(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Produces, in result, the mathematical set difference, returning the end of the
+        output range. All the elements that are in [first1, last1) but not in [first2,
+        last2) are placed in the result set. Neither input range is required to hold
+        only unique elements, but if a particular value appears multiple times in both
+        input sets (n times in set 1 and m times in set 2), the resulting set will
+        contain max(n-m, 0) copies of that value.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        OutputIterator set_symmetric_difference(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result);
+        OutputIterator set_symmetric_difference(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, InputIterator2 last2, OutputIterator result, StrictWeakOrdering binary_pred);
+        -->
+        <para>
+
+        </para>
+
+        <!-- Constructs, in result, the set containing: -->
+        <para>
+
+        </para>
+
+        <!-- 1.      All the elements in set 1 that are not in set 2. -->
+        <para>
+
+        </para>
+
+        <!-- 2.      All the elements in set 2 that are not in set 1. -->
+        <para>
+
+        </para>
+
+        <!--
+        Neither input range is required to hold only unique elements, but if a
+        particular value appears multiple times in both input sets (n times in set 1 and
+        m times in set 2), the resulting set will contain abs(n-m) copies of that value,
+        where abs( ) is the absolute value. The return value is the end of the output
+        range.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        It’s easiest to see the set operations demonstrated using simple vectors of
+        characters. These characters are randomly generated and then sorted, but the
+        duplicates are retained so that you can see what the set operations do when
+        there are duplicates.
+        -->
+        <para>
+
+        </para>
+
+//: C06:SetOperations.cpp
+
+
+        <!--
+        After v and v2 are generated, sorted, and printed, the includes( ) algorithm is
+        tested by seeing if the entire range of v contains the last half of v. It does,
+        so the result should always be true. The array v3 holds the output of set_union(
+        ), set_intersection( ), set_difference( ), and set_symmetric_difference( ), and
+        the results of each are displayed so you can ponder them and convince yourself
+        that the algorithms work as promised.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Heap operations -->
+      <title> </title>
+
+      <!--
+      A heap is an array-like data structure used to implement a “priority queue,”
+      which is just a range that is organized in a way that accommodates retrieving
+      elements by priority according to some comparison function. The heap operations
+      in the standard library allow a sequence to be treated as a “heap” data
+      structure, which always efficiently returns the element of highest priority,
+      without fully ordering the entire sequence.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As with the “sort” operations, there are two versions of each function. The
+      first uses the object’s own operator< to perform the comparison; the second uses
+      an additional StrictWeakOrdering object’s operator( )(a, b) to compare two
+      objects for a < b.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void make_heap(RandomAccessIterator first, RandomAccessIterator last);
+      void make_heap(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!-- Turns an arbitrary range into a heap. -->
+      <para>
+
+      </para>
+
+      <!--
+      void push_heap(RandomAccessIterator first, RandomAccessIterator last);
+      void push_heap(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Adds the element *(last-1) to the heap determined by the range [first,
+      last-1). In other words, it places the last element in its proper location in
+      the heap.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void pop_heap(RandomAccessIterator first, RandomAccessIterator last);
+      void pop_heap(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Places the largest element (which is actually in *first, before the operation,
+      because of the way heaps are defined) into the position *(last-1) and
+      reorganizes the remaining range so that it’s still in heap order. If you simply
+      grabbed *first, the next element would not be the next-largest element; so you
+      must use pop_heap( ) if you want to maintain the heap in its proper
+      priority-queue order.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      void sort_heap(RandomAccessIterator first, RandomAccessIterator last);
+      void sort_heap(RandomAccessIterator first, RandomAccessIterator last, StrictWeakOrdering binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This could be thought of as the complement to make_heap( ). It takes a range
+      that is in heap order and turns it into ordinary sorted order, so it is no
+      longer a heap. That means that if you call sort_heap( ), you can no longer use
+      push_heap( ) or pop_heap( ) on that range. (Rather, you can use those functions,
+      but they won’t do anything sensible.)  This is not a stable sort.
+      -->
+      <para>
+
+      </para>
+
+    </sect2>
+    <sect2>
+      <!-- Applying an operation to each element in a range -->
+      <title> </title>
+
+      <!--
+      These algorithms move through the entire range and perform an operation on each
+      element. They differ in what they do with the results of that operation:
+      for_each( ) discards the return value of the operation, and transform( ) places
+      the results of each operation into a destination sequence (which can be the
+      original sequence).
+      -->
+      <para>
+
+      </para>
+
+      <!-- UnaryFunction for_each(InputIterator first, InputIterator last, UnaryFunction f); -->
+      <para>
+
+      </para>
+
+      <!--
+      Applies the function object f to each element in [first, last), discarding the
+      return value from each individual application of f. If f is just a function
+      pointer, you are typically not interested in the return value; but if f is an
+      object that maintains some internal state, it can capture the combined return
+      value of being applied to the range.  The final return value of for_each( ) is
+      f.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      OutputIterator transform(InputIterator first, InputIterator last, OutputIterator result, UnaryFunction f);
+      OutputIterator transform(InputIterator1 first, InputIterator1 last, InputIterator2 first2, OutputIterator result, BinaryFunction f);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Like for_each( ), transform( ) applies a function object f to each element in
+      the range [first, last). However, instead of discarding the result of each
+      function call, transform( ) copies the result (using operator=) into *result,
+      incrementing result after each copy. (The sequence pointed to by result must
+      have enough storage; otherwise, use an inserter to force insertions instead of
+      assignments.)
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The first form of transform( ) simply calls f(*first), where first ranges
+      through the input sequence. Similarly, the second form calls f(*first1,
+      *first2). (Note that the length of the second input range is determined by the
+      length of the first.) The return value in both cases is the past-the-end
+      iterator for the resulting output range.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Examples -->
+        <title> </title>
+
+        <!--
+        Since much of what you do with objects in a container is to apply an operation
+        to all those objects, these are fairly important algorithms and merit several
+        illustrations.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        First, consider for_each( ). This sweeps through the range, pulling out each
+        element and passing it as an argument as it calls whatever function object it’s
+        been given. Thus, for_each( ) performs operations that you might normally write
+        out by hand. If you look in your compiler’s header file at the template defining
+        for_each( ), you’ll see something like this:
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        template<class InputIterator, class Function>
+        Function for_each(InputIterator first, InputIterator last,
+        Function f) {
+        while(first != last)
+        f(*first++);
+        return f;
+        }
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The following example shows several ways this template can be expanded. First,
+        we need a class that keeps track of its objects so we can know that it’s being
+        properly destroyed:
+        -->
+        <para>
+
+        </para>
+
+//: C06:Counted.h
+
+
+        <!--
+        The class Counted keeps a static count of the number of Counted objects that
+        have been created, and notifies you as they are destroyed.[97] In addition, each
+        Counted keeps a char* identifier to make tracking the output easier.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The CountedVector is derived from vector<Counted*>, and in the constructor it
+        creates some Counted objects, handing each one your desired char*. The
+        CountedVector makes testing quite simple, as you can see here:
+        -->
+        <para>
+
+        </para>
+
+//: C06:ForEach.cpp {-mwcc}
+
+
+        <!--
+        Since this is obviously something you might want to do a lot, why not create an
+        algorithm to delete all the pointers in a container? You could use transform(
+        ). The value of transform( ) over for_each( ) is that transform( ) assigns the
+        result of calling the function object into a resulting range, which can actually
+        be the input range. That case means a literal transformation for the input
+        range, since each element would be a modification of its previous value.  In
+        this example, this approach would be especially useful since it’s more
+        appropriate to assign to each pointer the safe value of zero after calling
+        delete for that pointer. Transform( ) can easily do this:
+        -->
+        <para>
+
+        </para>
+
+//: C06:Transform.cpp {-mwcc}
+
+
+        <!--
+        This shows both approaches: using a template function or a templatized function
+        object. After the call to transform( ) , the vector contains five null pointers,
+        which is safer since any duplicate deletes will have no effect.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        One thing you cannot do is delete every pointer in a collection without wrapping
+        the call to delete inside a function or an object. That is, you do the
+        following:
+        -->
+        <para>
+
+        </para>
+
+        <!-- for_each(a.begin(), a.end(), ptr_fun(operator delete)); -->
+        <para>
+
+        </para>
+
+        <!--
+        This has the same problem as the call to destroy( ) did earlier: operator
+        delete( ) takes a void*, but iterators aren’t pointers. Even if you could make
+        it compile, what you’d get is a sequence of calls to the function that releases
+        the storage. You will not get the effect of calling delete for each pointer in
+        a, however—the destructor will not be called. This is typically not what you
+        want, so you will need to wrap your calls to delete.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        In the previous example of for_each( ), the return value of the algorithm was
+        ignored. This return value is the function that is passed into for_each( ). If
+        the function is just a pointer to a function, the return value is not very
+        useful, but if it is a function object, that function object may have internal
+        member data that it uses to accumulate information about all the objects that it
+        sees during for_each( ).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        For example, consider a simple model of inventory. Each Inventory object has the
+        type of product it represents (here, single characters will be used for product
+        names), the quantity of that product, and the price of each item:
+        -->
+        <para>
+
+        </para>
+
+//: C06:Inventory.h
+
+
+        <!--
+        Member functions get the item name and get and set quantity and value. An
+        operator<< prints the Inventory object to an ostream. A generator creates
+        objects that have sequentially labeled items and random quantities and values.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To find out the total number of items and total value, you can create a function
+        object to use with for_each( ) that has data members to hold the totals:
+        -->
+        <para>
+
+        </para>
+
+//: C06:CalcInventory.cpp
+
+
+        <!--
+        InvAccum’s operator( ) takes a single argument, as required by for_each( ). As
+        for_each( ) moves through its range, it takes each object in that range and
+        passes it to InvAccum::operator( ), which performs calculations and saves the
+        result. At the end of this process, for_each( ) returns the InvAccum object,
+        which is printed.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        You can do most things to the Inventory objects using for_each( ). For example,
+        for_each( ) can handily increase all the prices by 10%. But you’ll notice that
+        the Inventory objects have no way to change the item value. The programmers who
+        designed Inventory thought this was a good idea. After all, why would you want
+        to change the name of an item? But marketing has decided that they want a “new,
+        improved” look by changing all the item names to uppercase. They’ve done studies
+        and determined that the new names will boost sales (well, marketing needs to
+        have something to do…). So for_each( ) will not work here, but transform( )
+        will:
+        -->
+        <para>
+
+        </para>
+
+//: C06:TransformNames.cpp
+
+
+        <!--
+        Notice that the resulting range is the same as the input range; that is, the
+        transformation is performed in place.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Now suppose that the sales department needs to generate special price lists with
+        different discounts for each item.  The original list must stay the same, and
+        any number of special lists need to be generated. Sales will give you a separate
+        list of discounts for each new list. To solve this problem, we can use the
+        second version of transform( ):
+        -->
+        <para>
+
+        </para>
+
+//: C06:SpecialList.cpp
+
+
+        <!--
+        Given an Inventory object and a discount percentage, the Discounter function
+        object produces a new Inventory with the discounted price. The DiscGen function
+        object just generates random discount values between 1% and 10% to use for
+        testing. In main( ), two vectors are created, one for Inventory and one for
+        discounts. These are passed to transform ( ) along with a Discounter object, and
+        transform( ) fills a new vector<Inventory> called discounted.
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- Numeric algorithms -->
+      <title> </title>
+
+      <!--
+      These algorithms are all tucked into the header <numeric>, since they are
+      primarily useful for performing numeric calculations.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      T accumulate(InputIterator first, InputIterator last, T result);
+      T accumulate(InputIterator first, InputIterator last, T result, BinaryFunction f);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The first form is a generalized summation; for each element pointed to by an
+      iterator i in [first, last), it performs the operation result = result + *i,
+      where result is of type T. However, the second form is more general; it applies
+      the function f(result, *i) on each element *i in the range from beginning to
+      end.
+      -->
+      <para>
+
+      </para>
+
+      <!-- Note the similarity between the second form of transform( ) and the second form of accumulate( ). -->
+      <para>
+
+      </para>
+
+      <!--
+      T inner_product(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init);
+      T inner_product(InputIterator1 first1, InputIterator1 last1, InputIterator2 first2, T init, BinaryFunction1 op1, BinaryFunction2 op2);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Calculates a generalized inner product of the two ranges [first1, last1) and
+      [first2, first2 + (last1 - first1)). The return value is produced by multiplying
+      the element from the first sequence by the “parallel” element in the second
+      sequence and then adding it to the sum. Thus, if you have two sequences {1, 1,
+      2, 2} and {1, 2, 3, 4}, the inner product becomes
+      -->
+      <para>
+
+      </para>
+
+      <!-- (1*1) + (1*2) + (2*3) + (2*4) -->
+      <para>
+
+      </para>
+
+      <!--
+      which is 17. The init argument is the initial value for the inner product—this
+      is probably zero but may be anything and is especially important for an empty
+      first sequence, because then it becomes the default return value. The second
+      sequence must have at least as many elements as the first.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The second form simply applies a pair of functions to its sequence. The op1
+      function is used in place of addition and op2 is used instead of
+      multiplication. Thus, if you applied the second version of inner_product( ) to
+      the sequence, the result would be the following operations:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      init = op1(init, op2(1,1));
+      init = op1(init, op2(1,2));
+      init = op1(init, op2(2,3));
+      init = op1(init, op2(2,4));
+      -->
+      <para>
+
+      </para>
+
+      <!-- Thus, it’s similar to transform( ), but two operations are performed instead of one. -->
+      <para>
+
+      </para>
+
+      <!--
+      OutputIterator partial_sum(InputIterator first, InputIterator last, OutputIterator result);
+      OutputIterator partial_sum(InputIterator first, InputIterator last, OutputIterator result, BinaryFunction op);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Calculates a generalized partial sum. A new sequence is created, beginning at
+      result. Each element is the sum of all the elements up to the currently selected
+      element in [first, last). For example, if the original sequence is {1, 1, 2, 2,
+      3}, the generated sequence is {1, 1 + 1, 1 + 1 + 2, 1 + 1 + 2 + 2, 1 + 1 + 2 + 2
+      + 3}, that is, {1, 2, 4, 6, 9}.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the second version, the binary function op is used instead of the + operator
+      to take all the “summation” up to that point and combine it with the new
+      value. For example, if you use multiplies<int>( ) as the object for the
+      sequence, the output is {1, 1, 2, 4, 12}. Note that the first output value is
+      always the same as the first input value.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The return value is the end of the output range [result, result + (last - first) ). -->
+      <para>
+
+      </para>
+
+      <!--
+      OutputIterator adjacent_difference(InputIterator first, InputIterator last, OutputIterator result);
+      OutputIterator adjacent_difference(InputIterator first, InputIterator last, OutputIterator result, BinaryFunction op);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Calculates the differences of adjacent elements throughout the range [first,
+      last). This means that in the new sequence, the value is the value of the
+      difference of the current element and the previous element in the original
+      sequence (the first value is unchanged). For example, if the original sequence
+      is {1, 1, 2, 2, 3}, the resulting sequence is {1, 1 – 1, 2 – 1, 2 – 2, 3 – 2},
+      that is: {1, 0, 1, 0, 1}.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The second form uses the binary function op instead of the ‘–’ operator to
+      perform the “differencing.” For example, if you use multiplies<int>( ) as the
+      function object for the sequence, the output is {1, 1, 2, 4, 6}.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The return value is the end of the output range [result, result + (last - first) ). -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- Example -->
+        <title> </title>
+
+        <!--
+        This program tests all the algorithms in <numeric> in both forms, on integer
+        arrays. You’ll notice that in the test of the form where you supply the function
+        or functions, the function objects used are the ones that produce the same
+        result as form one, so the results will be exactly the same. This should also
+        demonstrate a bit more clearly the operations that are going on and how to
+        substitute your own operations.
+        -->
+        <para>
+
+        </para>
+
+//: C06:NumericTest.cpp
+
+
+        <!--
+        Note that the return value of inner_product( ) and partial_sum( ) is the
+        past-the-end iterator for the resulting sequence, so it is used as the second
+        iterator in the print( ) function.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Since the second form of each function allows you to provide your own function
+        object, only the first form of the function is purely “numeric.” You could
+        conceivably do things that are not intuitively numeric with inner_product( ).
+        -->
+        <para>
+
+        </para>
+
+      </sect3>
+    </sect2>
+    <sect2>
+      <!-- General utilities -->
+      <title> </title>
+
+      <!--
+      Finally, here are some basic tools that are used with the other algorithms; you
+      may or may not use them directly yourself.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      (Templates in the <utility> header)
+      template<class T1, class T2> struct pair;
+      template<class T1, class T2> pair<T1, T2> make_pair(const T1&, const T2&);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      These were described and used earlier in this chapter. A pair is simply a way to
+      package two objects (which may be of different types) into a single object. This
+      is typically used when you need to return more than one object from a function,
+      but it can also be used to create a container that holds pair objects or to pass
+      more than one object as a single argument. You access the elements by saying
+      p.first and p.second, where p is the pair object. The function equal_range( ),
+      described in this chapter, returns its result as a pair of iterators, for
+      example. You can insert( ) a pair directly into a map or multimap; a pair is the
+      value_type for those containers.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you want to create a pair “on the fly,” you typically use the template
+      function make_pair( ) rather than explicitly constructing a pair
+      object. make_pair( ) deduces the types of the arguments it receives, relieving
+      you of the typing as well as increasing robustness.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      (From <iterator>)
+      difference_type distance(InputIterator first, InputIterator last);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Tells you the number of elements between first and last. More precisely, it
+      returns an integral value that tells you the number of times first must be
+      incremented before it is equal to last. No dereferencing of the iterators occurs
+      during this process.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      (From <iterator>) Moves the iterator i forward by the value of n. (It can also
+      be moved backward for negative values of n if the iterator is bidirectional.)
+      This algorithm is aware of the different types of iterators and will use the
+      most efficient approach. For example, random iterators can be incremented
+      directly using ordinary arithmetic (i+=n), whereas a bidirectional iterator must
+      be incremented n times.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      (From <iterator>)
+      back_insert_iterator<Container> back_inserter(Container& x);
+      front_insert_iterator<Container> front_inserter(Container& x);
+      insert_iterator<Container> inserter(Container& x, Iterator i);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      These functions are used to create iterators for the given containers that will
+      insert elements into the container, rather than overwrite the existing elements
+      in the container using operator= (which is the default behavior). Each type of
+      iterator uses a different operation for insertion: back_insert_iterator uses
+      push_back( ), front_insert_iterator uses push_front( ), and insert_iterator uses
+      insert( ) (and thus it can be used with the associative containers, while the
+      other two can be used with sequence containers). These will be shown in some
+      detail in the next chapter.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      const LessThanComparable& min(const LessThanComparable& a, const LessThanComparable& b);
+      const T& min(const T& a, const T& b, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Returns the lesser of its two arguments, or returns the first argument if the
+      two are equivalent. The first version performs comparisons using operator<, and
+      the second passes both arguments to binary_pred to perform the comparison.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      const LessThanComparable& max(const LessThanComparable& a, const LessThanComparable& b);
+      const T& max(const T& a, const T& b, BinaryPredicate binary_pred);
+      -->
+      <para>
+
+      </para>
+
+      <!-- Exactly like min( ), but returns the greater of its two arguments. -->
+      <para>
+
+      </para>
+
+      <!--
+      void swap(Assignable& a, Assignable& b);
+      void iter_swap(ForwardIterator1 a, ForwardIterator2 b);
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Exchanges the values of a and b using assignment. Note that all container
+      classes use specialized versions of swap( ) that are typically more efficient
+      than this general version.
+      -->
+      <para>
+
+      </para>
+
+      <!-- The iter_swap( ) function swaps the values that its two arguments reference. -->
+      <para>
+
+      </para>
+
+    </sect2>
+  </sect1>
+  <sect1>
+    <!-- Creating your own STL–style algorithms -->
+    <title> </title>
+
+    <!--
+    Once you become comfortable with the style of STL algorithms, you can begin to
+    create your own generic algorithms.  Because these will conform to the
+    conventions of all the other algorithms in the STL, they’re easy to use for
+    programmers who are familiar with the STL, and thus they become a way to “extend
+    the STL vocabulary.”
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The easiest way to approach the problem is to go to the <algorithm> header file,
+    find something similar to what you need, and pattern your code after
+    that.[98] (Virtually all STL implementations provide the code for the templates
+    directly in the header files.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    If you take a close look at the list of algorithms in the Standard C++ library,
+    you might notice a glaring omission:  there is no copy_if( ) algorithm. Although
+    it’s true that you can accomplish the same effect with remove_copy_if( ), this
+    is not quite as convenient because you have to invert the condition. (Remember,
+    remove_copy_if( ) only copies those elements that don’t match its predicate, in
+    effect removing those that do.) You might be tempted to write a function object
+    adaptor that negates its predicate before passing it to remove_copy_if( ), by
+    including a statement something like this:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    // Assumes pred is the incoming condition
+    replace_copy_if(begin, end, not1(pred));
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    This seems reasonable, but when you remember that you want to be able to use
+    predicates that are pointers to raw functions, you see why this won’t work—not1
+    expects an adaptable function object. The only solution is to write a copy_if( )
+    algorithm from scratch. Since you know from inspecting the other copy algorithms
+    that conceptually you need separate iterators for input and output, the
+    following example will do the job:
+    -->
+    <para>
+
+    </para>
+
+//: C06:copy_if.h
+
+
+    <!-- Notice that the increment of begin cannot be integrated into the copy expression. -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- Summary -->
+    <title> </title>
+
+    <!--
+    The goal of this chapter is to give you a practical understanding of the
+    algorithms in the Standard Template Library.  That is, to make you aware of and
+    comfortable enough with the STL that you begin to use it on a regular basis (or,
+    at least, to think of using it so you can come back here and hunt for the
+    appropriate solution). The STL is powerful not only because it’s a reasonably
+    complete library of tools, but also because it provides a vocabulary for
+    thinking about problem solutions and it is a framework for creating additional
+    tools.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although this chapter did show some examples of creating your own tools, we did
+    not go into the full depth of the theory of the STL necessary to completely
+    understand all the STL nooks and crannies. Such understanding will allow you to
+    create tools more sophisticated than those shown here. This omission was in part
+    because of space limitations, but mostly because it is beyond the charter of
+    this book—our goal here is to give you practical understanding that will improve
+    your day-to-day programming skills.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A number of books are dedicated solely to the STL (these are listed in the
+    appendices), but we especially recommend Scott Meyers’ Effective STL (Addison
+    Wesley, 2002).
+    -->
+    <para>
+
+    </para>
+
+  </sect1>
+  <sect1>
+    <!-- Exercises -->
+    <title> </title>
+
+    <!--
+    Solutions to selected exercises can be found in the electronic document The
+    Thinking in C++ Volume 2 Annotated Solution Guide, available for a small fee
+    from www.MindView.net.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1.  Create a generator that returns the current value of clock( ) (in
+    generate_n( ). Remove any duplicates in the list and print it to cout using
+    copy( ).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2.  Using transform( ) and toupper( ) (in <cctype>), write a single function
+    call that will convert a string to all uppercase letters.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3.  Create a Sum function object template that will accumulate all the values in
+    a range when used with for_each ( ).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4.  Write an anagram generator that takes a word as a command-line argument and
+    produces all possible permutations of the letters.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    5.  Write a “sentence anagram generator” that takes a sentence as a command-line
+    argument and produces all possible permutations of the words in the
+    sentence. (It leaves the words alone and just moves them around.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    6.  Create a class hierarchy with a base class B and a derived class D. Put a
+    virtual member function void f( ) in B such that it will print a message
+    indicating that B’s f( ) was called, and redefine this function for D to print a
+    different message. Create a vector<B*>, and fill it with B and D objects. Use
+    for_each( ) to call f( ) for each of the objects in your vector.
+    -->
+    <para>
+
+    </para>
+
+    <!-- 7.  Modify FunctionObjects.cpp so that it uses float instead of int. -->
+    <para>
+
+    </para>
+
+    <!--
+    8.  Modify FunctionObjects.cpp so that it templatizes the main body of tests so
+    you can choose which type you’re going to test. (You’ll have to pull most of
+    main( ) out into a separate template function.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    9.  Write a program that takes an integer as a command line argument and finds
+    all of its factors.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    10.  Write a program that takes as a command-line argument the name of a text
+    file. Open this file and read it a word at a time (hint: use >>). Store each
+    word into a vector<string>. Force all the words to lowercase, sort them, remove
+    all the duplicates, and print the results.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    11.  Write a program that finds all the words that are in common between two
+    input files, using set_intersection( ).  Change it to show the words that are
+    not in common, using set_symmetric_difference( ).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    12.  Create a program that, given an integer on the command line, creates a
+    “factorial table” of all the factorials up to and including the number on the
+    command line. To do this, write a generator to fill a vector<int>, and then use
+    partial_sum( ) with a standard function object.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    13.  Modify CalcInventory.cpp so that it will find all the objects that have a
+    quantity that’s less than a certain amount. Provide this amount as a
+    command-line argument, and use copy_if( ) and bind2nd( ) to create the
+    collection of values less than the target value.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    14.  Use UrandGen( ) to generate 100 numbers. (The size of the numbers does not
+    matter.) Find which numbers in your range are congruent mod 23 (meaning they
+    have the same remainder when divided by 23). Manually pick a random number
+    yourself, and determine whether that number is in your range by dividing each
+    number in the list by your number and checking if the result is 1 instead of
+    just using find( ) with your value.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    15.  Fill a vector<double> with numbers representing angles in radians. Using
+    function object composition, take the sine of all the elements in your vector
+    (see <cmath>).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    16.  Test the speed of your computer. Call srand(time(0)), then make an array of
+    random numbers. Call srand(time(0)) again and generate the same number of random
+    numbers in a second array. Use equal( ) to see if the arrays are the same. (If
+    your computer is fast enough, time(0) will return the same value both times it
+    is called.) If the arrays are not the same, sort them and use mismatch( ) to see
+    where they differ. If they are the same, increase the length of your array and
+    try again.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    17.  Create an STL-style algorithm transform_if( ) following the first form of
+    transform( ) that performs transformations only on objects that satisfy a unary
+    predicate. Objects that don’t satisfy the predicate are omitted from the
+    result. It needs to return a new “end” iterator.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    18.  Create an STL-style algorithm that is an overloaded version of for_each( )
+    which follows the second form of transform( ) and takes two input ranges so it
+    can pass the objects of the second input range a to a binary function that it
+    applies to each object of the first range.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    19.  Create a Matrix class template that is made from a vector<vector<T>
+    >. Provide it with a friend ostream& operator<<(ostream&, const Matrix&) to
+    display the matrix. Create the following binary operations using the STL
+    function objects where possible: operator+(const Matrix&, const Matrix&) for
+    matrix addition, operator*(const Matrix&, const vector<int>&) for multiplying a
+    matrix by a vector, and operator*(const Matrix&, const Matrix&) for matrix
+    multiplication. (You might need to look up the mathematical meanings of the
+    matrix operations if you don’t remember them.) Test your Matrix class template
+    using int and float.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    20.  Using the characters "~`!@#$%^&*( )_-+=}{[]|\:;"'<.>,?/", generate a
+    codebook using an input file given on the command line as a dictionary of
+    words. Don’t worry about stripping off the non-alphabetic characters nor worry
+    about case of the words in the dictionary file. Map each permutation of the
+    character string to a word such as the following:
+    "=')/%[}]|{*@?!"`,;>&^-~_:$+.#(<\"   apple "|]\~>#.+%(/-_[`':;=}{*"$^!&?),@<"
+    carrot "@=~['].\/<-`>#*)^%+,";&?!_{:|$}("   Carrot etc.  Make sure that no
+    duplicate codes or words exist in your code book. Use lexicographical_compare( )
+    to perform a sort on the codes. Use your code book to encode the dictionary
+    file. Decode your encoding of the dictionary file, and make sure you get the
+    same contents back.
+    -->
+    <para>
+
+    </para>
+
+    <!-- 21.  Using the following names: -->
+    <para>
+
+    </para>
+
+    <!-- Jon Brittle -->
+    <para>
+
+    </para>
+
+    <!-- Jane Brittle -->
+    <para>
+
+    </para>
+
+    <!-- Mike Brittle -->
+    <para>
+
+    </para>
+
+    <!-- Sharon Brittle -->
+    <para>
+
+    </para>
+
+    <!-- George Jensen -->
+    <para>
+
+    </para>
+
+    <!-- Evelyn Jensen -->
+    <para>
+
+    </para>
+
+    <!-- Find all the possible ways to arrange them for a wedding picture. -->
+    <para>
+
+    </para>
+
+    <!--
+    22.  After being separated for one picture, the bride and groom decided they
+    wanted to be together for all of them. Find all the possible ways to arrange the
+    people for the picture if the bride and groom (Jon Brittle and Jane Brittle) are
+    to be next to each other.</#><#TIC2V2_CHAPTER8_I350>
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    23.  A travel company wants to find out the average number of days people take
+    to travel from one end of the continent to another. The problem is that in the
+    survey, some people did not take a direct route and took much longer than is
+    needed (such unusual data points are called “outliers”). Using the following
+    generator, generate travel days into a vector. Use remove_if( ) to remove all
+    the outliers in your vector. Take the average of the data in the vector to find
+    out how long people generally take to travel.
+    -->
+    <para>
+
+    </para>
+
+    <!-- int travelTime() { -->
+    <para>
+
+    </para>
+
+    <!-- // The "outlier" -->
+    <para>
+
+    </para>
+
+    <!-- if(rand() % 10 == 0) -->
+    <para>
+
+    </para>
+
+    <!-- return rand() % 100; -->
+    <para>
+
+    </para>
+
+    <!-- // Regular route -->
+    <para>
+
+    </para>
+
+    <!-- return rand() % 10 + 10; -->
+    <para>
+
+    </para>
+
+    <!-- } -->
+    <para>
+
+    </para>
+
+    <!--
+    24.  Determine how much faster binary_search( ) is to find( ) when it comes to
+    searching sorted ranges.</#><# TIC2V2_CHAPTER8_I354>
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    25.  The army wants to recruit people from its selective service list. They have
+    decided to recruit those that signed up for the service in 1997 starting from
+    the oldest down to the youngest. Generate an arbitrary amount of people (give
+    them data members such as age and yearEnrolled) into a vector. Partition the
+    vector so that those who enrolled in 1997 are ordered at the beginning of the
+    list, starting from the youngest to the oldest, and leave the remaining part of
+    the list sorted according to age.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    26.  Make a class called Town with population, altitude, and weather data
+    members. Make the weather an enum with { RAINY, SNOWY, CLOUDY, CLEAR }. Make a
+    class that generates Town objects. Generate town names (whether they make sense
+    or not it doesn’t matter) or pull them off the Internet. Ensure that the whole
+    town name is lower case and there are no duplicate names. For simplicity, we
+    recommend keeping your town names to one word. For the population, altitudes,
+    and weather fields, make a generator that will randomly generate weather
+    conditions, populations within the range [100 to 1,000,000) and altitudes
+    between [0, 8000) feet. Fill a vector with your Town objects. Rewrite the vector
+    out to a new file called Towns.txt.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    27.  There was a baby boom, resulting in a 10% population increase in every
+    town. Update your town data using transform( ), rewrite your data back out to
+    file.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    28.  Find the towns with the highest and lowest population. For this exercise,
+    implement operator< for your Town class. Also try implementing a function that
+    returns true if its first parameter is less than its second. Use it as a
+    predicate to call the algorithm you use.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    29.  Find all the towns within the altitudes 2500-3500 feet inclusive. Implement
+    equality operators for the Town class as needed.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    30.  We need to place an airport in a certain altitude, but location is not a
+    problem. Organize your list of towns so that there are no duplicate (duplicate
+    meaning that no two altitudes are within the same 100 ft range. Such classes
+    would include [100, 199), [200, 199), etc. altitudes. Sort this list in
+    ascending order in at least two different ways using the function objects in
+    for Town as needed.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    31.  Generate an arbitrary number of random numbers in a stack-based array. Use
+    max_element( ) to find the largest number in array. Swap it with the number at
+    the end of your array. Find the next largest number and place it in the array in
+    the position before the previous number. Continue doing this until all elements
+    have been moved. When the algorithm is complete, you will have a sorted
+    array. (This is a “selection sort”.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    32.  Write a program that will take phone numbers from a file (that also
+    contains names and other suitable information) and change the numbers that begin
+    with 222 to 863. Be sure to save the old numbers. The file format is as follows:
+    -->
+    <para>
+
+    </para>
+
+    <!-- 222 8945 -->
+    <para>
+
+    </para>
+
+    <!-- 756 3920 -->
+    <para>
+
+    </para>
+
+    <!-- 222 8432 -->
+    <para>
+
+    </para>
+
+    <!-- etc. -->
+    <para>
+
+    </para>
+
+    <!--
+    33.  Write a program that, given a last name, will find everyone with that last
+    name with his or her corresponding phone number. Use the algorithms that deal
+    with ranges (lower_bound, upper_bound, equal_range, etc.). Sort with the last
+    name acting as a primary key and the first name acting as a secondary
+    key. Assume that you will read the names and numbers from a file where the
+    format will be as follows. (Be sure to order them so that the last names are
+    ordered, and the first names are ordered within the last names.):
+    -->
+    <para>
+
+    </para>
+
+    <!-- John Doe                        345 9483 -->
+    <para>
+
+    </para>
+
+    <!-- Nick Bonham                 349 2930 -->
+    <para>
+
+    </para>
+
+    <!-- Jane Doe                         283 2819 -->
+    <para>
+
+    </para>
+
+    <!--
+    34.  Given a file with data similar to the following, pull all the state
+    acronyms from the file and put them in a separate file. (Note that you can’t
+    depend on the line number for the type of data. The data is on random lines.)
+    -->
+    <para>
+
+    </para>
+
+    <!-- ALABAMA -->
+    <para>
+
+    </para>
+
+    <!-- AL -->
+    <para>
+
+    </para>
+
+    <!-- AK -->
+    <para>
+
+    </para>
+
+    <!-- ALASKA -->
+    <para>
+
+    </para>
+
+    <!-- ARIZONA -->
+    <para>
+
+    </para>
+
+    <!-- AZ -->
+    <para>
+
+    </para>
+
+    <!-- ARKANSAS -->
+    <para>
+
+    </para>
+
+    <!-- AR -->
+    <para>
+
+    </para>
+
+    <!-- CA -->
+    <para>
+
+    </para>
+
+    <!-- CALIFORNIA -->
+    <para>
+
+    </para>
+
+    <!-- CO -->
+    <para>
+
+    </para>
+
+    <!-- COLORADO -->
+    <para>
+
+    </para>
+
+    <!-- etc. -->
+    <para>
+
+    </para>
+
+    <!-- When complete, you should have a file with all the state acronyms which are: -->
+    <para>
+
+    </para>
+
+    <!--
+    AL AK AZ AR CA CO CT DE FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE
+    NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    35.  Make an Employee class with two data members: hours and hourlyPay. Employee
+    shall also have a calcSalary( ) function which returns the pay for that
+    employee. Generate random hourly pay and hours for an arbitrary amount of
+    employees. Keep a vector<Employee*>. Find out how much money the company is
+    going to spend for this pay period.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+</chapter>
