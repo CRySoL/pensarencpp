@@ -49,8 +49,8 @@ Proyecto
 Información y ficheros para tradutores, revisores o interesados en colaborar con el
 proyecto. Incluye plantillas HTML, LaTeX y scripts de compilación del documento.
 
-- `Fuentes DocBook <https://bitbucket.org/crysol_org/pensarenc/src`_.
-- `Estado de la traducción <https://bitbucket.org/crysol_org/pensarenc/raw/39661eb4ce27/STATUS`_
+- `Fuentes DocBook <https://bitbucket.org/crysol_org/pensarenc/src>`_.
+- `Estado de la traducción <https://bitbucket.org/crysol_org/pensarenc/raw/39661eb4ce27/STATUS>`_
 
 Volumen 1
 ---------
@@ -146,6 +146,7 @@ Aún queda mucho trabajo por hacer, tanto en traducción como en revisión. Si t
 este proyecto y quieres colaborar, preguntar, discutir hacer del libro, de su contenido o
 de C++ en general, ponte en contacto con nosotros a través del grupo `Pensar en C++
 <http://groups.google.com/group/pensar-en-cpp>`_.
+
 
 Uso del repositorio
 -------------------
