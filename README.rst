@@ -101,6 +101,7 @@ fecha 09/27/2001. Puedes comprobarlo en la última línea de la primera
 página del libro original en su versión HTML.
 
 - HTML (en línea)
+
   - Volumen 1 - http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one/ - (revisión 13, 27/09/2001)
   - Volumen 2 - http://www.odioworks.com/download/TICPP-2nd-ed-Vol-two.zip on line - (xx/12/2003)
   - Volumen 2 - http://www.smart2help.com/e-books/new-ticpp-2nd-ed-vol-two/index.html - (revisión 19, 23/08/2003)
