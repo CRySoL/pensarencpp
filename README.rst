@@ -59,12 +59,11 @@ constacia). La traducción está terminada, pero la revisión NO. Aún puede ten
 partes sin pulir, pero falta poco. En cualquier caso, el libro es perfectamente útil en su
 estado actual, y por supuesto lo puedes consultar y descargar:
 
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html>`_ en una
+- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html>`_ - en una
   única página (útil para buscar).
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html>`_ en una página por sección.
+- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html>`_ - en una página por sección.
 - `HTML comprimido
-  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2>`_ -
-  formato bzip2.
+  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2>`_ -  formato bzip2.
 - `PDF <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.pdf>`_
 
 Volumen 2
@@ -75,12 +74,11 @@ ritmo. Si quieres colaborar, tu ayuda es muy bien recibida y cualquier aportaci�
 valiosa (mira en la sección «Cómo participar»). Aquí tienes montado lo que llevamos, en
 formatos HTML y PDF.
 
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/vol2.html>`_ en una
+- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/vol2.html>`_ - en una
   única página (útil para buscar).
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/index.html>`_ en una página por sección.
+- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/index.html>`_ - en una página por sección.
 - `HTML comprimido
-  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.tar.bz2>`_ -
-  formato bzip2.
+  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.tar.bz2>`_ - formato bzip2.
 - `PDF <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.pdf>`_
 
 Original (en inglés)
@@ -96,7 +94,7 @@ página del libro original en su versión HTML.
 
 - HTML (en línea)
   - `Volumen 1 <http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one/>`_ (revisión 13, 27/09/2001)
-  - `Volumen 2 <http://www.odioworks.com/download/TICPP-2nd-ed-Vol-two.zip>`_ | on line (xx/12/2003)
+  - `Volumen 2 <http://www.odioworks.com/download/TICPP-2nd-ed-Vol-two.zip>`_ on line (xx/12/2003)
   - `Volumen 2 <http://www.smart2help.com/e-books/new-ticpp-2nd-ed-vol-two/index.html>`_ (revisión 19, 23/08/2003)
   - `Volumen 2 <http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-two/>`_ (revisión 4, 26/09/2001)
 
