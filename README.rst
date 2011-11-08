@@ -1,6 +1,7 @@
 
-Pensar en C++
-=============
+==============================================
+Pensar en C++: «Thinking in C++» en castellano
+==============================================
 
 Proyecto de traducción de traducción del libro «Thinking in C++».
 
@@ -13,6 +14,27 @@ Repositorio:
 Lista de correo:
   http://groups.google.com/group/pensar-en-cpp
 
+
+Descripción
+===========
+
+Este es el proyecto **oficial** para la traducción al castellano del magnífico libro de
+Bruce Eckel `Thinking in C++
+<http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one/Frames.html>`_.
+
+Esta traducción es posible sólo en las `condiciones
+<http://mindview.net/Books/TIJ/Translations.html>`_ que Bruce Eckel ha marcado al
+efecto. El libro original (con el código de los ejemplos) se puede descargar de la página
+oficial `www.MindView.net <http://www.mindview.net/Books/TICPP/ThinkingInCPP2e.html>`_.
+
+El título
+---------
+
+Después de algunas discusiones sobre si la traducción del título debía ser *Pensando en
+C++*, *Piensa en C++* o *Pensar en C++*, descartamos la primera porque no es correcto
+traducir literalemente los gerundios ingleses al comienzo de frase y finalmente nos
+decidimos por la última tras cruzar algún que otro correo con el propio Bruce Eckel, para
+que nos aclarara exactamente cuál era su intención cuando eligió ese título.
 
 Cómo colaborar
 --------------
