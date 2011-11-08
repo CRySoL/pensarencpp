@@ -78,12 +78,16 @@ ritmo. Si quieres colaborar, tu ayuda es muy bien recibida y cualquier aportaci�
 valiosa (mira en la sección «Cómo participar»). Aquí tienes montado lo que llevamos, en
 formatos HTML y PDF.
 
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/vol2.html>`_ - en una
-  única página (útil para buscar).
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/index.html>`_ - en una página por sección.
-- `HTML comprimido
-  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.tar.bz2>`_ - formato bzip2.
-- `PDF <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.pdf>`_
+- HTML2_1_ - en una única página (útil para buscar).
+- HTML2_sec_ - en una página por sección.
+- HTML2_bz2_ -  formato bzip2.
+- PDF2_
+
+.. _HTML2_1:   http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/vol2.html
+.. _HTML2_sec: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/index.html
+.. _HTML2_bz2: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.tar.bz2
+.. _PDF2:      http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.pdf
+
 
 Original (en inglés)
 --------------------
