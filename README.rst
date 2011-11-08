@@ -102,21 +102,24 @@ página del libro original en su versión HTML.
 
 - HTML (en línea)
 
-  - Volumen 1 - http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one/ - (revisión 13, 27/09/2001)
-  - Volumen 2 - http://www.odioworks.com/download/TICPP-2nd-ed-Vol-two.zip on line - (xx/12/2003)
-  - Volumen 2 - http://www.smart2help.com/e-books/new-ticpp-2nd-ed-vol-two/index.html - (revisión 19, 23/08/2003)
-  - Volumen 2 - http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-two/ - (revisión 4, 26/09/2001)
+  - Volumen 1 (revisión 13, 27/09/2001) - http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-one
+  - Volumen 2 (xx/12/2003) - http://www.odioworks.com/download/TICPP-2nd-ed-Vol-two.zip on line
+  - Volumen 2 (revisión 19, 23/08/2003) - http://www.smart2help.com/e-books/new-ticpp-2nd-ed-vol-two/index.html
+  - Volumen 2 (revisión 4, 26/09/2001) - http://www.smart2help.com/e-books/ticpp-2nd-ed-vol-two
 
 - PDF
-  - `Volumen 1 <http://www.planetpdf.com/codecuts/pdfs/eckel/TIC2Vone.zip>`_ (revisión , 13/01/2000)
-  - `Volumen 2 <http://www.planetpdf.com/codecuts/pdfs/eckel/TIC2Vtwo.zip>`_ (revisión 1.xx, 1999)
+
+  - Volumen 1 (revisión , 13/01/2000) - http://www.planetpdf.com/codecuts/pdfs/eckel/TIC2Vone.zip
+  - Volumen 2 (revisión 1.xx, 1999) - http://www.planetpdf.com/codecuts/pdfs/eckel/TIC2Vtwo.zip
 
 - RTF
-  - `Volúmenes 1 y 2 <http://www.codeguru.com/cpp/tic/tica18.zip>`_ (Revisión TICA18, 29/07/1999)
+
+  - Volúmenes 1 y 2 (Revisión TICA18, 29/07/1999) - http://www.codeguru.com/cpp/tic/tica18.zip
 
 - HTML + listados
-  - `Volumen 1 <http://www.mindviewinc.com/downloads/TICPP-2nd-ed-Vol-one.zip>`_
-  - `Volumen 2 <http://www.mindviewinc.com/downloads/TICPP-2nd-ed-Vol-two.zip>`_
+
+  - Volumen 1 - http://www.mindviewinc.com/downloads/TICPP-2nd-ed-Vol-one.zip
+  - Volumen 2 - http://www.mindviewinc.com/downloads/TICPP-2nd-ed-Vol-two.zip
 
 - `Thinking in C <http://mindview.net/CDs/ThinkingInC/beta3>`_
 
