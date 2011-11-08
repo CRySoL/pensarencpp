@@ -64,13 +64,11 @@ estado actual, y por supuesto lo puedes consultar y descargar:
 - HTML1_bz2_ -  formato bzip2.
 - PDF1_
 
-.. _HTML1_1: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html
+.. _HTML1_1:   http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html
+.. _HTML1_sec: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html
+.. _HTML1_bz2: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2
+.. _PDF1:      http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.pdf
 
-- `HTML <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html>`_
-- `HTML <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html>`_
-- `HTML comprimido
-  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2>`_
-- `PDF <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.pdf>`_
 
 Volumen 2
 ---------
