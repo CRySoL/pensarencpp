@@ -32,7 +32,7 @@ El título
 
 Después de algunas discusiones sobre si la traducción del título debía ser *Pensando en
 C++*, *Piensa en C++* o *Pensar en C++*, descartamos la primera porque no es correcto
-traducir literalemente los gerundios ingleses al comienzo de frase y finalmente nos
+traducir literalmente los gerundios ingleses al comienzo de frase y finalmente nos
 decidimos por la última tras cruzar algún que otro correo con el propio Bruce Eckel, para
 que nos aclarara exactamente cuál era su intención cuando eligió ese título.
 
@@ -59,11 +59,17 @@ constacia). La traducción está terminada, pero la revisión NO. Aún puede ten
 partes sin pulir, pero falta poco. En cualquier caso, el libro es perfectamente útil en su
 estado actual, y por supuesto lo puedes consultar y descargar:
 
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html>`_ - en una
-  única página (útil para buscar).
-- `HTML - <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html>`_ - en una página por sección.
+- HTML1_1_ - en una única página (útil para buscar).
+- HTML1_sec_ - en una página por sección.
+- HTML1_bz2_ -  formato bzip2.
+- PDF1_
+
+.. _HTML1_1: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html
+
+- `HTML <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html>`_
+- `HTML <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html>`_
 - `HTML comprimido
-  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2>`_ -  formato bzip2.
+  <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2>`_
 - `PDF <http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.pdf>`_
 
 Volumen 2
