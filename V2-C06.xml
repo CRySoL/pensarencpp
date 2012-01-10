@@ -2,7 +2,7 @@
 <!-- -*- sgml; coding: utf-8 -*- -->
 <!--
   Editor:              Emacs 23/PSGML
-  Traducción original:
+  Traducción original: David Villa <David.Villa@uclm.es>
 -->
 
 <!-- original de referencia en:
@@ -27,7 +27,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   development.
   -->
   <para>
-
+    Los algoritmos son la base de la computación. Ser capaz de escribir un algoritmo que
+    funcione con cualquier tipo de se secuencia hace que sus programas sean simples y
+    seguros. La habilidad para adaptar algoritmos en tiempo de ejecución a revolucionado
+    el desarrollo de software.
   </para>
 
   <!--
@@ -42,12 +45,21 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
   first but then tend to use them more and more as time goes on.
   -->
   <para>
-
+    El subconjunto de la Librería Estándar de C++ conocido como Standard Template Library
+    (STL)<footnote><para>N. de T.: Librería Estándar de Plantillas.</para></footnote> fue
+    diseñado entorno a algoritmos genéricos ―código que procesa secuencias de cualquier
+    tipo de valores de un modo seguro. El objetivo era usar algoritmos predefinidos para
+    casi cualquier tarea, en lugar de codificar a mano cada vez que se necesitara procesar
+    una colección de datos. Sin embargo, ese potencial requiere cierto aprendizaje. Para
+    cuando llegue al final de este capítulo, debería ser capaz de decidir por sí mismo si
+    los algoritmos le resultan útiles o demasiado confusos de recordar. Si es como la
+    mayoría de la gente, se resistirá al principio pero entonces tenderá a usarlos más y
+    más con el tiempo.
   </para>
 
   <sect1>
     <!-- A first look -->
-    <title> </title>
+    <title>Un primer vistazo</title>
 
     <!--
     Among other things, the generic algorithms in the standard library provide a
@@ -62,12 +74,21 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     ready to be reused on demand.
     -->
     <para>
-
+      Entre otras cosas, los algoritmos genéricos de la librería estándar proporcionan un
+      vocabulario con el que desribir soluciones. Una vez que los algoritmos le sean
+      familiares, tendrá un nuevo conjunto de palabras con el que discutir que está
+      haciendo, y esas palabras son de un nivel mayor que las que tenía antes. No
+      necesitará decir «Este bucle recorre y asigna de aquí a ahí... oh, ya veo, ¡está
+      copiando!» En su lugar dirá simplemente <function>copy()</function>. Esto es lo que
+      hemos estado haciendo desde el principio de la programación de computadores ―creando
+      abstracciones de alto nivel para expresar lo que está haciendo y perder menos tiempo
+      diciendo cómo hacerlo. El «cómo» se ha resuelto una vez y para todo y está oculto en
+      el código del algoritmo, listo para ser reutilizado cuando se necesite.
     </para>
 
     <!-- Here’s an example of how to use the copy algorithm: -->
     <para>
-
+      Vea aquí un ejemplo de cómo utilizar el algoritmo <function>copy</function>:
     </para>
 
 
@@ -88,7 +109,18 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     enough space to receive the copied elements.
     -->
     <para>
-
+      Los dos primeros parámetros de <function>copy</function> representan el rango de la
+      secuencia de entrada ―en este caso del array <varname>a</varname>. Los rangos se
+      especifican con un par de punteros. El primero apunta al primer elemento de la
+      secuencia, y el segungo apunta una posición después del final del array (justo
+      después del último elemento). Esto puede parecer extraño al principio, pero es una
+      antigua expresión idiomática de C que resulta bastante práctica. Por ejemplo, la
+      diferencia entre esos dos punteros devuelve el número de elementos de la
+      secuencia. Más importante, en la implementación de <function>copy()</function>, el
+      segundo puntero puede actual como un centinela para para la iteración a través de la
+      secuencia. El tercer argumento hace referencia al comienzo de la secuencia de
+      salida, que es el array <varname>b</varname> en el ejemplo. Se asume que el array
+      <varname>b</varname> tiene suficiente espacio para recibir los elementos copiados.
     </para>
 
     <!--
@@ -97,7 +129,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     objects:
     -->
     <para>
-
+      El algotirmo <function>copy()</function> no parece muy excitante if solo puediera
+      procesar enteros. Puede copiar cualquier tipo de secuencia. El siguiente ejemplo
+      copia objetos <classname>string</classname>.
     </para>
 
 
@@ -112,7 +146,11 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     explicit loop!
     -->
     <para>
-
+      Este ejmeplo presenta otro algoritmo, <function>equal()</function>, que devuelve
+      cierto solo si cada elemento de la primera secuencia es igual (usando su
+      <function>operator==()</function>) a su elemento correspondiente en la segunda
+      secuencia. Este ejemplo recorre cada secuencia 2 veces, una para copiar, y otra para
+      comparar, sin ningún bucle explícito.
     </para>
 
     <!--
@@ -121,27 +159,31 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     following, you’re almost right:
     -->
     <para>
-
+      Los algoritmos genéricos consiguen esta flexibilidad porque son funciones
+      parametrizadas (plantillas). Si piensa en la implementación de
+      <function>copy()</function> verá que es algo como lo siguiente, que es «casi»
+      correcto:
     </para>
 
-    <!--
-    template<typename T> void copy(T* begin, T* end, T* dest) {
-    while(begin != end)
+<programinglisting>
+  template&lt;typename T> void copy(T* begin, T* end, T* dest) {
+  while(begin != end)
     *dest++ = *begin++;
-    }
-    -->
-    <para>
-
-    </para>
+  }
+</programinglisting>
 
     <!--
-    We say “almost” because copy( ) can process sequences delimited by anything that
-    acts like a pointer, such as an iterator. In this way, copy( ) can be used to
-    duplicate a vector:
+    We say “almost” because copy( ) can process sequences delimited by anything that acts
+    like a pointer, such as an iterator. In this way, copy( ) can be used to duplicate a
+    vector, as in the following example:
     -->
     <para>
-
+      Decimos «casi» porque <function>copy()</function> puede procesas secuencias
+      delimitadas por cualquier cosas que actúe como un puntero, tal como un iterador. De
+      ese modo, <function>copy()</function> se puede utilizar para duplicar un
+      <classname>vector</classname>, como en el siguiente ejemplo.
     </para>
+
 
 //: C06:CopyVector.cpp
 
@@ -153,7 +195,11 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     integers).
     -->
     <para>
-
+      El primer vector, <varname>v1</varname>, es inicializado a partir de una secuencia
+      de enteros en el array <varname>a</varname>. La definición del vector
+      <varname>v2</varname> usa un contructor diferente de <classname>vector</classname>
+      que reserva sitio para <constant>SIZE</constant> elementos, inicializados a cero (el
+      valor por defecto para enteros).
     </para>
 
     <!--
@@ -5035,3 +5081,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     </para>
   </sect1>
 </chapter>
+
+
+<!-- Local Variables: -->
+<!--  coding: utf-8 -->
+<!--  mode: flyspell -->
+<!--  ispell-local-dictionary: "castellano8" -->
+<!-- End: -->
