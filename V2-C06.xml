@@ -211,7 +211,14 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     have to establish the size of the output vector, v2, ahead of time:
     -->
     <para>
-
+      Igual que con el ejemplo anterior con el array, es importante que
+      <varname>v2</varname> tenga suficiente espacio para recibir una copia de los
+      contenidos de <varname>v1</varname>. Por conveniencia, una función de librería
+      especial, <function>back_inserter()</function>, retorna un tipo especial de iterador
+      que inserta elementos en lugar de sobre-escribirlos, de modo que la memoria del
+      contenedor se expande conforme se necesita. El siguiente ejemplo usa
+      <function>back_inserter()</function>, y por eso no hay que establecer el tamaño del
+      vector de salida, <varname>v2</varname>, antes de tiempo.
     </para>
 
 //: C06:InsertVector.cpp
@@ -222,7 +229,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     how insert iterators work in depth in the next chapter.
     -->
     <para>
-
+      La función <function>back_inserter()</function> está definida en el fichero de
+      cabecera <filename>&lt;iterator></filename>. Explicaremos los iteradores de
+      inserción en profundidad en el próximo capítulo.
     </para>
 
     <!--
@@ -232,19 +241,19 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     more like the following code:
     -->
     <para>
-
+      Dado que los iteradores son idénticos a punteros en todos los sentidos importantes,
+      puede escribir los algoritmos de la librería estándar de modo que los argumentos
+      puedan ser tanto punteros como iteradores. Por esta razón, la implementación de
+      <function>copy()</function> se parece más al siguiente código:
     </para>
 
-    <!--
-    template<typename Iterator>
-    void copy(Iterator begin, Iterator end, Iterator dest) {
-    while(begin != end)
+<programlisting>
+template&lt;typename Iterator>
+void copy(Iterator begin, Iterator end, Iterator dest) {
+  while(begin != end)
     *begin++ = *dest++;
-    }
-    -->
-    <para>
-
-    </para>
+}
+</programlisting>
 
     <!--
     Whichever argument type you use in the call, copy( ) assumes it properly
@@ -252,12 +261,14 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     compile-time error.
     -->
     <para>
-
+      Para cualquier tipo de argumento que use en la llamada, <function>copy()</function>
+      asume que implementa adecuadamente la indirección y los operadores de incremento. Si
+      no lo hace, obtendrás un error de compilación.
     </para>
 
     <sect2>
       <!-- Predicates -->
-      <title> </title>
+      <title>Predicados</title>
 
       <!--
       At times, you might want to copy only a well-defined subset of one sequence to
@@ -269,7 +280,14 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       to 15. A version of copy( ) called remove_copy_if( ) can do the job, like this:
       -->
       <para>
-
+	A veces, podría querer copiar solo un subconjunto bien definido de una secuencia a
+	otra; solo aquellos elementos que satisfagan una condición particular. Para
+	conseguir esta flexibilidad, muchos algoritmos tienen una forma alternativa de
+	llamada que permite proporcionar un predicado, que es simplemente una función que
+	retorna un valor booleano basado en algún criterio. Suponga por ejemplo, que solo
+	quiere extraer de una secuencia de enteros, aquellos que son menores o iguales de
+	15. Una versión de <function>copy()</function> llamada
+	<function>remove_copy_if()</function> puede hacer el trabajo, tal que así:
       </para>
 
 //: C06:CopyInts2.cpp
@@ -285,12 +303,19 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       where the predicate yields true when writing to the output sequence.
       -->
       <para>
-
+	La función <function>remove_copy_if()</function> acepta los rangos definidos por
+	punteros habituales, seguidos de un predicado de su elección. El predicado debe
+	ser un puntero a función[FIXME] que toma un argumento simple del mismo tipo que
+	los elementos de la secuencia, y que debe retornar un booleano. Aquí, la función
+	<function>gt15</function> returna verdadero si su argumento es mayor que 15. El
+	algoritmo <function>remove_copy_if()</function> aplica <function>gt15()</function>
+	a cada elemento en la secuencia de entrada e ignora aquellos elementos para los
+	cuales el predicado devuelve verdad cuando escribe la secuencia de salida.
       </para>
 
       <!-- The following program illustrates yet another variation of the copy algorithm: -->
       <para>
-
+	El siguiente programa ilustra otra variación más del algoritmo de copia.
       </para>
 
 //: C06:CopyStrings2.cpp
@@ -302,17 +327,16 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       the output sequence. The output is:
       -->
       <para>
-
+	En lugar de simplemente ignorar elementos que no satisfagan el predicado,
+	<function>replace_copy_if()</function> substituye un valor fijo para esos
+	elementos cuando escribe la secuencia de salida. La salida es:
       </para>
 
-      <!--
-      kiss
-      my
-      lips
-      -->
-      <para>
-
-      </para>
+<screen>
+kiss
+my
+lips
+</screen>
 
       <!--
       because the original occurrence of “read,” the only input string containing the
@@ -320,7 +344,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       the call to replace_copy_if( ).
       -->
       <para>
-
+	como la ocurrencia original de <quote>read</quote>, la única cadena de entrada que
+	contiene la letra <quote>e</quote>, es reemplazada por la palabra
+	<quote>kiss</quote>, como se especificó en el último argumento en la llamada a
+	<function>replace_copy_if()</function>.
       </para>
 
       <!--
@@ -328,7 +355,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       writing to a separate output sequence, as the following program shows:
       -->
       <para>
-
+	El algoritmo <function>replace_if()</function> cambia la secuencia original in
+	situ, en lugar de escribir en una secuencia de salida separada, tal como muestra
+	el siguiente programa:
       </para>
 
 //: C06:ReplaceStrings.cpp
@@ -337,7 +366,7 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     </sect2>
     <sect2>
       <!-- Stream iterators -->
-      <title> </title>
+      <title>Iteradores de flujo</title>
 
       <!--
       Like any good software library, the Standard C++ Library attempts to provide
@@ -348,7 +377,12 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       for a way to automate that too.
       -->
       <para>
-
+	Como cualquier otra buena librería, la Librería Estándar de C++ intenta
+	proporcionar modos convenientes de automatizar tareas comunes. Mencionamos al
+	principio de este capítulo puede usar algoritmos genéricos en lugar de
+	bucles. Hasta el momento, sin embargo, nuestros ejemplos siguen usando un bucle
+	explícito para imprimir su salida. Dado que imprimir la salida es una de las
+	tareas más comunes, es de esperar que haya una forma de automatizar eso también.
       </para>
 
       <!--
@@ -357,7 +391,9 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       CopyInts2.cpp program, for instance, you can do something like the following:
       -->
       <para>
-
+	Ahí es donde los iteradores de flujo entran en juego. Un iterador de flujo usa un
+	flujo como secuencia de entrada o salida. Para eliminar el bucle de salida en el
+	programa <filename>CopyInts2.cpp</filename>, puede hacer algo como lo siguiente:
       </para>
 
 //: C06:CopyInts3.cpp
@@ -375,12 +411,25 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       argument, which in this case contains the newline character.
       -->
       <para>
-
+	En este ejemplo, reemplazaremos la secuencia de salida <varname>b</varname> en el
+	tercer argumento de <function>remove_copy_if()</function> con un iterador de flujo
+	de salida, que es una instancia de la clase
+	<classname>ostream_iterator</classname> declarada en el fichero
+	<filename>&lt;iterator></filename>. Los iteradores de flujo de salida sobrecargan
+	sus operadores de copia-asignación para escribir a sus flujos. Esta instancia en
+	particular de <classname>ostream_iterator</classname> está vinculada al flujo de
+	salida <varname>cout</varname>. Cada vez que <function>remove_copy_if()</function>
+	asigna un entero de la secuencia <varname>a</varname> a <varname>cout</varname> a
+	través de este iterador, el iterador escribe el entero a <varname>cout</varname> y
+	automáticamente escribe también una instancia de la cada de separador indicada en
+	su segundo argumento, que en este caso contiene el carácter de nueva linea.
       </para>
 
-      <!-- It is just as easy to write to a file by providing an output file stream, instead of cout: -->
+      <!-- It is just as easy to write to a file by providing an output file stream,
+      instead of cout: -->
       <para>
-
+	Es igual de fácil escribir en un fichero proporcionando un flujo de salida
+	asociado a un fichero en lugar de <varname>cout</varname>.
       </para>
 
 //: C06:CopyIntsToFile.cpp
@@ -395,7 +444,14 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       istream_iterator in two ways, as you can see in the program that follows.
       -->
       <para>
-
+	Un iterador de flujo de entrada permite a un algoritmo leer su secuencia de
+	entrada desde un flujo de entrada. Esto se consigue haciendo que tanto el
+	constructor como <function>operator++()</function> lean el siguiente elemento del
+	flujo subyacente y sobrecargando <function>operator*()</function> para conseguir
+	el valor leído previamente. Dado que los algoritmos requieren dos punteros para
+	delimitar la secuencia de entrada, puede construir un
+	<classname>istream_iterator</classname> de dos formas, como puede ver en el
+	siguiente programa.
       </para>
 
 //: C06:CopyIntsFromFile.cpp
@@ -412,13 +468,20 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       altogether.
       -->
       <para>
-
+	El primer argumento de <function>replace_copy_if()</function> en este programa
+	asocia un objeto <classname>istream_iterator</classname> al fichero de entrada que
+	contiene enteros. El segundo argumento usa el constructor por defecto de la clase
+	<classname>istream_iterator</classname>. Esta llamada construye un valor especial
+	de <function>istream_iterator</function> que indica el fin de fichero, de modo que
+	cuando el primer iterador encuentra el final del fichero físico, se compara con el
+	valor de <code>istream_iterator<int>()</code>, permitiendo al algoritmo terminar
+	correctamente. Fíjese que este ejemplo evita usar un array explícito.
       </para>
 
     </sect2>
     <sect2>
       <!-- Algorithm complexity -->
-      <title> </title>
+      <title>Complejidad algorítmica</title>
 
       <!--
       Using a software library is a matter of trust. You trust the implementers to not
@@ -427,7 +490,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       algorithms that degrade performance.
       -->
       <para>
-
+	Usar una librería es una cuestión de confianza. Debe confiar en que los
+	desarrolladores no solo proporcionan la funcionalidad correcta, sino también
+	esperar que las funciones se ejecutan tan eficientemente como sea posible. Es
+	mejor escribir sus propios bucles que usar algoritmos que degradan el rendimiento.
       </para>
 
       <!--
@@ -438,7 +504,11 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       algorithm’s operational efficiency is called its complexity.
       -->
       <para>
-
+	Para garantizar la calidad de las implementaciones de la librería, la estándar de
+	C++ no solo especifica lo que debería hacer un algoritmo, también cómo de rápido
+	debería hacerlo y a veces cuánto espacio debería usar. Cualquier algoritmo que no
+	cumpla con los requisitos de rendimiento no es conforma al estándar. La medida de
+	la eficiencia operacional de un algoritmo se llama complejidad.
       </para>
 
       <!--
@@ -450,13 +520,18 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       than 15:
       -->
       <para>
-
+	Cuando es posible, el estándar especifica el número exacto de operaciones que un
+	algoritmo debería usar. El algoritmo <function>count_if()</function>, por ejemplo,
+	retorna el número de elementos de una secuencia que cumplan el predicado
+	especificado. La siguiente llamada a <function>count_if()</function>, si se aplica
+	a una secuencia de enteros similar a los ejemplos anteriores de este capítulo,
+	devuelve el número de elementos mayores que 15:
       </para>
 
-      <!-- size_t n = count_if(a, a + SIZE, gt15); -->
-      <para>
+<programlisting>
+size_t n = count_if(a, a + SIZE, gt15);
+</programlisting>
 
-      </para>
 
       <!--
       Since count_if( ) must look at every element exactly once, it is specified to
@@ -464,7 +539,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       sequence. The copy( ) algorithm has the same specification.
       -->
       <para>
-
+	Dado que <function>count_if()</function> debe comprobar cada elemento exactamente
+	una vez, se especificó hacer un número de comprobaciones que sea exactamente igual
+	que el número de elementos en la secuencia. El algoritmo
+	<function>copy()</function> tiene la misma especificación.
       </para>
 
       <!--
@@ -473,13 +551,15 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
       encounters an element equal to its third argument:
       -->
       <para>
-
+	Otros algoritmos pueden estar especificados para realizar cierto número máximo de
+	operaciones. El algoritmo <function>find()</function> busca a través de una
+	secuencia hasta encontrar un elemento igual a su tercer argumento.
       </para>
 
-      <!-- int* p = find(a, a + SIZE, 20); -->
-      <para>
+<programlisting>
+int* p = find(a, a + SIZE, 20);
+</programlisting>
 
-      </para>
 
       <!--
       It stops as soon as the element is found and returns a pointer to that first
