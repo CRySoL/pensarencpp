@@ -167,9 +167,10 @@ http://arco.esi.uclm.es/~david.villa/pensar_en_C++/TICv2/html/TicV2.html#_Toc539
     </para>
 
 <programlisting>
-template&lt;typename T> void copy(T* begin, T* end, T* dest) {
-while(begin != end)
-  *dest++ = *begin++;
+template&lt;typename T>
+void copy(T* begin, T* end, T* dest) {
+  while (begin != end)
+    *dest++ = *begin++;
 }
 </programlisting>
 
@@ -179,8 +180,8 @@ while(begin != end)
     vector, as in the following example:
     -->
     <para>
-      Decimos «casi» porque <function>copy()</function> puede procesas secuencias
-      delimitadas por cualquier cosas que actúe como un puntero, tal como un iterador. De
+      Decimos «casi» porque <function>copy()</function> puede procesar secuencias
+      delimitadas por cualquier cosa que actúe como un puntero, tal como un iterador. De
       ese modo, <function>copy()</function> se puede utilizar para duplicar un
       <classname>vector</classname>, como en el siguiente ejemplo.
     </para>
@@ -251,7 +252,7 @@ while(begin != end)
 <programlisting>
 template&lt;typename Iterator>
 void copy(Iterator begin, Iterator end, Iterator dest) {
-  while(begin != end)
+  while (begin != end)
     *begin++ = *dest++;
 }
 </programlisting>
@@ -286,7 +287,7 @@ void copy(Iterator begin, Iterator end, Iterator dest) {
 	conseguir esta flexibilidad, muchos algoritmos tienen una forma alternativa de
 	llamada que permite proporcionar un predicado, que es simplemente una función que
 	retorna un valor booleano basado en algún criterio. Suponga por ejemplo, que solo
-	quiere extraer de una secuencia de enteros, aquellos que son menores o iguales de
+	quiere extraer de una secuencia de enteros, aquellos que son menores o iguales a
 	15. Una versión de <function>copy()</function> llamada
 	<function>remove_copy_if()</function> puede hacer el trabajo, tal que así:
       </para>
@@ -308,7 +309,7 @@ void copy(Iterator begin, Iterator end, Iterator dest) {
 	punteros habituales, seguidos de un predicado de su elección. El predicado debe
 	ser un puntero a función[FIXME] que toma un argumento simple del mismo tipo que
 	los elementos de la secuencia, y que debe retornar un booleano. Aquí, la función
-	<function>gt15</function> returna verdadero si su argumento es mayor que 15. El
+	<function>gt15()</function> returna verdadero si su argumento es mayor que 15. El
 	algoritmo <function>remove_copy_if()</function> aplica <function>gt15()</function>
 	a cada elemento en la secuencia de entrada e ignora aquellos elementos para los
 	cuales el predicado devuelve verdad cuando escribe la secuencia de salida.
@@ -624,7 +625,13 @@ int* p = find(a, a + SIZE, 20);
     application code.
     -->
     <para>
-
+      Como ha visto en los ejemplos anteriores de este mismo capítulo, probablemente
+      notará que la función <function>gt15()</function> tiene una utilidad limitada. ¿Qué
+      ocurre si quiere usar un número distinto de 15 como umbral? Podría necesitar un
+      <function>gt20()</function> or <function>gt25()</function>, por ejemplo. Tener que
+      escribir una función diferente para cada valor lleva tiempo y no es razonable porque
+      debe conocer todos los valores requeridos en el momento de desarrollar la
+      aplicación.
     </para>
 
     <!--
@@ -637,7 +644,15 @@ int* p = find(a, a + SIZE, 20);
     individually and must therefore take only one parameter.
     -->
     <para>
-
+      Esta última limitación significa que no podrá usar valores en tiempo de
+      ejecución[FIXME] para realizar nuevas búsquedas, lo cual es inaceptable. Para
+      solucionarlo hace falta un modo de pasar información al predicado en tiempo de
+      ejecución. Por ejemplo, podría necesitar una función
+      <function>greater-than</function> que puede inicializar con un valor de comparación
+      arbitrario. Desafortunadamente, no puede pasar ese valor a una función por parámetro
+      porque los predicados unarios, tal como nuestro <function>gt15()</function>, se
+      aplican individualmente a cada valor de una secuencia y por tanto solo pueden tener
+      un parámetro.
     </para>
 
     <!--
@@ -647,7 +662,10 @@ int* p = find(a, a + SIZE, 20);
     abstraction is called a function object.[89]
     -->
     <para>
-
+      La forma de resolver este dilema es, como siempre, creado una abstracción. Aquí,
+      necesitamos una abstracción que pueda actuar como una función que pueda almacenar
+      estado, sin interferir en el número de parámetros que acepta cuando se usa. Esta
+      abstracción se llama objeto-función (o «functor») [FIXME].
     </para>
 
     <!--
@@ -657,7 +675,11 @@ int* p = find(a, a + SIZE, 20);
     constructors. Here is a function object that can be used in place of gt15( ):
     -->
     <para>
-
+      Un functor es una instancia de una clase que sobrecarga el
+      <function>operator()</function>, el operador de llamada a función. Este operador
+      permite que un objeto sea utilizado con la sintaxis de llamada de una función. Como
+      con cualquier otro objeto, puede inicializarse con sus constructores. Aquí hay un
+      functor que se puede utilizar en lugar de <function>gt15()</function>:
     </para>
 
 //: V2C06:GreaterThanN.cpp
@@ -669,20 +691,22 @@ int* p = find(a, a + SIZE, 20);
     function call:
     -->
     <para>
-
+      El valor fijo de comparación con el que comparar (4) se pasa en el momento en el que
+      se crea <varname>f</varname>. La expresión <code>f(3)</code> es evaluada por el
+      compilador como la siguiente llamada a función.
     </para>
 
-    <!-- f.operator()(3); -->
-    <para>
-
-    </para>
+<programlisting>
+f.operator()(3);
+</programlisting>
 
     <!--
     which returns the value of the expression 3 > value, which is false when value
     is 4, as it is in this example.
     -->
     <para>
-
+      que retorna el valor de la expresión <code>3 > value</code> que es falsa cuando
+      <varname>value</varname> es 4, como ocurre en este ejemplo.
     </para>
 
     <!--
@@ -693,7 +717,11 @@ int* p = find(a, a + SIZE, 20);
     give you a better understanding of how the generic algorithms work.
     -->
     <para>
-
+      Como estas comparaciones se aplican a tipos distintos de <type>int</type>, podría
+      tener sentido definir <function>gt\_n()</function> como una clase plantilla. No
+      necesita hacerlo porque la librería estándar ya lo ha hecho por usted. Las
+      siguientes descripciones de functors debería dejar el tema más claro, pero también
+      le darán una mejor comprensión de cómo funcionan los algoritmos genéricos.
     </para>
 
     <sect2>
@@ -4555,13 +4583,10 @@ int* p = find(a, a + SIZE, 20);
 
     </para>
 
-    <!--
-    // Assumes pred is the incoming condition
-    replace_copy_if(begin, end, not1(pred));
-    -->
-    <para>
-
-    </para>
+    <programlisting>
+// Assumes pred is the incoming condition
+replace_copy_if(begin, end, not1(pred));
+</programlisting>
 
     <!--
     This seems reasonable, but when you remember that you want to be able to use
@@ -4578,7 +4603,8 @@ int* p = find(a, a + SIZE, 20);
 //: V2C06:copy_if.h
 
 
-    <!-- Notice that the increment of begin cannot be integrated into the copy expression. -->
+    <!-- Notice that the increment of begin cannot be integrated into the copy
+    expression. -->
     <para>
 
     </para>
@@ -5189,3 +5215,6 @@ int* p = find(a, a + SIZE, 20);
 .. ispell-local-dictionary: "castellano8"
 ..End:
 -->
+
+<!--  LocalWords:  functors
+ -->
