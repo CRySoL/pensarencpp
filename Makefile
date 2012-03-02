@@ -66,7 +66,7 @@ Volumen%.xml: master_Volumen%.xml code_v%
 #	sed -e "s/\/\/\/:~//" |
 #	python utils/db_filter.py < join.xml > $@
 
-.PRECIOUS: code_v*
+.PRECIOUS: code_v%
 
 code_v%: code_orig_v%
 	rm -rf $@
