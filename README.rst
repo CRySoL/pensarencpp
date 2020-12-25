@@ -9,7 +9,7 @@ Web:
   http://arco.esi.uclm.es/~dvilla/pensarC++.html
 
 Repositorio:
-  https://bitbucket.org/crysol_org/pensarenc
+  https://bitbucket.org/CRySoL/pensarencpp
 
 Lista de correo:
   http://groups.google.com/group/pensar-en-cpp
