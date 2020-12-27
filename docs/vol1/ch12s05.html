@@ -1,0 +1,760 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>12.5. Sobrecargar la asignación</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C12.html" title="12: Sobrecarga de operadores" />
+    <link rel="prev" href="ch12s04.html" title="12.4. Operadores no miembros" />
+    <link rel="next" href="ch12s06.html" title="12.6. Conversión automática de tipos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s04.html">12.4. Operadores no miembros</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s06.html">12.6. Conversión automática de tipos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="12.5. Sobrecargar la asignación">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7300072"></a>12.5. Sobrecargar la asignación</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Una causa común de confusión para los nuevos programadores de C++ es la
+      asignación. De esto no hay duda porque el signo <code class="literal">=</code> es
+      una operación fundamental en la programación, directamente hasta copiar un
+      registro en el nivel de máquina. Además, el constructor de copia (descrito
+      en el capítulo 11) [FIXME:referencia] es invocado cuando el signo
+      <code class="literal">=</code> se usa así:
+    </p>
+      <pre class="programlisting">
+MyType b<span class="hl opt">;</span>
+    MyType a <span class="hl opt">=</span> b<span class="hl opt">;</span>
+    a <span class="hl opt">=</span> b<span class="hl opt">;</span>
+</pre>
+      <p>
+      En la segunda línea, se define el objeto <code class="varname">a</code>. Se crea un nuevo
+      objeto donde no existía ninguno. Dado que ya sabe hasta que punto es quisquilloso el
+      compilador de C++ respecto a la inicialización de objetos, sabrá que cuando se
+      define un objeto, siempre se invoca un constructor. Pero ¿qué constructor?,
+      <code class="varname">a</code> se crea desde un objeto existente <code class="classname">MyType</code>
+      (<code class="varname">b</code>, en el lado derecho del signo de igualdad), así que solo hay
+      una opción: el constructor de copia. Incluso aunque el signo de igualdad esté
+      involucrado, se llama al constructor de copia.
+    </p>
+      <p>
+      En la tercera línea, las cosas son diferentes. En la parte izquierda del signo
+      igual, hay un objeto previamente inicializado. Claramente, no se invoca un
+      constructor para un objeto que ya ha sido creado. En este caso
+      <code class="function">MyType::operator=</code> se llama para <code class="varname">a</code>, tomando
+      como argumento lo que sea que aparezca en la parte derecha. (Puede tener varias
+      funciones <code class="function">operator=</code> que tomen diferentes argumentos en la parte
+      derecha).
+    </p>
+      <p>
+      Este comportamiento no está restringido al constructor de copia. Cada vez que
+      inicializa un objeto usando un signo <code class="literal">=</code> en lugar de la forma usual
+      de llamada al constructor, el compilador buscará un constructor que acepte lo que
+      sea que haya en la parte derecha:
+    </p>
+      <div class="example">
+        <a id="idp7307592"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C12:CopyingVsInitialization.cpp</span>
+<span class="hl kwc">class</span> Fi <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Fi</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Fee <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Fee</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">Fee</span><span class="hl opt">(</span><span class="hl kwb">const</span> Fi<span class="hl opt">&amp;) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Fee fee <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">// Fee(int)</span>
+  Fi fi<span class="hl opt">;</span>
+  Fee fum <span class="hl opt">=</span> fi<span class="hl opt">;</span> <span class="hl slc">// Fee(Fi)</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 12.13. C12/CopyingVsInitialization.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Cuando se trata con el signo <code class="literal">=</code>, es importante mantener la diferencia en
+      mente: Si el objeto no ha sido creado todavía, se requiere una inicialización; en
+      otro caso se usa el operador de asignación <code class="literal">=</code>.
+    </p>
+      <p>
+      Es incluso mejor evitar escribir código que usa <code class="literal">=</code> para la
+      inicialización; en cambio, use siempre la manera del constructor explícito. Las dos
+      construcciones con el signo igual se convierten en:
+    </p>
+      <pre class="programlisting">
+Fee <span class="hl kwd">fee</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+    Fee <span class="hl kwd">fum</span><span class="hl opt">(</span>fi<span class="hl opt">);</span>
+</pre>
+      <p>
+      De esta manera, evitará confundir a sus lectores.
+    </p>
+      <div class="sect2" title="12.5.1. Comportamiento del operador =">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7312144"></a>12.5.1. Comportamiento del <code class="function">operador =</code></h3>
+            </div>
+          </div>
+        </div>
+        <p>
+		En <code class="filename">Integer.h</code> y en <code class="filename">Byte.h</code> vimos que el
+		operador <code class="literal">=</code> sólo puede ser una función miembro. Está íntimamente
+		ligado al objeto que hay en la parte izquierda del <code class="literal">=</code>. Si fuese
+		posible definir <code class="function">operator=</code> de forma global, entonces podría
+		intentar redefinir el signo <code class="literal">=</code> del lenguaje:
+      </p>
+        <pre class="programlisting">
+<span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">int</span><span class="hl opt">,</span> MyType<span class="hl opt">);</span>   <span class="hl slc">// Global = !No permitido!</span>
+</pre>
+        <p>
+		El compilador evita esta situación obligandole a hacer un método
+		<code class="function">operator=</code>.
+      </p>
+        <p>
+		Cuando cree un <code class="keyword">operator=</code>, debe copiar toda la información necesaria desde
+		el objeto de la parte derecha al objeto actual (es decir, el objeto para el que
+		<code class="literal">operator=</code> está siendo llamado) para realizar lo que sea que considere
+		«asignación» para su clase. Para objetos simples, esto es trivial:
+      </p>
+        <div class="example">
+          <a id="idp7318904"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C12:SimpleAssignment.cpp</span>
+<span class="hl slc">// Simple operator=()</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Value <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> a<span class="hl opt">,</span> b<span class="hl opt">;</span>
+  <span class="hl kwb">float</span> c<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Value</span><span class="hl opt">(</span><span class="hl kwb">int</span> aa <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">int</span> bb <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">float</span> cc <span class="hl opt">=</span> <span class="hl num">0.0</span><span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">a</span><span class="hl opt">(</span>aa<span class="hl opt">),</span> <span class="hl kwd">b</span><span class="hl opt">(</span>bb<span class="hl opt">),</span> <span class="hl kwd">c</span><span class="hl opt">(</span>cc<span class="hl opt">) {}</span>
+  Value<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Value<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+    a <span class="hl opt">=</span> rv<span class="hl opt">.</span>a<span class="hl opt">;</span>
+    b <span class="hl opt">=</span> rv<span class="hl opt">.</span>b<span class="hl opt">;</span>
+    c <span class="hl opt">=</span> rv<span class="hl opt">.</span>c<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Value<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;a = &quot;</span> <span class="hl opt">&lt;&lt;</span> rv<span class="hl opt">.</span>a <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, b = &quot;</span>
+      <span class="hl opt">&lt;&lt;</span> rv<span class="hl opt">.</span>b <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, c = &quot;</span> <span class="hl opt">&lt;&lt;</span> rv<span class="hl opt">.</span>c<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Value a<span class="hl opt">,</span> <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">2</span><span class="hl opt">,</span> <span class="hl num">3.3</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;a: &quot;</span> <span class="hl opt">&lt;&lt;</span> a <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;b: &quot;</span> <span class="hl opt">&lt;&lt;</span> b <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  a <span class="hl opt">=</span> b<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;a after assignment: &quot;</span> <span class="hl opt">&lt;&lt;</span> a <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 12.14. C12/SimpleAssignment.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		Aquí, el objeto de la parte izquierda del igual copia todos los elementos del
+		objeto de la parte derecha, y entonces devuelve una referencia a sí mismo, lo que
+		permite crear expresiones más complejas.
+      </p>
+        <p>
+		Este ejemplo incluye un error comón. Cuando asignane dos objetos del mismo tipo,
+		siempre debería comprobar primero la auto-asignación: ¿Está asignado el objeto a
+		sí mismo?. En algunos casos como éste, es inofensivo si realiza la operación de
+		asignación en todo caso, pero si se realizan cambios a la implementación de la
+		clase, puede ser importante y si no lo toma con una cuestión de costumbre,
+		puede olvidarlo y provocar errores difíciles de encontrar.
+      </p>
+        <div class="sect3" title="Punteros en clases">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp7322544"></a>Punteros en clases</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+		  ¿Qué ocurre si el objeto no es tan simple?. Por ejemplo, ¿qué pasa si el objeto
+		  contiene punteros a otros objetos?. Sólo copiar el puntero significa que
+		  obtendrá dos objetos que apuntan a la misma localización de memoria. En
+		  situaciones como ésta, necesita hacer algo de contabilidad.
+		</p>
+          <p>
+		  Hay dos aproximaciones a este problema. La técnica más simple es copiar lo que
+		  quiera que apunta el puntero cuando realiza una asignación o una construcción de
+		  copia. Esto es sencillo:
+		</p>
+          <div class="example">
+            <a id="idp7324304"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C12:CopyingWithPointers.cpp</span>
+<span class="hl slc">// Solving the pointer aliasing problem by</span>
+<span class="hl slc">// duplicating what is pointed to during </span>
+<span class="hl slc">// assignment and copy-construction.</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">{</span>
+  string nm<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">) :</span> <span class="hl kwd">nm</span><span class="hl opt">(</span>name<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Creating Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Synthesized copy-constructor &amp; operator= </span>
+  <span class="hl slc">// are correct.</span>
+  <span class="hl slc">// Create a Dog from a Dog pointer:</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> Dog<span class="hl opt">*</span> dp<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg<span class="hl opt">)</span> 
+    <span class="hl opt">:</span> <span class="hl kwd">nm</span><span class="hl opt">(</span>dp<span class="hl opt">-&gt;</span>nm <span class="hl opt">+</span> msg<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Copied dog &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; from &quot;</span>
+         <span class="hl opt">&lt;&lt; *</span>dp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Dog</span><span class="hl opt">() {</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Deleting Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    nm <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dog renamed to: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Dog<span class="hl opt">&amp;</span> d<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;[&quot;</span> <span class="hl opt">&lt;&lt;</span> d<span class="hl opt">.</span>nm <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;]&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> DogHouse <span class="hl opt">{</span>
+  Dog<span class="hl opt">*</span> p<span class="hl opt">;</span>
+  string houseName<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">DogHouse</span><span class="hl opt">(</span>Dog<span class="hl opt">*</span> dog<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> house<span class="hl opt">)</span>
+   <span class="hl opt">:</span> <span class="hl kwd">p</span><span class="hl opt">(</span>dog<span class="hl opt">),</span> <span class="hl kwd">houseName</span><span class="hl opt">(</span>house<span class="hl opt">) {}</span>
+  <span class="hl kwd">DogHouse</span><span class="hl opt">(</span><span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">p</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Dog</span><span class="hl opt">(</span>dh<span class="hl opt">.</span>p<span class="hl opt">,</span> <span class="hl str">&quot; copy-constructed&quot;</span><span class="hl opt">)),</span>
+      <span class="hl kwd">houseName</span><span class="hl opt">(</span>dh<span class="hl opt">.</span>houseName 
+        <span class="hl opt">+</span> <span class="hl str">&quot; copy-constructed&quot;</span><span class="hl opt">) {}</span>
+  DogHouse<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">) {</span>
+    <span class="hl slc">// Check for self-assignment:</span>
+    <span class="hl kwa">if</span><span class="hl opt">(&amp;</span>dh <span class="hl opt">!=</span> <span class="hl kwa">this</span><span class="hl opt">) {</span>
+      p <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Dog</span><span class="hl opt">(</span>dh<span class="hl opt">.</span>p<span class="hl opt">,</span> <span class="hl str">&quot; assigned&quot;</span><span class="hl opt">);</span>
+      houseName <span class="hl opt">=</span> dh<span class="hl opt">.</span>houseName <span class="hl opt">+</span> <span class="hl str">&quot; assigned&quot;</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">renameHouse</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    houseName <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Dog<span class="hl opt">*</span> <span class="hl kwd">getDog</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> p<span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">DogHouse</span><span class="hl opt">() {</span> <span class="hl kwa">delete</span> p<span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;[&quot;</span> <span class="hl opt">&lt;&lt;</span> dh<span class="hl opt">.</span>houseName 
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;] contains &quot;</span> <span class="hl opt">&lt;&lt; *</span>dh<span class="hl opt">.</span>p<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span> 
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  DogHouse <span class="hl kwd">fidos</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl str">&quot;Fido&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;FidoHouse&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> fidos <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  DogHouse fidos2 <span class="hl opt">=</span> fidos<span class="hl opt">;</span> <span class="hl slc">// Copy construction</span>
+  cout <span class="hl opt">&lt;&lt;</span> fidos2 <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  fidos2<span class="hl opt">.</span><span class="hl kwd">getDog</span><span class="hl opt">()-&gt;</span><span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;Spot&quot;</span><span class="hl opt">);</span>
+  fidos2<span class="hl opt">.</span><span class="hl kwd">renameHouse</span><span class="hl opt">(</span><span class="hl str">&quot;SpotHouse&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> fidos2 <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  fidos <span class="hl opt">=</span> fidos2<span class="hl opt">;</span> <span class="hl slc">// Assignment</span>
+  cout <span class="hl opt">&lt;&lt;</span> fidos <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  fidos<span class="hl opt">.</span><span class="hl kwd">getDog</span><span class="hl opt">()-&gt;</span><span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;Max&quot;</span><span class="hl opt">);</span>
+  fidos2<span class="hl opt">.</span><span class="hl kwd">renameHouse</span><span class="hl opt">(</span><span class="hl str">&quot;MaxHouse&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 12.15. C12/CopyingWithPointers.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		  <code class="classname">Dog</code> es una clase simple que contiene solo una cadena con
+		  el nombre del perro. Sin embargo, generalmente sabrá cuando le sucede algo al
+		  perro porque los constructores y destructores imprimen información cuando se
+		  invocan. Fíjese que el segundo constructor es un poco como un constructor de
+		  copia excepto que toma un puntero a <code class="classname">Dog</code> en vez de una
+		  referencia, y tiene un segundo argumento que es un mensaje a ser concatenado con
+		  el nombre del perro. Esto se hace así para ayudar a rastrear el comportamiento
+		  del programa.
+		</p>
+          <p>
+		  Puede ver que cuando un método imprime información, no accede a esa información
+		  directamente sino que manda <code class="varname">*this</code> a
+		  <code class="function">cout</code>. Éste a su vez llama a <code class="function">ostream
+		  operator&lt;&lt;</code>. Es aconsejable hacer esto así dado que si quiere
+		  reformatear la manera en la que información del perro es mostrada (como hice
+		  añadiendo el «[» y el «]») solo necesita hacerlo en un
+		  lugar.
+		</p>
+          <p>
+		  Una <code class="classname">DogHouse</code> contiene un <code class="varname">Dog*</code> y
+		  demuestra las cuatro funciones que siempre necesitará definir cuando sus clases
+		  contengan punteros: todos los constructores necesarios usuales, el constructor
+		  de copia, <code class="literal">operator=</code> (se define o se deshabilita) y un
+		  destructor. <code class="literal">Operator=</code> comprueba la auto-asignación como una
+		  cuestión de estilo, incluso aunque no es estrictamente necesario aquí. Esto
+		  virtualmente elimina la posibilidad de que olvide comprobar la auto-asignación
+		  si cambia el código.
+		</p>
+        </div>
+        <div class="sect3" title="Contabilidad de referencias">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp7335784"></a>Contabilidad de referencias</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+		  En el ejemplo de arriba, el constructor de copia y el operador <code class="literal">=</code>
+		  realizan una copia de lo que apunta el puntero, y el destructor lo borra. Sin
+		  embargo, si su objeto requiere una gran cantidad de memoria o una gran
+		  inicialización fija, a lo mejor puede querer evitar esta copia. Una aproximación
+		  común a este problema se llama <span class="emphasis"><em>conteo de referencias</em></span>. Se le
+		  da inteligencia al objeto que está siendo apuntado de tal forma que sabe cuántos
+		  objetos le están apuntado. Entonces la construcción por copia o la asignación
+		  consiste en añadir otro puntero a un objeto existente e incrementar la cuenta de
+		  referencias. La destrucción consiste en reducir esta cuenta de referencias y
+		  destruir el objeto si la cuenta llega a cero.
+		</p>
+          <p>
+		  ¿Pero que pasa si quiere escribir el objeto(<code class="varname">Dog</code> en el ejemplo
+		  anterior)?. Más de un objeto puede estar usando este <code class="varname">Dog</code>
+		  luego podría estar modificando el perro de alguien más a la vez que el suyo, lo
+		  cual no parece ser muy amigable. Para resolver este problema de
+		  «solapamiento» se usa una técnica adicional llamada
+		  <span class="emphasis"><em>copia-en-escritura</em></span>. Antes de escribir un bloque de memoria,
+		  debe asegurarse que nadie más lo está usando. Si la cuenta de referencia es
+		  superior a uno, debe realizar una copia personal del bloque antes de escribirlo,
+		  de tal manera que no moleste el espacio de otro. He aquí un ejemplo simple de
+		  conteo de referencias y copia-en-escritura:
+		</p>
+          <div class="example">
+            <a id="idp7340752"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C12:ReferenceCounting.cpp</span>
+<span class="hl slc">// Reference count, copy-on-write</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">{</span>
+  string nm<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> refcount<span class="hl opt">;</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">)</span> 
+    <span class="hl opt">:</span> <span class="hl kwd">nm</span><span class="hl opt">(</span>name<span class="hl opt">),</span> <span class="hl kwd">refcount</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Creating Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Prevent assignment:</span>
+  Dog<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Dog<span class="hl opt">&amp;</span> rv<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Dogs can only be created on the heap:</span>
+  <span class="hl kwb">static</span> Dog<span class="hl opt">*</span> <span class="hl kwd">make</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">) {</span>
+    <span class="hl kwa">return new</span> <span class="hl kwd">Dog</span><span class="hl opt">(</span>name<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> Dog<span class="hl opt">&amp;</span> d<span class="hl opt">)</span> 
+    <span class="hl opt">:</span> <span class="hl kwd">nm</span><span class="hl opt">(</span>d<span class="hl opt">.</span>nm <span class="hl opt">+</span> <span class="hl str">&quot; copy&quot;</span><span class="hl opt">),</span> <span class="hl kwd">refcount</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dog copy-constructor: &quot;</span> 
+         <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Dog</span><span class="hl opt">() {</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Deleting Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">attach</span><span class="hl opt">() {</span> 
+    <span class="hl opt">++</span>refcount<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Attached Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">detach</span><span class="hl opt">() {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>refcount <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Detaching Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl slc">// Destroy object if no one is using it:</span>
+    <span class="hl kwa">if</span><span class="hl opt">(--</span>refcount <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">delete this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Conditionally copy this Dog.</span>
+  <span class="hl slc">// Call before modifying the Dog, assign</span>
+  <span class="hl slc">// resulting pointer to your Dog*.</span>
+  Dog<span class="hl opt">*</span> <span class="hl kwd">unalias</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Unaliasing Dog: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl slc">// Don't duplicate if not aliased:</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>refcount <span class="hl opt">==</span> <span class="hl num">1</span><span class="hl opt">)</span> <span class="hl kwa">return this</span><span class="hl opt">;</span>
+    <span class="hl opt">--</span>refcount<span class="hl opt">;</span>
+    <span class="hl slc">// Use copy-constructor to duplicate:</span>
+    <span class="hl kwa">return new</span> <span class="hl kwd">Dog</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    nm <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dog renamed to: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Dog<span class="hl opt">&amp;</span> d<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;[&quot;</span> <span class="hl opt">&lt;&lt;</span> d<span class="hl opt">.</span>nm <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;], rc = &quot;</span> 
+      <span class="hl opt">&lt;&lt;</span> d<span class="hl opt">.</span>refcount<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> DogHouse <span class="hl opt">{</span>
+  Dog<span class="hl opt">*</span> p<span class="hl opt">;</span>
+  string houseName<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">DogHouse</span><span class="hl opt">(</span>Dog<span class="hl opt">*</span> dog<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> house<span class="hl opt">)</span>
+   <span class="hl opt">:</span> <span class="hl kwd">p</span><span class="hl opt">(</span>dog<span class="hl opt">),</span> <span class="hl kwd">houseName</span><span class="hl opt">(</span>house<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Created DogHouse: &quot;</span><span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwd">DogHouse</span><span class="hl opt">(</span><span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">p</span><span class="hl opt">(</span>dh<span class="hl opt">.</span>p<span class="hl opt">),</span>
+      <span class="hl kwd">houseName</span><span class="hl opt">(</span><span class="hl str">&quot;copy-constructed &quot;</span> <span class="hl opt">+</span> 
+        dh<span class="hl opt">.</span>houseName<span class="hl opt">) {</span>
+    p<span class="hl opt">-&gt;</span><span class="hl kwd">attach</span><span class="hl opt">();</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;DogHouse copy-constructor: &quot;</span>
+         <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  DogHouse<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">) {</span>
+    <span class="hl slc">// Check for self-assignment:</span>
+    <span class="hl kwa">if</span><span class="hl opt">(&amp;</span>dh <span class="hl opt">!=</span> <span class="hl kwa">this</span><span class="hl opt">) {</span>
+      houseName <span class="hl opt">=</span> dh<span class="hl opt">.</span>houseName <span class="hl opt">+</span> <span class="hl str">&quot; assigned&quot;</span><span class="hl opt">;</span>
+      <span class="hl slc">// Clean up what you're using first:</span>
+      p<span class="hl opt">-&gt;</span><span class="hl kwd">detach</span><span class="hl opt">();</span>
+      p <span class="hl opt">=</span> dh<span class="hl opt">.</span>p<span class="hl opt">;</span> <span class="hl slc">// Like copy-constructor</span>
+      p<span class="hl opt">-&gt;</span><span class="hl kwd">attach</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;DogHouse operator= : &quot;</span>
+         <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Decrement refcount, conditionally destroy</span>
+  <span class="hl opt">~</span><span class="hl kwd">DogHouse</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;DogHouse destructor: &quot;</span> 
+         <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    p<span class="hl opt">-&gt;</span><span class="hl kwd">detach</span><span class="hl opt">();</span> 
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">renameHouse</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    houseName <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">unalias</span><span class="hl opt">() {</span> p <span class="hl opt">=</span> p<span class="hl opt">-&gt;</span><span class="hl kwd">unalias</span><span class="hl opt">(); }</span>
+  <span class="hl slc">// Copy-on-write. Anytime you modify the </span>
+  <span class="hl slc">// contents of the pointer you must </span>
+  <span class="hl slc">// first unalias it:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">renameDog</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    <span class="hl kwd">unalias</span><span class="hl opt">();</span>
+    p<span class="hl opt">-&gt;</span><span class="hl kwd">rename</span><span class="hl opt">(</span>newName<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// ... or when you allow someone else access:</span>
+  Dog<span class="hl opt">*</span> <span class="hl kwd">getDog</span><span class="hl opt">() {</span>
+    <span class="hl kwd">unalias</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> p<span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> DogHouse<span class="hl opt">&amp;</span> dh<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;[&quot;</span> <span class="hl opt">&lt;&lt;</span> dh<span class="hl opt">.</span>houseName 
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;] contains &quot;</span> <span class="hl opt">&lt;&lt; *</span>dh<span class="hl opt">.</span>p<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span> 
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  DogHouse 
+    <span class="hl kwd">fidos</span><span class="hl opt">(</span>Dog<span class="hl opt">::</span><span class="hl kwd">make</span><span class="hl opt">(</span><span class="hl str">&quot;Fido&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;FidoHouse&quot;</span><span class="hl opt">),</span>
+    <span class="hl kwd">spots</span><span class="hl opt">(</span>Dog<span class="hl opt">::</span><span class="hl kwd">make</span><span class="hl opt">(</span><span class="hl str">&quot;Spot&quot;</span><span class="hl opt">),</span> <span class="hl str">&quot;SpotHouse&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entering copy-construction&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  DogHouse <span class="hl kwd">bobs</span><span class="hl opt">(</span>fidos<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;After copy-constructing bobs&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;fidos:&quot;</span> <span class="hl opt">&lt;&lt;</span> fidos <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;spots:&quot;</span> <span class="hl opt">&lt;&lt;</span> spots <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;bobs:&quot;</span> <span class="hl opt">&lt;&lt;</span> bobs <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entering spots = fidos&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  spots <span class="hl opt">=</span> fidos<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;After spots = fidos&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;spots:&quot;</span> <span class="hl opt">&lt;&lt;</span> spots <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entering self-assignment&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  bobs <span class="hl opt">=</span> bobs<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;After self-assignment&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;bobs:&quot;</span> <span class="hl opt">&lt;&lt;</span> bobs <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Comment out the following lines:</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entering rename(</span><span class="hl esc">\&quot;</span><span class="hl str">Bob</span><span class="hl esc">\&quot;</span><span class="hl str">)&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  bobs<span class="hl opt">.</span><span class="hl kwd">getDog</span><span class="hl opt">()-&gt;</span><span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;Bob&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;After rename(</span><span class="hl esc">\&quot;</span><span class="hl str">Bob</span><span class="hl esc">\&quot;</span><span class="hl str">)&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 12.16. C12/ReferenceCounting.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		  La clase <code class="classname">Dog</code> es el objeto apuntado por
+		  <code class="classname">DogHouse</code>. Contiene una cuenta de referencias y métodos
+		  para controlar y leer la cuenta de referencias. Hay un constructor de copia de
+		  modo que puede crear un nuevo <code class="classname">Dog</code> a partir de uno
+		  existente.
+		</p>
+          <p>
+		  La función <code class="function">attach()</code> incrementa la cuenta de referencias de
+		  un <code class="classname">Dog</code> para indicar que hay otro objeto usándolo. La
+		  función <code class="function">detach()</code> decrementa la cuenta de referencias. Si
+		  llega a cero, entonces nadie mas lo está usando, así que el método destruye su
+		  propio objeto llamando a <code class="function">delete this</code>.
+		</p>
+          <p>
+		 Antes de que haga cualquier modificación (como renombrar un
+		 <code class="classname">Dog</code>), debería asegurarse de que no está cambiando un
+		 <code class="classname">Dog</code> que algún otro objeto está usando. Hágalo llamando
+		 a <code class="function">DogHouse::unalias() </code>, que llama a
+		 <code class="function">Dog::unalias()</code>. Esta última función devolverá el puntero a
+		 <code class="classname">Dog</code> existente si la cuenta de referencias es uno (lo que
+		 significa que nadie mas está usando ese <code class="classname">Dog</code>), pero
+		 duplicará <code class="classname">Dog</code> si esa cuenta es mayor que uno.
+	   </p>
+          <p>
+		  El constructor de copia, además de pedir su propia memoria, asigna
+		  <code class="classname">Dog</code> al <code class="classname">Dog</code> del objeto
+		  fuente. Entonces, dado que ahora hay un objeto más usando ese bloque de memoria,
+		  incrementa la cuenta de referencias llamando a <code class="function">Dog::attach()</code>.
+		</p>
+          <p>
+		  El operador <code class="literal">=</code> trata con un objeto que ha sido creado en la parte
+		  izquierda del <code class="literal">=</code>, así que primero debe limpiarlo llamando a
+		  <code class="function">detach()</code> para ese <code class="classname">Dog</code>, lo que
+		  destruirá el <code class="classname">Dog</code> viejo si nadie más lo está
+		  usando. Entonces <code class="literal">operator=</code> repite el comportamiento del constructor
+		  de copia. Advierta que primero realiza comprobaciones para detectar cuando está
+		  asignando el objeto a sí mismo.
+		</p>
+          <p>
+		  El destructor llama a <code class="function">detach()</code> para destruir
+		  condicionalmente el <code class="classname">Dog</code>.
+		</p>
+          <p>
+		  Para implementar la copia-en-escritura, debe controlar todas las operaciones que
+		  escriben en su bloque de memoria. Por ejemplo, el método
+		  <code class="function">renameDog()</code> le permite cambiar valores en el bloque de
+		  memoria. Pero primero, llama a <code class="function">unalias()</code> para evitar la
+		  modificación de un <code class="classname">Dog</code> solapado (un
+		  <code class="classname">Dog</code> con más de un objeto <code class="classname">DogHouse</code>
+		  apuntándole). Y si necesita crear un puntero a un <code class="classname">Dog</code>
+		  desde un <code class="classname">DogHouse</code> debe llamar primero a
+		  <code class="function">unalias()</code> para ese puntero.
+		</p>
+          <p>
+		  La función <code class="function">main()</code> comprueba varias funciones que
+		  deben funcionar correctamente para implementar la cuenta de
+		  referencias: el constructor, el constructor de copia,
+		  <code class="literal">operator=</code> y el destructor. También comprueba la
+		  copia-en-escritura llamando a <code class="function">renameDog()</code>.
+		</p>
+          <p>
+		  He aquí la salida (después de un poco de reformateo):
+		</p>
+          <pre class="programlisting">
+Creando Dog<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    CreadoDogHouse<span class="hl opt">: [</span>FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    Creando Dog<span class="hl opt">: [</span>Spot<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    CreadoDogHouse<span class="hl opt">: [</span>SpotHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Spot<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    Entrando en el constructor de copia
+    Dog añadido<span class="hl opt">:[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    DogHouse constructor de copia
+    <span class="hl opt">[</span>construido por copia FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    Despues de la construcción por copia de Bobs
+    fidos<span class="hl opt">:[</span>FidoHouse<span class="hl opt">]</span> contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    spots<span class="hl opt">:[</span>SpotHouse<span class="hl opt">]</span> contiene <span class="hl opt">[</span>Spot<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    bobs<span class="hl opt">:[</span>construido por copia FidoHouse<span class="hl opt">]</span>
+    contiene<span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    Entrando spots <span class="hl opt">=</span> fidos
+    Eliminando perro<span class="hl opt">: [</span>Spot<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    Borrando Perro<span class="hl opt">: [</span>Spot<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">0</span>
+    Añadido Dog<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    DogHouse operador<span class="hl opt">= : [</span>FidoHouse asignado<span class="hl opt">]</span>
+    contiene<span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    Despues de  spots <span class="hl opt">=</span> fidos
+    spots<span class="hl opt">:[</span>FidoHouse asignado<span class="hl opt">]</span> contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span> rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    Entrando en la <span class="hl kwc">auto</span> asignación
+    DogHouse operador<span class="hl opt">= : [</span>construido por copia FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    Despues de la <span class="hl kwc">auto</span> asignación
+    bobs<span class="hl opt">:[</span>construido por copia FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    Entando <span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;Bob&quot;</span><span class="hl opt">)</span>
+    Despues de <span class="hl kwd">rename</span><span class="hl opt">(</span><span class="hl str">&quot;Bob&quot;</span><span class="hl opt">)</span>
+    DogHouse destructor<span class="hl opt">: [</span>construido por copia FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    Eliminando perro<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">3</span>
+    DogHouse destructor<span class="hl opt">: [</span>FidoHouse asignado<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    Eliminando perro<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">2</span>
+    DogHouse destructor<span class="hl opt">: [</span>FidoHouse<span class="hl opt">]</span>
+    contiene <span class="hl opt">[</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    Eliminando perro<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">1</span>
+    Borrando perro<span class="hl opt">: [</span>Fido<span class="hl opt">],</span>  rc <span class="hl opt">=</span> <span class="hl num">0</span>
+</pre>
+          <p>
+		  Estudiando la salida, rastreando el código fuente y experimentando con
+		  el programa, podrá ahondar en la comprensión de estas técnicas.
+		</p>
+        </div>
+        <div class="sect3" title="Creación automática del operador =">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp7367464"></a>Creación automática del operador =</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+		  Dado que asignar un objeto a otro <span class="emphasis"><em>del mismo tipo</em></span> es una
+		  operación que la mayoría de la gente espera que sea posible, el compilador
+		  automáticamente creará un <code class="code">type::operator=(type)</code> si usted el
+		  programador no proporciona uno. El comportamiento de este operador imita el del
+		  constructor de copia creado automáticamente; si la clase contiene objetos (o se
+		  deriva de otra clase), se llama recursivamente a <code class="literal">operator=</code> para
+		  esos objetos. A esto se le llama <span class="emphasis"><em>asignación miembro a
+		  miembro</em></span>. Por ejemplo:
+		</p>
+          <div class="example">
+            <a id="idp7370088"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C12:AutomaticOperatorEquals.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Cargo <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Cargo<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Cargo<span class="hl opt">&amp;) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;inside Cargo::operator=()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Truck <span class="hl opt">{</span>
+  Cargo b<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Truck a<span class="hl opt">,</span> b<span class="hl opt">;</span>
+  a <span class="hl opt">=</span> b<span class="hl opt">;</span> <span class="hl slc">// Prints: &quot;inside Cargo::operator=()&quot;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 12.17. C12/AutomaticOperatorEquals.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		  El <code class="function">operador=</code> generado automáticamente para
+		  <code class="classname">Truck</code> llama a <code class="function">Cargo::operator=</code>.
+		</p>
+          <p>
+		  En general, no querrá que el compilador haga esto por usted. Con clases de
+		  cualquier sofisticación (¡Especialmente si contienen punteros!) querrá crear de
+		  forma explicita un <code class="function">operator=</code>. Si realmente no quiere que la
+		  gente realice asignaciones, declare <code class="function">operator=</code> como una
+		  método privado. (No necesita definirla a menos que la esté usando dentro de la
+		  clase).
+		</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s04.html">12.4. Operadores no miembros</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s06.html">12.6. Conversión automática de tipos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

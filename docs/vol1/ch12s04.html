@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>12.4. Operadores no miembros</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C12.html" title="12: Sobrecarga de operadores" />
+    <link rel="prev" href="ch12s03s05.html" title="12.3.5. Operadores que no puede sobrecargar" />
+    <link rel="next" href="ch12s05.html" title="12.5. Sobrecargar la asignación" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s03s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s03s05.html">12.3.5. Operadores que no puede sobrecargar</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s05.html">12.5. Sobrecargar la asignación</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="12.4. Operadores no miembros">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7279616"></a>12.4. Operadores no miembros</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En algunos de los ejemplos anteriores, los operadores pueden ser miembros o no, y no
+      parece haber mucha diferencia. Esto normalmente provoca la pregunta, «¿Cuál
+      debería elegir?». En general, si no hay ninguna diferencia deberían ser
+      miembros, para enfatizar la asociación entre el operador y su clase. Cuando el
+      operando de la izquierda es siempre un objeto de la clase actual funciona bien.
+    </p>
+      <p>
+      Sin embargo, a veces querrá que el operando de la izquierda sea un objeto de alguna
+      otra clase. Un caso típico en el que ocurre eso es cuando se sobrecargan los
+      operadores <code class="literal">&lt;&lt;</code> y <code class="literal">&gt;&gt;</code> para los flujos de
+      entrada/salida. Dado que estos flujos son una librería fundamental en C++,
+      probablemente querrá sobrecargar estos operadores para la mayoría de sus clases, por
+      eso el proceso es digno de tratarse:
+    </p>
+      <div class="example">
+        <a id="idp7283080"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C12:IostreamOperatorOverloading.cpp</span>
+<span class="hl slc">// Example of non-member overloaded operators</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;sstream&gt;</span> <span class="hl slc">// &quot;String streams&quot;</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;cstring&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> IntArray <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> sz <span class="hl opt">=</span> <span class="hl num">5</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">[</span>sz<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">IntArray</span><span class="hl opt">() {</span> <span class="hl kwd">memset</span><span class="hl opt">(</span>i<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> sz<span class="hl opt">*</span> <span class="hl kwa">sizeof</span><span class="hl opt">(*</span>i<span class="hl opt">)); }</span>
+  <span class="hl kwb">int</span><span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> x<span class="hl opt">) {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>x <span class="hl opt">&gt;=</span> <span class="hl num">0</span> <span class="hl opt">&amp;&amp;</span> x <span class="hl opt">&lt;</span> sz<span class="hl opt">,</span>
+      <span class="hl str">&quot;IntArray::operator[] out of range&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> i<span class="hl opt">[</span>x<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> IntArray<span class="hl opt">&amp;</span> ia<span class="hl opt">);</span>
+  <span class="hl kwc">friend</span> istream<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">&gt;&gt;(</span>istream<span class="hl opt">&amp;</span> is<span class="hl opt">,</span> IntArray<span class="hl opt">&amp;</span> ia<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+ostream<span class="hl opt">&amp;</span> 
+<span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> IntArray<span class="hl opt">&amp;</span> ia<span class="hl opt">) {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> ia<span class="hl opt">.</span>sz<span class="hl opt">;</span> j<span class="hl opt">++) {</span>
+    os <span class="hl opt">&lt;&lt;</span> ia<span class="hl opt">.</span>i<span class="hl opt">[</span>j<span class="hl opt">];</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>j <span class="hl opt">!=</span> ia<span class="hl opt">.</span>sz <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">)</span>
+      os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, &quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  os <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> os<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+istream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&gt;&gt;(</span>istream<span class="hl opt">&amp;</span> is<span class="hl opt">,</span> IntArray<span class="hl opt">&amp;</span> ia<span class="hl opt">){</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> ia<span class="hl opt">.</span>sz<span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    is <span class="hl opt">&gt;&gt;</span> ia<span class="hl opt">.</span>i<span class="hl opt">[</span>j<span class="hl opt">];</span>
+  <span class="hl kwa">return</span> is<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  stringstream <span class="hl kwd">input</span><span class="hl opt">(</span><span class="hl str">&quot;47 34 56 92 103&quot;</span><span class="hl opt">);</span>
+  IntArray I<span class="hl opt">;</span>
+  input <span class="hl opt">&gt;&gt;</span> I<span class="hl opt">;</span>
+  I<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">] = -</span><span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">// Use overloaded operator[]</span>
+  cout <span class="hl opt">&lt;&lt;</span> I<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 12.12. C12/IostreamOperatorOverloading.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Esta clase contiene también un operador sobrecargado <code class="literal">operator[]</code> el cual
+      devuelve una referencia a un valor legítimo en el array. Dado que devuelve una
+      referencia, la expresión:
+    </p>
+      <pre class="programlisting">
+I<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">] = -</span><span class="hl num">1</span><span class="hl opt">;</span>
+</pre>
+      <p>
+      No sólo parece mucho más adecuada que si se usaran punteros, también causa el efecto
+      deseado.
+    </p>
+      <p>
+      Es importante que los operadores de desplazamiento sobrecargados se pasen
+      y devuelvan <span class="emphasis"><em>por referencia</em></span>, para que los cambios
+      afecten a los objetos externos. En las definiciones de las funciones,
+      expresiones como:
+    </p>
+      <pre class="programlisting">
+os <span class="hl opt">&lt;&lt;</span> ia<span class="hl opt">.</span>i<span class="hl opt">[</span>j<span class="hl opt">];</span>
+</pre>
+      <p>
+      provocan que sean llamadas las funciones de los operadores sobrecargados
+      (esto es, aquellas definidas en <code class="classname">iostream</code>). En este
+      caso, la función llamada es <code class="function">ostream&amp;
+      operator&lt;&lt;(ostream&amp;, int)</code> dado que
+      <code class="varname">ia[i].j</code> se resuelve a <code class="type">int</code>.
+    </p>
+      <p>
+      Una vez que las operaciones se han realizado en
+      <code class="classname">istream</code> o en <code class="classname">ostream</code> se
+      devuelve para que se pueda usaren expresiones más complicadas.
+    </p>
+      <p>
+      En <code class="function">main()</code> se usa un nuevo tipo de
+      <code class="classname">iostream</code>: el <code class="type">stringstream</code> (declarado
+      en <code class="classname">&lt;sstream&gt;</code>). Es una clase que toma una cadena
+      (que se puede crear de un array de <code class="type">char</code>, como se ve aquí) y
+      lo convierte en un <code class="classname">iostream</code>. En el ejemplo de
+      arriba, esto significa que los operadores de desplazamiento pueden ser
+      comprobados sin abrir un archivo o sin escribir datos en la línea de
+      comandos.
+    </p>
+      <p>
+      La manera mostrada en este ejemplo para el extractor y el insertador es
+      estándar. Si quiere crear estos operadores para su propia clase, copie el
+      prototipo de la función y los tipos de retorno de arriba y siga el estilo
+      del cuerpo.
+    </p>
+      <div class="sect2" title="12.4.1. Directrices básicas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7293944"></a>12.4.1. Directrices básicas</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+		Murray
+		<sup>[<a id="idp7294464" href="#ftn.idp7294464" class="footnote">70</a>]</sup> sugiere estas reglas de estilo para elegir entre miembros y no miembros:
+      </p>
+        <div class="table">
+          <a id="idp7295456"></a>
+          <div class="table-contents">
+            <table summary="Directrices para elegir entre miembro y no-miembro" border="1">
+              <colgroup>
+                <col />
+                <col />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Operador</th>
+                  <th>Uso recomendado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Todos los operadores unarios</td>
+                  <td>miembro</td>
+                </tr>
+                <tr>
+                  <td>= () [] -&gt; -&gt;*</td>
+                  <td><span class="emphasis"><em>debe</em></span> ser miembro</td>
+                </tr>
+                <tr>
+                  <td>+= -= /= *= ^= &amp;= |= %= &gt;&gt;=
+				&lt;&lt;=</td>
+                  <td>miembro</td>
+                </tr>
+                <tr>
+                  <td>El resto de operadores binarios</td>
+                  <td>no miembro</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="title">
+            <strong>Tabla 12.1. Directrices para elegir entre miembro y no-miembro</strong>
+          </p>
+        </div>
+        <br class="table-break" />
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp7294464" href="#idp7294464" class="para">70</a>] </sup>
+			Rob Murray, <em class="citetitle">
+			  C++ Strategies &amp; Tactics
+			</em>, Addison Wesley, 1993, pagina 47.
+		  </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s03s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s03s05.html">12.3.5. Operadores que no puede sobrecargar</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s05.html">12.5. Sobrecargar la asignación</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

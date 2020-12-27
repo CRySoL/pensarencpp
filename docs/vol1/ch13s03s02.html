@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>13.3.2. Cuando se supera el espacio de almacenamiento</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch13s03.html" title="13.3. new y delete para vectores" />
+    <link rel="prev" href="ch13s03.html" title="13.3. new y delete para vectores" />
+    <link rel="next" href="ch13s03s03.html" title="13.3.3. Sobrecarga de los operadores new y delete" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s03.html">13.3. 
+      <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores
+    </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s03s03.html">13.3.3. Sobrecarga de los operadores <code class="keyword">new</code> y <code class="keyword">delete</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="13.3.2. Cuando se supera el espacio de almacenamiento">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp7649872"></a>13.3.2. Cuando se supera el espacio de almacenamiento</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+		¿Qué ocurre cuando <code class="keyword">new()</code> no puede encontrar un bloque contiguo
+		suficientemente grande para alojar el objeto? En este caso se produce la llamada a
+		una función especial: el manejador de errores de <code class="keyword">new</code> o
+		<span class="emphasis"><em>new-handler</em></span>. Para ello comprueba si un determinado puntero a
+		función es nulo, si no lo es, se efectúa la llamada a la función a la que apunta.
+      </p>
+      <p>
+		El comportamiento por defecto del manejador de errores de <code class="keyword">new</code> es disparar
+		una excepción, asunto del que se tratará en el Volumen 2. Si se piensa usar la
+		asignación dinámica, conviene al menos reemplazar el manejador de errores de
+		<code class="keyword">new</code> por una función que advierta de la falta de memoria y fuerce la
+		terminación del programa. De este modo, durante la depuración del programa, se
+		podrá seguir la pista de lo sucedido. Para la versión final del programa, será
+		mejor implementar una recuperación de errores más elaborada.
+      </p>
+      <p>
+		La forma de reemplazar el manejador de <span class="emphasis"><em>new-handler</em></span> por defecto
+		consiste en incluir el archivo <code class="filename">new.h</code> y hacer una llamada a la
+		función <code class="function">set_new_handler()</code> con la dirección de la función que
+		se desea instalar:
+      </p>
+      <div class="example">
+        <a id="idp7655936"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C13:NewHandler.cpp</span>
+<span class="hl slc">// Changing the new-handler</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;new&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> count <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">out_of_memory</span><span class="hl opt">() {</span>
+  cerr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;memory exhausted after &quot;</span> <span class="hl opt">&lt;&lt;</span> count 
+    <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; allocations!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">set_new_handler</span><span class="hl opt">(</span>out_of_memory<span class="hl opt">);</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">) {</span>
+    count<span class="hl opt">++;</span>
+    <span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">[</span><span class="hl num">1000</span><span class="hl opt">];</span> <span class="hl slc">// Exhausts memory</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 13.7. C13/NewHandler.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+		La función a instalar debe retornar <code class="type">void</code> y no tomar argumentos. El
+		bucle <code class="keyword">while</code> seguirá pidiendo bloques de <code class="type">int</code> hasta consumir
+		la memoria libre disponible, sin hacer nada con ellos. Justo a la siguiente
+		llamada a <code class="keyword">new</code>, no habrá espacio para asignar y se producirá la llamada al
+		<span class="emphasis"><em>manejador de <code class="keyword">new</code></em></span>.
+      </p>
+      <p>
+		Este comportamiento del <span class="emphasis"><em>new-handler</em></span> está asociado al
+		<code class="function">operator new()</code>, de modo que si se sobrecarga
+		<code class="function">operator new()</code> (asunto que se trata en la siguiente sección),
+		no se producirá la llamada al <span class="emphasis"><em>manejador de <code class="keyword">new</code></em></span>. Si
+		se desea que se produzca dicha llamada será necesario que lo haga en el
+		<code class="function">operator new()</code> que substituya al original.
+      </p>
+      <p>
+		Por supuesto, es posible escribir manejadores <code class="keyword">new</code> más sofisticados,
+		incluso alguno que intente reclamar los bloques asignados que no se usan
+		(conocidos habitualmente como <span class="emphasis"><em>recolectores de basura</em></span>). Pero
+		este no es un trabajo adecuado para programadores noveles.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s03.html">13.3. 
+      <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores
+    </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s03s03.html">13.3.3. Sobrecarga de los operadores <code class="keyword">new</code> y <code class="keyword">delete</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

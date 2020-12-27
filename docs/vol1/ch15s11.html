@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.11. Sobrecarga de operadores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s10s06.html" title="15.10.6. Creación una jerarquía basada en objetos" />
+    <link rel="next" href="ch15s12.html" title="15.12. Downcasting" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s06.html">15.10.6. Creación una jerarquía basada en objetos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s12.html">15.12. Downcasting</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s12.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.11. Sobrecarga de operadores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8324104"></a>15.11. Sobrecarga de operadores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Se pueden crear operadores <code class="keyword">virtual</code>es de forma
+      análoga a otras funciones miembro. Sin embargo implementar
+      operadores <code class="keyword">virtual</code>es se vuelve a menudo confuso
+      porque se está operando sobre dos objetos, ambos sin tipos
+      conocidos. Esto suele ser el caso de los componentes matemáticos
+      (para los cuales se suele usar la sobrecarga de operadores). Por
+      ejemplo, considere un sistema que usa matrices, vectores y valores
+      escalares, todos ellos heredados de la clase
+      <code class="classname">Math</code>:
+    </p>
+      <div class="example">
+        <a id="idp8326776"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:OperatorPolymorphism.cpp</span>
+<span class="hl slc">// Polymorphism with overloaded operators</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Matrix<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Scalar<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Vector<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Math <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> Math<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">*(</span>Math<span class="hl opt">&amp;</span> rv<span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Matrix<span class="hl opt">*) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Scalar<span class="hl opt">*) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Vector<span class="hl opt">*) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Math</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Matrix <span class="hl opt">:</span> <span class="hl kwc">public</span> Math <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">*(</span>Math<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> rv<span class="hl opt">.</span><span class="hl kwd">multiply</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span> <span class="hl slc">// 2nd dispatch</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Matrix<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Matrix * Matrix&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Scalar<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Scalar * Matrix&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Vector<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Vector * Matrix&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Scalar <span class="hl opt">:</span> <span class="hl kwc">public</span> Math  <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">*(</span>Math<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> rv<span class="hl opt">.</span><span class="hl kwd">multiply</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span> <span class="hl slc">// 2nd dispatch</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Matrix<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Matrix * Scalar&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Scalar<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Scalar * Scalar&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Vector<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Vector * Scalar&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Vector <span class="hl opt">:</span> <span class="hl kwc">public</span> Math  <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">*(</span>Math<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> rv<span class="hl opt">.</span><span class="hl kwd">multiply</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span> <span class="hl slc">// 2nd dispatch</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Matrix<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Matrix * Vector&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Scalar<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Scalar * Vector&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Math<span class="hl opt">&amp;</span> <span class="hl kwd">multiply</span><span class="hl opt">(</span>Vector<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Vector * Vector&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Matrix m<span class="hl opt">;</span> Vector v<span class="hl opt">;</span> Scalar s<span class="hl opt">;</span>
+  Math<span class="hl opt">*</span> math<span class="hl opt">[] = { &amp;</span>m<span class="hl opt">, &amp;</span>v<span class="hl opt">, &amp;</span>s <span class="hl opt">};</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">3</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">3</span><span class="hl opt">;</span> j<span class="hl opt">++) {</span>
+      Math<span class="hl opt">&amp;</span> m1 <span class="hl opt">= *</span>math<span class="hl opt">[</span>i<span class="hl opt">];</span>
+      Math<span class="hl opt">&amp;</span> m2 <span class="hl opt">= *</span>math<span class="hl opt">[</span>j<span class="hl opt">];</span>
+      m1 <span class="hl opt">*</span> m2<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.18. C15/OperatorPolymorphism.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Para simplificar sólo se ha sobrecargado el
+      <code class="type">operator*</code>. El objetivo es ser capaz de
+      multiplicar dos objetos <code class="classname">Math</code> cualquiera y
+      producir el resultado deseado - hay que darse cuenta que
+      multiplicar una matriz por un vector es una operación totalmente
+      distinta a la de multiplicar un vector por una matriz.
+    </p>
+      <p>
+      El problema es que, en el <code class="function">main()</code>, la
+      expresión <code class="literal">m1 * m2</code> contiene dos referencias
+      <code class="classname">Math</code>, y son dos objetos de tipo
+      desconocido. Una función virtual es sólo capaz de hacer una única
+      llamada - es decir, determinar el tipo de un único objeto. Para
+      determinar ambos tipos en este ejemplo se usa una técnica conocida
+      como despachado múltiple (<span class="foreignphrase"><em class="foreignphrase">multiple
+      dispatching</em></span>), donde lo que parece ser una única
+      llamada a una función virtual se convierte en una segunda llamada
+      a una función virtual. Cuando la segunda llamada se ha ejecutado,
+      ya se han determinado ambos tipos de objetos y se puede ejecutar
+      la actividad de forma correcta. En un principio no es
+      transparante, pero después de un rato mirando el código empieza a
+      cobrar sentido. Esta materia es tratada con más profundidad en el
+      capítulo de los patrones de diseño en el Volumen 2 que se puede
+      bajar de <a class="ulink" href="http://www.bruceeckel.com" target="_top">&gt;www.BruceEckel.com</a>.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s06.html">15.10.6. Creación una jerarquía basada en objetos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s12.html">15.12. Downcasting</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s12.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

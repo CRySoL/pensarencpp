@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.5. Volatile</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C08.html" title="8: Constantes" />
+    <link rel="prev" href="ch08s04s03.html" title="8.4.3. Objetos y métodos constantes" />
+    <link rel="next" href="ch08s06.html" title="8.6. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04s03.html">8.4.3. Objetos y métodos constantes</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C08.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s06.html">8.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="8.5. Volatile">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6238088"></a>8.5. Volatile</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      La sintaxis de <code class="keyword">volatile</code> es idéntica a la de
+      <code class="keyword">const</code>, pero <code class="keyword">volatile</code> significa «este
+      dato puede cambiar sin que el compilador sea informado de
+      ello». De algún modo, el entorno modifica el dato
+      (posiblemente mediante multitarea, multihilo o interrupciones),
+      y <code class="keyword">volatile</code> indica la compilador que no haga
+      suposiciones sobre el dato, especialmente durante la
+      optimización.
+    </p>
+      <p>
+      Si el compilador dice, «yo guardé este dato en un registro
+      anteriormente, y no he tocado ese registro», normalmente
+      no necesitará leer el dato de nuevo desde memoria. Pero si esa
+      variable es <code class="keyword">volatile</code>, el compilador no debe hacer esa
+      suposición porque el dato puede haber cambiado a causa de otro
+      proceso, y debe releer el dato en vez de optimizar el código
+      (dicha optimización consiste en eliminar la lectura redundante
+      que se hace normalmente).
+    </p>
+      <p>
+      Pueden crearse objetos <code class="keyword">volatile</code> usando la misma
+      sintaxis que se usa para crear objetos constantes. También puede
+      crearse objetos <code class="keyword">volatile</code> constantes que no pueden
+      cambiarse por el programador cliente pero se pueden modificar
+      por una entidad ajena al programa. Aquí se muestra un ejemplo
+      que representa una clase asociada con algún elemento físico de
+      comunicación.
+    </p>
+      <div class="example">
+        <a id="idp6245264"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:Volatile.cpp</span>
+<span class="hl slc">// The volatile keyword</span>
+
+<span class="hl kwc">class</span> Comm <span class="hl opt">{</span>
+  <span class="hl kwb">const</span> <span class="hl kwc">volatile</span> <span class="hl kwb">unsigned char</span> byte<span class="hl opt">;</span>
+  <span class="hl kwc">volatile</span> <span class="hl kwb">unsigned char</span> flag<span class="hl opt">;</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> bufsize <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">unsigned char</span> buf<span class="hl opt">[</span>bufsize<span class="hl opt">];</span>
+  <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Comm</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">isr</span><span class="hl opt">()</span> <span class="hl kwc">volatile</span><span class="hl opt">;</span>
+  <span class="hl kwb">char</span> <span class="hl kwd">read</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+Comm<span class="hl opt">::</span><span class="hl kwd">Comm</span><span class="hl opt">() :</span> <span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">byte</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">flag</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+
+<span class="hl slc">// Only a demo; won't actually work</span>
+<span class="hl slc">// as an interrupt service routine:</span>
+<span class="hl kwb">void</span> Comm<span class="hl opt">::</span><span class="hl kwd">isr</span><span class="hl opt">()</span> <span class="hl kwc">volatile</span> <span class="hl opt">{</span>
+  flag <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  buf<span class="hl opt">[</span>index<span class="hl opt">++] =</span> byte<span class="hl opt">;</span>
+  <span class="hl slc">// Wrap to beginning of buffer:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> bufsize<span class="hl opt">)</span> index <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">char</span> Comm<span class="hl opt">::</span><span class="hl kwd">read</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> <span class="hl num">0</span> <span class="hl opt">||</span> index <span class="hl opt">&gt;=</span> bufsize<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> buf<span class="hl opt">[</span>index<span class="hl opt">];</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwc">volatile</span> Comm Port<span class="hl opt">;</span>
+  Port<span class="hl opt">.</span><span class="hl kwd">isr</span><span class="hl opt">();</span> <span class="hl slc">// OK</span>
+<span class="hl slc">//!  Port.read(0); // Error, read() not volatile</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.18. C08/Volatile.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Como ocurre con <code class="keyword">const</code>, se puede usar <code class="keyword">volatile</code>
+      para los atributos de la clase, los métodos y para los objetos
+      en sí mismos. Sólo puede llamar a métodos <code class="keyword">volatile</code>
+      desde objetos <code class="keyword">volatile</code>.
+    </p>
+      <p>
+      La razón por la que <code class="function">isr()</code> no se puede usar
+      como una rutina de servicio de interrupción (ISR) es que en un
+      método, la dirección del objeto actual (<code class="varname">this</code>)
+      debe pasarse secretamente, y una ISR no requiere
+      argumentos. Para resolver este problema se puede hacer que el
+      método <code class="function">isr()</code> sea un método de clase
+      (<code class="keyword">static</code>), un asunto que se trata en el [FIXME:capitulo
+      10].
+    </p>
+      <p>
+      La sintaxis de <code class="keyword">volatile</code> es idéntica a la de
+      <code class="keyword">const</code>, así que por eso se suelen tratar juntos. Cuando
+      se usan combinados se conocen como cuantificador
+      <span class="emphasis"><em>c-v</em></span> (const-volatile).
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04s03.html">8.4.3. Objetos y métodos constantes</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C08.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s06.html">8.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

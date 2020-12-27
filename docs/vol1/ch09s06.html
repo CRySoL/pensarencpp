@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.6. Más características del preprocesador</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C09.html" title="9: Funciones inline" />
+    <link rel="prev" href="ch09s05.html" title="9.5. Reducir el desorden" />
+    <link rel="next" href="ch09s07.html" title="9.7. Comprobación de errores mejorada" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Reducir el desorden</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s07.html">9.7. Comprobación de errores mejorada</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.6. Más características del preprocesador">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6429504"></a>9.6. Más características del preprocesador</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Antes, se dijo que <span class="emphasis"><em>casi</em></span> siempre se prefiere
+      usar funciones inline en lugar de macros del preprocesador. Las
+      excepciones aparecen cuando necesita usar tres propiedades especiales
+      del preprocesador de C (que es también el preprocesador de C++):
+      [FIXME(hay más):cadenización?]
+      (<span class="emphasis"><em>stringizing</em></span>), concatenación de cadenas, y
+      encolado de símbolos (<span class="emphasis"><em>token
+      pasting</em></span>). <span class="emphasis"><em>Stringizing</em></span>, ya
+      comentado anteriormente en el libro, se efectúa con la directiva
+      <code class="literal">#</code> y permite tomar un identificador y
+      convertirlo en una cadena de caracteres. La concatenación de
+      cadenas tiene lugar cuando dos cadenas adyacentes no tienen
+      puntuación, en cuyo caso se combinan. Estas dos propiedades son
+      especialmente útiles cuando se escribe código de depuración. Así,
+    </p>
+      <pre class="programlisting">
+<span class="hl ppc">#define DEBUG(x) cout &lt;&lt; #x</span> <span class="hl pps">&quot; = &quot;</span><span class="hl ppc"> &lt;&lt; x &lt;&lt; endl</span>
+</pre>
+      <p>
+      Esto imprime el valor de cualquier variable. Puede conseguir
+      también una traza que imprima las sentencias tal como se ejecutan:
+    </p>
+      <pre class="programlisting">
+<span class="hl ppc">#define TRACE(s) cerr &lt;&lt; #s &lt;&lt; endl; s</span>
+</pre>
+      <p>
+      El <code class="literal">#s</code> <span class="emphasis"><em>cadeniza</em></span> la
+      sentencia para la salida, y la segunda <code class="literal">s</code> hace
+      que la sentencia se ejecute. Por supuesto, este tipo de cosas
+      pueden causar problemas, especialmente bucles <code class="keyword">for</code> de una
+      única línea.
+    </p>
+      <pre class="programlisting">
+<span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+     <span class="hl kwd">TRACE</span><span class="hl opt">(</span><span class="hl kwd">f</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+</pre>
+      <p>
+      Como realmente hay dos sentencias en la macro
+      <code class="function">TRACE()</code>, el bucle <code class="keyword">for</code> de
+      una única línea ejecuta solo la primera. La solución es reemplazar
+      el punto y coma por una coma en la macro.
+    </p>
+      <div class="sect2" title="9.6.1. Encolado de símbolos">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6437888"></a>9.6.1. Encolado de símbolos</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	El encolado de símbolos, implementado con la directiva
+	<code class="literal">##</code>, es muy útil cuando se genera
+	código. Permite coger dos identificadores y pegarlos juntos
+	para crear un nuevo identificador automáticamente. Por
+	ejemplo,
+      </p>
+        <pre class="programlisting">
+<span class="hl ppc">#define FIELD(a) char* a##_string; int a##_size</span>
+    <span class="hl kwc">class</span> Record <span class="hl opt">{</span>
+      <span class="hl kwd">FIELD</span><span class="hl opt">(</span>one<span class="hl opt">);</span>
+      <span class="hl kwd">FIELD</span><span class="hl opt">(</span>two<span class="hl opt">);</span>
+      <span class="hl kwd">FIELD</span><span class="hl opt">(</span>three<span class="hl opt">);</span>
+      <span class="hl slc">// ...</span>
+    <span class="hl opt">};</span>
+</pre>
+        <p>
+	Cada llamada a la macro <code class="function">FIELD()</code> crea un
+	identificador para una cadena de caracteres y otro para la
+	longitud de dicha cadena. No solo es fácil de leer, también
+	puede eliminar errores de codificación y facilitar el
+	mantenimiento.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Reducir el desorden</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s07.html">9.7. Comprobación de errores mejorada</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

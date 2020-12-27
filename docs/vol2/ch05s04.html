@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.4. Iostreams de fichero</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C04.html" title="5: Iostreams" />
+    <link rel="prev" href="ch05s03s02.html" title="5.3.2. Streams y excepciones" />
+    <link rel="next" href="ch05s04s02.html" title="5.4.2. Modos de apertura" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s03s02.html">5.3.2. Streams y excepciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s04s02.html">5.4.2. Modos de apertura</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="5.4. Iostreams de fichero">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4106776"></a>5.4. Iostreams de fichero</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Manipular ficheros con <code class="classname">iostream</code> es mucho más fácil y seguro
+      que usar <code class="code">stdio</code> en C. Todo lo que tiene que hacer es crear un objeto - el
+      constructor hace el trabajo. No necesita cerrar el fichero explícitamente (aunque puede,
+      usando la función miembro <code class="function">close()</code>) porque el destructor lo cerrará cuando
+      el objeto salga del ámbito. Para crear un fichero que por defecto sea de entrada, cree un objeto
+      <code class="classname">ifstream</code> . Para crear un fichero que por defecto es de salida, cree un
+      objeto <code class="classname">ofstream</code>. Un <code class="classname">fstream</code> puede hacer ambas cosas.
+    </p>
+      <p>
+      Las clases de <code class="classname">stream</code> de fichero encajan dentro de las clases <code class="classname">iostream</code> como
+      se muestra en la siguiente figura:
+    </p>
+      <p>
+      Como antes, las clases que usted usa en realidad son especializaciones de
+      plantillas definidas por definiciones de tipo. Por ejemplo, <code class="classname">ifstream</code>,
+      que procesa ficheros de <code class="type">char</code>, es definida como:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">typedef</span> basic_ifstream<span class="hl opt">&lt;</span><span class="hl kwb">char</span><span class="hl opt">&gt;</span> ifstream<span class="hl opt">;</span>
+</pre>
+      <div class="sect2" title="5.4.1. Un ejemplo de procesado de fichero.">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp4111368"></a>5.4.1. Un ejemplo de procesado de fichero.</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Aqui tiene un ejemplo que muestra algunas de las características discutidas antes. Nótese
+	que la inclusión de &lt;fstream&gt; para delarar las clases de fichero de E/S. Aunque en muchas
+	plataformas esto también incluye &lt;iostream&gt; automáticamente, los compiladores no están
+	obligados a hacer esto. Si usted quiere compatibilidad, incluya siempre ambas cabeceras.
+      </p>
+        <div class="example">
+          <a id="idp4112408"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C04:Strfile.cpp</span>
+<span class="hl slc">// Stream I/O with files;</span>
+<span class="hl slc">// The difference between get() &amp; getline().</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const int</span> SZ <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span> <span class="hl slc">// Buffer size;</span>
+  <span class="hl kwb">char</span> buf<span class="hl opt">[</span>SZ<span class="hl opt">];</span>
+  <span class="hl opt">{</span>
+    ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Strfile.cpp&quot;</span><span class="hl opt">);</span> <span class="hl slc">// Read</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Strfile.cpp&quot;</span><span class="hl opt">);</span> <span class="hl slc">// Verify open</span>
+    ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;Strfile.out&quot;</span><span class="hl opt">);</span> <span class="hl slc">// Write</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>out<span class="hl opt">,</span> <span class="hl str">&quot;Strfile.out&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">// Line counter</span>
+
+    <span class="hl slc">// A less-convenient approach for line input:</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>in<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>buf<span class="hl opt">,</span> SZ<span class="hl opt">)) {</span> <span class="hl slc">// Leaves \n in input</span>
+      in<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span> <span class="hl slc">// Throw away next character (\n)</span>
+      cout <span class="hl opt">&lt;&lt;</span> buf <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span> <span class="hl slc">// Must add \n</span>
+      <span class="hl slc">// File output just like standard I/O:</span>
+      out <span class="hl opt">&lt;&lt;</span> i<span class="hl opt">++ &lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> buf <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> <span class="hl slc">// Destructors close in &amp; out</span>
+
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Strfile.out&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Strfile.out&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// More convenient line input:</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>in<span class="hl opt">.</span><span class="hl kwd">getline</span><span class="hl opt">(</span>buf<span class="hl opt">,</span> SZ<span class="hl opt">)) {</span> <span class="hl slc">// Removes \n</span>
+    <span class="hl kwb">char</span><span class="hl opt">*</span> cp <span class="hl opt">=</span> buf<span class="hl opt">;</span>
+    <span class="hl kwa">while</span><span class="hl opt">(*</span>cp <span class="hl opt">!=</span> <span class="hl str">':'</span><span class="hl opt">)</span>
+      <span class="hl opt">++</span>cp<span class="hl opt">;</span>
+    cp <span class="hl opt">+=</span> <span class="hl num">2</span><span class="hl opt">;</span> <span class="hl slc">// Past &quot;: &quot;</span>
+    cout <span class="hl opt">&lt;&lt;</span> cp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span> <span class="hl slc">// Must still add \n</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 5.5. C04/Strfile.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	La creación tanto del ifstream como del ofstream están seguidas de un
+	<code class="function">assure()</code> para garantizar que el fichero ha sido abierto
+	exitosamente. El objeto resultante, usado en una situación donde el compilador
+	espera un resultado booleano, produce un valor que indica éxito o fracaso.
+      </p>
+        <p>
+	El primer <code class="code">while</code> demuestra el uso de dos formas de la función
+	<code class="function">get()</code>. La primera toma los carácteres dentro de un buffer y pone
+	un delimitador cero en el buffer cuando bien SZ-1 carácteres han sido leidos o bien el
+	tercer argumento (que por defecto es '\n') es encontrado. La función <code class="function">get()</code>
+	deja el carácter delimitador en el <code class="classname">stream</code> de entrada, así que este
+	delimitador debe ser eliminado via <code class="function">in.get()</code> usando la forma de
+	<code class="function">get()</code> sin argumentos. Puede usar tambien la función miembro
+	<code class="function">ignore()</code>, que tiene dos parámetros por defecto. El primer argumento es el
+	número de carácteres para descartar y por defecto es uno. El segundo argumento es el carácter
+	en el que <code class="function">ignore()</code> se detiene (después de extraerlo) y por defecto es EOF.
+      </p>
+        <p>
+	A continuación, se muestran dos sentencias de salida
+	similares: una hacia <code class="classname">cout</code> y la otra al
+	fichero de salida. Nótese la conveniencia aquí - no necesita
+	preocuparse del tipo de objeto porque las sentencias de
+	formateo trabajan igual con todos los objetos
+	<code class="classname">ostream</code>.  El primero hace eco de la
+	linea en la salida estándar, y el segundo escribe la línea
+	hacia el fichero de salida e incluye el número de línea.
+      </p>
+        <p>
+	Para demostrar <code class="function">getline()</code>, abra el fichero recién creado y quite los números de linea.
+	Para asegurarse que el fichero se cierra correctamente antes de abrirlo para la lectura, usted tiene dos
+	opciones. Puede envolver la primera parte del programa con llaves para forzar que el objeto <code class="varname">out</code>
+	salga del ámbito, llamando así al destructor y cerrando el fichero, que es lo que se hace aquí. Tambien puede l
+	lamar a <code class="function">close()</code> para ambos ficheros; si hace esto, puede despues rehusar el objeto de entrada
+	llamando a la función miembro <code class="function">open()</code>.
+      </p>
+        <p>
+	El segundo <code class="code">while</code> muestra como <code class="function">getline()</code> borra el caracter terminador
+	(su tercer argumento, que por defecto es '\n') del <code class="classname">stream</code> de entrada cuando este
+	es encontrado. Aunque <code class="function">getline()</code>, como <code class="function">get()</code>, pone un cero en
+	el buffer, este todavía no inserta el carácter de terminación.
+      </p>
+        <p>
+	Este ejemplo, así como la mayoría de ejemplos en este capítulo, asume que cada llamada a alguna sobrecarga
+	de <code class="function">getline()</code> encontrará un carácter de nueva línea. Si este no es el caso, la estado
+	<code class="code">eofbit</code> del <code class="classname">stream</code> será activado y la llamada a <code class="function">getline()</code>
+	retornará falso, causando que el programa pierda la última línea de la entrada.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s03s02.html">5.3.2. Streams y excepciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s04s02.html">5.4.2. Modos de apertura</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

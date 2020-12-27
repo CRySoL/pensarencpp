@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3: Programación defensiva</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="pt01.html" title="Parte I. Construcción de Sistemas estables" />
+    <link rel="prev" href="ch02s12.html" title="2.12. Ejercicios" />
+    <link rel="next" href="ch03s02.html" title="3.2. Un framework de pruebas unitarias sencillo" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch02s12.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch02s12.html">2.12. Ejercicios</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="pt01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02.html">3.2. Un framework de pruebas unitarias sencillo </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="3: Programación defensiva">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C02"></a>3: Programación defensiva</h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C02.html#idp3547248">3.1. Aserciones </a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch03s02.html">3.2. Un framework de pruebas unitarias sencillo </a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch03s03.html">3.3. Técnicas de depuración </a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch03s04.html">3.4. Resumen </a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch03s05.html">3.5. Ejercicios </a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <p>
+    Escribir software puede ser un objetivo difícil para
+    desarrolladores, pero unas pocas técnicas defensivas, aplicadas
+    rutinariamente, pueden dirigir a un largo camino hacia la mejora
+    de la calidad de su código.
+  </p>
+      <p>
+    Aunque la complejidad de la producción típica de software
+    garantiza que los probadores tendrán siempre trabajo, esperamos
+    que anheles producir software sin defectos. Las técnicas de diseño
+    orientada a objetos hacen mucho para limitar la dificultad de
+    proyectos grandes, pero finalmente debe escribir bucles y
+    funciones. Estos pequeños detalles de programación se convierten
+    en los bloques de construcción de componentes mayores necesarios
+    para sus diseños. Si sus blucles fallan por uno o sus funciones
+    calculan los valores correctos sólo la mayoría de las veces, tiene
+    problemas no importa como de elaborada sea su metodología
+    general. En este capítulo, verá prácticas que ayudan a crear código
+    robusto sin importar el tamaño de su proyecto.
+  </p>
+      <p>
+  Su código es, entre otras cosas, una expresión de su intento de
+  resolver un problema. Sería claro para el lector (incluyendo usted)
+  exactamente lo que estaba pensando cuando diseño aquel bucle. En
+  ciertos puntos de su programa, deberá crear atreverse con sentencias
+  que considera alguna u otra condición. (Si no puede, no ha realmente
+  solucionado todavía el problema.) Tales sentencias se llaman invariantes, puesto
+  que deberían ser invariablemente verdad en el punto donde aparecen
+  en el código; si no, o su diseño es defectuoso, o su código no
+  refleja con precisión su diseño.
+  </p>
+      <p>
+     Considere un programa que juega al juego de adivinanza
+     mayor-menor. Una persona piensa un número entre el 1 y 100,y la
+     otra persona adivina el número. (Permitirá al ordenador hacer la
+     adivinanza.) La persona que piensa el número le dice al
+     adivinador si su conjetura es mayor, menor o correcta. La mejor
+     estrategia para el adivinador es la búsqueda binaria, que elige
+     el punto medio del rango de los números donde el número buscado
+     reside. La respuesta mayor-menor dice al adivinador que mitad de
+     la lista ocupa el número, y el proceso se repite, reduciendo el
+     tamaño del rango de búsqueda activo en cada iteración. ¿Entonces
+     cómo escribe un bucle para realizar la repetición correctamente?
+     No es suficiente simplemente decir
+  </p>
+      <p>
+    bool adivinado = false;
+  </p>
+      <p>
+    while(!adivinado) {
+    ...
+    }
+  </p>
+      <p>
+    porque un usuario malintencionado podría responder engañosamente,
+    y podría pasarse todo el día adivinando. ¿ Qué suposición, que sea
+    sencilla, está haciendo cada vez que adivina? En otras palabras,
+    ¿qué condición debería cumplir por diseño en cada iteración del bucle?
+  </p>
+      <p>
+    La suposición sencilla es que el número secreto está dentro del
+    actual rango activo de números sin adivinar: [1, 100]. Suponga que
+    etiquetamos los puntos finales del rango con las variables bajo y
+    alto. Cada vez que pasa por el bucle necesita asegurarse que si el
+    número estaba en el rango [bajo, alto] al principio del bucle,
+    calcule el nuevo rango de modo que todavía contenga el número al
+    final de la iteración en curso.
+  </p>
+      <p>
+    El objetivo es expresar el invariante del bucle en código de modo
+    que una violación pueda ser detectada en tiempo de
+    ejecución. Desafortunadamente, ya que el ordenador no conoce el
+    número secreto, no puede expresar esta condición directamente en
+    código, pero puede al menos hacer un comentario para este efecto:
+  </p>
+      <p>
+    while(!adivinado) {
+    // INVARIANTE: el número está en el rango [low, high]
+  </p>
+      <p>
+    ¿Qué ocurre cuando el usuario dice que una conjetura es demasiado
+    alta o demasiado baja cuando no lo es? El engaño excluiría el
+    número secreto del nuevo subrango. Porque una mentira siempre
+    dirige a otra, finalmente su rango disminuirá a nada (puesto que se
+    reduce a la mitad cada vez y el número secreto no está
+    allí). Podemos expresar esta condición en el siguiente programa:
+  </p>
+      <div class="example">
+        <a id="idp3542640"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:HiLo.cpp {RunByHand}</span>
+<span class="hl slc">// Plays the game of Hi-Lo to illustrate a loop invariant.</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Think of a number between 1 and 100&quot;</span> <span class="hl opt">&lt;&lt;</span> endl
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;I will make a guess; &quot;</span>
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;tell me if I'm (H)igh or (L)ow&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> low <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">,</span> high <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> guessed <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(!</span>guessed<span class="hl opt">) {</span>
+    <span class="hl slc">// Invariant: the number is in the range [low, high]</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>low <span class="hl opt">&gt;</span> high<span class="hl opt">) {</span>  <span class="hl slc">// Invariant violation</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;You cheated! I quit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> EXIT_FAILURE<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">int</span> guess <span class="hl opt">= (</span>low <span class="hl opt">+</span> high<span class="hl opt">) /</span> <span class="hl num">2</span><span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;My guess is &quot;</span> <span class="hl opt">&lt;&lt;</span> guess <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;. &quot;</span><span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;(H)igh, (L)ow, or (E)qual? &quot;</span><span class="hl opt">;</span>
+    string response<span class="hl opt">;</span>
+    cin <span class="hl opt">&gt;&gt;</span> response<span class="hl opt">;</span>
+    <span class="hl kwa">switch</span><span class="hl opt">(</span><span class="hl kwd">toupper</span><span class="hl opt">(</span>response<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">])) {</span>
+      <span class="hl kwa">case</span> <span class="hl str">'H'</span><span class="hl opt">:</span>
+        high <span class="hl opt">=</span> guess <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">;</span>
+        <span class="hl kwa">break</span><span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl str">'L'</span><span class="hl opt">:</span>
+        low <span class="hl opt">=</span> guess <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">;</span>
+        <span class="hl kwa">break</span><span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl str">'E'</span><span class="hl opt">:</span>
+        guessed <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+        <span class="hl kwa">break</span><span class="hl opt">;</span>
+      <span class="hl kwa">default</span><span class="hl opt">:</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Invalid response&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl kwa">continue</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;I got it!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> EXIT_SUCCESS<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.1. C02/HiLo.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+    La violación del invariante se detecta con la condición if(menor &gt;
+    mayor), porque si el usuario siempre dice la verdad, siempre
+    encontraremos el número secreto antes que agotásemos los intentos.
+  </p>
+      <p>
+    Usamos también una técnica del estándar C para informar sobre el
+    estado de un programa al contexto llamante devolviendo diferentes
+    valores desde main( ). Es portable para usar la sentencia return
+    0; para indicar éxito, pero no hay un valor portable para indicar
+    fracaso. Por esta razón usamos la macro declarada para este
+    propósito en &lt;cstdlib&gt;:EXIT_FAILURE. Por consistencia, cuando
+    usamos EXIT_FAILURE también usamos EXIT_SUCCESS, a pesar de que
+    éste es siempre definido como cero.
+  </p>
+      <div class="sect1" title="3.1. Aserciones">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp3547248"></a>3.1. Aserciones </h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      La condición en el programa mayor-menor depende de la entrada
+      del usuario, por lo tanto no puede prevenir una violación del
+      invariante. Sin embargo, los invariantes normalmente dependen
+      solo del código que escribe, por eso comprobarán siempre si ha
+      implementado su diseño correctamente. En este caso, es más claro
+      hacer una aserción, que es un sentencia positiva que muestra sus
+      decisiones de diseño.
+    </p>
+        <p>
+      Suponga que está implementando un vector de enteros: un array
+      expandible que crece a petición. La función que añade un
+      elemento al vector debe primero verificar que hay un espacio
+      vacío en el array subyacente que contiene los elementos; de lo
+      contrario, necesita solicitar más espacio en la pila y copiar
+      los elementos existentes al nuevo espacio antes de añadir el
+      nuevo elemento (y borrar el viejo array). Tal función podría ser
+      de la siguiente forma:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwb">void</span> MyVector<span class="hl opt">::</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwb">int</span> x<span class="hl opt">) {</span>
+<span class="hl kwa">if</span><span class="hl opt">(</span>nextSlot <span class="hl opt">==</span> capacity<span class="hl opt">)</span>
+<span class="hl kwd">grow</span><span class="hl opt">();</span>
+<span class="hl kwa">assert</span><span class="hl opt">(</span>nextSlot <span class="hl opt">&lt;</span> capacity<span class="hl opt">);</span>
+data<span class="hl opt">[</span>nextSlot<span class="hl opt">++] =</span> x<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+</pre>
+        <p>
+      En este ejemplo, la información es un array dinámico de ints con
+      capacidad espacios y espacioSiguiente espacios en uso. El
+      propósito de grow( ) es expandir el tamaño de la información
+      para que el nuevo valor de capacidad sea estrictamente mayor
+      que espacioSiguiente. El comportamiento correcto de MiVector
+      depende de esta decisión de diseño, y nunca fallará si el resto
+      del código secundario es correcto. Afirmamos la condición con la
+      macro assert( ), que está definido en la cabecera &lt;cassert&gt;.
+    </p>
+        <p>
+      La macro assert( ) de la biblioteca Estándar de C es breve, que
+      resulta, portable. Si la condición en su parámetro no evalúa a
+      cero, la ejecución continúa ininterrumpidamente; si no, un
+      mensaje contiene el texto de la expresión culpable con su nombre
+      de fichero fuente y el número de línea impreso en el canal de
+      error estándar y el programa se suspende. ¿Es eso tan drástico?
+      En la práctica, es mucho más drástico permitir que la ejecución
+      continue cuando un supuesto de diseño básico ha fracasado. Su
+      programa necesita ser arreglado.
+    </p>
+        <p>
+      Si todo va bien, probará a conciencia su código con todas las
+      aserciones intactas hasta el momento en que se haga uso del
+      producto final. (Diremos más sobre pruebas más tarde.) Depende
+      de la naturaleza de su aplicación, los ciclos de máquina
+      necesarios para probar todas las aserciones en tiempo de
+      ejecución podrían tener demasiado impacto en el rendimiento en
+      producción. En ese caso, puede eliminar todas las aserciones del
+      código automáticamente definiendo la macro NDEBUG y reconstruir
+      la aplicación.
+    </p>
+        <p>
+      Para ver como funciona esto, observe que una implementación
+      típica de assert( ) se parece a esto:
+    </p>
+        <pre class="programlisting">
+<span class="hl ppc">#ifdef NDEBUG</span>
+<span class="hl ppc">#define assert(cond) ((void)0)</span>
+<span class="hl ppc">#else</span>
+<span class="hl kwb">void</span> <span class="hl kwd">assertImpl</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*,</span> <span class="hl kwb">const char</span><span class="hl opt">*,</span> <span class="hl kwb">long</span><span class="hl opt">);</span>
+<span class="hl ppc">#define assert(cond) \</span>
+<span class="hl ppc">((cond) ? (void)0 : assertImpl(???))</span>
+<span class="hl ppc">#endif</span>
+</pre>
+        <p>
+      Cuando la macro NDEBUG está definida, el código se descompone a la
+      expresión (void) 0, todo lo que queda en la cadena de
+      compilación es una sentencia esencialmente vacía como un
+      resultado de la semicolumna que añade a cada invocación de
+      assert( ). Si NDEBUG no está definido, assert(cond) se expande a
+      una sentencia condicional que, cuando cond es cero, llama a una
+      función dependiente del compilador (que llamamos assertImpl( ))
+      con argumento string representando el texto de cond, junto con
+      el nombre de fichero y el número de línea donde aparece la
+      aserción. (Usamos como un marcador de posición en el ejemplo,
+      pero la cadena mencionada es de hecho computada allí, junto con
+      el nombre del fichero y el número de línea donde la macro
+      aparece en ese fichero. Como estos valores se obtienen es
+      irrelevante para nuestra discusión.) Si quiere activar y
+      desactivar aserciones en diferentes puntos de su programa, no
+      debe solo #define o #undef NDEBUG, sino que debe también reincluir
+      &lt;cassert&gt;. Las macros son evaluadas cuando el preprocesador los
+      encuentra y así usa cualquier estado NDEBUG se aplica en el punto
+      de inclusión. El camino más común define NDEBUG una vez para
+      todo el programa es como una opción del compilador, o mediante
+      la configuración del proyecto en su entorno visual o mediante la
+      línea de comandos, como en:
+    </p>
+        <pre class="screen">
+mycc NDEBUG myfile.cpp
+</pre>
+        <p>
+      La mayoría de los compiladores usan la bandera para definir los
+      nombres de las macros. (Substituya el nombre del ejecutable de su
+      compiladores por mycc arriba.) La ventaja de este enfoque es que
+      puede dejar sus aserciones en el código fuente como un
+      inapreciable parte de documentación, y no hay aún castigo en
+      tiempo de ejecución. Porque el código en una aserción desaparece
+      cuando NDEBUG está definido, es importante que no haga trabajo
+      en una aserción. Sólo las condiciones de prueba que no cambien
+      el estado de su programa.
+    </p>
+        <p>
+      Si usar NDEBUG para liberar código es una buena idea queda un
+      tema de debate. Tony Hoare, una de los más influyentes expertos
+      en informática de todos los tiempos,[15] ha sugerido que
+      desactivando las comprobaciones en tiempo de ejecución como las
+      aserciones es similar a un entusiasta de navegación que lleva un
+      chaleco salvavidas mientras entrena en tierra y luego se deshace
+      de él cuando va al mar.[16] Si una aserción falla en producción,
+      tiene un problema mucho peor que la degradación en rendimiento,
+      así que elija sabiamente.
+    </p>
+        <p>
+      No todas las condiciones deberían ser cumplidas por
+      aserciones. Los errores de usuario y los fallos de los
+      recursos en tiempos de ejecución deberían ser señalados lanzando
+      excepciones, como explicamos en detalle en el Capítulo 1. Es
+      tentador usar aserciones para la mayoría de las condiciones de
+      error mientras esbozamos código, con el propósito de remplazar
+      muchos de ellos después con un manejador de excepciones
+      robusto. Como cualquier otra tentación, úsese con moderación, pues
+      podría olvidar hacer todos los cambios necesarios más
+      tarde. Recuerde: las aserciones tienen la intención de verificar
+      decisiones de diseño que fallarán sólo por lógica
+      defectuosa del programador. Lo ideal es solucionar todas las
+      violaciones de aserciones durante el desarrollo. No use
+      aserciones para condiciones que no están totalmente en su
+      control (por ejemplo, condiciones que dependen de la entrada del
+      usuario). En particular, no querría usar aserciones para validar
+      argumentos de función; lance un logic_error en su lugar.
+    </p>
+        <p>
+      El uso de aserciones como una herramienta para asegurar la
+      corrección de un programa fue formalizada por Bertran Meyer en
+      su Diseño mediante metodología de contrato.[17] Cada función
+      tiene un contrato implícito con los clientes que, dadas ciertas
+      precondiciones, garantiza ciertas postcondiciones. En otras
+      palabras, las precondiciones son los requerimientos para usar la
+      función, como los argumentos que se facilitan dentro de ciertos
+      rangos, y las postcondiciones son los resultados enviados por la
+      función o por retorno por valor o por efecto colateral.
+    </p>
+        <p>
+      Cuando los programas clientes fallan al darle un entrada válida,
+      debe comentarles que han roto el contrato. Este no es el mejor
+      momento para suspender el programa (aunque está justificado
+      hacerlo desde que el contrato fue violado), pero una excepción
+      es desde luego apropiada. Esto es porque la librería Estándar de
+      C++ lanza excepciones derivadas de logic_error, como
+      out_of_range.[18] Si hay funciones que sólo usted llama, no
+      obstante, como funciones privadas en una clase de su propio
+      diseño, la macro assert( ) es apropiada, puesto que tiene total
+      control sobre la situación y desde luego quiere depurar su
+      código antes de enviarlo.
+    </p>
+        <p>
+      Una postcondición fallada indica un error de programa, y es
+      apropiado usar aserciones para cualquier invariante en cualquier
+      momento, incluyendo la postcondición de prueba al final de una
+      función. Esto se aplica en particular a las funciones de una
+      clase que mantienen el estado de un objeto. En el ejemplo
+      MyVector previo, por ejemplo, un invariante razonable para todas
+      las funciones sería:
+    </p>
+        <p>
+      assert(0 &lt;= siguienteEspacio &amp;&amp; siguienteEspacio &lt;= capacidad);
+    </p>
+        <p>
+      o, si siguienteEspacio es un integer sin signo, sencillamente
+    </p>
+        <p>
+      assert(siguienteEspacio &lt;= capacidad);
+    </p>
+        <p>
+      Tal tipo de invariante se llama invariante de clase y puede ser
+      razonablemente forzada por una aserción. Las subclases juegan un
+      papel de subcontratista para sus clases base porque deben
+      mantener el contrato original entre la clase base y sus
+      clientes. Por esta razón, las precondiciones en clases derivadas
+      no deben imponer requerimientos adicionales más allá de aquellos
+      del contrato base, y las postcondiciones deben cumplir al menos como
+      mucho.[19]
+    </p>
+        <p>
+      Validar resultados devueltos por el cliente, sin embargo, no es
+      más o menos que probar, de manera que usar aserciones de postcondición
+      en este caso sería duplicar trabajo. Sí, es buena documentación,
+      pero más de un desarrollador has sido engañado usando
+      incorrectamente las aserciones de post-condición como un
+      substituto para pruebas de unidad.
+    </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch02s12.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch02s12.html">2.12. Ejercicios</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="pt01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02.html">3.2. Un framework de pruebas unitarias sencillo </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

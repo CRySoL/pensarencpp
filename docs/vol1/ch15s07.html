@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.7. Clases base abstractas y funciones virtuales puras</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s06.html" title="15.6. ¿Por qué funciones virtuales?" />
+    <link rel="next" href="ch15s08.html" title="15.8. Herencia y la VTABLE" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s06.html">15.6. ¿Por qué funciones virtuales?</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s08.html">15.8. Herencia y la VTABLE</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.7. Clases base abstractas y funciones virtuales puras">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8157344"></a>15.7. Clases base abstractas y funciones virtuales puras</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      A menudo en el diseño, se quiere la clase base para presentar
+      <span class="emphasis"><em>sólo</em></span> una interfaz para sus clases
+      derivadas. Esto es, se puede querer que nadie pueda crear un
+      objeto de la clase base y que ésta sirva únicamente para hacer un
+      <span class="foreignphrase"><em class="foreignphrase">upcast</em></span> hacia ella, y poder tener
+      una interfaz. Se consigue haciendo a la clase
+      <span class="foreignphrase"><em class="foreignphrase">abstract</em></span> (abstracta), poniendo como
+      mínimo una <span class="emphasis"><em>función virtual pura</em></span>. Se puede
+      reconocer a una función virtual pura porque usa la palabra
+      reservada <code class="keyword">virtual</code> y es seguida por
+      <code class="literal">=0</code>. Si alguien intenta hacer un objeto de una
+      clase abstracta, el compilador lo impide. Esta es una utilidad que
+      fuerza a un diseño en concreto.
+    </p>
+      <p>
+      Cuando se hereda una clase abstracta, hay que implementar todas
+      las funciones virtuales, o la clase que hereda se convierte en una
+      nueva clase abstracta. Crear una función virtual pura permite
+      poner una fución miembro en una interfaz sin forzar a proveer un
+      cuerpo con código sin significado para esa función miembro. Al
+      mismo tiempo, una función virtual fuerza a las clases que la
+      hereden a que implemente una definición para ellas.
+    </p>
+      <p>
+      En todos los ejemplos de los intrumentos, las funciones en la
+      clase base <code class="classname">Instrument</code> eran siempre
+      funciones «tontas». Si esas funciones hubieran sido
+      llamadas algo iba mal. Esto es porque la intención de la clase
+      <code class="classname">Instrument</code> es crear una interfaz común
+      para todas las clases que deriven de ella.
+    </p>
+      <div class="figure">
+        <a id="idp8163416"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_18.png" align="middle" alt="Clase abstracta" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 15.3. Clase abstracta</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+      La única razón para establecer una interfaz común es que después
+      se pueda expresar de forma diferente en cada subtipo. Se crea una
+      forma básica que tiene lo que está en común con todas las clases
+      derivadas y nada más. Por esto, <code class="classname">Instrument</code> es
+      un candidato perfecto para ser una clase abstracta. Se crea una
+      clase abstracta sólo cuando se quiere manipular un conjunto de
+      clases a través de una interfaz común, pero la interfaz común no
+      necesita tener una implementación (o como mucho, no necesita una
+      implementación completa).
+    </p>
+      <p>
+      Si se tiene un concepto como <code class="classname">Instrument</code> que
+      funciona como clase abstracta, los objetos de esa clase casi nunca
+      tendrán sentido. Es decir, <code class="classname">Instrument</code> sirve
+      solamente para expresar la interfaz, y no una implementación
+      particular, por lo que crear un objeto que sea únicamente un
+      <code class="classname">Instrument</code> no tendrá sentido, y
+      probablemente se quiera prevenir al usuario de hacerlo. Se puede
+      solucionar haciendo que todas las funciones virtuales en
+      <code class="classname">Instrument</code> muestren mensajes de error, pero
+      retrasa la aparición de los errores al tiempo de ejecución lo que
+      obligará a un testeo exhaustivo por parte del usuario. Es mucho
+      más productivo cazar el problema en tiempo de compilación.
+    </p>
+      <p>
+      Aquí está la sintaxis usada para una función virtual pura:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+</pre>
+      <p>
+      Haciendo esto, se indica al compilador que reserve un hueco para
+      una función en la VTABLE, pero que no ponga una dirección en ese
+      hueco. Incluso aunque sólo una función en una clase sea declarada
+      como virtual pura, la VTABLE estará incompleta.
+    </p>
+      <p>
+      Si la VTABLE de una clase está incompleta, ¿qué se supone que debe
+      hacer el compilador cuando alguien intente crear un objeto de esa
+      clase? No sería seguro crear un objeto de esa clase abstracta, por
+      lo que se obtendría un error de parte del compilador. Dicho de
+      otra forma, el compilador garantiza la pureza de una clase
+      abstracta. Hacer clases abstractas asegura que el programador
+      cliente no puede hacer mal uso de ellas.
+    </p>
+      <p>
+      Aquí tenemos <code class="filename">Instrument4.cpp</code> modificado para
+      usar funciones virtuales puras. Debido a que la clase no tiene
+      otra cosa que no sea funciones virtuales, se la llama
+      <span class="emphasis"><em>clase abstracta pura</em></span>:
+    </p>
+      <div class="example">
+        <a id="idp8173256"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:Instrument5.cpp</span>
+<span class="hl slc">// Pure abstract base classes</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">enum</span> note <span class="hl opt">{</span> middleC<span class="hl opt">,</span> Csharp<span class="hl opt">,</span> Cflat <span class="hl opt">};</span> <span class="hl slc">// Etc.</span>
+
+<span class="hl kwc">class</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Pure virtual functions:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Assume this will modify the object:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+<span class="hl slc">// Rest of the file is the same ...</span>
+
+<span class="hl kwc">class</span> Wind <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Wind::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Wind&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Percussion <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Percussion::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Percussion&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Stringed <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Stringed::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Stringed&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Brass <span class="hl opt">:</span> <span class="hl kwc">public</span> Wind <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Brass::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Brass&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Woodwind <span class="hl opt">:</span> <span class="hl kwc">public</span> Wind <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Woodwind::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Woodwind&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Identical function from before:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">tune</span><span class="hl opt">(</span>Instrument<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span>
+  <span class="hl slc">// ...</span>
+  i<span class="hl opt">.</span><span class="hl kwd">play</span><span class="hl opt">(</span>middleC<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// New function:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Instrument<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span> i<span class="hl opt">.</span><span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">); }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Wind flute<span class="hl opt">;</span>
+  Percussion drum<span class="hl opt">;</span>
+  Stringed violin<span class="hl opt">;</span>
+  Brass flugelhorn<span class="hl opt">;</span>
+  Woodwind recorder<span class="hl opt">;</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>flute<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>drum<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>violin<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>flugelhorn<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>recorder<span class="hl opt">);</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>flugelhorn<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.6. C15/Instrument5.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Las funciones virtuales puras son útiles porque hacen explícita la
+      abstracción de una clase e indican al usuario y al compilador cómo
+      deben ser usadas.
+    </p>
+      <p>
+      Hay que hacer notar que las funciones virtuales puras previenen a
+      una clase abstracta de ser pasadas a una función <span class="emphasis"><em>por
+      valor</em></span>, lo que es una manera de prevenir el
+      <span class="foreignphrase"><em class="foreignphrase">object slicing</em></span> (que será descrito
+      de forma reducida). Convertir una clase en abstracta también
+      permite garantizar que se use siempre un puntero o una referencia
+      cuando se haga <span class="foreignphrase"><em class="foreignphrase">upcasting</em></span> a esa clase.
+    </p>
+      <p>
+      Sólo porque una función virtual pura impida a la VTABLE estar
+      completa no implica que no se quiera crear cuerpos de función para
+      alguna de las otras funciones. A menudo se querrá llamar a la
+      versión de la función que esté en la clase base, incluso aunque
+      ésta sea virtual. Es una buena idea poner siempre el código común
+      tan cerca como sea posible de la raiz de la jerarquía. No sólo
+      ahorra código, si no que permite fácilmente la propagación de
+      cambios.
+    </p>
+      <div class="sect2" title="15.7.1. Definiciones virtuales puras">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8179480"></a>15.7.1. Definiciones virtuales puras</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Es posible proveer una definición para una función virtual pura
+	en la clase base. Todavía implica decirle al compilador que no
+	permita crear objetos de esa clase base abstracta, y que las
+	funciones virtuales puras deben ser definidas en las clases
+	derivadas para poder crear objetos. Sin embargo, puede haber un
+	trozo de código en común que se quiera llamar desde todas, o
+	algunas de las clases derivadas en vez de estar duplicando
+	código en todas las funciones.
+      </p>
+        <p>
+	Este es un ejemplo de definición de funciones virtuales.
+      </p>
+        <div class="example">
+          <a id="idp8181048"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C15:PureVirtualDefinitions.cpp</span>
+<span class="hl slc">// Pure virtual base definitions</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">eat</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Inline pure virtual definitions illegal:</span>
+  <span class="hl slc">//!  virtual void sleep() const = 0 {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// OK, not defined inline</span>
+<span class="hl kwb">void</span> Pet<span class="hl opt">::</span><span class="hl kwd">eat</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Pet::eat()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Pet<span class="hl opt">::</span><span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Pet::speak()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Use the common Pet code:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> Pet<span class="hl opt">::</span><span class="hl kwd">speak</span><span class="hl opt">(); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">eat</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> Pet<span class="hl opt">::</span><span class="hl kwd">eat</span><span class="hl opt">(); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Dog simba<span class="hl opt">;</span>  <span class="hl slc">// Richard's dog</span>
+  simba<span class="hl opt">.</span><span class="hl kwd">speak</span><span class="hl opt">();</span>
+  simba<span class="hl opt">.</span><span class="hl kwd">eat</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 15.7. C15/PureVirtualDefinitions.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	El hueco en la VTABLE de <code class="classname">Pet</code> todavía
+	está vacío, pero tiene funciones a las que se puede llamar desde
+	la clase derivada.
+      </p>
+        <p>
+	Otra ventaja de esta característica es que perimite cambiar de
+	una función virtual corriente a una virtual pura sin destrozar
+	el código existente (es una forma para localizar clases que no
+	sobreescriban a esa función virtual).
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s06.html">15.6. ¿Por qué funciones virtuales?</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s08.html">15.8. Herencia y la VTABLE</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

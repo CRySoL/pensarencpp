@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.4.2. Referencias adelantadas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch09s04.html" title="9.4. Funciones inline y el compilador" />
+    <link rel="prev" href="ch09s04.html" title="9.4. Funciones inline y el compilador" />
+    <link rel="next" href="ch09s04s03.html" title="9.4.3. Actividades ocultas en contructores y destructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04.html">9.4. Funciones inline y el compilador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s03.html">9.4.3. Actividades ocultas en contructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.4.2. Referencias adelantadas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6408176"></a>9.4.2. Referencias adelantadas</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Si está imaginando que el compilador [FIXME: is doing to
+	implement inlines], puede confundirse pensando que hay más
+	limitaciones que las que existen realmente. En concreto, si
+	una inline hace una referencia adelanta a una función que no
+	ha sido declarada aún en la clase (sea inline o no), puede
+	parecer que el compilador no sabrá tratarla.
+      </p>
+      <div class="example">
+        <a id="idp6409344"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:EvaluationOrder.cpp</span>
+<span class="hl slc">// Inline evaluation order</span>
+
+<span class="hl kwc">class</span> Forward <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Forward</span><span class="hl opt">() :</span> <span class="hl kwd">i</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl slc">// Call to undeclared function:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwd">g</span><span class="hl opt">() +</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">g</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> i<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Forward frwd<span class="hl opt">;</span>
+  frwd<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.13. C09/EvaluationOrder.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	En <code class="function">f()</code>, se realiza una llamada a
+	<code class="function">g()</code>, aunque <code class="function">g()</code> aún no
+	ha sido declarada. Esto funciona porque la definición del
+	lenguaje dice que las funciones inline en una clase no serán
+	evaluadas hasta la llave de cierre de la declaración de clase.
+      </p>
+      <p>
+	Por supuesto, si <code class="function">g()</code> a su vez llama a
+	<code class="function">f()</code>, tendrá un conjunto de llamadas
+	recursivas, que son demasiado complicadas para el compilador
+	pueda hacer inline. (También, tendrá que efectuar alguna
+	comprobación en <code class="function">f()</code> o
+	<code class="function">g()</code> para forzar en alguna de ellas un caso
+	base, o la recursión será infinita).
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04.html">9.4. Funciones inline y el compilador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s03.html">9.4.3. Actividades ocultas en contructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

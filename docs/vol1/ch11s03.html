@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>11.3. El constructor de copia</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C11.html" title="11: Las referencias y el constructor de copia" />
+    <link rel="prev" href="ch11s02s02.html" title="11.2.2. Consejos para el paso de argumentos" />
+    <link rel="next" href="ch11s03s02.html" title="11.3.2. Construcción por copia" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s02s02.html">11.2.2. Consejos para el paso de argumentos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s02.html">11.3.2. Construcción por copia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="11.3. El constructor de copia">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6900576"></a>11.3. El constructor de copia</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Ahora que entiende lo básico de las referencias en C++, está
+      preparado para tratar uno de los conceptos más confusos del
+      lenguaje: el constructor de copia, a menudo denominado
+      <code class="code">X(X&amp;)</code> («X de la referencia
+      X»). Este constructor es esencial para controlar el paso
+      y retorno por valor de los tipos definidos por el usuario en las
+      llamadas a funciones. De hecho es tan importante que el
+      compilador crea automáticamente un constructor de copia en caso
+      de que el programador no lo proporcione.
+    </p>
+      <div class="sect2" title="11.3.1. Paso y retorno por valor">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6902600"></a>11.3.1. Paso y retorno por valor</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Para entender la necesidad del constructor de copia, considere la
+	forma en que C maneja el paso y retorno por valor de variables
+	cuando se llama a una función. Si declara una función y la
+	invoca,
+      </p>
+        <pre class="programlisting">
+<span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span> x<span class="hl opt">,</span> <span class="hl kwb">char</span> c<span class="hl opt">);</span>
+<span class="hl kwb">int</span> g <span class="hl opt">=</span> <span class="hl kwd">f</span><span class="hl opt">(</span>a<span class="hl opt">,</span> b<span class="hl opt">);</span>
+</pre>
+        <p>
+	¿cómo sabe el compilador cómo pasar y retornar esas variables?
+	¡Simplemente lo sabe! El rango de tipos con los que debe
+	tratar es tan pequeño (<code class="type">char</code>, <code class="type">int</code>,
+	<code class="type">float</code>, <code class="type">double</code>, y sus variaciones),
+	que tal información ya está dentro del compilador.
+      </p>
+        <p>
+	Si averigua cómo hacer que su compilador genere código
+	ensamblador y determina qué instrucciones se usan para la
+	invocación de la función <code class="function">f()</code>, obtendrá
+	algo equivalente a:
+      </p>
+        <pre class="programlisting">
+push  b
+push  a
+call  <span class="hl kwd">f</span><span class="hl opt">()</span>
+add  sp<span class="hl opt">,</span> <span class="hl num">4</span>
+mov  g<span class="hl opt">,</span> <span class="hl kwc">register</span> a
+</pre>
+        <p>
+	Este código se ha simplificado para hacerlo genérico; las
+        expresiones <code class="varname">b</code> y <code class="varname">a</code> serán
+        diferentes dependiendo de si las variables son globales (en
+        cuyo caso serían <code class="varname">_b</code> y
+        <code class="varname">_a</code>) o locales (el compilador las pondría en
+        la pila). Esto también es cierto para <code class="varname">g</code>. La
+        sintaxis de la llamada a <code class="function">f()</code> dependería
+        de su guía de estilo, y <code class="code">register a</code> dependería de
+        cómo su ensamblador llama a los registros de la CPU. A pesar
+        de la simplificación, la lógica del código sería la misma.
+      </p>
+        <p>
+	Tanto en C como en C++, primero se ponen los argumentos en la
+	pila de derecha a izquierda, y luego se llama a la función. El
+	código de llamada es responsable de recoger los argumentos de
+	la pila (lo cual explica la sentencia <code class="code">add sp, 4</code>).
+	Pero tenga en cuenta que cuando se pasan argumentos por valor,
+	el compilador simplemente pone copias en la pila (conoce los
+	tamaños de cada uno, por lo que los puede copiar).
+	</p>
+        <p>
+	El valor de retorno de <code class="function">f()</code> se coloca en un
+	registro. Como el compilador sabe lo que se está retornando,
+	porque la información del tipo ya está en el lenguaje, puede
+	retornarlo colocándolo en un registro. En C, con tipos
+	primitivos, el simple hecho de copiar los bits del valor es
+	equivalente a copiar el objeto.
+      </p>
+        <div class="sect3" title="Paso y retorno de objetos grandes">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6912016"></a>Paso y retorno de objetos grandes</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Considere ahora los tipos definidos por el usuario. Si crea
+	  una clase y desea pasar un objeto de esa clase por valor,
+	  ¿cómo sabe el compilador lo que tiene que hacer?  La
+	  información de la clase no está en el compilador, pues lo ha
+	  definido el usuario.
+	</p>
+          <p>
+	  Para investigar esto, puede empezar con una estructura simple
+	  que, claramente, es demasiado grande para ser devuelta a
+	  través de los registros:
+	</p>
+          <div class="example">
+            <a id="idp6913640"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C11:PassingBigStructures.cpp</span>
+<span class="hl kwb">struct</span> Big <span class="hl opt">{</span>
+  <span class="hl kwb">char</span> buf<span class="hl opt">[</span><span class="hl num">100</span><span class="hl opt">];</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+  <span class="hl kwb">long</span> d<span class="hl opt">;</span>
+<span class="hl opt">}</span> B<span class="hl opt">,</span> B2<span class="hl opt">;</span>
+
+Big <span class="hl kwd">bigfun</span><span class="hl opt">(</span>Big b<span class="hl opt">) {</span>
+  b<span class="hl opt">.</span>i <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span> <span class="hl slc">// Do something to the argument</span>
+  <span class="hl kwa">return</span> b<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  B2 <span class="hl opt">=</span> <span class="hl kwd">bigfun</span><span class="hl opt">(</span>B<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 11.5. C11/PassingBigStructures.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  La conversión a código ensamblador es un poco más complicada
+	  porque la mayoría de los compiladores utilizan funciones
+	  «auxiliares»
+	  (<span class="foreignphrase"><em class="foreignphrase">helper</em></span>) en vez de inline. En
+	  la función <code class="function">main()</code>, la llamada a
+	  <code class="function">bigfun()</code> empieza como debe: se coloca
+	  el contenido de <code class="varname">B</code> en la pila. (Aquí
+	  podría ocurrir que algunos compiladores carguen registros
+	  con la dirección y tamaño de <code class="classname">Big</code> y
+	  luego una función auxiliar se encargue de colocar el
+	  <code class="classname">Big</code> en la pila).
+	</p>
+          <p>
+	  En el fragmento de código fuente anterior, lo único
+	  necesario antes de llamar a la función es colocar los
+	  argumentos en la pila. Sin embargo, en el código ensamblador
+	  de <code class="filename">PassingBigStructures.cpp</code> se ve una
+	  acción adicional: la dirección de <code class="varname">B2</code> se
+	  coloca en la pila antes de hacer la llamada a la función
+	  aunque, obviamente, no sea un argumento. Para entender qué
+	  pasa, necesita entender las restricciones del compilador
+	  cuando llama a una función.
+	</p>
+        </div>
+        <div class="sect3" title="Marco de pila para llamadas a función">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6919288"></a>Marco de pila para llamadas a función</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Cuando el compilador genera código para llamar a una
+	  función, primero coloca en la pila todos los argumentos y
+	  luego hace la llamada. Dentro de la función se genera código
+	  para mover el puntero de pila hacia abajo, y así proporciona
+	  memoria para las variables locales dentro de la función.
+	  («hacia abajo» es relativo, la máquina puede
+	  incrementar o decrementar el puntero de pila al colocar un
+	  argumento). Pero cuando se hace el <code class="code">CALL</code> de
+	  ensamblador para llamar a la función, la CPU coloca la
+	  dirección desde la que se realiza la llamada, y en el
+	  <code class="code">RETURN</code> de ensamblador se utiliza esa dirección
+	  para volver al punto desde donde se realizó la llamada. Esta
+	  dirección es sagrada, porque sin ella el programa se
+	  perdería por completo. He aquí es aspecto del marco de pila
+	  después de ejecutar <code class="code">CALL</code> y poner las variables
+	  locales de la función:
+	</p>
+          <div class="figure">
+            <a id="idp6922512"></a>
+            <div class="figure-contents">
+              <div class="mediaobject" align="center">
+                <img src="./images/V1_14.png" align="middle" alt="Llamada a una función" />
+              </div>
+            </div>
+            <p class="title">
+              <strong>Figura 11.1. Llamada a una función</strong>
+            </p>
+          </div>
+          <br class="figure-break" />
+          <p>
+	  El código generado por el resto de la función espera que la
+	  memoria tenga esta disposición para que pueda utilizar los
+	  argumentos y las variables locales sin tocar la dirección de
+	  retorno. Llámese a este bloque de memoria, que es todo lo
+	  que una función necesita cuando se la llama, <span class="emphasis"><em>el
+	  marco de la función</em></span> (<span class="foreignphrase"><em class="foreignphrase">function
+	  frame</em></span>).
+	</p>
+          <p>
+	  Podría parecer razonable retornar valores mediante la
+	  utilización de la pila. El compilador simplemente los
+	  colocaría allí y la función devolvería un desplazamiento que
+	  indicara dónde empieza el valor de retorno.
+	</p>
+        </div>
+        <div class="sect3" title="Re-entrada">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6927008"></a>Re-entrada</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Este problema ocurre porque las funciones en C y C++ pueden
+	  sufrir interrupciones; esto es, los lenguajes han de ser (y
+	  de hecho son) <span class="emphasis"><em>re-entrantes</em></span>. También
+	  permiten llamadas a funciones recursivas. Esto quiere decir
+	  que en cualquier punto de ejecución de un programa puede
+	  sufrir una interrupción sin que el programa se vea afectado
+	  por ello. Obviamente la persona que escribe la rutina de
+	  servicio de interrupciones (ISR) es responsable de guardar y
+	  restaurar todos los registros que se utilicen en la
+	  ISR. Pero si la ISR necesita utilizar la pila, ha de hacerlo
+	  con seguridad. (Piense que una ISR es como una función
+	  normal sin argumentos y con valor de retorno
+	  <code class="type">void</code> que guarda y restaura el estado de la
+	  CPU. La ejecución de una ISR suele producirse por un evento
+	  hardware, y no con una invocación dentro del programa de
+	  forma explícita).
+	</p>
+          <p>
+	  Ahora imagine que pasaría si una función normal intentara
+	  retornar valores mediante la pila. No puede tocar la pila
+	  por encima del la dirección de retorno, así que la función
+	  tendría que colocar los valores de retorno debajo de la
+	  dirección de retorno. Pero cuando se ejecuta el
+	  <code class="code">RETURN</code>, el puntero de pila debería estar
+	  apuntando a la dirección de retorno (o justo debajo, depende
+	  de la máquina), así que la función debe subir el puntero de
+	  la pila, desechando todas las variables locales. Si intenta
+	  retornar valores usando la pila por debajo de la dirección
+	  de retorno, en ese momento es vulnerable a una
+	  interrupción. La ISR escribiría encima de los valores de
+	  retorno para colocar su dirección de retorno y sus
+	  variables locales.
+	</p>
+          <p>
+	  Para resolver este problema, el que llama a la función
+	  <span class="emphasis"><em>podría</em></span> hacerse responsable de asignar
+	  la memoria extra en la pila para los valores de retorno
+	  antes de llamar a la función. Sin embargo, C no se diseñó de
+	  esta manera y C++ ha de ser compatible. Como verá pronto, el
+	  compilador de C++ utiliza un esquema más eficaz.
+	</p>
+          <p>
+	  Otra idea sería retornar el valor utilizando un área de
+	  datos global, pero tampoco funcionaría. La re-entrada
+	  significa que cualquier función puede ser una rutina de
+	  interrupción para otra función, <span class="emphasis"><em>incluida la
+	  función que se está ejecutando</em></span>. Por lo tanto, si
+	  coloca un valor de retorno en un área global, podría
+	  retornar a la misma función, lo cual sobreescribiría el
+	  valor de retorno. La misma lógica se aplica a la
+	  recursividad.
+	</p>
+          <p>
+	  Los registros son el único lugar seguro para devolver
+	  valores, así que se vuelve al problema de qué hacer cuando
+	  los registros no son lo suficientemente grandes para
+	  contener el valor de retorno. La respuesta es colocar la
+	  dirección de la ubicación del valor de retorno en la pila
+	  como uno de los argumentos de la función, y dejar que la
+	  función copie la información que se devuelve directamente en
+	  esa ubicación. Esto no solo soluciona todo los problemas, si
+	  no que además es más eficaz. Ésta es la razón por la que el
+	  compilador coloca la dirección de <code class="varname">B2</code>
+	  antes de llamar a <code class="function">bigfun</code> en la función
+	  <code class="function">main()</code> de
+	  <code class="filename">PassingBigStructures.cpp</code>.  Si viera el
+	  código ensamblador de <code class="function">bigfun()</code>
+	  observaría que la función espera este argumento escondido y
+	  lo copia al destino <span class="emphasis"><em>dentro</em></span> de la
+	  función.
+	</p>
+        </div>
+        <div class="sect3" title="Copia bit a bit vs. inicialización">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6936376"></a>Copia bit a bit vs. inicialización</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Hasta aquí, todo bien. Tenemos un procedimiento para
+	  pasar y retornar estructuras simples grandes. Pero note que
+	  lo único que tiene es una manera de copiar bits de un
+	  lugar a otro, lo que ciertamente funciona bien para la forma
+	  (muy primitiva) en que C trata las variables. Sin embargo,
+	  en C++ los objetos pueden ser mucho más avanzados que un
+	  puñado de bits, pues tienen significado y, por lo tanto,
+	  puede que no responda bien al ser copiado.
+	</p>
+          <p>
+	  Considere un ejemplo simple: una clase que conoce cuantos
+	  objetos de un tipo existen en cualquier momento. En el <a class="link" href="C10.html" title="10: Control de nombres">Capítulo 10</a> se vio la manera de hacerlo
+	  incluyendo un atributo estático (<code class="keyword">static</code>):
+	</p>
+          <div class="example">
+            <a id="idp6938960"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C11:HowMany.cpp</span>
+<span class="hl slc">// A class that counts its objects</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;HowMany.out&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">class</span> HowMany <span class="hl opt">{</span>
+  <span class="hl kwb">static int</span> objectCount<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">HowMany</span><span class="hl opt">() {</span> objectCount<span class="hl opt">++; }</span>
+  <span class="hl kwb">static void</span> <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>msg<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() !=</span> <span class="hl num">0</span><span class="hl opt">)</span> out <span class="hl opt">&lt;&lt;</span> msg <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span><span class="hl opt">;</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;objectCount = &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> objectCount <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">HowMany</span><span class="hl opt">() {</span>
+    objectCount<span class="hl opt">--;</span>
+    <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;~HowMany()&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> HowMany<span class="hl opt">::</span>objectCount <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+
+<span class="hl slc">// Pass and return BY VALUE:</span>
+HowMany <span class="hl kwd">f</span><span class="hl opt">(</span>HowMany x<span class="hl opt">) {</span>
+  x<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;x argument inside f()&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">return</span> x<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  HowMany h<span class="hl opt">;</span>
+  HowMany<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;after construction of h&quot;</span><span class="hl opt">);</span>
+  HowMany h2 <span class="hl opt">=</span> <span class="hl kwd">f</span><span class="hl opt">(</span>h<span class="hl opt">);</span>
+  HowMany<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;after call to f()&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 11.6. C11/HowMany.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  La clase <code class="classname">HowMany</code> contiene un entero
+	  estático llamado <code class="varname">objectCount</code> y un método
+	  estático llamado <code class="function">print()</code> para
+	  representar el valor de <code class="varname">objectCount</code>,
+	  junto con argumento de mensaje opcional. El constructor
+	  incrementa <code class="varname">objectCount</code> cada vez que se
+	  crea un objeto, y el destructor lo disminuye.
+	</p>
+          <p>
+	  Sin embargo la salida no es la que cabría esperar:
+	</p>
+          <pre class="screen">
+after construction of h: objectCount = 1
+x argument inside f(): objectCount = 1
+~HowMany(): objectCount = 0
+after call to f(): objectCount = 0
+~HowMany(): objectCount = -1
+~HowMany(): objectCount = -2
+</pre>
+          <p>
+	  Después de crear <code class="varname">h</code>, el contador es uno,
+	  lo cual está bien. Pero después de la llamada a
+	  <code class="function">f()</code> se esperaría que el contador
+	  estuviera a dos, porque <code class="varname">h2</code> está ahora
+	  también dentro de ámbito. Sin embargo, el contador es cero,
+	  lo cual indica que algo ha ido muy mal. Esto se confirma por
+	  el hecho de que los dos destructores, llamados al final de
+	  <code class="function">main()</code>, hacen que el contador pase a ser
+	  negativo, algo que no debería ocurrir nunca.
+	</p>
+          <p>
+	  Mire lo que ocurre dentro de <code class="function">f()</code>
+	  después de que el argumento se pase por valor. Esto quiere
+	  decir que el objeto original <code class="varname">h</code> existe
+	  fuera del ámbito de la función y, por otro lado, hay un
+	  objeto de más <span class="emphasis"><em>dentro</em></span> del ámbito de la
+	  función, que es copia del objeto que se pasó por valor. El
+	  argumento que se pasó utiliza el primitivo concepto de copia
+	  bit a bit de C, pero la clase C++
+	  <code class="classname">HowMany</code> necesita inicializarse
+	  correctamente para mantener su integridad. Por lo tanto, se
+	  demuestra que la copia bit a bit no logra el efecto deseado.
+	</p>
+          <p>
+	  Cuando el objeto local sale de ámbito al acabar la función
+	  <code class="function">f()</code>, se llama a su destructor, lo cual
+	  decrementa <code class="varname">objectCount</code>, y por lo tanto el
+	  <code class="varname">objectCount</code> se pone a cero. La creación
+	  de <code class="varname">h2</code> se realiza también mediante la
+	  copia bit a bit, así que tampoco se llama al constructor, y
+	  cuando <code class="varname">h</code> y <code class="varname">h2</code> salen de
+	  ámbito, sus destructores causan el valor negativo en
+	  <code class="varname">objectCount</code>.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s02s02.html">11.2.2. Consejos para el paso de argumentos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s02.html">11.3.2. Construcción por copia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

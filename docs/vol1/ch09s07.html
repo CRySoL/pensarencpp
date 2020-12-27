@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.7. Comprobación de errores mejorada</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C09.html" title="9: Funciones inline" />
+    <link rel="prev" href="ch09s06.html" title="9.6. Más características del preprocesador" />
+    <link rel="next" href="ch09s08.html" title="9.8. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06.html">9.6. Más características del preprocesador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s08.html">9.8. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.7. Comprobación de errores mejorada">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6440912"></a>9.7. Comprobación de errores mejorada</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Las funciones de <code class="filename">require.h</code> se han usado
+      antes de este punto sin haberlas definido (aunque
+      <code class="function">assert()</code> se ha usado también para ayudar a
+      detectar errores del programador donde es apropiado). Ahora es
+      el momento de definir este fichero de cabecera. Las funciones
+      inline son convenientes aquí porque permiten colocar todo en el
+      fichero de cabecera, lo que simplifica el proceso para usar el
+      paquete. Simplemente, incluya el fichero de cabecera y se
+      preocupe por enlazar un fichero de implementación.
+    </p>
+      <p>
+      Debería fijarse que las excepciones (presentadas en detalle en
+      el Volumen 2 de este libro) proporcionan una forma mucho más
+      efectiva de manejar muchos tipos de errores -especialmente
+      aquellos de los que debería recuperarse- en lugar de
+      simplemente abortar el programa. Las condiciones que maneja
+      <code class="filename">require.h</code>, sin embargo, son algunas que
+      impiden que el programa continúe, como por ejemplo que el
+      usuario no introdujo suficientes argumentos en la línea de
+      comandos o que un fichero no se puede abrir. De modo que es
+      aceptable que usen la función <code class="function">exit()</code> de la
+      librería C estándar.
+    </p>
+      <p>
+      El siguiente fichero de cabecera está en el directorio raíz del
+      libro, así que es fácilmente accesible desde todos los capítulos.
+    </p>
+      <pre class="programlisting">
+<span class="hl slc">//: :require.h&amp;#13;</span>
+<span class="hl slc">// From Thinking in C++, 2nd Edition&amp;#13;</span>
+<span class="hl slc">// Available at http://www.BruceEckel.com&amp;#13;</span>
+<span class="hl slc">// (c) Bruce Eckel 2000&amp;#13;</span>
+<span class="hl slc">// Copyright notice in Copyright.txt&amp;#13;</span>
+<span class="hl slc">// Test for error conditions in programs&amp;#13;</span>
+<span class="hl slc">// Local &quot;using namespace std&quot; for old compilers&amp;#13;</span>
+<span class="hl ppc">#ifndef REQUIRE_H&amp;#13;</span>
+<span class="hl ppc">#define REQUIRE_H&amp;#13;</span>
+<span class="hl ppc">#include &lt;cstdio&gt;&amp;#13;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;&amp;#13;</span>
+<span class="hl ppc">#include &lt;fstream&gt;&amp;#13;</span>
+<span class="hl ppc">#include &lt;string&gt;&amp;#13;</span>
+<span class="hl opt">&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl kwc">inline</span> <span class="hl kwb">void</span> <span class="hl kwd">require</span><span class="hl opt">(</span><span class="hl kwb">bool</span> requirement<span class="hl opt">, &amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;Requirement failed&quot;</span><span class="hl opt">){&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">using namespace</span> std<span class="hl opt">;&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">if</span> <span class="hl opt">(!</span>requirement<span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fputs</span><span class="hl opt">(</span>msg<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> stderr<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fputs</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> stderr<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl kwc">inline</span> <span class="hl kwb">void</span> <span class="hl kwd">requireArgs</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">int</span> args<span class="hl opt">, &amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> msg <span class="hl opt">= &amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl str">&quot;Must use %d arguments&quot;</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">using namespace</span> std<span class="hl opt">;&amp;</span><span class="hl ppc">#13;</span>
+   <span class="hl kwa">if</span> <span class="hl opt">(</span>argc <span class="hl opt">!=</span> args <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+     <span class="hl kwd">fprintf</span><span class="hl opt">(</span>stderr<span class="hl opt">,</span> msg<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> args<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+     <span class="hl kwd">fputs</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> stderr<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+     <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+   <span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl kwc">inline</span> <span class="hl kwb">void</span> <span class="hl kwd">requireMinArgs</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">int</span> minArgs<span class="hl opt">,&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> msg <span class="hl opt">=&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl str">&quot;Must use at least %d arguments&quot;</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">using namespace</span> std<span class="hl opt">;&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>argc <span class="hl opt">&lt;</span> minArgs <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fprintf</span><span class="hl opt">(</span>stderr<span class="hl opt">,</span> msg<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> minArgs<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fputs</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> stderr<span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl opt">&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl kwc">inline</span> <span class="hl kwb">void</span> <span class="hl kwd">assure</span><span class="hl opt">(</span>std<span class="hl opt">::</span>ifstream<span class="hl opt">&amp;</span> in<span class="hl opt">, &amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> filename <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">using namespace</span> std<span class="hl opt">;&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>in<span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fprintf</span><span class="hl opt">(</span>stderr<span class="hl opt">,</span> <span class="hl str">&quot;Could not open file %s</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,&amp;</span><span class="hl ppc">#13;</span>
+      filename<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl kwc">inline</span> <span class="hl kwb">void</span> <span class="hl kwd">assure</span><span class="hl opt">(</span>std<span class="hl opt">::</span>ofstream<span class="hl opt">&amp;</span> out<span class="hl opt">, &amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> filename <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">using namespace</span> std<span class="hl opt">;&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>out<span class="hl opt">) {&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">fprintf</span><span class="hl opt">(</span>stderr<span class="hl opt">,</span> <span class="hl str">&quot;Could not open file %s</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">, &amp;</span><span class="hl ppc">#13;</span>
+      filename<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());&amp;</span><span class="hl ppc">#13;</span>
+    <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);&amp;</span><span class="hl ppc">#13;</span>
+  <span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl opt">}&amp;</span><span class="hl ppc">#13;</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// REQUIRE_H ///:~&amp;#13;</span><span class="hl ppc"></span>
+</pre>
+      <p>
+      Los valores por defecto proporcionan mensajes razonables que se
+      pueden cambiar si es necesario.
+    </p>
+      <p>
+      Fíjese en que en lugar de usar argumentos <code class="type">char*</code> se
+      utiliza <code class="type">const string&amp;</code>. Esto permite tanto
+      <code class="type">char*</code>, cadenas <code class="classname">string</code> como
+      argumentos para estas funciones, y así es más general (quizá
+      quiera utilizar esta forma en su propio código).
+    </p>
+      <p>
+      En las definiciones para <code class="function">requireArgs()</code> y
+      <code class="function">requireMinArgs()</code>, se añade uno al número de
+      argumentos que necesita en la línea de comandos porque
+      <code class="varname">argc</code> siempre incluye el nombre del programa
+      que está ejecutado como argumento cero, y por eso siempre tiene
+      un valor que excede en uno al número real de argumentos de la
+      línea de comandos.
+    </p>
+      <p>
+      Fíjese en el uso de declaraciones locales <code class="code">using namespace
+      std</code> con cada función. Esto es porque algunos compiladores
+      en el momento de escribir este libro incluyen incorrectamente
+      las funciones de la librería C estándar en el espacio de nombres
+      <code class="classname">std</code>, así que la cualificación explícita
+      podría causar un error en tiempo de compilación. Las
+      declaraciones locales permiten que
+      <code class="filename">require.h</code> funcione tanto con librerías
+      correctas como con incorrectas sin abrir el espacio de nombres
+      <code class="classname">std</code> para cualquiera que incluya este
+      fichero de cabecera.
+    </p>
+      <p>
+      Aquí hay un programa simple para probar
+      <code class="filename">requite.h</code>:
+    </p>
+      <div class="example">
+        <a id="idp6454504"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:ErrTest.cpp</span>
+<span class="hl slc">//{T} ErrTest.cpp</span>
+<span class="hl slc">// Testing require.h</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>i<span class="hl opt">,</span> <span class="hl str">&quot;value must be nonzero&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwd">requireMinArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span> <span class="hl slc">// Use the file name</span>
+  ifstream <span class="hl kwd">nofile</span><span class="hl opt">(</span><span class="hl str">&quot;nofile.xxx&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// Fails:</span>
+<span class="hl slc">//!  assure(nofile); // The default argument</span>
+  ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;tmp.txt&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>out<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.16. C09/ErrTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Podría estar tentado a ir un paso más allá para manejar la
+      apertura de ficheros y añadir una macro a
+      <code class="function">require.h</code>.
+    </p>
+      <pre class="programlisting">
+<span class="hl ppc">#define IFOPEN(VAR, NAME) \</span>
+<span class="hl ppc">      ifstream VAR(NAME); \</span>
+<span class="hl ppc">      assure(VAR, NAME);</span>
+</pre>
+      <p>
+      Que podría usarse entonces así:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwd">IFOPEN</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">])</span>
+</pre>
+      <p>
+      En principio, esto podría parecer atractivo porque significa que
+      hay que escribir menos. No es terriblemente inseguro, pero es un
+      camino que es mejor evitar. Fíjese que, de nuevo, una macro
+      parece una función pero se comporta diferente; realmente se está
+      creando un objeto <code class="varname">in</code> cuyo alcance persiste
+      más allá de la macro. Quizá lo entienda, pero para programadores
+      nuevos y mantenedores de código sólo es una cosa más que ellos
+      deben resolver. C++ es suficientemente complicado sin añadir
+      confusión, así que intente no abusar de las macros del
+      preprocesador siempre que pueda.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06.html">9.6. Más características del preprocesador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s08.html">9.8. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

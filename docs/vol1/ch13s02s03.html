@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>13.2.3. Stash para punteros</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch13s02.html" title="13.2. Rediseño de los ejemplos anteriores" />
+    <link rel="prev" href="ch13s02s02.html" title="13.2.2. Responsabilidad de la limpieza cuando se usan punteros" />
+    <link rel="next" href="ch13s03.html" title="13.3. new y delete para vectores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s02s02.html">13.2.2. Responsabilidad de la limpieza cuando se usan punteros</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s03.html">13.3. 
+      <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores
+    </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="13.2.3. Stash para punteros">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp7595520"></a>13.2.3. Stash para punteros</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+		Esta nueva versión de la clase <code class="classname">Stash</code>, que llamamos
+		<code class="classname">PStash</code>, almacena punteros a objetos existentes en el
+		montículo, a diferencia de la vieja versión, que guardaba una copia por valor de
+		los objetos. Usando <code class="keyword">new</code> y <code class="keyword">delete</code>, es fácil y seguro almacenar
+		punteros a objetos creados en el montículo.
+      </p>
+      <p>
+		He aquí el archivo de cabecera para «<code class="classname">Stash</code> para
+		punteros»:
+      </p>
+      <div class="example">
+        <a id="idp7598672"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C13:PStash.h</span>
+<span class="hl slc">// Holds pointers instead of objects</span>
+<span class="hl ppc">#ifndef PSTASH_H</span>
+<span class="hl ppc">#define PSTASH_H</span>
+
+<span class="hl kwc">class</span> PStash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span> <span class="hl slc">// Number of storage spaces</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span> <span class="hl slc">// Next empty space</span>
+   <span class="hl slc">// Pointer storage:</span>
+  <span class="hl kwb">void</span><span class="hl opt">**</span> storage<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">PStash</span><span class="hl opt">() :</span> <span class="hl kwd">quantity</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">storage</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">PStash</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span><span class="hl opt">;</span> <span class="hl slc">// Fetch</span>
+  <span class="hl slc">// Remove the reference from this PStash:</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">);</span>
+  <span class="hl slc">// Number of elements in Stash:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> next<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// PSTASH_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 13.4. C13/PStash.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+		Los elementos de datos subyacentes no han cambiado mucho, pero ahora el
+		almacenamiento se hace sobre un vector de punteros <code class="type">void</code>, que se
+		obtiene mediante <code class="keyword">new</code> en lugar de <code class="function">malloc()</code>.  En la
+		expresión
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">void</span><span class="hl opt">**</span> st <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">void</span><span class="hl opt">*[</span> quantity <span class="hl opt">+</span> increase <span class="hl opt">];</span>
+</pre>
+      <p>
+		se asigna espacio para un vector de punteros a <code class="type">void</code>.
+      </p>
+      <p>
+		El destructor de la clase libera el espacio en el que se almacenan los punteros
+		sin tratar de borrar los objetos a los que hacen referencia, ya que esto,
+		insistimos, liberaría el espacio asignado a los objetos, pero no se produciría la
+		necesaria llamada a sus destructores por la falta de información de tipo.
+      </p>
+      <p>
+		El otro cambio realizado es el reemplazo de la función
+		<code class="function">fetch()</code> por <code class="function">operator []</code>, más
+		significativo sintácticamente. Su tipo de retorno es nuevamente
+		<code class="type">void*</code>, por lo que el usuario deberá recordar el tipo de los objetos a
+		que se refieren y efectuar la adecuada conversión al extraerlos del
+		contenedor. Resolveremos este problema en capítulos posteriores.
+      </p>
+      <p>Sigue la definición de los métodos de <code class="classname">PStash</code>:</p>
+      <div class="example">
+        <a id="idp7605656"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C13:PStash.cpp {O}</span>
+<span class="hl slc">// Pointer Stash definitions</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;PStash.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cstring&gt;</span> <span class="hl slc">// 'mem' functions</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> PStash<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwb">const int</span> inflateSize <span class="hl opt">=</span> <span class="hl num">10</span><span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>inflateSize<span class="hl opt">);</span>
+  storage<span class="hl opt">[</span>next<span class="hl opt">++] =</span> element<span class="hl opt">;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// No ownership:</span>
+PStash<span class="hl opt">::~</span><span class="hl kwd">PStash</span><span class="hl opt">() {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> next<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>storage<span class="hl opt">[</span>i<span class="hl opt">] ==</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+      <span class="hl str">&quot;PStash not cleaned up&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Operator overloading replacement for fetch</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span> PStash<span class="hl opt">::</span><span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;PStash::operator[] index negative&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+  <span class="hl slc">// Produce pointer to desired element:</span>
+  <span class="hl kwa">return</span> storage<span class="hl opt">[</span>index<span class="hl opt">];</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> PStash<span class="hl opt">::</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">) {</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> v <span class="hl opt">=</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span>index<span class="hl opt">);</span>
+  <span class="hl slc">// &quot;Remove&quot; the pointer:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>v <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">)</span> storage<span class="hl opt">[</span>index<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> v<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> PStash<span class="hl opt">::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwb">const int</span> psz <span class="hl opt">=</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*);</span>
+  <span class="hl kwb">void</span><span class="hl opt">**</span> st <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">void</span><span class="hl opt">*[</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">];</span>
+  <span class="hl kwd">memset</span><span class="hl opt">(</span>st<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">, (</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">) *</span> psz<span class="hl opt">);</span>
+  <span class="hl kwd">memcpy</span><span class="hl opt">(</span>st<span class="hl opt">,</span> storage<span class="hl opt">,</span> quantity <span class="hl opt">*</span> psz<span class="hl opt">);</span>
+  quantity <span class="hl opt">+=</span> increase<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span> <span class="hl slc">// Old storage</span>
+  storage <span class="hl opt">=</span> st<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 13.5. C13/PStash.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+		La función <code class="function">add()</code> es, en efecto, la misma que antes si
+		exceptuamos el hecho de que lo que se almacena ahora es un puntero a un objeto en
+		lugar de una copia del objeto.
+      </p>
+      <p>
+		El código de <code class="function">inflate()</code> ha sido modificado para gestionar la
+		asignación de memoria para un vector de <code class="type">void*</code>, a diferencia del
+		diseño previo, que sólo trataba con bytes. Aquí, en lugar de usar el método de
+		copia por el índice del vector, se pone primero a cero el vector usando la función
+		<code class="function">memset()</code> de la biblioteca estándar de C, aunque esto no sea
+		estrictamente necesario ya que, presumiblemente, <code class="classname">PStash</code>
+		manipulará la memoria de forma adecuada, pero a veces no es muy costoso añadir un
+		poco más de seguridad. A continuación, se copian al nuevo vector usando
+		<code class="function">memcpy()</code> los datos existentes en el antiguo. Con frecuencia
+		verá que las funciones <code class="function">memcpy()</code> y
+		<code class="function">memset()</code> han sido optimizadas en cuanto al tiempo de proceso,
+		de modo que pueden ser más rápidas que los bucles anteriormente vistos. No
+		obstante, una función como <code class="function">inflate()</code> no es probable que sea
+		llamada con la frecuencia necesaria para que la diferencia sea palpable. En
+		cualquier caso, el hecho de que las llamadas a función sean más concisas que los
+		bucles, puede ayudar a prevenir errores de programación.
+      </p>
+      <p>
+		Para dejar definitivamente la responsabilidad de la limpieza de los objetos sobre
+		los hombros del programador cliente, se proporcionan dos formas de acceder a los
+		punteros en <code class="classname">PStash</code>: el operador <code class="literal">[]</code>, que
+		devuelve el puntero sin eliminarlo del contenedor, y un segundo método
+		<code class="function">remove()</code> que además de devolver el puntero lo elimina del
+		contenedor, poniendo a cero la posición que ocupaba. Cuando se produce la llamada
+		al destructor de <code class="classname">PStash</code>, se prueba si han sido previamente
+		retirados todos los punteros, si no es así, se notifica, de modo que es posible
+		prevenir la fuga de memoria. Se verán otras soluciones mas elegantes en capítulos
+		posteriores.
+      </p>
+      <div class="sect3" title="Una prueba">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7617280"></a>Una prueba</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+		  Aquí aparece el programa de prueba de <code class="classname">Stash</code>, reescrito
+		  para <code class="classname">PStash</code>:
+		</p>
+        <div class="example">
+          <a id="idp7618368"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:PStashTest.cpp</span>
+<span class="hl slc">//{L} PStash</span>
+<span class="hl slc">// Test of pointer Stash</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;PStash.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  PStash intStash<span class="hl opt">;</span>
+  <span class="hl slc">// 'new' works with built-in types, too. Note</span>
+  <span class="hl slc">// the &quot;pseudo-constructor&quot; syntax:</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">25</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    intStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> intStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> j<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;intStash[&quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;] = &quot;</span>
+         <span class="hl opt">&lt;&lt; *(</span><span class="hl kwb">int</span><span class="hl opt">*)</span>intStash<span class="hl opt">[</span>j<span class="hl opt">] &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Clean up:</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> k <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> k <span class="hl opt">&lt;</span> intStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> k<span class="hl opt">++)</span>
+    <span class="hl kwa">delete</span> intStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>k<span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span> <span class="hl opt">(</span><span class="hl str">&quot;PStashTest.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;PStashTest.cpp&quot;</span><span class="hl opt">);</span>
+  PStash stringStash<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    stringStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Print out the strings:</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> u <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> stringStash<span class="hl opt">[</span>u<span class="hl opt">];</span> u<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;stringStash[&quot;</span> <span class="hl opt">&lt;&lt;</span> u <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;] = &quot;</span>
+         <span class="hl opt">&lt;&lt; *(</span>string<span class="hl opt">*)</span>stringStash<span class="hl opt">[</span>u<span class="hl opt">] &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Clean up:</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> v <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> v <span class="hl opt">&lt;</span> stringStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> v<span class="hl opt">++)</span>
+    <span class="hl kwa">delete</span> <span class="hl opt">(</span>string<span class="hl opt">*)</span>stringStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>v<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.6. C13/PStashTest.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		  Igual que antes, se crean y rellenan varias <code class="classname">Stash</code>, pero
+		  esta vez con los punteros obtenidos con <code class="keyword">new</code>. En el primer caso, véase
+		  la línea:
+		</p>
+        <pre class="programlisting">
+intStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+</pre>
+        <p>
+		  Se ha usado una forma de pseudo constructor en la expresión <code class="code">new
+		  int(i)</code>, con lo que además de crear un objeto <code class="type">int</code> en el área
+		  de memoria dinámica, le asigna el valor inicial <code class="varname">i</code>.
+		</p>
+        <p>
+		  Para imprimir, es necesario convertir al tipo adecuado el puntero obtenido de
+		  <code class="function">PStash::operator[]</code>; lo mismo se repite con el resto de los
+		  objetos de <code class="classname">PStatsh</code> del programa. Es la consecuencia
+		  indeseable del uso de punteros <code class="type">void</code> como representación subyacente,
+		  que se corregirá en capítulos posteriores.
+		</p>
+        <p>
+		  En la segunda prueba, se lee línea a línea el propio archivo fuente. Mediante
+		  <code class="function">getline()</code> se lee cada línea de texto en una variable de
+		  <code class="type">cadena</code>, de la que se crea una copia independiente. Si le hubiéramos
+		  pasado cada vez la dirección de <code class="varname">line</code>, tendríamos un montón de
+		  copias del mismo puntero, referidas a la última línea leída.
+		</p>
+        <p>
+		  En, en la recuperación de los punteros, verá la expresión:
+		</p>
+        <pre class="programlisting">
+<span class="hl opt">*(</span>string<span class="hl opt">*)</span>stringStash<span class="hl opt">[</span>v<span class="hl opt">];</span>
+</pre>
+        <p>
+		  El puntero obtenido por medio de <code class="function">operator[]</code> debe ser
+		  convertido a <code class="type">string*</code> para tener el tipo adecuado. Después el
+		  <code class="type">string*</code> es de-referenciado y es visto por el compilador como un
+		  objeto <code class="type">string</code> que se envía a <code class="varname">cout</code>.
+		</p>
+        <p>
+		  Antes de destruir los objetos, se han de eliminar las referencias
+		  correspondientes mediante el uso de <code class="function">remove()</code>. De no hacerse
+		  así, <code class="classname">PStash</code> notificará que no se ha efectuado la limpieza
+		  correctamente.  Véase que en el caso de los punteros a <code class="type">int</code>, no es
+		  necesaria la conversión de tipo al carecer de destructor, y lo único que se
+		  necesita es liberar la memoria:
+		</p>
+        <pre class="programlisting">
+<span class="hl kwa">delete</span> intStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>k<span class="hl opt">);</span>
+</pre>
+        <p>
+		  En cambio, para los punteros a <code class="type">string</code>, hace falta la conversión de
+		  tipo, so pena de crear otra (silenciosa) fuga de memoria, de modo que el molde
+		  es esencial:
+		</p>
+        <pre class="programlisting">
+<span class="hl kwa">delete</span> <span class="hl opt">(</span>string<span class="hl opt">*)</span> stringStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>k<span class="hl opt">);</span>
+</pre>
+        <p>
+		  Algunas de estas dificultades pueden resolverse mediante el uso de plantillas,
+		  que veremos en el capítulo 16. FIXME:ref
+		</p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s02s02.html">13.2.2. Responsabilidad de la limpieza cuando se usan punteros</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s03.html">13.3. 
+      <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores
+    </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

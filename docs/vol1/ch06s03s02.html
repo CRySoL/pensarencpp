@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6.3.2. Alojamiento de memoria</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch06s03.html" title="6.3. Eliminación del bloque de definiciones" />
+    <link rel="prev" href="ch06s03.html" title="6.3. Eliminación del bloque de definiciones" />
+    <link rel="next" href="ch06s04.html" title="6.4. Stash con constructores y destructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s03.html">6.3. Eliminación del bloque de definiciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch06s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s04.html">6.4. Stash con constructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="6.3.2. Alojamiento de memoria">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5767192"></a>6.3.2. Alojamiento de memoria</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Ahora una variable se puede definir en cualquier parte del
+	bloque, podría parecer que el alojamiento para una variable no
+	se puede llevar a cabo hasta el momento en que se define. En
+	realidad, lo más probable es que el compilador siga la práctica
+	de pedir todo el alojamiento para el bloque en la llave de
+	apertura del bloque. No importa porque, como programador, no
+	puede acceder al espacio asociado (es decir, el objeto) hasta
+	que ha sido definido<sup>[<a id="idp5768432" href="#ftn.idp5768432" class="footnote">58</a>]</sup>. Aunque el espacio se pida al comienzo del bloque,
+	la llamada al constructor no ocurre hasta el punto en el que
+	se define el objeto ya que el identificador no está disponible
+	hasta entonces. El compilador incluso comprueba que no ponga
+	la definición del objeto (y por tanto la llamada al
+	constructor) en un punto que dependa de una sentencia
+	condicional, como en una sentencia <code class="keyword">switch</code> o algún
+	lugar que pueda saltar un <code class="keyword">goto</code>. Descomentar las
+	sentencias del siguiente código generará un error o aviso.
+      </p>
+      <div class="example">
+        <a id="idp5771072"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Nojump.cpp</span>
+<span class="hl slc">// Can't jump past constructors</span>
+
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+X<span class="hl opt">::</span><span class="hl kwd">X</span><span class="hl opt">() {}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span> i<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>i <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">) {</span>
+   <span class="hl slc">//! goto jump1; // Error: goto bypasses init</span>
+  <span class="hl opt">}</span>
+  X x1<span class="hl opt">;</span>  <span class="hl slc">// Constructor called here</span>
+ jump1<span class="hl opt">:</span>
+  <span class="hl kwa">switch</span><span class="hl opt">(</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">case</span> <span class="hl num">1</span> <span class="hl opt">:</span>
+      X x2<span class="hl opt">;</span>  <span class="hl slc">// Constructor called here</span>
+      <span class="hl kwa">break</span><span class="hl opt">;</span>
+  <span class="hl slc">//! case 2 : // Error: case bypasses init</span>
+      X x3<span class="hl opt">;</span>  <span class="hl slc">// Constructor called here</span>
+      <span class="hl kwa">break</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> 
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl num">9</span><span class="hl opt">);</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl num">11</span><span class="hl opt">);</span>
+<span class="hl opt">}</span><span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.3. C06/Nojump.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	En el código anterior, tanto el <code class="keyword">goto</code> como el
+	<code class="keyword">switch</code> pueden saltar la sentencia en la que
+	se invoca un constructor. Ese objeto corresponde al ámbito
+	incluso si no se invoca el constructor, de modo que el compilador
+	dará un mensaje de error. Esto garantiza de nuevo que un objeto
+	no se puede crear si no se inicializa.
+      </p>
+      <p>
+	Todo el espacio de almacenamiento necesario se asigna en la
+	pila, por supuesto. Ese espacio lo faciliza el compilador
+	moviendo el puntero de pila «hacia abajo»
+	(dependiendo de la máquina implica incrementar o decrementar el
+	valor del puntero de pila). Los objetos también se pueden alojar
+	en el montículo usando <code class="keyword">new</code>, algo que se verá
+	en el capítulo 13. (FIXME:Ref C13)
+      </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5768432" href="#idp5768432" class="para">58</a>] </sup>De acuerdo, probablemente podría trucarlo usando
+	punteros, pero sería muy, muy malo</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s03.html">6.3. Eliminación del bloque de definiciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch06s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s04.html">6.4. Stash con constructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

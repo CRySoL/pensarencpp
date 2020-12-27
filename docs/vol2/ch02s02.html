@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>2.2. Lanzar una excepción</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C01.html" title="2: Tratamiento de excepciones" />
+    <link rel="prev" href="C01.html" title="2: Tratamiento de excepciones" />
+    <link rel="next" href="ch02s03.html" title="2.3. Capturar una excepción" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C01.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C01.html">2: Tratamiento de excepciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch02s03.html">2.3. Capturar una excepción</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="2.2. Lanzar una excepción">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp3444448"></a>2.2. Lanzar una excepción</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+    Si usted se encuentra en su código con una situación excepcional-es decir,
+    si no tiene suficiente información en el contexto actual para decidir
+    lo que hacer- puede enviar información acerca del error a un contexto
+    mayor creando un objeto que contenga esa información y «lanzándolo»
+    fuera de su contexto actual. Esto es lo que se llama lanzar una
+    excepción. Este es el aspecto que tiene:
+    </p>
+      <div class="example">
+        <a id="idp3445640"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C01:MyError.cpp {RunByHand}</span>
+
+<span class="hl kwc">class</span> MyError <span class="hl opt">{</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> <span class="hl kwb">const</span> data<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">MyError</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*</span> <span class="hl kwb">const</span> msg <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">data</span><span class="hl opt">(</span>msg<span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Here we &quot;throw&quot; an exception object:</span>
+  <span class="hl kwa">throw</span> <span class="hl kwd">MyError</span><span class="hl opt">(</span><span class="hl str">&quot;something bad happened&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// As you'll see shortly, we'll want a &quot;try block&quot; here:</span>
+  <span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 2.2. C01/MyError.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+    MyError es una clase normal, que en este caso acepta un char*
+    como argumento del constructor. Usted puede usar cualquier tipo
+    para lanzar (incluyendo los tipos predefinidos), pero normalmente
+    creará clases especial para lanzar excepciones.
+    </p>
+      <p>
+    La palabra clave throw hace que suceda una serie de cosas relativamente
+    mágicas. En primer lugar se crea una copia del objeto que se está
+    lanzando y se «devuelve» desde la función que contiene la
+    expresión throw, aun cuando ese tipo de objeto no es lo que normalmente
+    la función está diseñada para devolver. Un modo simplificado de pensar
+    acerca del tratamiento de excepciones es como un mecanismo alternativo
+    de retorno (aunque llegará a tener problemas si lleva esta analogía
+    demasiado lejos). También es posible salir de ámbitos normales lanzando
+    una excepción. En cualquier caso se devuelve un valor y se sale de la
+    función o ámbito.
+    </p>
+      <p>
+
+    </p>
+      <p>
+    Además es posible lanzar tantos tipos de objetos diferentes como se
+    quiera. Típicamente, para cada categoría de error se lanzará un tipo
+    diferente. La idea es almacenar la información en el objeto y en el
+    nombre de la clase con el fin de quien esté en el contexto invocador
+    pueda averiguar lo que hacer con esa excepción.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C01.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C01.html">2: Tratamiento de excepciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch02s03.html">2.3. Capturar una excepción</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6.6. Inicialización de tipos agregados</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C06.html" title="6: Inicialización y limpieza" />
+    <link rel="prev" href="ch06s05.html" title="6.5. Stack con constructores y destructores" />
+    <link rel="next" href="ch06s07.html" title="6.7. Constructores por defecto" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s05.html">6.5. Stack con constructores y destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s07.html">6.7. Constructores por defecto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="6.6. Inicialización de tipos agregados">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5816648"></a>6.6. Inicialización de tipos agregados</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Un agregado es justo lo que parece: un grupo de cosas agrupados
+      juntos. Esta definición incluye agregados de tipos mixtos, como
+      estructuras o clases. Un array es un agregado de un único tipo.
+    </p>
+      <p>
+      Inicializar agregados puede ser tedioso y propenso a errores. La
+      inicialización de agregados en C++ lo hace mucho más
+      seguro. Cuando crea un objeto agregado, todo lo que tiene que
+      hacer es una asignación, y la inicialización la hará el
+      compilador. Esta asignación tiene varias modalidades, dependiendo
+      del tipo de agregado del que se trate, pero en cualquier caso los
+      elementos en la asignación deben estar rodeadas de llaves. Para
+      arrays de tipos básicos es bastante simple:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">int</span> a<span class="hl opt">[</span><span class="hl num">5</span><span class="hl opt">] = {</span> <span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">2</span><span class="hl opt">,</span> <span class="hl num">3</span><span class="hl opt">,</span> <span class="hl num">4</span><span class="hl opt">,</span> <span class="hl num">5</span><span class="hl opt">};</span>
+</pre>
+      <p>
+      Si intenta escribir más valores que elementos tiene el
+      array, el compilador dará un mensaje de error. Pero, ¿qué ocurre
+      si escribe menos valores? Por ejemplo:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">int</span> b<span class="hl opt">[</span><span class="hl num">6</span><span class="hl opt">] = {</span><span class="hl num">0</span><span class="hl opt">};</span>
+</pre>
+      <p>
+      Aquí, el compilador usará el primer valor para el primer elemento
+      del array, y después usará ceros para todos los elementos para los
+      que no se tiene un valor. Fíjese en que este comportamiento en la
+      inicialización no ocurre si define un array sin una lista de
+      valores de inicialización. Así que la expresión anterior es una
+      forma resumida de inicializar a cero un array sin usar un bucle
+      <code class="keyword">for</code>, y sin ninguna posibilidad de un
+      «error por uno» (Dependiendo del compilador, también
+      puede ser más eficiente que un bucle <code class="keyword">for</code>).
+    </p>
+      <p>
+      Un segundo método para los arrays es el conteo automático, en el
+      cual se permite que el compilador determine el tamaño del array
+      basándose en el número de valores de inicialización.
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">int</span> c<span class="hl opt">[] = {</span> <span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">2</span><span class="hl opt">,</span> <span class="hl num">3</span><span class="hl opt">,</span> <span class="hl num">4</span> <span class="hl opt">};</span>
+</pre>
+      <p>
+      Ahora, si decide añadir otro elemento al array, simplemente debe
+      añadir otro valor. Si puede hacer que su código necesite
+      modificaciones en un único sítio, reducirá la posibilidad de
+      introducir errores durante la modificación. Pero, ¿cómo
+      determinar el tamaño del array? La expresión <code class="code">sizeof c /
+      sizeof *c</code> (el tamaño del array completo dividido entre el
+      tamaño del primer elemento) es un truco que hace que no sea
+      necesario cambiarlo si cambia el tamaño del array <sup>[<a id="idp5824616" href="#ftn.idp5824616" class="footnote">59</a>]</sup>:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl kwa">sizeof</span> c <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> <span class="hl opt">*</span>c<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+  c<span class="hl opt">[</span>i<span class="hl opt">]++;</span>
+</pre>
+      <p>
+      Dado que las estructuras también son agregados, se pueden
+      inicializar de un modo similar. Como en una estructura estilo-C
+      todos sus miembros son públicos, se pueden asignar directamente:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">struct</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+  <span class="hl kwb">float</span> f<span class="hl opt">;</span>
+  <span class="hl kwb">char</span> c<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+X x1 <span class="hl opt">= {</span> <span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">2.2</span><span class="hl opt">,</span> <span class="hl str">'c'</span><span class="hl opt">};</span>
+</pre>
+      <p>
+      Si tiene una array de esos objetos, puede inicializarlos usando un
+      conjunto anidado de llaves para cada elemento:
+    </p>
+      <pre class="programlisting">
+X x2<span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">] = { {</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">1.1</span><span class="hl opt">,</span> <span class="hl str">'a'</span><span class="hl opt">}, {</span><span class="hl num">2</span><span class="hl opt">,</span> <span class="hl num">2.2</span><span class="hl opt">,</span> <span class="hl str">'b'</span><span class="hl opt">} };</span>
+</pre>
+      <p>
+      Aquí, el tercer objeto se inicializó a cero.
+    </p>
+      <p>
+      Si alguno de los atributos es privado (algo que ocurre típicamente
+      en el caso de clases bien diseñadas en C++), o incluso si todos
+      son públicos pero hay un constructor, las cosas son distintas. En
+      el ejemplo anterior, los valores se han asignado directamente a
+      los elementos del agregado, pero los constructores son una manera
+      de forzar que la inicialización ocurra por medio de una interfaz
+      formal. Aquí, los constructores deben ser invocados para realizar
+      la inicialización. De modo, que si tiene un constructor parecido a
+      éste,
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">struct</span> Y <span class="hl opt">{</span>
+  <span class="hl kwb">float</span> f<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+  <span class="hl kwd">Y</span><span class="hl opt">(</span><span class="hl kwb">int</span> a<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+</pre>
+      <p>
+      Debe indicar la llamada al constructor. La mejor aproximación es
+      una explícita como la siguiente:
+    </p>
+      <pre class="programlisting">
+Y y1<span class="hl opt">[] = {</span> <span class="hl kwd">Y</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">Y</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">),</span> <span class="hl kwd">Y</span><span class="hl opt">(</span><span class="hl num">3</span><span class="hl opt">) };</span>
+</pre>
+      <p>
+      Obtendrá tres objetos y tres llamadas al constructor. Siempre que
+      tenga un constructor, si es una estructura con todos sus miembros
+      públicos o una clase con atributos privados, toda la
+      inicialización debe ocurrir a través del constructor, incluso si
+      está usando la inicialización de agregados.
+    </p>
+      <p>
+      Se muestra un segundo ejemplo con un constructor con múltiples
+      argumentos.
+    </p>
+      <div class="example">
+        <a id="idp5831800"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Multiarg.cpp</span>
+<span class="hl slc">// Multiple constructor arguments</span>
+<span class="hl slc">// with aggregate initialization</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Z <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">,</span> j<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">,</span> <span class="hl kwb">int</span> jj<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+Z<span class="hl opt">::</span><span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">,</span> <span class="hl kwb">int</span> jj<span class="hl opt">) {</span>
+  i <span class="hl opt">=</span> ii<span class="hl opt">;</span>
+  j <span class="hl opt">=</span> jj<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Z<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;i = &quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, j = &quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Z zz<span class="hl opt">[] = {</span> <span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span><span class="hl num">2</span><span class="hl opt">),</span> <span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl num">3</span><span class="hl opt">,</span><span class="hl num">4</span><span class="hl opt">),</span> <span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">,</span><span class="hl num">6</span><span class="hl opt">),</span> <span class="hl kwd">Z</span><span class="hl opt">(</span><span class="hl num">7</span><span class="hl opt">,</span><span class="hl num">8</span><span class="hl opt">) };</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl kwa">sizeof</span> zz <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> <span class="hl opt">*</span>zz<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    zz<span class="hl opt">[</span>i<span class="hl opt">].</span><span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.10. C06/Multiarg.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Fíjese en cómo se invoca un constructor explícito para cada objeto
+      de un array.
+    </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5824616" href="#idp5824616" class="para">59</a>] </sup>En el segundo volumen de este libro (disponible libremente
+      en <a class="ulink" href="http://www.BruceEckel.com" target="_top">www.BruceEckel.com</a>),
+      verá una forma más corta de calcular el tamaño de un array
+      usando plantillas.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s05.html">6.5. Stack con constructores y destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s07.html">6.7. Constructores por defecto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

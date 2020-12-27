@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.2.2. Funciones de acceso</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch09s02.html" title="9.2. Funciones inline" />
+    <link rel="prev" href="ch09s02.html" title="9.2. Funciones inline" />
+    <link rel="next" href="ch09s03.html" title="9.3. Stash y Stack con inlines" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s02.html">9.2. Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s03.html">9.3. Stash y Stack con inlines</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.2.2. Funciones de acceso">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6344144"></a>9.2.2. Funciones de acceso</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Uno de los usos más importantes de inline dentro de clases son
+	las funciones de acceso. Se trata de pequeñas funciones que le
+	permiten leer o cambiar parte del estado de un objeto, es decir,
+	una o varias variables internas. La razón por la que inline
+	es tan importante para las funciones de acceso se puede ver en
+	el siguiente ejemplo:
+      </p>
+      <div class="example">
+        <a id="idp6345328"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Access.cpp</span>
+<span class="hl slc">// Inline access functions</span>
+
+<span class="hl kwc">class</span> Access <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">read</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> i<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">set</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) {</span> i <span class="hl opt">=</span> ii<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Access A<span class="hl opt">;</span>
+  A<span class="hl opt">.</span><span class="hl kwd">set</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+  <span class="hl kwb">int</span> x <span class="hl opt">=</span> A<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.3. C09/Access.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Aquí, el usuario de la clase nunca tiene contacto directo con
+	las variables de estado internas a la clase, y pueden mantenerse
+	como privadas, bajo el control del diseñador de la clase. Todo
+	el acceso a los atributos se puede controlar a través de los
+	métodos de la interfaz. Además, el acceso es notablemente
+	eficiente. Considere <code class="function">read()</code>, por
+	ejemplo. Sin inline, el código generado para la llamada a
+	<code class="function">read()</code> podría incluir colocarla en la pila
+	y ejecutar la llamada CALL de ensamblador. En la mayoría de las
+	arquitecturas, el tamaño de ese código sería mayor que el código
+	creado para la variante inline, y el tiempo de ejecución sería
+	mayor con toda certeza.
+      </p>
+      <p>
+	Sin las funciones inline, un diseñador de clases preocupado
+	por la eficiencia estaría tentado de hacer que
+	<code class="varname">i</code> fuese un atributo público, eliminado la
+	sobrecarga y permitiendo al usuario acceder directamente a
+	<code class="varname">i</code>. Desde el punto de vista del diseñador,
+	eso resulta desastroso, <code class="varname">i</code> sería parte de la
+	interfaz pública, lo cual significa que el diseñador de la
+	clase no podrá cambiarlo en el futuro. Tendrá que cargar con
+	un entero llamado <code class="varname">i</code>. Esto es un problema
+	porque después puede que considere mejor usar un
+	<code class="type">float</code> en lugar de un <code class="type">int</code> para
+	representar el estado, pero como <code class="varname">i</code> es parte
+	de la interfaz pública, no podrá cambiarlo. O puede que
+	necesite realizar algún cálculo adicional como parte de la
+	lectura o escritura de <code class="varname">i</code>, que no podrá
+	hacer si es público. Si, por el contrario, siempre usa
+	métodos para leer y cambiar la información de estado del
+	objeto, podrá modificar la representación subyacente del
+	objeto hasta estar totalmente convencido.
+      </p>
+      <p>
+	Además, el uso de métodos para controlar atributos le permite
+	añadir código al método para detectar cuando cambia el valor,
+	algo que puede ser muy útil durante la depuración. Si un
+	atributo es público, cualquiera puede cambiarlo en cualquier
+	momento sin que el programador lo sepa.
+      </p>
+      <div class="sect3" title="Accesores y mutadores">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6353184"></a>Accesores y mutadores</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Hay gente que divide el concepto de funciones de acceso en
+	  dos: accesores (para leer la información de estado de un
+	  objeto) y mutadores (para cambiar el estado de un
+	  objeto). Además, se puede utilizar la sobrecarga de
+	  funciones para tener métodos accesores y mutadores con el
+	  mismo nombre; el modo en que se invoque el método determina
+	  si se lee o modifica la información de estado. Así,
+	</p>
+        <div class="example">
+          <a id="idp6354544"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:Rectangle.cpp</span>
+<span class="hl slc">// Accessors &amp; mutators</span>
+
+<span class="hl kwc">class</span> Rectangle <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> wide<span class="hl opt">,</span> high<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Rectangle</span><span class="hl opt">(</span><span class="hl kwb">int</span> w <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">int</span> h <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">wide</span><span class="hl opt">(</span>w<span class="hl opt">),</span> <span class="hl kwd">high</span><span class="hl opt">(</span>h<span class="hl opt">) {}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">width</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> wide<span class="hl opt">; }</span> <span class="hl slc">// Read</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">width</span><span class="hl opt">(</span><span class="hl kwb">int</span> w<span class="hl opt">) {</span> wide <span class="hl opt">=</span> w<span class="hl opt">; }</span> <span class="hl slc">// Set</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">height</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> high<span class="hl opt">; }</span> <span class="hl slc">// Read</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">height</span><span class="hl opt">(</span><span class="hl kwb">int</span> h<span class="hl opt">) {</span> high <span class="hl opt">=</span> h<span class="hl opt">; }</span> <span class="hl slc">// Set</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Rectangle <span class="hl kwd">r</span><span class="hl opt">(</span><span class="hl num">19</span><span class="hl opt">,</span> <span class="hl num">47</span><span class="hl opt">);</span>
+  <span class="hl slc">// Change width &amp; height:</span>
+  r<span class="hl opt">.</span><span class="hl kwd">height</span><span class="hl opt">(</span><span class="hl num">2</span> <span class="hl opt">*</span> r<span class="hl opt">.</span><span class="hl kwd">width</span><span class="hl opt">());</span>
+  r<span class="hl opt">.</span><span class="hl kwd">width</span><span class="hl opt">(</span><span class="hl num">2</span> <span class="hl opt">*</span> r<span class="hl opt">.</span><span class="hl kwd">height</span><span class="hl opt">());</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.4. C09/Rectangle.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  El constructor usa la lista de inicialización (brevemente
+	  introducida en el capítulo 8 y ampliamente cubierta en el
+	  capitulo 14) para asignar valores a <code class="varname">wide</code>
+	  y <code class="varname">high</code> (usando el formato de
+	  pseudo-constructor para los tipos de datos básicos).
+	</p>
+        <p>
+	  No puede definir métodos que tengan el mismo nombre que los
+	  atributos, de modo que puede que se sienta tentado de
+	  distinguirlos con un guión bajo al final. Sin embargo, los
+	  identificadores con guiones bajos finales están reservados y
+	  el programador no debería usarlos.
+	</p>
+        <p>
+	  En su lugar, debería usar «set» y
+	  «get» para indicar que los métodos son accesores
+	  y mutadores.
+	</p>
+        <div class="example">
+          <a id="idp6359048"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:Rectangle2.cpp</span>
+<span class="hl slc">// Accessors &amp; mutators with &quot;get&quot; and &quot;set&quot;</span>
+
+<span class="hl kwc">class</span> Rectangle <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> width<span class="hl opt">,</span> height<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Rectangle</span><span class="hl opt">(</span><span class="hl kwb">int</span> w <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl kwb">int</span> h <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">width</span><span class="hl opt">(</span>w<span class="hl opt">),</span> <span class="hl kwd">height</span><span class="hl opt">(</span>h<span class="hl opt">) {}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getWidth</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> width<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">setWidth</span><span class="hl opt">(</span><span class="hl kwb">int</span> w<span class="hl opt">) {</span> width <span class="hl opt">=</span> w<span class="hl opt">; }</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getHeight</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> height<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">setHeight</span><span class="hl opt">(</span><span class="hl kwb">int</span> h<span class="hl opt">) {</span> height <span class="hl opt">=</span> h<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Rectangle <span class="hl kwd">r</span><span class="hl opt">(</span><span class="hl num">19</span><span class="hl opt">,</span> <span class="hl num">47</span><span class="hl opt">);</span>
+  <span class="hl slc">// Change width &amp; height:</span>
+  r<span class="hl opt">.</span><span class="hl kwd">setHeight</span><span class="hl opt">(</span><span class="hl num">2</span> <span class="hl opt">*</span> r<span class="hl opt">.</span><span class="hl kwd">getWidth</span><span class="hl opt">());</span>
+  r<span class="hl opt">.</span><span class="hl kwd">setWidth</span><span class="hl opt">(</span><span class="hl num">2</span> <span class="hl opt">*</span> r<span class="hl opt">.</span><span class="hl kwd">getHeight</span><span class="hl opt">());</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.5. C09/Rectangle2.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Por supuesto, los accesores y mutadores no tienen porqué ser
+	  simples tuberías hacia las variables internas. A veces,
+	  pueden efectuar cálculos más sofisticados. El siguiente
+	  ejemplo usa las funciones de tiempo de la librería C
+	  estándar para crear una clase <code class="classname">Time</code>:
+	</p>
+        <div class="example">
+          <a id="idp6361816"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:Cpptime.h</span>
+<span class="hl slc">// A simple time class</span>
+<span class="hl ppc">#ifndef CPPTIME_H</span>
+<span class="hl ppc">#define CPPTIME_H</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include &lt;cstring&gt;</span>
+
+<span class="hl kwc">class</span> Time <span class="hl opt">{</span>
+  std<span class="hl opt">::</span><span class="hl kwb">time_t</span> t<span class="hl opt">;</span>
+  std<span class="hl opt">::</span>tm local<span class="hl opt">;</span>
+  <span class="hl kwb">char</span> asciiRep<span class="hl opt">[</span><span class="hl num">26</span><span class="hl opt">];</span>
+  <span class="hl kwb">unsigned char</span> lflag<span class="hl opt">,</span> aflag<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">updateLocal</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(!</span>lflag<span class="hl opt">) {</span>
+      local <span class="hl opt">= *</span>std<span class="hl opt">::</span><span class="hl kwd">localtime</span><span class="hl opt">(&amp;</span>t<span class="hl opt">);</span>
+      lflag<span class="hl opt">++;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">updateAscii</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(!</span>aflag<span class="hl opt">) {</span>
+      <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+      std<span class="hl opt">::</span><span class="hl kwd">strcpy</span><span class="hl opt">(</span>asciiRep<span class="hl opt">,</span>std<span class="hl opt">::</span><span class="hl kwd">asctime</span><span class="hl opt">(&amp;</span>local<span class="hl opt">));</span>
+      aflag<span class="hl opt">++;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Time</span><span class="hl opt">() {</span> <span class="hl kwd">mark</span><span class="hl opt">(); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">mark</span><span class="hl opt">() {</span>
+    lflag <span class="hl opt">=</span> aflag <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    std<span class="hl opt">::</span><span class="hl kwd">time</span><span class="hl opt">(&amp;</span>t<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> <span class="hl kwd">ascii</span><span class="hl opt">() {</span>
+    <span class="hl kwd">updateAscii</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> asciiRep<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Difference in seconds:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">delta</span><span class="hl opt">(</span>Time<span class="hl opt">*</span> dt<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> <span class="hl kwb">int</span><span class="hl opt">(</span>std<span class="hl opt">::</span><span class="hl kwd">difftime</span><span class="hl opt">(</span>t<span class="hl opt">,</span> dt<span class="hl opt">-&gt;</span>t<span class="hl opt">));</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">daylightSavings</span><span class="hl opt">() {</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_isdst<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">dayOfYear</span><span class="hl opt">() {</span> <span class="hl slc">// Since January 1</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_yday<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">dayOfWeek</span><span class="hl opt">() {</span> <span class="hl slc">// Since Sunday</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_wday<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">since1900</span><span class="hl opt">() {</span> <span class="hl slc">// Years since 1900</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_year<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">month</span><span class="hl opt">() {</span> <span class="hl slc">// Since January</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_mon<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">dayOfMonth</span><span class="hl opt">() {</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_mday<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">hour</span><span class="hl opt">() {</span> <span class="hl slc">// Since midnight, 24-hour clock</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_hour<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">minute</span><span class="hl opt">() {</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_min<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">second</span><span class="hl opt">() {</span>
+    <span class="hl kwd">updateLocal</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> local<span class="hl opt">.</span>tm_sec<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// CPPTIME_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.6. C09/Cpptime.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Las funciones de la librería C estándar tienen múltiples
+	  representaciones para el tiempo, y todas ellas son parte de
+	  la clase <code class="classname">Time</code>. Sin embargo, no es
+	  necesario actualizar todos ellos, así que
+	  <code class="type">time_t</code> se usa para la representación base, y
+	  <code class="type">tm</code> <code class="varname">local</code> y la representación
+	  ASCII <code class="varname">asciiRep</code> tienen banderas para
+	  indicar si han sido actualizadas para el <code class="type">time_t</code>
+	  actual. Las dos funciones privadas
+	  <code class="function">updateLocal()</code> y
+	  <code class="function">updateAscii()</code> comprueban las banderas y
+	  condicionalmente hacen la actualización.
+ 	</p>
+        <p>
+	  El constructor llama a la función
+	  <code class="function">mark()</code> (que el usuario puede llamar
+	  también para forzar al objeto a representar el tiempo
+	  actual), y eso limpia las dos banderas para indicar que el
+	  tiempo local y la representación ASCII ya no son válidas. La
+	  función <code class="function">ascii()</code> llama a
+	  <code class="function">updateAscii()</code>, que copia el resultado
+	  de la función de la librería estándar de C
+	  <code class="function">asctime()</code> en un buffer local porque
+	  <code class="function">asctime()</code> usa una área de datos
+	  estática que se sobreescribe si la función se llama en otra
+	  parte. El valor de retorno de la función
+	  <code class="function">ascii()</code> es la dirección de ese buffer
+	  local.
+	</p>
+        <p>
+	  Todas las funciones que empiezan con
+	  <code class="function">daylightSavings()</code> usan la función
+	  <code class="function">updateLocal()</code>, que causa que la
+	  composición resultante de inlines sea bastante larga. No
+	  parece que valga la pena, especialmente considerando que
+	  probablemente no quiera llamar mucho a esas funciones. Sin
+	  embargo, eso no significa que todas las funciones deban ser
+	  no-inline. Si hace otras funciones no-inline, al menos
+	  mantenga <code class="function">updateLocal()</code> como
+	  <code class="keyword">inline</code> de modo que su código se duplique en las
+	  funciones no-inline, eliminando la sobrecarga extra de
+	  invocación de funciones.
+	</p>
+        <p>
+	  Este es un pequeño programa de prueba:
+	</p>
+        <div class="example">
+          <a id="idp6375264"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:Cpptime.cpp</span>
+<span class="hl slc">// Testing a simple time class</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Cpptime.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Time start<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">1000</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">' '</span><span class="hl opt">;</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>i<span class="hl opt">%</span><span class="hl num">10</span> <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> cout <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Time end<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;start = &quot;</span> <span class="hl opt">&lt;&lt;</span> start<span class="hl opt">.</span><span class="hl kwd">ascii</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;end = &quot;</span> <span class="hl opt">&lt;&lt;</span> end<span class="hl opt">.</span><span class="hl kwd">ascii</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;delta = &quot;</span> <span class="hl opt">&lt;&lt;</span> end<span class="hl opt">.</span><span class="hl kwd">delta</span><span class="hl opt">(&amp;</span>start<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.7. C09/Cpptime.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Se crea un objeto <code class="classname">Time</code>, se hace alguna
+	  actividad que consuma tiempo, después se crea un segundo objeto
+	  <code class="classname">Time</code> para marcar el tiempo de
+	  finalización. Se usan para mostrar los tiempos de inicio, fin
+	  y los intervalos.
+	</p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s02.html">9.2. Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s03.html">9.3. Stash y Stack con inlines</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

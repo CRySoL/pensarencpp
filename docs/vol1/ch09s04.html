@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.4. Funciones inline y el compilador</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C09.html" title="9: Funciones inline" />
+    <link rel="prev" href="ch09s03.html" title="9.3. Stash y Stack con inlines" />
+    <link rel="next" href="ch09s04s02.html" title="9.4.2. Referencias adelantadas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03.html">9.3. Stash y Stack con inlines</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s02.html">9.4.2. Referencias adelantadas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.4. Funciones inline y el compilador">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6397488"></a>9.4. Funciones inline y el compilador</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Para comprender cuando es conveniente utilizar inlines, es útil
+      saber lo que hace el compilador cuando encuentra una función
+      inline. Como con cualquier función, el compilador apunta el
+      <span class="emphasis"><em>tipo</em></span> de la función es su tabla de símbolos
+      (es decir, el prototipo de la función incluyendo el nombre y los
+      tipos de los argumentos, en combinación con valor de
+      retorno). Además cuando el compilador ve que la función es
+      inline <span class="emphasis"><em>y</em></span> el cuerpo no contiene errores, el
+      código se coloca también en la tabla de símbolos. El código se
+      almacena en su forma fuente, como instrucciones ensamblador
+      compiladas, o alguna otra representación propia del compilador.
+    </p>
+      <p>
+      Cuando hace una llamada a una función inline, el compilador se
+      asegura primero de que la llamada se puede hacer
+      correctamente. Es decir, los tipos de todos los argumentos
+      corresponden exactamente con los tipos de la lista de argumentos
+      de la función (o convertible a tipo correcto) y el valor de
+      retorno tiene el tipo correcto (o es convertible al tipo
+      correcto) en la expresión destino. Esto, por supuesto, es
+      exactamente lo mismo que hace el compilador para cualquier
+      función y hay una diferencia considerable respecto de lo que
+      hace el preprocesador, porque el preprocesador no comprueba
+      tipos ni hace conversiones.
+    </p>
+      <p>
+      Si toda la información del tipo de la función encaja en el
+      contexto de la llamada, entonces la llamada a la función se
+      sustituye directamente por el código inline, eliminando la sobrecarga
+      y permitiendo que el compilador pueda hacer más
+      optimizaciones. Además, si el inline es un método, la dirección
+      del objeto(<code class="varname">this</code>) se pone en el lugar apropiado,
+      que es, por supuesto, otra acción que el preprocesador es incapaz
+      de hacer.
+    </p>
+      <div class="sect2" title="9.4.1. Limitaciones">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6402888"></a>9.4.1. Limitaciones</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Hay dos situaciones en que el compilador no puede efectuar la
+	sustitución de inline. En estos casos, simplemente convierte la
+	función a la forma ordinaria tomando la definición y pidiendo
+	espacio para la función como hace con una función no-inline. Si
+	debe hacerlo en varias unidades de traducción (lo que
+	normalmente causaría un error de definición múltiple), informa
+	al enlazador que ignore esas definiciones múltiples.
+      </p>
+        <p>
+	En compilador no puede efectuar la sustitución de inline si la
+	función es demasiado complicada. Esto depende de cada
+	compilador particular, pero aunque muchos compiladores lo
+	hagan, no habrá ninguna mejora de eficiencia. En general, se
+	considera que cualquier tipo de bucle es demasiado complicado
+	para expandir como una inline, y si lo piensa, el bucle
+	implica mucho más tiempo que el que conlleva la sobrecarga de
+	la invocación de la función. Si la función es simplemente una
+	colección se sentencias simples, probablemente el compilador
+	no tendrá ningún problema para utilizar inline, pero si hay
+	muchas sentencias, la sobrecarga de llamada será mucho menor
+	que el coste de ejecutar el cuerpo. Y recuerde, cada vez que
+	llame a una función inline grande, el cuerpo completo se
+	inserta en el lugar de la llamada, de modo que el tamaño del
+	código se inflará fácilmente sin que se perciba ninguna mejora
+	de rendimiento. (Note que algunos de los ejemplos de este
+	libro pueden exceder el tamaño razonable para una inline a
+	cambio de mejorar la estética de los listados.
+      </p>
+        <p>
+	El compilador tampoco efectúa sustituciones inline si la
+	dirección de la función se toma implícita o explícitamente. Si
+	el compilador debe producir una dirección, entonces tendrá que
+	alojar el código de la función y usar la dirección
+	resultante. Sin embargo, cuando no se requiere una dirección,
+	probablemente el compilador hará la sustitución inline.
+      </p>
+        <p>
+	Es importante comprender que una declaración inline es sólo una
+	sugerencia al compilador; el compilador no está forzado a hacer
+	nada. Un buen compilador hará sustituciones inline para
+	funciones pequeñas y simples mientras que ignorará las que sean
+	demasiado complicadas. Eso le dará lo que espera - la auténtica
+	semántica de una llamada a función con la eficiencia de una
+	macro.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03.html">9.3. Stash y Stack con inlines</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s02.html">9.4.2. Referencias adelantadas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

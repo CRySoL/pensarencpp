@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.5.3. FIXME:Teminación al bloquear</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s05.html" title="10.5. Finalización de tareas" />
+    <link rel="prev" href="ch10s05s02.html" title="10.5.2. El jardín ornamental" />
+    <link rel="next" href="ch10s05s04.html" title="10.5.4. Interrupción" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s02.html">10.5.2. El jardín ornamental</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05s04.html">10.5.4. Interrupción</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.5.3. FIXME:Teminación al bloquear">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5438432"></a>10.5.3. FIXME:Teminación al bloquear</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	En el ejemplo anterior, Entrance::run() incluye una llamada a
+	sleep() en el bucle principal. Sabemos que sleep() se
+	despertará eventualmente y que la tarea llegará al principio
+	del bucle donde tiene una oportunidad para salir de ese bucle
+	chequeando el estado isPaused(). Sin embargo, sleep() es
+	simplemente una situación donde un hilo en ejecución se
+	bloquea, y a veces necesita terminar una tarea que está
+	bloqueada.
+      </p>
+      <p>
+	Un hilo puede estar en alguno de los cuatro estados:
+      </p>
+      <p>
+	1. Nuevo: Un hilo permanece en este estado solamente de forma
+	momentánea, tan solo cuando se crea. Reserva todos los
+	recursos del sistema necesarios y ejecuta la
+	inicialización. En este momento se convierte en FIXMEcandidato
+	para recibir tiempo de CPU. A continuación, el planificador
+	llevará a este hilo al estado de ejecución o de bloqueo.
+      </p>
+      <p>
+	2. Ejecutable: Esto significa que un hilo puede ser ejecutado
+	cuando el mecanismo de fraccionador de tiempo tenga ciclos de
+	CPU disponibles para el hilo. Así, el hilo podría o no
+	ejecutarse en cualquier momento, pero no hay nada que evite FIXME
+      </p>
+      <p>
+	3. Bloqueado: El hilo pudo ser ejecutado, pero algo lo
+	impidió. (Podría estar esperando a que se complete una
+	operación de entrada/salida, por ejemplo.) Mientras un hilo
+	esté en el estado de bloqueo, el planificador simplemente lo
+	ignorará y no le dará tiempo de CPU. Hasta que un hilo no
+	vuelva a entrar en el estado de ejecución, no ejecutará
+	ninguna operación.
+      </p>
+      <p>
+	4. FIXMEMuerte: Un hilo en el estado de muerto no será
+	planificable y no recibirá tiempo de CPU. Sus tareas han
+	finalizado, y no será ejecutable nunca más. La forma normal
+	que un hilo tiene para morir es volviendo de su función
+	run().
+      </p>
+      <p>
+	Un hilo está bloqueado cuando no puede continuar su
+	ejecución. Un hilo puede bloquearse debido a los siguientes
+	motivos:
+      </p>
+      <p>
+	Puso el hilo a dormir llamando a sleep(milisegundos), en cuyo
+	caso no será ejecutado durante el tiempo especificado.
+      </p>
+      <p>
+	Suspendió la ejecución del hilo con wait(). No volverá a ser
+	ejecutable hasta que el hilo no obtenga el mensaje signal() o
+	broadcast(). Estudiaremos esto en una sección más adelante.
+      </p>
+      <p>
+	El hilo está esperando a que una operación de entrada/salida
+	finalice.
+      </p>
+      <p>
+	El hilo está intentando entrar en un bloque de código
+	controlado por un mutex, y el mutex ha sido ya adquirido por
+	otro hilo.
+      </p>
+      <p>
+	El problema que tenemos ahora es el siguiente: algunas veces
+	quiere terminar un hilo que está en el estado de bloqueo. Si
+	no puede esperar a que el hilo llegue a un punto en el código
+	donde pueda comprobar el valor del estado y decidir si
+	terminar por sus propios medios, debe forzar a que el hilo
+	salga de su estado de bloqueo.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s02.html">10.5.2. El jardín ornamental</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05s04.html">10.5.4. Interrupción</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

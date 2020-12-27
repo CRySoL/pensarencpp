@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s09.html" title="9.9. Estrategia: elegir el algoritno en tiempo de ejecución" />
+    <link rel="next" href="ch09s11.html" title="9.11. Factorías: encapsular la creación de objetos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s09.html">9.9. Estrategia: elegir el algoritno en tiempo de ejecución</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s11.html">9.11. Factorías: encapsular la creación de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s11.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5116216"></a>9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+Debe pensarse en Cadena de Responsabilidad como en una generalización
+dinámica de la recursión, usando objetos Estrategia. Se hace una
+llamada y cada Estrategia de la secuencia intenta satisfacer la
+llamada. El proceso termina cuando una de las Estrategias tiene éxito
+o la cadena termina. En la recursión, una función se llama a sí misma
+una y otra vez hasta que se alcanza una condición de finalización; con
+Cadena de Responsabilidad, una función se llama a sí misma, la cual
+(moviendo la cadena de Estrategias) llama a una implementación
+diferente de la función, etc, hasta que se alcanza la condición de
+finalización. Dicha condición puede ser que se ha llegado al final de
+la cadena (lo que devuelve un objeto por defecto; puede que no sea
+capaz de proporcionar un resultado por defecto, así que debe ser capaz
+de determinar el éxito o fracaso de la cadena) o que una de las
+Estrategias ha tenido éxito.
+    </p>
+      <p>
+En lugar de llamar a una única función para satisfacer una petición,
+hay múltiples funciones en la cadetna que tienen la oportunidad de
+hacerlo, de manera que tiene el aspecto de un sistema experto. Dado
+que la cadena es en la práctica una lista, puede crearse
+dinámicamente, así que podría verse como una sentencia <code class="keyword">switch</code>
+más general y construida dinámicamente.
+    </p>
+      <p>
+En el GoF, hay bastante discusión sobre cómo crear la cadena de
+responsabilidad como una lista enlazada. Sin embargo, cuando se
+estudia el patrón, no debería importar cómo se crea la cadena; eso es
+un detalle de implementación. Como el GoF se escribió antes de que los
+contenedores STL estuvieran disponibles en la mayoría de los
+compiladores de C++, las razones más probables son (1) que no había
+listas incluídas y por lo tanto tenían que crear una y (2) que las
+estructuras de datos suelen verse como una habilidad fundamental en
+las Escuelas (o Facultades), y a los autores del GoF no se les ocurrió
+la idea de que las estructuras de datos fueran herramientas estándar
+disponibles junto con el lenguaje de programación.. Los detalles del
+contenedor usado para implementar la Cadena de Responsabilidad como
+una cadena (una lista enlazada en el GoF) no añaden nada a la
+solución, y puede implementarse usando un contenedor STL, como se
+muestra abajo.
+    </p>
+      <p>
+Aquí puede ver una Cadena de Responsabilidad que encuentra
+automáticamente una solución usando un mecanismo para recorrer
+automática y recursivamente cada Estrategia de la cadena:
+    </p>
+      <div class="example">
+        <a id="idp5122904"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:ChainOfReponsibility.cpp</span>
+<span class="hl slc">// The approach of the five-year-old.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">enum</span> Answer <span class="hl opt">{</span> NO<span class="hl opt">,</span> YES <span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> GimmeStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> Answer <span class="hl kwd">canIHave</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">GimmeStrategy</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> AskMom <span class="hl opt">:</span> <span class="hl kwc">public</span> GimmeStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Answer <span class="hl kwd">canIHave</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Mooom? Can I have this?&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> NO<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> AskDad <span class="hl opt">:</span> <span class="hl kwc">public</span> GimmeStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Answer <span class="hl kwd">canIHave</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dad, I really need this!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> NO<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> AskGrandpa <span class="hl opt">:</span> <span class="hl kwc">public</span> GimmeStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Answer <span class="hl kwd">canIHave</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Grandpa, is it my birthday yet?&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> NO<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> AskGrandma <span class="hl opt">:</span> <span class="hl kwc">public</span> GimmeStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Answer <span class="hl kwd">canIHave</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Grandma, I really love you!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> YES<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Gimme <span class="hl opt">:</span> <span class="hl kwc">public</span> GimmeStrategy <span class="hl opt">{</span>
+  vector<span class="hl opt">&lt;</span>GimmeStrategy<span class="hl opt">*&gt;</span> chain<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Gimme</span><span class="hl opt">() {</span>
+    chain<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">AskMom</span><span class="hl opt">());</span>
+    chain<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">AskDad</span><span class="hl opt">());</span>
+    chain<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">AskGrandpa</span><span class="hl opt">());</span>
+    chain<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">AskGrandma</span><span class="hl opt">());</span>
+  <span class="hl opt">}</span>
+  Answer <span class="hl kwd">canIHave</span><span class="hl opt">() {</span>
+    vector<span class="hl opt">&lt;</span>GimmeStrategy<span class="hl opt">*&gt;::</span>iterator it <span class="hl opt">=</span> chain<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> chain<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+      <span class="hl kwa">if</span><span class="hl opt">((*</span>it<span class="hl opt">++)-&gt;</span><span class="hl kwd">canIHave</span><span class="hl opt">() ==</span> YES<span class="hl opt">)</span>
+        <span class="hl kwa">return</span> YES<span class="hl opt">;</span>
+    <span class="hl slc">// Reached end without success...</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Whiiiiinnne!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> NO<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Gimme</span><span class="hl opt">() {</span> <span class="hl kwd">purge</span><span class="hl opt">(</span>chain<span class="hl opt">); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Gimme chain<span class="hl opt">;</span>
+  chain<span class="hl opt">.</span><span class="hl kwd">canIHave</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.22. C10/ChainOfReponsibility.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+Observe que la clase de Contexto Gimme y todas las clases Estrategia
+derivan de la misma clase base, GimmeStrategy.
+    </p>
+      <p>
+Si estudia la sección sobre Cadena de Responsabilidad del GoF, verá
+que la estructura difiere significativamente de la que se muestra más
+arriba, porque ellos se centran en crear su propia lista enlazada. Sin
+embargo, si mantiene en mente que la esencia de Cadena de
+Responsabilidad es probar muchas soluciones hasta que encuentre la que
+funciona, se dará cuenta de que la implementación del mecanismo de
+secuenciación no es parte esencial del patrón.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s09.html">9.9. Estrategia: elegir el algoritno en tiempo de ejecución</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s11.html">9.11. Factorías: encapsular la creación de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s11.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

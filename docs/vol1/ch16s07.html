@@ -1,0 +1,814 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>16.7. Introducción a los iteradores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C16.html" title="16: Introducción a las Plantillas" />
+    <link rel="prev" href="ch16s06.html" title="16.6. Manejando objetos por valor" />
+    <link rel="next" href="ch16s07s02.html" title="16.7.2. PStash con iteradores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s06.html">16.6. Manejando objetos por valor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s07s02.html">16.7.2. PStash con iteradores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s07s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="16.7. Introducción a los iteradores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8602792"></a>16.7. Introducción a los iteradores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Un <code class="literal">iterator </code> es un objeto que se mueve a
+      través de un contenedor de otros objetos y selecciona a uno de
+      ellos cada vez, sin porporcionar un acceso directo a la
+      implementación del contenedor. Los iteradores proporcionan una
+      forma estándar de acceder a los elementos, sin importar si un
+      contenedor proporciona alguna marnera de acceder a los elementos
+      directamente.  Se verán a los iteradores usados frecuentemente
+      en asociación con clases contenedoras, y los iteradores son un
+      concepto fundamental en el diseño y el uso de los contenedores
+      del Standard C++, los cuales son descritos en el Volumen 2 de
+      este libro (que se puede bajar de <a class="ulink" href="http://www.bruceeckel.com" target="_top">www.BruceEckel.com</a>. Un
+      iterador es también un tipo de <span class="emphasis"><em>patrón de
+	diseño</em></span>, lo cual es materia de un capítulo del Volumen
+      2.
+    </p>
+      <p>
+      En muchos sentidos, un iterador es un «puntero
+	elegante», y de hecho se verá que los iteradores
+      normalmente ocultan la mayoría de las operaciones de los
+      punteros. Sin embargo, al contrario que un puntero, el iterador
+      es diseñado para ser seguro por lo que es mucho menos probable
+      de hacer el equivalente de avanzar atravesando el final de un
+      array (o si se hace, se encontrará más fácilmente).
+    </p>
+      <p>
+      Considere el primer ejemplo de este capítulo. Aquí está pero
+      añadiendo un iterador sencillo:
+    </p>
+      <div class="example">
+        <a id="idp8607584"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:IterIntStack.cpp</span>
+<span class="hl slc">// Simple integer stack with iterators</span>
+<span class="hl slc">//{L} fibonacci</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;fibonacci.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> IntStack <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> ssize <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> stack<span class="hl opt">[</span>ssize<span class="hl opt">];</span>
+  <span class="hl kwb">int</span> top<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">IntStack</span><span class="hl opt">() :</span> <span class="hl kwd">top</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">int</span> i<span class="hl opt">) {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&lt;</span> ssize<span class="hl opt">,</span> <span class="hl str">&quot;Too many push()es&quot;</span><span class="hl opt">);</span>
+    stack<span class="hl opt">[</span>top<span class="hl opt">++] =</span> i<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">pop</span><span class="hl opt">() {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Too many pop()s&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> stack<span class="hl opt">[--</span>top<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend class</span> IntStackIter<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// An iterator is like a &quot;smart&quot; pointer:</span>
+<span class="hl kwc">class</span> IntStackIter <span class="hl opt">{</span>
+  IntStack<span class="hl opt">&amp;</span> s<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">IntStackIter</span><span class="hl opt">(</span>IntStack<span class="hl opt">&amp;</span> is<span class="hl opt">) :</span> <span class="hl kwd">s</span><span class="hl opt">(</span>is<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span> <span class="hl slc">// Prefix</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+      <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[++</span>index<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl slc">// Postfix</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+      <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[</span>index<span class="hl opt">++];</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  IntStack is<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    is<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwd">fibonacci</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  <span class="hl slc">// Traverse with an iterator:</span>
+  IntStackIter <span class="hl kwd">it</span><span class="hl opt">(</span>is<span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> it<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.21. C16/IterIntStack.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El <code class="classname">IntStackIter </code> ha sido creado para
+      trabajar solo con un <code class="classname">IntStack</code>.  Hay que
+      resaltar que <code class="classname">IntStackIter </code> es un <code class="keyword">friend
+      </code> de <code class="classname">IntStack</code>, lo que lo da un acceso a
+      todos los elementos privados de <code class="classname">IntStack</code>.
+    </p>
+      <p>
+      Como un puntero, el trabajo de <code class="classname">IntStackIter
+      </code> consiste en moverse a través de un
+      <code class="classname">IntStack </code> y devolver valores. En este
+      sencillo ejemplo, el objeto <code class="classname">IntStackIter </code>
+      se puede mover sólo hacia adelante (usando la forma prefija y
+      sufija del <code class="literal">operador++ </code>). Sin
+      embargo, no hay límites de la forma en que se puede definir un
+      iterador a parte de las restricciones impuestas por el
+      contenedor con el que trabaje. Esto es totalmente aceptable
+      (incluido los límites del contenedor que se encuentre por
+      debajo) para un iterador que se mueva de cualquier forma por su
+      contenedor asociado y para que se puedan modificar los valores
+      del contenedor.
+    </p>
+      <p>
+      Es usual el que un iterador sea creado con un constructor que lo
+      asocie a un único objeto contenedor, y que ese iterador no pueda
+      ser asociado a otro contenedor diferente durante su ciclo de
+      vida. (Los iteradores son normalemente pequeños y baratos, por
+      lo que se puede crear otro fácilmente).
+    </p>
+      <p>
+      Con el iterador, se puede atravesar los elementos de la pila sin
+      sacarlos de ella, como un puntero se mueve a través de los
+      elementos del array. Sin embargo, el iterador conoce la
+      estructura interna de la pila y como atravesar los elementos,
+      dando la sensación de que se está moviendo a través de ellos
+      como si fuera «incrementar un puntero», aunque sea
+      más complejo lo que pasa por debajo. Esta es la clave del
+      iterador: Abstrae el proceso complicado de moverse de un
+      elemento del contenedor al siguiente y lo convierte en algo
+      parecido a un puntero.  La meta de cada iterador del programa es
+      que tengan la misma interfaz para que cualquier código que use
+      un iterador no se preocupe de a qué está apuntando - sólo se
+      sabe que todos los iteradores se tratan de la misma manera, por
+      lo que no es importante a lo que apunte el iterador.  De esta
+      forma se puede escribir código más genérico. Todos los
+      contenedores y algoritmos en la Librería Estándar de C++ se
+      basan en este principio de los iteradores.
+    </p>
+      <p>
+      Para ayudar a hacer las cosas más genéricas, sería agradable
+      decir «todas las clases contenedoras tienen una clase
+	asociada llamada <code class="classname">iterator</code>», pero
+      esto causará normalmente problemas de nombres. La solución
+      consite en añadir una clase anidada para cada contenedor (en
+      este caso, «<code class="classname">iterator</code>»
+      comienza con una letra minúscula para que esté conforme al
+      estilo del C++ estándar).  Aquí está el
+      <code class="filename">InterIntStack.cpp </code> con un
+      <code class="classname">iterator </code> anidado:
+    </p>
+      <div class="example">
+        <a id="idp8620728"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:NestedIterator.cpp</span>
+<span class="hl slc">// Nesting an iterator inside the container</span>
+<span class="hl slc">//{L} fibonacci</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;fibonacci.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> IntStack <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> ssize <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> stack<span class="hl opt">[</span>ssize<span class="hl opt">];</span>
+  <span class="hl kwb">int</span> top<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">IntStack</span><span class="hl opt">() :</span> <span class="hl kwd">top</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">int</span> i<span class="hl opt">) {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&lt;</span> ssize<span class="hl opt">,</span> <span class="hl str">&quot;Too many push()es&quot;</span><span class="hl opt">);</span>
+    stack<span class="hl opt">[</span>top<span class="hl opt">++] =</span> i<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">pop</span><span class="hl opt">() {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Too many pop()s&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> stack<span class="hl opt">[--</span>top<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">class</span> iterator<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> iterator <span class="hl opt">{</span>
+    IntStack<span class="hl opt">&amp;</span> s<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>IntStack<span class="hl opt">&amp;</span> is<span class="hl opt">) :</span> <span class="hl kwd">s</span><span class="hl opt">(</span>is<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+    <span class="hl slc">// To create the &quot;end sentinel&quot; iterator:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>IntStack<span class="hl opt">&amp;</span> is<span class="hl opt">,</span> <span class="hl kwb">bool</span><span class="hl opt">)</span> 
+      <span class="hl opt">:</span> <span class="hl kwd">s</span><span class="hl opt">(</span>is<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span>s<span class="hl opt">.</span>top<span class="hl opt">) {}</span>
+    <span class="hl kwb">int</span> <span class="hl kwd">current</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[</span>index<span class="hl opt">]; }</span>
+    <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span> <span class="hl slc">// Prefix</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+        <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[++</span>index<span class="hl opt">];</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl slc">// Postfix</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+        <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[</span>index<span class="hl opt">++];</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Jump an iterator forward</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">+=(</span><span class="hl kwb">int</span> amount<span class="hl opt">) {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">+</span> amount <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span>
+        <span class="hl str">&quot;IntStack::iterator::operator+=() &quot;</span>
+        <span class="hl str">&quot;tried to move out of bounds&quot;</span><span class="hl opt">);</span>
+      index <span class="hl opt">+=</span> amount<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// To see if you're at the end:</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">==</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">!=</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span> 
+    <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> it<span class="hl opt">) {</span>
+      <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> it<span class="hl opt">.</span><span class="hl kwd">current</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  iterator <span class="hl kwd">begin</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">); }</span>
+  <span class="hl slc">// Create the &quot;end sentinel&quot;:</span>
+  iterator <span class="hl kwd">end</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">,</span> <span class="hl kwa">true</span><span class="hl opt">);}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  IntStack is<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    is<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwd">fibonacci</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Traverse the whole IntStack</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  IntStack<span class="hl opt">::</span>iterator it <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> is<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+    cout <span class="hl opt">&lt;&lt;</span> it<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Traverse a portion of the IntStack</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  IntStack<span class="hl opt">::</span>iterator 
+    start <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> end <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  start <span class="hl opt">+=</span> <span class="hl num">5</span><span class="hl opt">,</span> end <span class="hl opt">+=</span> <span class="hl num">15</span><span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;start = &quot;</span> <span class="hl opt">&lt;&lt;</span> start <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;end = &quot;</span> <span class="hl opt">&lt;&lt;</span> end <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>start <span class="hl opt">!=</span> end<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> start<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.22. C16/NestedIterator.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Cuando se crea una clase <code class="keyword">friend </code> anidada, hay
+      que seguir el proceso de primero declarar el nombre de la clase,
+      después declararla como <code class="keyword">friend</code>, y después
+      definir la clase. De otra forma, se confundirá el compilador.
+    </p>
+      <p>
+      Al iterador se le han dado algunas vueltas de tuerca más. La
+      función miembro <code class="function">current()</code> produce el
+      elemento que el iterador está seleccionando actualmente en el
+      contenedor. Se puede «saltar» hacia adelante un
+      número arbitrario de elementos usando el <code class="literal">operator+=</code>. También, se pueden ver
+      otros dos operadores sobrecargados: == y != que compararán un
+      iterador con otro. Estos operadores pueden comparar dos
+      <code class="classname">IntStack::iterator</code>, pero su intención
+      primordial es comprobar si el iterador está al final de una
+      secuencia de la misma manera que lo hacen los iteradores
+      «reales» de la Librería Estándar de C++. La idea es
+      que dos iteradores definan un rango, incluyendo el primer
+      elemento apuntado por el primer iterador pero <span class="emphasis"><em>sin
+      </em></span> incluir el último elemento apuntado por el segundo
+      iterador. Por esto, si se quiere mover a través del rango
+      definido por los dos iteradores, se dirá algo como lo siguiente:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwa">while</span> <span class="hl opt">(</span>star <span class="hl opt">!=</span> end<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> start<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+</pre>
+      <p>
+      Donde <code class="varname">start </code> y <code class="varname">end </code> son
+      los dos iteradores en el rango.  Note que el iterador
+      <code class="varname">end</code>, al cual se le suele referir como el
+      <code class="literal">end sentinel</code>, no es desreferenciado y nos
+      avisa que estamos al final de la secuencia. Es decir, representa
+      el que «otro sobrepasa el final».
+    </p>
+      <p>
+      La mayoría del tiempo se querrá mover a través de la secuencia
+      entera de un contenedor, por lo que el contenedor necesitará
+      alguna forma de producir los iteradores indicando el principio y
+      el final de la secuencia. Aquí, como en la Standard C++ Library,
+      estos iteradores se producen por las funciones miembro del
+      contenedor <code class="function">begin() </code> y
+      <code class="function">end()</code>. <code class="function">begin() </code> usa el
+      primer constructor de <code class="classname">iterator </code> que por
+      defecto apunta al principio del contenedor (esto es el primer
+      elemento que se introdujo en la pila). Sin embargo, un segundo
+      constructor, usado por <code class="function">end()</code>, es necesario
+      para crear el iterador final. Estar «al final»
+      significa apuntar a lo más alto de la pila, porque <code class="varname">top
+      </code> siempre indica el siguiente espacio de la pila que
+      esté disponible pero sin usar. Este constructor del
+      <code class="classname">iterator </code> toma un segundo argumento del
+      tipo <code class="type">bool</code>, lo cual es útil para distinguir los dos
+      constructores.
+    </p>
+      <p>
+      De nuevo se usan los números Fibonacci para rellenar la
+      <code class="classname">IntStack </code> en el
+      <code class="function">main()</code>, y se usan iteradores para moverse
+      completamente a través de la <code class="classname">IntStack </code>
+      así como para moverse en un reducido rango de la secuencia.
+    </p>
+      <p>
+      El siguiente paso, por supuesto, es hacer el código general
+      transformándolo en un template del tipo que maneje, para que en
+      vez ser forzado a manejar enteros se pueda gestionar cualquier
+      tipo:
+    </p>
+      <div class="example">
+        <a id="idp8639856"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:IterStackTemplate.h</span>
+<span class="hl slc">// Simple stack template with nested iterator</span>
+<span class="hl ppc">#ifndef ITERSTACKTEMPLATE_H</span>
+<span class="hl ppc">#define ITERSTACKTEMPLATE_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> ssize <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">&gt;</span>
+<span class="hl kwc">class</span> StackTemplate <span class="hl opt">{</span>
+  T stack<span class="hl opt">[</span>ssize<span class="hl opt">];</span>
+  <span class="hl kwb">int</span> top<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">StackTemplate</span><span class="hl opt">() :</span> <span class="hl kwd">top</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">const</span> T<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&lt;</span> ssize<span class="hl opt">,</span> <span class="hl str">&quot;Too many push()es&quot;</span><span class="hl opt">);</span>
+    stack<span class="hl opt">[</span>top<span class="hl opt">++] =</span> i<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  T <span class="hl kwd">pop</span><span class="hl opt">() {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>top <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Too many pop()s&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> stack<span class="hl opt">[--</span>top<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Declaration required</span>
+  <span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Make it a friend</span>
+  <span class="hl kwc">class</span> iterator <span class="hl opt">{</span> <span class="hl slc">// Now define it</span>
+    StackTemplate<span class="hl opt">&amp;</span> s<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>StackTemplate<span class="hl opt">&amp;</span> st<span class="hl opt">):</span> <span class="hl kwd">s</span><span class="hl opt">(</span>st<span class="hl opt">),</span><span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">){}</span>
+    <span class="hl slc">// To create the &quot;end sentinel&quot; iterator:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>StackTemplate<span class="hl opt">&amp;</span> st<span class="hl opt">,</span> <span class="hl kwb">bool</span><span class="hl opt">)</span> 
+      <span class="hl opt">:</span> <span class="hl kwd">s</span><span class="hl opt">(</span>st<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span>s<span class="hl opt">.</span>top<span class="hl opt">) {}</span>
+    T <span class="hl kwc">operator</span><span class="hl opt">*()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[</span>index<span class="hl opt">];}</span>
+    T <span class="hl kwc">operator</span><span class="hl opt">++() {</span> <span class="hl slc">// Prefix form</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+        <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[++</span>index<span class="hl opt">];</span>
+    <span class="hl opt">}</span>
+    T <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl slc">// Postfix form</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span> 
+        <span class="hl str">&quot;iterator moved out of range&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> s<span class="hl opt">.</span>stack<span class="hl opt">[</span>index<span class="hl opt">++];</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Jump an iterator forward</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">+=(</span><span class="hl kwb">int</span> amount<span class="hl opt">) {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">+</span> amount <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>top<span class="hl opt">,</span>
+        <span class="hl str">&quot; StackTemplate::iterator::operator+=() &quot;</span>
+        <span class="hl str">&quot;tried to move out of bounds&quot;</span><span class="hl opt">);</span>
+      index <span class="hl opt">+=</span> amount<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// To see if you're at the end:</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">==</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">!=</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>
+      std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> it<span class="hl opt">) {</span>
+      <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt; *</span>it<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  iterator <span class="hl kwd">begin</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">); }</span>
+  <span class="hl slc">// Create the &quot;end sentinel&quot;:</span>
+  iterator <span class="hl kwd">end</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">,</span> <span class="hl kwa">true</span><span class="hl opt">);}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// ITERSTACKTEMPLATE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.23. C16/IterStackTemplate.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Se puede ver que la transformación de una clase regular en un
+      <code class="keyword">template </code> es razonablemente
+      transparente. Esta aproximación de primero crear y depurar una
+      clase ordinaria, y después transformarla en plantilla, está
+      generalmente considerada como más sencilla que crear el template
+      desde la nada.
+    </p>
+      <p>
+      Dese cuenta que en vez de sólo decir:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">friend</span> iterator<span class="hl opt">;</span>  <span class="hl slc">// Hacerlo amigo</span>
+</pre>
+      <p>
+      Este código tiene:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span>  <span class="hl slc">// Hacerlo amigo</span>
+</pre>
+      <p>
+      Esto es importante porque el nombre
+      «<code class="keyword">iterator</code>» ya existe en el ámbito de
+      resolución, por culpa de un archivo incluido.
+    </p>
+      <p>
+      En vez de la función miembro <code class="function">current()</code>, el
+      <code class="classname">iterator </code> tiene un <code class="literal">operator* </code>
+      para seleccionar el elemento actual, lo que hace que el
+      <code class="classname">iterator </code> se parezca más a un puntero lo
+      cual es una práctica común.
+    </p>
+      <p>
+      Aquí está el ejemplo revisado para comprobar el template.
+    </p>
+      <div class="example">
+        <a id="idp8648608"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:IterStackTemplateTest.cpp</span>
+<span class="hl slc">//{L} fibonacci</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;fibonacci.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;IterStackTemplate.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  StackTemplate<span class="hl opt">&lt;</span><span class="hl kwb">int</span><span class="hl opt">&gt;</span> is<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    is<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwd">fibonacci</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  <span class="hl slc">// Traverse with an iterator:</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Traverse the whole StackTemplate</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  StackTemplate<span class="hl opt">&lt;</span><span class="hl kwb">int</span><span class="hl opt">&gt;::</span>iterator it <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> is<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+    cout <span class="hl opt">&lt;&lt;</span> it<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Traverse a portion</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  StackTemplate<span class="hl opt">&lt;</span><span class="hl kwb">int</span><span class="hl opt">&gt;::</span>iterator 
+    start <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> end <span class="hl opt">=</span> is<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  start <span class="hl opt">+=</span> <span class="hl num">5</span><span class="hl opt">,</span> end <span class="hl opt">+=</span> <span class="hl num">15</span><span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;start = &quot;</span> <span class="hl opt">&lt;&lt;</span> start <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;end = &quot;</span> <span class="hl opt">&lt;&lt;</span> end <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>start <span class="hl opt">!=</span> end<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> start<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;IterStackTemplateTest.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;IterStackTemplateTest.cpp&quot;</span><span class="hl opt">);</span>
+  string line<span class="hl opt">;</span>
+  StackTemplate<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> strings<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    strings<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span>line<span class="hl opt">);</span>
+  StackTemplate<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;::</span>iterator 
+    sb <span class="hl opt">=</span> strings<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> se <span class="hl opt">=</span> strings<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>sb <span class="hl opt">!=</span> se<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> sb<span class="hl opt">++ &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.24. C16/IterStackTemplateTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El primer uso del iterador simplemente lo recorre de principio a
+      fin (y muestra que el límite final funciona correctamente). En el
+      segundo uso, se puede ver como los iteradores permite fácilmente
+      especificar un rango de elementos (los contenedores y los
+      iteradores del Standard C++ Library usan este concepto de rangos
+      casi en cualquier parte). El sobrecargado <code class="literal">operator+= </code>
+      mueve los iteradores <code class="varname">start </code> y <code class="varname">end
+      </code> a posiciones que están en el medio del rango de
+      elementos de <code class="varname">is</code>, y estos elementos son
+      imprimidos. Hay que resaltar, como se ve en la salida, que el
+      elemento final no está incluido en el rango, o sea que una vez
+      llegado al elemento final (end sentinel) se sabe que se ha pasado
+      el final del rango - pero no hay que desreferenciar el elemento
+      final o si no se puede acabar desreferenciando un puntero
+      nulo. (Yo he puesto un guardian en el
+      <code class="classname">StackTemplate::iterator</code>, pero en la
+      Librería Estándar de C++ los contenedores y los iteradores no
+      tienen ese código - por motivos de eficiencia - por lo que hay que
+      prestar atención).
+    </p>
+      <p>
+      Por último para verificar que el <code class="classname">StackTemplate
+      </code> funciona con objetos clase, se instancia uno para
+      <code class="type">string</code>s y se rellena con líneas del código fuente,
+      las cuales son posteriormente imprimidas en pantalla.
+    </p>
+      <div class="sect2" title="16.7.1. Stack con iteradores">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8655568"></a>16.7.1. Stack con iteradores</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Podemos repetir el proceso con la clase de tamaño dinámico
+	<code class="classname">Stack</code> que ha sido usada como un ejemplo
+	a lo largo de todo el libro. Aquí está la clase
+	<code class="classname">Stack </code> con un iterador anidado en todo
+	el medio:
+      </p>
+        <div class="example">
+          <a id="idp8656904"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:TStack2.h</span>
+<span class="hl slc">// Templatized Stack with nested iterator</span>
+<span class="hl ppc">#ifndef TSTACK2_H</span>
+<span class="hl ppc">#define TSTACK2_H</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> <span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    T<span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">)</span>
+      <span class="hl opt">:</span> <span class="hl kwd">data</span><span class="hl opt">(</span>dat<span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span>nxt<span class="hl opt">) {}</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">() :</span> <span class="hl kwd">head</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+    head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span> head<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    <span class="hl kwa">return</span> head ? head<span class="hl opt">-&gt;</span>data <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+  <span class="hl slc">// Nested iterator class:</span>
+  <span class="hl kwc">class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Declaration required</span>
+  <span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Make it a friend</span>
+  <span class="hl kwc">class</span> iterator <span class="hl opt">{</span> <span class="hl slc">// Now define it</span>
+    Stack<span class="hl opt">::</span>Link<span class="hl opt">*</span> p<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span><span class="hl kwb">const</span> Stack<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;&amp;</span> tl<span class="hl opt">) :</span> <span class="hl kwd">p</span><span class="hl opt">(</span>tl<span class="hl opt">.</span>head<span class="hl opt">) {}</span>
+    <span class="hl slc">// Copy-constructor:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> tl<span class="hl opt">) :</span> <span class="hl kwd">p</span><span class="hl opt">(</span>tl<span class="hl opt">.</span>p<span class="hl opt">) {}</span>
+    <span class="hl slc">// The end sentinel iterator:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">() :</span> <span class="hl kwd">p</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+    <span class="hl slc">// operator++ returns boolean indicating end:</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>p<span class="hl opt">-&gt;</span>next<span class="hl opt">)</span>
+        p <span class="hl opt">=</span> p<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+      <span class="hl kwa">else</span> p <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// Indicates end of list</span>
+      <span class="hl kwa">return</span> <span class="hl kwb">bool</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl kwa">return</span> <span class="hl kwc">operator</span><span class="hl opt">++(); }</span>
+    T<span class="hl opt">*</span> <span class="hl kwd">current</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">if</span><span class="hl opt">(!</span>p<span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+      <span class="hl kwa">return</span> p<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Pointer dereference operator:</span>
+    T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">-&gt;()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+      <span class="hl kwd">require</span><span class="hl opt">(</span>p <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+        <span class="hl str">&quot;PStack::iterator::operator-&gt;returns 0&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> <span class="hl kwd">current</span><span class="hl opt">();</span> 
+    <span class="hl opt">}</span>
+    T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">*()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwd">current</span><span class="hl opt">(); }</span>
+    <span class="hl slc">// bool conversion for conditional test:</span>
+    <span class="hl kwc">operator</span> <span class="hl kwb">bool</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwb">bool</span><span class="hl opt">(</span>p<span class="hl opt">); }</span>
+    <span class="hl slc">// Comparison to test for end:</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> p <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> p <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  iterator <span class="hl kwd">begin</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">);</span> 
+  <span class="hl opt">}</span>
+  iterator <span class="hl kwd">end</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> Stack<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;::~</span><span class="hl kwd">Stack</span><span class="hl opt">() {</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>head<span class="hl opt">)</span>
+    <span class="hl kwa">delete</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> T<span class="hl opt">*</span> Stack<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;::</span><span class="hl kwd">pop</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  T<span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+  Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+  head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TSTACK2_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.25. C16/TStack2.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Hay que hacer notar que la clase ha sido cambiada para
+	soportar la posesión, que funciona ahora debido a que la clase
+	conoce ahora el tipo exacto (o al menos el tipo base, que
+	funciona asumiendo que son usados los destructores
+	virtuales). La opción por defecto es que el contenedor
+	destruya sus objetos pero nosotros somos responsables de los
+	objetos a los que se haga <code class="function">pop()</code>.
+      </p>
+        <p>
+	El iterador es simple, y físicamente muy pequeño - el tamaño
+	de un único puntero. Cuando se crea un
+	<code class="classname">iterator</code>, se inicializa a la cabeza de
+	la lista enlazada, y sólo puede ser incrementado avanzando a
+	través de la lista. Si se quiere empezar desde el principio,
+	hay que crear un nuevo iterador, y si se quiere recordar un
+	punto de la lista, hay que crear un nuevo iterador a partir
+	del iterador existente que está apuntando a ese elemento
+	(usando el constructor de copia del iterador).
+      </p>
+        <p>
+	Para llamar a funciones del objeto referenciado por el
+	iterador, se puede usar la función
+	<code class="function">current()</code>, el <code class="literal">operator*</code>, o la desreferencia de
+	puntero <code class="literal">operator-&gt; </code> (un
+	elemento común en los iteradores).  La última tiene una
+	implementación que <span class="emphasis"><em>parece</em></span> idéntica a
+	<code class="function">current() </code> debido a que devuelve un
+	puntero al objeto actual, pero es diferente porque el operador
+	desreferencia del puntero realiza niveles extra de
+	desreferenciación (ver Capítulo 12).
+      </p>
+        <p>
+	La clase <code class="classname">iterator </code> sigue el formato que
+	se vio en el ejemplo anterior.  <code class="classname">class iterator
+	</code> está anidada dentro de la clase contenedora,
+	contiene constructores para crear un iterador que apunta a un
+	elemento en el contenedor y un iterador «marcador de
+	  final», y la clase contenedora tiene los métodos
+	<code class="function">begin() </code> y <code class="function">end() </code>
+	para producir estos iteradores. (Cuando aprenda más de la
+	Librería Estándar de C++, verá que los nombres
+	<code class="classname">iterator</code>, <code class="function">begin() </code>
+	y <code class="function">end()</code> que se usan aquí tienen
+	correspondecia en las clases contenedoras. Al final de este
+	capítulo, se verá que esto permite manejar estas clases
+	contenedoras como si fueran clases de la STL).
+      </p>
+        <p>
+	La implementación completa se encuentra en el archivo
+	cabecera, por lo que no existe un archivo <code class="filename">cpp
+	</code> separado. Aquí tenemos un pequeño test que usa el
+	iterador.
+      </p>
+        <div class="example">
+          <a id="idp8670256"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:TStack2Test.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TStack2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ifstream <span class="hl kwd">file</span><span class="hl opt">(</span><span class="hl str">&quot;TStack2Test.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>file<span class="hl opt">,</span> <span class="hl str">&quot;TStack2Test.cpp&quot;</span><span class="hl opt">);</span>
+  Stack<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> textlines<span class="hl opt">;</span>
+  <span class="hl slc">// Read file and store lines in the Stack:</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>file<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    textlines<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Use iterator to print lines from the list:</span>
+  Stack<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;::</span>iterator it <span class="hl opt">=</span> textlines<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  Stack<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;::</span>iterator<span class="hl opt">*</span> it2 <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> textlines<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">()) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> it<span class="hl opt">-&gt;</span><span class="hl kwd">c_str</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+    it<span class="hl opt">++;</span>
+    <span class="hl kwa">if</span><span class="hl opt">(++</span>i <span class="hl opt">==</span> <span class="hl num">10</span><span class="hl opt">)</span> <span class="hl slc">// Remember 10th line</span>
+      it2 <span class="hl opt">=</span> <span class="hl kwa">new</span> Stack<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;::</span><span class="hl kwd">iterator</span><span class="hl opt">(</span>it<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  cout <span class="hl opt">&lt;&lt; (*</span>it2<span class="hl opt">)-&gt;</span><span class="hl kwd">c_str</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> it2<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.26. C16/TStack2Test.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Una pila <code class="classname">Stack </code> es instanciada para
+	gestionar objetos <code class="type">string </code> y se rellena con líneas
+	de un fichero. Entonces se crea un iterador y se usa para
+	moverse a través de la secuencia. La décima línea es recordada
+	mediante un segundo iterador creado con el constructor de
+	copia del primero; posteriormente esta línea es imprimida y el
+	iterador - crado dinámicamente - es destruido. Aquí la
+	creación dinámica de objetos es usada para controlar la vida
+	del objeto.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s06.html">16.6. Manejando objetos por valor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s07s02.html">16.7.2. PStash con iteradores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s07s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

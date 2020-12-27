@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.6. Buscar en iostreams</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C04.html" title="5: Iostreams" />
+    <link rel="prev" href="ch05s05.html" title="5.5. Almacenamiento de iostream" />
+    <link rel="next" href="ch05s07.html" title="5.7. Iostreams de string" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s05.html">5.5. Almacenamiento de <code class="classname">iostream</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s07.html">5.7. Iostreams de <code class="classname">string</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="5.6. Buscar en iostreams">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4161816"></a>5.6. Buscar en iostreams</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Cada tipo de iostream tiene el concepto de donde está el 'siguiente' carácter que proviene de (si es un
+      <code class="classname">istream</code>) o que va hacia (si es un <code class="classname">ostream</code>). En algunas
+      situaciones, puede querer mover la posición en este <code class="classname">stream</code>. Puede hacer esto usando
+      dos modelos: uno usa una localización absoluta en el stream llamada <code class="varname">streampos</code>; el segundo
+      trabaja como las funciones <code class="function">fseek()</code> de la librería estándar de C para un fichero y
+      se mueve un número dado de bytes desde el principio, final o la posición actual en el fichero.
+    </p>
+      <p>
+      El acercamiento de <code class="classname">streampos</code> requiere que primero llame una función 'tell':(
+      <code class="function">tellp()</code> para un <code class="classname">ostream</code> o <code class="function">tellg()</code> para
+      un <code class="classname">istream</code>. (La 'p' se refiere a 'put pointer' y la 'g' se refiere a 'get pointer').
+      Esta función retorna un <code class="classname">streampos</code> que puede usar después en llamadas a
+      <code class="function">seekp()</code> para un <code class="classname">ostream</code> o <code class="function">seekg()</code> para un
+      <code class="classname">ostream</code> cuando usted quiere retornar a la posición en el <code class="classname">stream</code>.
+    </p>
+      <p>
+      La segunda aproximación es una búsqueda relativa y usa versiones sobrecargadas de <code class="function">seekp()</code> y
+      <code class="function">seekg()</code>. El primer argumento es el número de carácteres a mover: puede ser positivo o
+      negativo. El segundo argumento es la dirección desde donde buscar:
+    </p>
+      <p>
+      <code class="code">ios::beg</code>
+    </p>
+      <p>
+      Desde el principio del <code class="classname">stream</code>
+    </p>
+      <p>
+      <code class="code">ios::cur</code>
+    </p>
+      <p>
+      Posición actual del <code class="classname">stream</code>
+    </p>
+      <p>
+      <code class="code">ios::end</code>
+    </p>
+      <p>
+      Desde el principio del <code class="classname">stream</code>
+    </p>
+      <p>
+      Aquí un ejemplo que muestra el movimiento por un fichero, pero recuerde, no esta limitado a buscar en ficheros
+      como lo está con <code class="code">stdio</code> de C. Con C++, puede buscar en cualquier tipo de <code class="classname">iostream</code>
+      (aunque los objetos <code class="classname">stream</code> estándar, como <code class="classname">cin</code> y <code class="classname">cout</code>,
+      lo impiden explícitamente):
+    </p>
+      <div class="example">
+        <a id="idp4173144"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:Seeking.cpp</span>
+<span class="hl slc">// Seeking in iostreams.</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;cstring&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const int</span> STR_NUM <span class="hl opt">=</span> <span class="hl num">5</span><span class="hl opt">,</span> STR_LEN <span class="hl opt">=</span> <span class="hl num">30</span><span class="hl opt">;</span>
+  <span class="hl kwb">char</span> origData<span class="hl opt">[</span>STR_NUM<span class="hl opt">][</span>STR_LEN<span class="hl opt">] = {</span>
+    <span class="hl str">&quot;Hickory dickory dus. . .&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Are you tired of C++?&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Well, if you have,&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;That's just too bad,&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;There's plenty more for us!&quot;</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwb">char</span> readData<span class="hl opt">[</span>STR_NUM<span class="hl opt">][</span>STR_LEN<span class="hl opt">] = {{</span> <span class="hl num">0</span> <span class="hl opt">}};</span>
+  ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;Poem.bin&quot;</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>out <span class="hl opt">|</span> ios<span class="hl opt">::</span>binary<span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>out<span class="hl opt">,</span> <span class="hl str">&quot;Poem.bin&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> STR_NUM<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    out<span class="hl opt">.</span><span class="hl kwd">write</span><span class="hl opt">(</span>origData<span class="hl opt">[</span>i<span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  out<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Poem.bin&quot;</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>in <span class="hl opt">|</span> ios<span class="hl opt">::</span>binary<span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Poem.bin&quot;</span><span class="hl opt">);</span>
+  in<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">strcmp</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">],</span> <span class="hl str">&quot;Hickory dickory dus. . .&quot;</span><span class="hl opt">)</span>
+    <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Seek -STR_LEN bytes from the end of file</span>
+  in<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(-</span>STR_LEN<span class="hl opt">,</span> ios<span class="hl opt">::</span>end<span class="hl opt">);</span>
+  in<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">strcmp</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">],</span> <span class="hl str">&quot;There's plenty more for us!&quot;</span><span class="hl opt">)</span>
+    <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Absolute seek (like using operator[] with a file)</span>
+  in<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(</span><span class="hl num">3</span> <span class="hl opt">*</span> STR_LEN<span class="hl opt">);</span>
+  in<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">strcmp</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">],</span> <span class="hl str">&quot;That's just too bad,&quot;</span><span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Seek backwards from current position</span>
+  in<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(-</span>STR_LEN <span class="hl opt">*</span> <span class="hl num">2</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>cur<span class="hl opt">);</span>
+  in<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">strcmp</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">],</span> <span class="hl str">&quot;Well, if you have,&quot;</span><span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Seek from the begining of the file</span>
+  in<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(</span><span class="hl num">1</span> <span class="hl opt">*</span> STR_LEN<span class="hl opt">,</span> ios<span class="hl opt">::</span>beg<span class="hl opt">);</span>
+  in<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">],</span> STR_LEN<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">strcmp</span><span class="hl opt">(</span>readData<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">],</span> <span class="hl str">&quot;Are you tired of C++?&quot;</span><span class="hl opt">)</span>
+    <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.8. C04/Seeking.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Este programa escribe un poema a un fichero usando un <code class="classname">stream</code> de salida binaria. Como
+      reabrimos como un <code class="classname">ifstream</code>, usamos <code class="function">seekg()</code> para posicionar el
+      'get pointer'. Como puede ver, puede buscar desde el principio o el final del archivo o desde la posición actual
+      del archivo. Obviamente, debe proveer un número positivo para mover desde el principio del archivo y un número
+      negativo para mover hacia atrás.
+    </p>
+      <p>
+      Ahora que ya conoce el <code class="classname">streambuf</code> y como buscar, ya puede entender un método alternativo
+      (aparte de usar un objeto <code class="classname">fstream</code>) para crear un objeto <code class="classname">stream</code> que
+      podrá leer y escribir en un archivo. El siguiente código crea un <code class="classname">ifstream</code> con banderas
+      que dicen que es un fichero de entrada y de salida. Usted no puede escribir en un <code class="classname">ifstream</code>,
+      así que necesita crear un <code class="classname">ostream</code> con el buffer subyacente del <code class="classname">stream</code>:
+    </p>
+      <pre class="programlisting">
+ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;filename&quot;</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>in <span class="hl opt">|</span> ios<span class="hl opt">::</span>out<span class="hl opt">);</span>
+ostream <span class="hl kwd">out</span><span class="hl opt">(</span>in<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">());</span>
+</pre>
+      <p>
+      Debe estar preguntándose que ocurre cuando usted lee en uno de estos objetos. Aqui tiene un ejemplo:
+    </p>
+      <div class="example">
+        <a id="idp4182808"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:Iofile.cpp</span>
+<span class="hl slc">// Reading &amp; writing one file.</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Iofile.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Iofile.cpp&quot;</span><span class="hl opt">);</span>
+  ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;Iofile.out&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>out<span class="hl opt">,</span> <span class="hl str">&quot;Iofile.out&quot;</span><span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> in<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span> <span class="hl slc">// Copy file</span>
+  in<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+  out<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+  <span class="hl slc">// Open for reading and writing:</span>
+  ifstream <span class="hl kwd">in2</span><span class="hl opt">(</span><span class="hl str">&quot;Iofile.out&quot;</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>in <span class="hl opt">|</span> ios<span class="hl opt">::</span>out<span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in2<span class="hl opt">,</span> <span class="hl str">&quot;Iofile.out&quot;</span><span class="hl opt">);</span>
+  ostream <span class="hl kwd">out2</span><span class="hl opt">(</span>in2<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">());</span>
+  cout <span class="hl opt">&lt;&lt;</span> in2<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span>  <span class="hl slc">// Print whole file</span>
+  out2 <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Where does this end up?&quot;</span><span class="hl opt">;</span>
+  out2<span class="hl opt">.</span><span class="hl kwd">seekp</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>beg<span class="hl opt">);</span>
+  out2 <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;And what about this?&quot;</span><span class="hl opt">;</span>
+  in2<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>beg<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> in2<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.9. C04/Iofile.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Las primeras cinco líneas copian el código fuente de este programa en un fichero llamado iofile.out
+      y después cierra los ficheros. Esto le da un texto seguro con el que practicar. Entonces, la técnica
+      antes mencionada se usa para crear dos objetos que leen y escriben en el mismo fichero. En
+      <code class="code">cout &lt;&lt; in2.rebuf()</code>, puede ver como puntero 'get' es inicializado al principio del fichero.
+      El puntero 'put', en cambio, se coloca en el final del fichero para que 'Where does this end up' aparezca
+      añadido al fichero. No obstante, si el puntero 'put' es movido al principio con un <code class="function">seekp()</code>,
+      todo el texto insertado sobreescribe el existente. Ambas escrituras pueden verse cuando el puntero 'get'
+      se mueve otra vez al principio con <code class="function">seekg()</code>, y el fichero se muestra. El fichero es
+      automáticamente guardado cuando <code class="varname">out2</code> sale del ámbito y su destructor es invocado.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s05.html">5.5. Almacenamiento de <code class="classname">iostream</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s07.html">5.7. Iostreams de <code class="classname">string</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

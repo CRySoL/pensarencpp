@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>16.4. Stack y Stash como Plantillas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C16.html" title="16: Introducción a las Plantillas" />
+    <link rel="prev" href="ch16s03s03.html" title="16.3.3. Constantes en los Templates" />
+    <link rel="next" href="ch16s05.html" title="16.5. Activando y desactivando la propiedad" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s03s03.html">16.3.3. Constantes en los Templates</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s05.html">16.5. Activando y desactivando la propiedad</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="16.4. Stack y Stash como Plantillas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8530280"></a>16.4. Stack y Stash como Plantillas</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Los problemas recurrentes de «propiedad» con las
+      clases contenedoras <code class="classname">Stack</code> y
+      <code class="classname">Stash </code> (Pila y Cola respectivamente) que
+      han sido usadas varias veces a través del libro, vienen del
+      hecho de que estos contenedores no son capaces de saber
+      exactamente que tipo manejan. Lo más cerca que han estado es en
+      el «contenedor» de objectos <code class="classname">Stack
+      </code> que se vio al final del capítulo 15 en
+      <code class="filename">OStackTest.cpp</code>.
+    </p>
+      <p>
+      Si el programador cliente no elimina explícitamente todos los
+      punteros a objeto que están almacenados en el contenedor,
+      entonces el contenedor debería ser capaz de eliminar esos
+      punteros de manera adecuada. Es decir, el contenedor
+      «posee» cualquiera de los objetos que no hayan sido
+      eliminados, y es el responsable de limpiarlos. La dificultad
+      radica en que el limpiado requiere conocer el tipo del objeto, y
+      crear un contenedor genérico <span class="emphasis"><em>no </em></span> requiere
+      conocer el tipo de ese objeto. Con los templates, sin embargo,
+      podemos escribir código que no conozcan el tipo de objeto, y
+      fácilmente instanciar una nueva versión del contenedor por cada
+      tipo que queramos que contenga. La instancia contenedora
+      individual <span class="emphasis"><em>conoce </em></span> el tipo de objetos que
+      maneja y puede por tanto llamar al destructor correcto
+      (asumiendo que se haya proporcionado un destructor virtual).
+    </p>
+      <p>
+      Para la pila es bastante sencillo debido a todas las funciones
+      miembro pueden ser introducidas en línea:
+    </p>
+      <div class="example">
+        <a id="idp8536008"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:TStack.h</span>
+<span class="hl slc">// The Stack as a template</span>
+<span class="hl ppc">#ifndef TSTACK_H</span>
+<span class="hl ppc">#define TSTACK_H</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span>
+<span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    T<span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">):</span> 
+      <span class="hl kwd">data</span><span class="hl opt">(</span>dat<span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span>nxt<span class="hl opt">) {}</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">() :</span> <span class="hl kwd">head</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">(){</span> 
+    <span class="hl kwa">while</span><span class="hl opt">(</span>head<span class="hl opt">)</span>
+      <span class="hl kwa">delete</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+    head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span> head<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> head ? head<span class="hl opt">-&gt;</span>data <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">(){</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    T<span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+    head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TSTACK_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.9. C16/TStack.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Si se compara esto al ejemplo de <code class="filename">OStack.h </code> al
+      final del capítulo 15, se verá que <code class="classname">Stack </code> es
+      virtualmente idéntica, excepto que <code class="classname">Object </code> ha
+      sido reemplazado con <em class="parameter"><code>T</code></em>. El programa de prueba
+      también es casi idéntico, excepto por la necesidad de múltiple
+      herencia de <code class="type">string </code> y <code class="classname">Object
+      </code> (incluso por la necesidad de <code class="classname">Object
+      </code> en sí mismo) que ha sido eliminada. Ahora no tenemos
+      una clase <code class="classname">MyString </code> para anunciar su
+      destrucción por lo que añadimos una pequeña clase nueva para
+      mostrar como la clase contenedora <code class="classname">Stack </code>
+      limpia sus objetos:
+    </p>
+      <div class="example">
+        <a id="idp8541288"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:TStackTest.cpp</span>
+<span class="hl slc">//{T} TStackTest.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TStack.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">X</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~X &quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// File name is argument</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  Stack<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> textlines<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl slc">// Read file and store lines in the Stack:</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    textlines<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Pop some lines from the stack:</span>
+  string<span class="hl opt">*</span> s<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">((</span>s <span class="hl opt">= (</span>string<span class="hl opt">*)</span>textlines<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">())==</span><span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">break</span><span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt; *</span>s <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> s<span class="hl opt">;</span> 
+  <span class="hl opt">}</span> <span class="hl slc">// The destructor deletes the other strings.</span>
+  <span class="hl slc">// Show that correct destruction happens:</span>
+  Stack<span class="hl opt">&lt;</span>X<span class="hl opt">&gt;</span> xx<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    xx<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> X<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.10. C16/TStackTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El destructor de <code class="classname">X </code> es virtual, no porque se
+      sea necesario aquí, sino porque <code class="varname">xx</code> podría
+      ser usado más tarde para manejar objetos derivados de
+      <code class="classname">X</code>.
+    </p>
+      <p>
+      Note lo fácil que es crear diferentes clases de
+      <code class="classname">Stack</code>s para <code class="type">string</code> y para
+      <code class="classname">X</code>. Debido a la plantilla, se consigue lo
+      mejor de los dos mundos: la facilidad de uso de la
+      <code class="classname">Stack </code> junto con un limpiado correcto.
+    </p>
+      <div class="sect2" title="16.4.1. Cola de punteros mediante plantillas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8546000"></a>16.4.1. Cola de punteros mediante plantillas</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Reorganizar el código de <code class="classname">PStash </code> en un
+	template no es tan simple porque hay un número de funciones
+	miembro que no deben estar en línea. Sin embargo, como buena
+	plantilla aquellas definiciones de función deben permanecer en
+	el archivo cabecera (el compilador y el enlazador se
+	preocuparán por los problemas de múltiples definiciones). El
+	código parece bastante similar al <code class="classname">PStash
+	</code> ordinario excepto que el tamaño del incremento
+	(usado por <code class="function">inflate()</code>) ha sido puesto en
+	el template como un parámetro no de clase con un valor por
+	defecto, para que el tamaño de incremento pueda ser modificado
+	en el momento de la instanciación (esto significa que el
+	tamaño es fijo aunque se podría argumentar que el tamaño de
+	incremento debería ser cambiable a lo largo de la vida del
+	objeto):
+      </p>
+        <div class="example">
+          <a id="idp8548912"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:TPStash.h</span>
+<span class="hl ppc">#ifndef TPSTASH_H</span>
+<span class="hl ppc">#define TPSTASH_H</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr <span class="hl opt">=</span> <span class="hl num">10</span><span class="hl opt">&gt;</span>
+<span class="hl kwc">class</span> PStash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span> <span class="hl slc">// Number of storage spaces</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span> <span class="hl slc">// Next empty space</span>
+  T<span class="hl opt">**</span> storage<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase <span class="hl opt">=</span> incr<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">PStash</span><span class="hl opt">() :</span> <span class="hl kwd">quantity</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">storage</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">PStash</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span>T<span class="hl opt">*</span> element<span class="hl opt">);</span>
+  T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span><span class="hl opt">;</span> <span class="hl slc">// Fetch</span>
+  <span class="hl slc">// Remove the reference from this PStash:</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">);</span>
+  <span class="hl slc">// Number of elements in Stash:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> next<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+<span class="hl kwb">int</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">add</span><span class="hl opt">(</span>T<span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>incr<span class="hl opt">);</span>
+  storage<span class="hl opt">[</span>next<span class="hl opt">++] =</span> element<span class="hl opt">;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Ownership of remaining pointers:</span>
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::~</span><span class="hl kwd">PStash</span><span class="hl opt">() {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> next<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    <span class="hl kwa">delete</span> storage<span class="hl opt">[</span>i<span class="hl opt">];</span> <span class="hl slc">// Null pointers OK</span>
+    storage<span class="hl opt">[</span>i<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// Just to be safe</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+T<span class="hl opt">*</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;PStash::operator[] index negative&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>storage<span class="hl opt">[</span>index<span class="hl opt">] !=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+    <span class="hl str">&quot;PStash::operator[] returned null pointer&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// Produce pointer to desired element:</span>
+  <span class="hl kwa">return</span> storage<span class="hl opt">[</span>index<span class="hl opt">];</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+T<span class="hl opt">*</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">) {</span>
+  <span class="hl slc">// operator[] performs validity checks:</span>
+  T<span class="hl opt">*</span> v <span class="hl opt">=</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span>index<span class="hl opt">);</span>
+  <span class="hl slc">// &quot;Remove&quot; the pointer:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>v <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">)</span> storage<span class="hl opt">[</span>index<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> v<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+<span class="hl kwb">void</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwb">const int</span> psz <span class="hl opt">=</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>T<span class="hl opt">*);</span>
+  T<span class="hl opt">**</span> st <span class="hl opt">=</span> <span class="hl kwa">new</span> T<span class="hl opt">*[</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">];</span>
+  <span class="hl kwd">memset</span><span class="hl opt">(</span>st<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">, (</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">) *</span> psz<span class="hl opt">);</span>
+  <span class="hl kwd">memcpy</span><span class="hl opt">(</span>st<span class="hl opt">,</span> storage<span class="hl opt">,</span> quantity <span class="hl opt">*</span> psz<span class="hl opt">);</span>
+  quantity <span class="hl opt">+=</span> increase<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span> <span class="hl slc">// Old storage</span>
+  storage <span class="hl opt">=</span> st<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TPSTASH_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.11. C16/TPStash.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	El tamaño del incremento por defecto es muy pequeño para
+	garantizar que se produzca la llamada a
+	<code class="function">inflate()</code>. Esto nos asegura que funcione
+	correctamente.
+      </p>
+        <p>
+	Para comprobar el control de propiedad de <code class="classname">PStack
+	</code> en template, la siguiente clase muestra informes
+	de creación y destrucción de elementos, y también garantiza
+	que todos los objetos que hayan sido creados sean destruidos.
+	<code class="classname">AutoCounter </code> permitirá crear objetos en
+	la pila sólo a los objetos de su tipo:
+      </p>
+        <div class="example">
+          <a id="idp8554552"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:AutoCounter.h</span>
+<span class="hl ppc">#ifndef AUTOCOUNTER_H</span>
+<span class="hl ppc">#define AUTOCOUNTER_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;set&gt;</span> <span class="hl slc">// Standard C++ Library container</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;string&gt;</span>
+
+<span class="hl kwc">class</span> AutoCounter <span class="hl opt">{</span>
+  <span class="hl kwb">static int</span> count<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CleanupCheck <span class="hl opt">{</span>
+    std<span class="hl opt">::</span>set<span class="hl opt">&lt;</span>AutoCounter<span class="hl opt">*&gt;</span> trace<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">add</span><span class="hl opt">(</span>AutoCounter<span class="hl opt">*</span> ap<span class="hl opt">) {</span>
+      trace<span class="hl opt">.</span><span class="hl kwd">insert</span><span class="hl opt">(</span>ap<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">remove</span><span class="hl opt">(</span>AutoCounter<span class="hl opt">*</span> ap<span class="hl opt">) {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>trace<span class="hl opt">.</span><span class="hl kwd">erase</span><span class="hl opt">(</span>ap<span class="hl opt">) ==</span> <span class="hl num">1</span><span class="hl opt">,</span>
+        <span class="hl str">&quot;Attempt to delete AutoCounter twice&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl opt">~</span><span class="hl kwd">CleanupCheck</span><span class="hl opt">() {</span>
+      std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~CleanupCheck()&quot;</span><span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>trace<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() ==</span> <span class="hl num">0</span><span class="hl opt">,</span>
+       <span class="hl str">&quot;All AutoCounter objects not cleaned up&quot;</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwb">static</span> CleanupCheck verifier<span class="hl opt">;</span>
+  <span class="hl kwd">AutoCounter</span><span class="hl opt">() :</span> <span class="hl kwd">id</span><span class="hl opt">(</span>count<span class="hl opt">++) {</span>
+    verifier<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span> <span class="hl slc">// Register itself</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;created[&quot;</span> <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;]&quot;</span> 
+              <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Prevent assignment and copy-construction:</span>
+  <span class="hl kwd">AutoCounter</span><span class="hl opt">(</span><span class="hl kwb">const</span> AutoCounter<span class="hl opt">&amp;);</span>
+  <span class="hl kwb">void</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> AutoCounter<span class="hl opt">&amp;);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// You can only create objects with this:</span>
+  <span class="hl kwb">static</span> AutoCounter<span class="hl opt">*</span> <span class="hl kwd">create</span><span class="hl opt">() {</span> 
+    <span class="hl kwa">return new</span> <span class="hl kwd">AutoCounter</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">AutoCounter</span><span class="hl opt">() {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;destroying[&quot;</span> <span class="hl opt">&lt;&lt;</span> id 
+              <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;]&quot;</span> <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+    verifier<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Print both objects and pointers:</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>
+    std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> AutoCounter<span class="hl opt">&amp;</span> ac<span class="hl opt">){</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;AutoCounter &quot;</span> <span class="hl opt">&lt;&lt;</span> ac<span class="hl opt">.</span>id<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>
+    std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> AutoCounter<span class="hl opt">*</span> ac<span class="hl opt">){</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;AutoCounter &quot;</span> <span class="hl opt">&lt;&lt;</span> ac<span class="hl opt">-&gt;</span>id<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span> 
+<span class="hl ppc">#endif</span> <span class="hl slc">// AUTOCOUNTER_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.12. C16/AutoCounter.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	La clase <code class="classname">AutoCounter </code> hace dos
+	cosas. Primero, numera cada instancia de <code class="classname">AutoCounter
+	</code> de forma secuencial: el valor de este número se
+	guarda en <code class="varname">id</code>, y el número se genera usando
+	el dato miembro <code class="varname">count </code> que es
+	<code class="keyword">static</code>.
+      </p>
+        <p>
+	Segundo, y más complejo, una instancia estática (llamada
+	<code class="varname">verifier</code>) de la clase
+	<code class="classname">CleanupCheck </code> se mantiene al tanto de
+	todos los objetos <code class="classname">AutoCounter </code> que son
+	creados y destruidos, y nos informa si no se han limpiado
+	todos (por ejemplo si existe un agujero en memoria). Este
+	comportamiento se completa con el uso de la clase
+	<code class="classname">set</code> de la Librería Estándar de C++, lo
+	cual es un magnífico ejemplo de cómo las plantillas bien
+	diseñadas nos pueden hacer la vida más fácil (se podrá
+	aprender más de los contenedores en el Volumen 2 de este
+	libro).
+      </p>
+        <p>
+	La clase <code class="classname">set </code> está instanciada para el tipo
+	que maneja; aquí hay una instancia que maneja punteros a
+	<code class="classname">AutoCounter</code>. Un <code class="classname">set </code>
+	permite que se inserte sólo una instancia de cada objeto; en
+	<code class="function">add() </code> se puede ver que esto sucede con la
+	función <code class="function">set::insert()</code>.  <code class="function">insert()
+	</code> nos informa con su valor de retorno si se está
+	intentando añadir algo que ya se había incluido; sin embargo,
+	desde el momento en que las direcciones a objetos se inserten
+	podemos confiar en C++ para que garantice que todos los
+	objetos tengan direcciones únicas.
+      </p>
+        <p>
+	En <code class="function">remove()</code>, se usa <code class="function">set::erase()
+	</code> para eliminar un puntero a <code class="classname">AutoCounter
+	</code> del <code class="classname">set</code>. El valor de retorno
+	indica cuantas instancias del elemento se han eliminado; en
+	nuestro caso el valor puede ser únicamente uno o cero. Si el
+	valor es cero, sin embargo, significa que el objeto ya había
+	sido borrado del conjunto y que se está intentando borrar por
+	segunda vez, lo cual es un error de programación que debe ser
+	mostrado mediante <code class="function">require()</code>.
+      </p>
+        <p>
+	El destructor de <code class="classname">CleanupCheck </code> hace una
+	comprobación final asegurándose de que el tamaño del
+	<code class="classname">set </code> es cero - Lo que significa que todos
+	los objetos han sido eliminados de manera adecuada. Si no es
+	cero, se tiene un agujero de memoria, lo cual se muestra
+	mediante el <code class="function">require()</code>.
+      </p>
+        <p>
+	El constructor y el destructor de <code class="classname">AutoCounter
+	</code> se registra y desregistra con el objeto
+	<code class="varname">verifier</code>. Hay que resaltar que el
+	constructor, el constructor de copia, y el operador de
+	asignación son <code class="keyword">private</code>, por
+	lo que la única forma de crear un objeto es con la función
+	miembro <code class="function">static create() </code> - esto es un
+	ejemplo sencillo de una <code class="literal">factory</code>, y
+	garantiza que todos los objetos sean creados en el montón
+	(heap), por lo que <code class="varname">verifier</code> no se verá
+	confundido con sobreasignaciones y construcciones de copia.
+      </p>
+        <p>
+	Como todas las funciones miembro han sido definidas inline, la
+	única razón para el archivo de implementación es que contenga
+	las definiciones de los datos miembro:
+      </p>
+        <div class="example">
+          <a id="idp8570952"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:AutoCounter.cpp {O}</span>
+<span class="hl slc">// Definition of static class members</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;AutoCounter.h&quot;</span><span class="hl ppc"></span>
+AutoCounter<span class="hl opt">::</span>CleanupCheck AutoCounter<span class="hl opt">::</span>verifier<span class="hl opt">;</span>
+<span class="hl kwb">int</span> AutoCounter<span class="hl opt">::</span>count <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.13. C16/AutoCounter.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Con el <code class="classname">AutoCounter </code> en la mano, podemos
+	comprobar las facilidades que proporciona el
+	<code class="classname">PStash</code>. El siguiente ejemplo no sólo
+	muestra que el destructor de <code class="classname">PStash </code> limpia
+	todos los objetos que posee, sino que también muestra como la
+	clase <code class="classname">AutoCounter </code> detecta a los objetos
+	que no se han limpiado.
+      </p>
+        <div class="example">
+          <a id="idp8573528"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C16:TPStashTest.cpp</span>
+<span class="hl slc">//{L} AutoCounter</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;AutoCounter.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TPStash.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  PStash<span class="hl opt">&lt;</span>AutoCounter<span class="hl opt">&gt;</span> acStash<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    acStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span>AutoCounter<span class="hl opt">::</span><span class="hl kwd">create</span><span class="hl opt">());</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Removing 5 manually:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    <span class="hl kwa">delete</span> acStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>j<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Remove two without deleting them:&quot;</span>
+       <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// ... to generate the cleanup error message.</span>
+  cout <span class="hl opt">&lt;&lt;</span> acStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> acStash<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl num">6</span><span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;The destructor cleans up the rest:&quot;</span>
+       <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Repeat the test from earlier chapters: </span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;TPStashTest.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;TPStashTest.cpp&quot;</span><span class="hl opt">);</span>
+  PStash<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> stringStash<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    stringStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Print out the strings:</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> u <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> stringStash<span class="hl opt">[</span>u<span class="hl opt">];</span> u<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;stringStash[&quot;</span> <span class="hl opt">&lt;&lt;</span> u <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;] = &quot;</span>
+         <span class="hl opt">&lt;&lt; *</span>stringStash<span class="hl opt">[</span>u<span class="hl opt">] &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 16.14. C16/TPStashTest.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Cuando se eliminan los elementos <code class="classname">AutoCounter
+	</code> 5 y 6 de la <code class="classname">PStash</code>, se
+	vuelve responsabilidad del que los llama, pero como el cliente
+	nunca los borra se podrín producir agujeros de memoria, que
+	serín detectados por <code class="classname">AutoCounter </code> en
+	tiempo de ejecución.
+      </p>
+        <p>
+	Cuando se ejecuta el programa, se verá que el mensaje de error
+	no es tan específico como podría ser. Si se usa el esquema
+	presentado en <code class="classname">AutoCounter </code> para
+	descubrir agujeros de memoria en nuestro sistema,
+	probablemente se quiera imprimir información más detallada
+	sobre los objetos que no se hayan limpiado. El Volumen 2 de
+	este libro muestra algunas formas más sofisticadas de hacer
+	esto.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s03s03.html">16.3.3. Constantes en los Templates</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s05.html">16.5. Activando y desactivando la propiedad</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

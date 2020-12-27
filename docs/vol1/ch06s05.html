@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6.5. Stack con constructores y destructores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C06.html" title="6: Inicialización y limpieza" />
+    <link rel="prev" href="ch06s04.html" title="6.4. Stash con constructores y destructores" />
+    <link rel="next" href="ch06s06.html" title="6.6. Inicialización de tipos agregados" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s04.html">6.4. Stash con constructores y destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s06.html">6.6. Inicialización de tipos agregados</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="6.5. Stack con constructores y destructores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5797288"></a>6.5. Stack con constructores y destructores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Reimplementar la lista enlazada (dentro de
+      <code class="classname">Stack</code>) con constructores y destructores
+      muestra claramente cómo costructores y destructores utilizan
+      <code class="keyword">new</code> y <code class="keyword">delete</code>. Éste es el
+      fichero de cabecera modficado:
+    </p>
+      <div class="example">
+        <a id="idp5799408"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stack3.h</span>
+<span class="hl slc">// With constructors/destructors</span>
+<span class="hl ppc">#ifndef STACK3_H</span>
+<span class="hl ppc">#define STACK3_H</span>
+
+<span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    <span class="hl kwb">void</span><span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">);</span>
+    <span class="hl opt">~</span><span class="hl kwd">Link</span><span class="hl opt">();</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">();</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// STACK3_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.7. C06/Stack3.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      No sólo hace que <code class="classname">Stack</code> tenga un constructor
+      y destructor, también aparece la clase anidada
+      <code class="classname">Link</code>.
+    </p>
+      <div class="example">
+        <a id="idp5801480"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stack3.cpp {O}</span>
+<span class="hl slc">// Constructors/destructors</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stack3.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+Stack<span class="hl opt">::</span>Link<span class="hl opt">::</span><span class="hl kwd">Link</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">) {</span>
+  data <span class="hl opt">=</span> dat<span class="hl opt">;</span>
+  next <span class="hl opt">=</span> nxt<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+Stack<span class="hl opt">::</span>Link<span class="hl opt">::~</span><span class="hl kwd">Link</span><span class="hl opt">() { }</span>
+
+Stack<span class="hl opt">::</span><span class="hl kwd">Stack</span><span class="hl opt">() {</span> head <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+
+<span class="hl kwb">void</span> Stack<span class="hl opt">::</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+  head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span>head<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> Stack<span class="hl opt">::</span><span class="hl kwd">peek</span><span class="hl opt">() {</span> 
+  <span class="hl kwd">require</span><span class="hl opt">(</span>head <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Stack empty&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">return</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> Stack<span class="hl opt">::</span><span class="hl kwd">pop</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+  Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+  head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+Stack<span class="hl opt">::~</span><span class="hl kwd">Stack</span><span class="hl opt">() {</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Stack not empty&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.8. C06/Stack3.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El constructor <code class="methodname">Link:Link()</code> simplemente
+      inicializa los punteros <code class="varname">data</code> y
+      <code class="varname">next</code>, así que en
+      <code class="methodname">Stack::push()</code>, la línea:
+    </p>
+      <pre class="programlisting">
+head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span>head<span class="hl opt">);</span>
+</pre>
+      <p>
+      no sólo aloja un nuevo enlace (usando creación dinámica de objetos
+      con la sentencia <code class="keyword">new</code>, vista en el capítulo 4),
+      también inicializa los punteros para ese enlace.
+    </p>
+      <p>
+      Puede que le asombre que el destructor de
+      <code class="classname">Link</code> no haga nada - en concreto, ¿por qué
+      no elimina el puntero <code class="varname">data</code>? Hay dos
+      problemas. En el capítulo 4, en el que apareció
+      <code class="classname">Stack</code>, se decía que no puede eliminar un
+      puntero <code class="type">void</code> si está apuntado a un objeto (una
+      afirmación que se demostrará en el capítulo 13). Pero además, si
+      el destructor de <code class="classname">Link</code> eliminara el
+      puntero <code class="varname">data</code>, <code class="function">pop()</code>
+      retornaría un puntero a un objeto borrado, que definitivamente
+      supone un error. A veces esto se considera como una cuestión de
+      <span class="emphasis"><em>propiedad</em></span>: <code class="classname">Link</code> y
+      por consiguiente <code class="classname">Stack</code> sólo contienen los
+      punteros, pero no son responsables de su limpieza. Eso significa
+      que debe tener mucho cuidado para saber quién es el
+      responsable. Por ejemplo, si no invoca
+      <code class="methodname">pop()</code> y elimina todos los punteros de
+      <code class="classname">Stack()</code>, no se limpiarán automáticamente
+      por el destructor de <code class="classname">Stack</code>. Esto puede
+      ser una cuestión engorrosa y llevar a fugas de memoria, de modo
+      que saber quién es el responsable de la limpieza de un objeto
+      puede suponer la diferencia entre un programa correcto y uno
+      erroneo - es decir, porqué
+      <code class="methodname">Stack::~Stack()</code> imprime un mensaje de
+      error si el objeto <code class="classname">Stack</code> no está vacío en
+      el momento su destrucción.
+    </p>
+      <p>
+      Dado que el alojamiento y limpieza de objetos
+      <code class="classname">Link</code> está oculto dentro de
+      <code class="classname">Stack</code> - es parte de la implementación
+      subyacente - no verá este suceso en el programa de prueba, aunque
+      será el responsable de eliminar los punteros que devuelva
+      <code class="function">pop()</code>:
+    </p>
+      <div class="example">
+        <a id="idp5813168"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stack3Test.cpp</span>
+<span class="hl slc">//{L} Stack3</span>
+<span class="hl slc">//{T} Stack3Test.cpp</span>
+<span class="hl slc">// Constructors/destructors</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stack3.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// File name is argument</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  Stack textlines<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl slc">// Read file and store lines in the stack:</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    textlines<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Pop the lines from the stack and print them:</span>
+  string<span class="hl opt">*</span> s<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>s <span class="hl opt">= (</span>string<span class="hl opt">*)</span>textlines<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">()) !=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt; *</span>s <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> s<span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.9. C06/Stack3Test.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      En este caso, todas las líneas de <code class="varname">textlines</code> son
+      desapiladas y eliminadas, pero si no fuese así, obtendría un
+      mensaje de <code class="function">require()</code> que indica que hubo una
+      fuga de memoria.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s04.html">6.4. Stash con constructores y destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s06.html">6.6. Inicialización de tipos agregados</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.4. Clases</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C08.html" title="8: Constantes" />
+    <link rel="prev" href="ch08s03s03.html" title="8.3.3. Paso y retorno de direcciones" />
+    <link rel="next" href="ch08s04s02.html" title="8.4.2. Constantes en tiempo de compilación dentro de clases" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s03s03.html">8.3.3. Paso y retorno de direcciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C08.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s04s02.html">8.4.2. Constantes en tiempo de compilación dentro de clases</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="8.4. Clases">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6157712"></a>8.4. Clases</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Esta sección muestra la forma en la que se puede usar el
+      especificador <code class="keyword">const</code> con las clases. Puede ser
+      interesante crear una constante local a una clase para usarla en
+      expresiones constantes que serán evaluadas en tiempo de
+      compilación. Sin embargo, el significado del especificador
+      <code class="keyword">const</code> es diferente para las clases
+      <sup>[<a id="idp6159832" href="#ftn.idp6159832" class="footnote">64</a>]</sup>, de modo que debe comprender las
+      opciones adecuadas para crear miembros constantes en una clase.
+    </p>
+      <p>
+      También se puede hacer que un objeto completo sea constante (y
+      como se ha visto, el compilador siempre hace constantes los
+      objetos temporarios). Pero preservar la consistencia de un objeto
+      constante es más complicado. El compilador puede asegurar la
+      consistencia de las variables de los tipos del lenguaje pero no
+      puede vigilar la complejidad de una clase. Para garantizar dicha
+      consistencia se emplean las funciones miembro constantes; que son
+      las únicas que un objeto constante puede invocar.
+    </p>
+      <div class="sect2" title="8.4.1. const en las clases">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6161160"></a>8.4.1. <code class="keyword">const</code> en las clases</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Uno de los lugares donde interesa usar <code class="keyword">const</code> es para
+	expresiones constantes dentro de las clases. El ejemplo típico
+	es cuando se define un vector en una clase y se quiere usar
+	<code class="keyword">const</code> en lugar de <code class="keyword">#define</code> para establecer el
+	tamaño del vector y para usarlo al calcular datos
+	concernientes al vector.  El tamaño del vector es algo que
+	desea mantener oculto en la clase, así que si usa un nombre
+	como <code class="varname">size</code>, por ejemplo, se podría usar el
+	mismo nombre en otra clase sin que ocurra un conflicto. El
+	preprocesador trata todos los <code class="keyword">#define</code> de forma global
+	a partir del punto donde se definen, algo que <code class="keyword">const</code>
+	permite corregir de forma adecuada consiguiendo el efecto
+	deseado.
+      </p>
+        <p>
+	Se podría pensar que la elección lógica es colocar una
+	constante dentro de la clase. Esto no produce el resultado
+	esperado. Dentro de una clase <code class="keyword">const</code>
+	recupera un poco su significado en C. Asigna espacio de
+	almacenamiento para cada variable y representa un valor que
+	es inicializado y ya no se puede cambiar. El uso de una
+	constante dentro de una clase significa «Esto es constante
+	  durante la vida del objeto». Por otra parte, en cada objeto
+	la constante puede contener un valor diferente.
+      </p>
+        <p>
+	Por eso, cuando crea una constante ordinaria (no estática) dentro
+	de una clase, no puede darle un valor inicial. Esta inicialización
+	debe ocurrir en el constructor. Como la constante se debe
+	inicializar en el punto en que se crea, en el cuerpo del
+	constructor la constante debe estar ya inicializada. De otro modo,
+	le quedaría la opción de esperar hasta algún punto posterior en el
+	constructor, lo que significaría que la constante no tendría valor
+	por un momento. Y nada impediría cambiar el valor de la constante
+	en varios sitios del constructor.
+      </p>
+        <div class="sect3" title="La lista de inicialización del constructor.">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6168360"></a>La lista de inicialización del constructor.</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Un punto especial de inicialización es la llamada
+	    «lista de inicialización del constructor» y
+	    fue pensada en un principio para su uso en herencia
+	    (tratada en el [FIXME:XREF:capítulo 14]). La lista de
+	    inicialización del constructor (que como su nombre indica,
+	    sólo aparece en la definición del constructor) es una
+	    lista de llamadas a constructores que aparece después de
+	    la lista de argumentos del constructor y antes de abrir la
+	    llave del cuerpo del constructor.
+
+          
+
+	  Se hace así para recordarle que las inicialización de la
+	  lista sucede antes de ejecutarse el constructor. Ese es el lugar
+	  donde poner las inicializaciones de todas las constantes de la
+	  clase. El modo apropiado para colocar las constantes en una clase
+	  se muestra a continuación:
+	</p>
+          <div class="example">
+            <a id="idp6170176"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C08:ConstInitialization.cpp</span>
+<span class="hl slc">// Initializing const in classes</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Fred <span class="hl opt">{</span>
+  <span class="hl kwb">const int</span> size<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Fred</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+Fred<span class="hl opt">::</span><span class="hl kwd">Fred</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">) :</span> <span class="hl kwd">size</span><span class="hl opt">(</span>sz<span class="hl opt">) {}</span>
+<span class="hl kwb">void</span> Fred<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> size <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Fred <span class="hl kwd">a</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">),</span> <span class="hl kwd">c</span><span class="hl opt">(</span><span class="hl num">3</span><span class="hl opt">);</span>
+  a<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(),</span> b<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(),</span> c<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 8.9. C08/ConstInitialization.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  El aspecto de la lista de inicialización del constructor
+	  mostrada arriba puede crear confusión al principio porque no
+	  es usual tratar los tipos del lenguaje como si tuvieran
+	  constructores.
+	</p>
+        </div>
+        <div class="sect3" title="Constructores para los tipos del lenguaje">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6172400"></a>Constructores para los tipos del lenguaje</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Durante el desarrollo del lenguaje se puso más esfuerzo en
+	  hacer que los tipos definidos por el programador se
+	  pareciesen a los tipos del lenguaje, pero a veces, cuando
+	  se vio útil se hizo que los tipos predefinidos
+	  (<span class="foreignphrase"><em class="foreignphrase">built-in</em></span> se pareciesen a
+	  los definidos por el programador. En la lista de
+	  inicialización del constructor, puede tratar a los tipos
+	  del lenguaje como si tuvieran un constructor, como aquí:
+	</p>
+          <div class="example">
+            <a id="idp6174040"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C08:BuiltInTypeConstructors.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> B <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">B</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+B<span class="hl opt">::</span><span class="hl kwd">B</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span>
+<span class="hl kwb">void</span> B<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  B <span class="hl kwd">a</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">);</span>
+  <span class="hl kwb">float</span> <span class="hl kwd">pi</span><span class="hl opt">(</span><span class="hl num">3.14159</span><span class="hl opt">);</span>
+  a<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">();</span> b<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> pi <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 8.10. C08/BuiltInTypeConstructors.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  Esto es especialmente crítico cuando se inicializan
+	  atributos constantes porque se deben inicializar antes de
+	  entrar en el cuerpo de la función.  Tiene sentido extender
+	  este «constructor» para los tipos del lenguaje
+	  (que simplemente significan asignación) al caso general que
+	  es por lo que la definición <code class="type">float</code> funciona en
+	  el código anterior. A menudo es útil encapsular un tipo del
+	  lenguaje en una clase para garantizar la inicialización con
+	  el constructor. Por ejemplo, aquí hay una clase
+	  <code class="classname">Integer</code>:
+	</p>
+          <div class="example">
+            <a id="idp6177304"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C08:EncapsulatingTypes.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Integer <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Integer</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+Integer<span class="hl opt">::</span><span class="hl kwd">Integer</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span>
+<span class="hl kwb">void</span> Integer<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">' '</span><span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Integer i<span class="hl opt">[</span><span class="hl num">100</span><span class="hl opt">];</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    i<span class="hl opt">[</span>j<span class="hl opt">].</span><span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 8.11. C08/EncapsulatingTypes.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  El vector de enteros declarado en
+	  <code class="function">main()</code> se inicializa automáticamente a
+	  cero. Esta inicialización no es necesariamente más costosa
+	  que un bucle <code class="keyword">for</code> o
+	  <code class="function">memset()</code>. Muchos compiladores lo
+	  optimizan fácilmente como un proceso muy rápido.
+	</p>
+        </div>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp6159832" href="#idp6159832" class="para">64</a>] </sup>N. del T.: Esto se conoce como polisemia del
+      lenguaje</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s03s03.html">8.3.3. Paso y retorno de direcciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C08.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s04s02.html">8.4.2. Constantes en tiempo de compilación dentro de clases</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

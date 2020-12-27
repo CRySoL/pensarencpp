@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6.4. Stash con constructores y destructores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C06.html" title="6: Inicialización y limpieza" />
+    <link rel="prev" href="ch06s03s02.html" title="6.3.2. Alojamiento de memoria" />
+    <link rel="next" href="ch06s05.html" title="6.5. Stack con constructores y destructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s03s02.html">6.3.2. Alojamiento de memoria</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s05.html">6.5. Stack con constructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="6.4. Stash con constructores y destructores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5776568"></a>6.4. Stash con constructores y destructores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Los ejemplos de los capítulos anteriores tienen funciones que
+      tienen correspondencia directa con constructores y destructores:
+      <code class="function">initialize()</code> y
+      <code class="function">cleanup()</code>. Éste es el fichero de cabecera
+      de <code class="classname">Stash</code>, utilizando constructor y
+      destructor:
+    </p>
+      <div class="example">
+        <a id="idp5778504"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stash2.h</span>
+<span class="hl slc">// With constructors &amp; destructors</span>
+<span class="hl ppc">#ifndef STASH2_H</span>
+<span class="hl ppc">#define STASH2_H</span>
+
+<span class="hl kwc">class</span> Stash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> size<span class="hl opt">;</span>      <span class="hl slc">// Size of each space</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span>  <span class="hl slc">// Number of storage spaces</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span>      <span class="hl slc">// Next empty space</span>
+  <span class="hl slc">// Dynamically allocated array of bytes:</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> storage<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stash</span><span class="hl opt">(</span><span class="hl kwb">int</span> size<span class="hl opt">);</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stash</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">fetch</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// STASH2_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.4. C06/Stash2.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Las únicas definiciones de métodos que han cambiado son
+      <code class="function">initialize()</code> y
+      <code class="function">cleanup()</code>, que han sido reemplazadas con un
+      constructor y un destructor.
+    </p>
+      <div class="example">
+        <a id="idp5781576"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stash2.cpp {O}</span>
+<span class="hl slc">// Constructors &amp; destructors</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stash2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">const int</span> increment <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+
+Stash<span class="hl opt">::</span><span class="hl kwd">Stash</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">) {</span>
+  size <span class="hl opt">=</span> sz<span class="hl opt">;</span>
+  quantity <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  storage <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  next <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Stash<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span> <span class="hl slc">// Enough space left?</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>increment<span class="hl opt">);</span>
+  <span class="hl slc">// Copy element into storage,</span>
+  <span class="hl slc">// starting at next empty space:</span>
+  <span class="hl kwb">int</span> startBytes <span class="hl opt">=</span> next <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> e <span class="hl opt">= (</span><span class="hl kwb">unsigned char</span><span class="hl opt">*)</span>element<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> size<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    storage<span class="hl opt">[</span>startBytes <span class="hl opt">+</span> i<span class="hl opt">] =</span> e<span class="hl opt">[</span>i<span class="hl opt">];</span>
+  next<span class="hl opt">++;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> Stash<span class="hl opt">::</span><span class="hl kwd">fetch</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">) {</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span><span class="hl num">0</span> <span class="hl opt">&lt;=</span> index<span class="hl opt">,</span> <span class="hl str">&quot;Stash::fetch (-)index&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+  <span class="hl slc">// Produce pointer to desired element:</span>
+  <span class="hl kwa">return</span> <span class="hl opt">&amp;(</span>storage<span class="hl opt">[</span>index <span class="hl opt">*</span> size<span class="hl opt">]);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Stash<span class="hl opt">::</span><span class="hl kwd">count</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> next<span class="hl opt">;</span> <span class="hl slc">// Number of elements in CStash</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Stash<span class="hl opt">::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>increase <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+    <span class="hl str">&quot;Stash::inflate zero or negative increase&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwb">int</span> newQuantity <span class="hl opt">=</span> quantity <span class="hl opt">+</span> increase<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> newBytes <span class="hl opt">=</span> newQuantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> oldBytes <span class="hl opt">=</span> quantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> b <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">unsigned char</span><span class="hl opt">[</span>newBytes<span class="hl opt">];</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> oldBytes<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    b<span class="hl opt">[</span>i<span class="hl opt">] =</span> storage<span class="hl opt">[</span>i<span class="hl opt">];</span> <span class="hl slc">// Copy old to new</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[](</span>storage<span class="hl opt">);</span> <span class="hl slc">// Old storage</span>
+  storage <span class="hl opt">=</span> b<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+  quantity <span class="hl opt">=</span> newQuantity<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+Stash<span class="hl opt">::~</span><span class="hl kwd">Stash</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>storage <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+   cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;freeing storage&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+   <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.5. C06/Stash2.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Puede ver que las funciones de <code class="filename">require.h</code> se
+      usan para vigilar errores del programador, en lugar de
+      <code class="function">assert()</code>. La salida de un
+      <code class="function">assert()</code> fallido no es tan útil como las
+      funciones de <code class="filename">require.h</code> (que se verán más
+      adelante en el libro).
+    </p>
+      <p>
+      Dado que <code class="methodname">inflate()</code> es privado, el único
+      modo en que <code class="function">require()</code> podría fallar sería si
+      uno de los otros miembros pasara accidentalmente un valor
+      incorrecto a <code class="methodname">inflate()</code>. Si está seguro de
+      que eso no puede pasar, debería considerar eliminar el
+      <code class="function">require()</code>, pero debería tener en mente que
+      hasta que la clase sea estable, siempre existe la posibilidad de
+      que el código nuevo añadido a la clase podría provocar errores. El
+      coste de <code class="function">require()</code> es bajo (y podría ser
+      eliminado automáticamente por el preprocesador) mientras que la
+      robustez del código es alta.
+    </p>
+      <p>
+      Fijese cómo en el siguiente programa de prueba la definición de los
+      objetos <code class="classname">Stash</code> aparece justo antes de
+      necesitarse, y cómo la inicialización aparece como parte de la
+      definición, en la lista de argumentos del constructor.
+    </p>
+      <div class="example">
+        <a id="idp5790920"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:Stash2Test.cpp</span>
+<span class="hl slc">//{L} Stash2</span>
+<span class="hl slc">// Constructors &amp; destructors</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stash2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Stash <span class="hl kwd">intStash</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">));</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    intStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(&amp;</span>i<span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> intStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> j<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;intStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt; *(</span><span class="hl kwb">int</span><span class="hl opt">*)</span>intStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>j<span class="hl opt">)</span>
+         <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwb">const int</span> bufsize <span class="hl opt">=</span> <span class="hl num">80</span><span class="hl opt">;</span>
+  Stash <span class="hl kwd">stringStash</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">) *</span> bufsize<span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Stash2Test.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot; Stash2Test.cpp&quot;</span><span class="hl opt">);</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    stringStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">((</span><span class="hl kwb">char</span><span class="hl opt">*)</span>line<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+  <span class="hl kwb">int</span> k <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> cp<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>cp <span class="hl opt">= (</span><span class="hl kwb">char</span><span class="hl opt">*)</span>stringStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>k<span class="hl opt">++))!=</span><span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;stringStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> k <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> cp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.6. C06/Stash2Test.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      También observe que se han eliminado llamadas a
+      <code class="function">cleanup()</code>, pero los destructores se llaman
+      automáticamente cuando <code class="varname">intStash</code> y
+      <code class="varname">stringStash</code> salen del ámbito.
+    </p>
+      <p>
+      Una cosa de la que debe ser consciente en los ejemplos con
+      <code class="classname">Stash</code>: Tengo mucho cuidado usando sólo
+      tipos básicos; es decir, aquellos sin destructores. Si intenta
+      copiar objetos dentro de <code class="classname">Stash</code>,
+      aparecerán todo tipo de problemas y no funcionará bien. En
+      realidad la Librería Estándar de C++ puede hacer copias
+      correctas de objetos en sus contenedores, pero es un proceso
+      bastante sucio y complicado. En el siguiente ejemplo de
+      <code class="classname">Stack</code>, verá que se utilizan punteros para
+      esquivar esta cuestión, y en un capítulo posterior
+      <code class="classname">Stash</code> también se convertirá para que use
+      punteros.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s03s02.html">6.3.2. Alojamiento de memoria</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s05.html">6.5. Stack con constructores y destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,876 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>13.3.3. Sobrecarga de los operadores new y delete</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch13s03.html" title="13.3. new y delete para vectores" />
+    <link rel="prev" href="ch13s03s02.html" title="13.3.2. Cuando se supera el espacio de almacenamiento" />
+    <link rel="next" href="ch13s04.html" title="13.4. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s03s02.html">13.3.2. Cuando se supera el espacio de almacenamiento</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s04.html">13.4. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="13.3.3. Sobrecarga de los operadores new y delete">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp7663792"></a>13.3.3. Sobrecarga de los operadores <code class="keyword">new</code> y <code class="keyword">delete</code></h3>
+          </div>
+        </div>
+      </div>
+      <p>
+		Cuando se ejecuta una <span class="emphasis"><em>expresión con <code class="keyword">new</code></em></span>, ocurren dos
+		cosas. Primero se asigna la memoria al ejecutar el código del <code class="function">operator
+		new()</code> y después se realiza la llamada al constructor. En el caso de una
+		<span class="emphasis"><em>expresión con <code class="keyword">delete</code></em></span>, se llama primero al destructor
+		y después se libera la memoria con el operador <code class="function">operator
+		delete()</code>. Las llamadas al constructor y destructor no están bajo el
+		control del programador, pero se <span class="emphasis"><em>pueden</em></span> cambiar las funciones
+		<code class="function">opertator new()</code> y <code class="function">operatator delete()</code>.
+      </p>
+      <p>
+		El sistema de asignación de memoria usado por <code class="keyword">new</code> y <code class="keyword">delete</code> es un
+		sistema de propósito general. En situaciones especiales, puede que no funcione
+		como se requiere. Frecuentemente la razón para cambiar el asignador es la
+		eficiencia; puede que se necesite crear y destruir tantos objetos de la misma
+		clase que lo haga ineficaz en términos de velocidad: un cuello de botella. En C++
+		es posible sobrecargar <code class="keyword">new</code> y <code class="keyword">delete</code> para implementar un esquema
+		particular más adecuado que permita manejar situaciones como ésta.
+      </p>
+      <p>
+		Otra cuestión es la fragmentación del montículo. Cuando los objetos tienen tamaños
+		diferentes es posible llegar a dividir de tal modo el área de memoria libre que se
+		vuelva inútil. Es decir, el espacio puede estar disponible, pero debido al nivel
+		de fragmentación alcanzado, no exista ningún bloque del tamaño requerido. Es
+		posible asegurarse de que esto no llegue a ocurrir mediante la creación de un
+		asignador para una clase específica.
+      </p>
+      <p>
+	  En los sistemas de tiempo real y en los sistemas integrados, suele ser necesario que
+	  los programas funcionen por largo tiempo con recursos muy limitados. Tales sistemas
+	  pueden incluso requerir que cada asignación tome siempre la misma cantidad de
+	  tiempo, y que no esté permitida la fragmentación ni el agotamiento en el área
+	  dinámica. La solución a este problema consiste en utilizar un asignador
+	  «personalizado»; de otro modo, los programadores evitarían usar
+	  <code class="keyword">new</code> y <code class="keyword">delete</code> es estos casos y desperdiciarían un recurso muy
+	  valioso de C++.
+	</p>
+      <p>
+		A la hora de sobrecargar <code class="function">operator new()</code> y <code class="function">operator
+		delete()</code> es importante tener en cuenta que lo único que se está
+		cambiando es la forma en que se realiza la asignación del espacio. El compilador
+		llamará a la nueva versión de <code class="keyword">new</code> en lugar de al original, para asignar
+		espacio, llamando después al constructor que actuará sobre él. Así que, aunque el
+		compilador convierte una expresión <code class="keyword">new</code> en código para asignar el espacio
+		y para llamar al constructor, todo lo que se puede cambiar al sobrecargar
+		<code class="keyword">new</code> es la parte correspondiente a la asignación. <code class="keyword">delete</code> tiene
+		una limitación similar.
+      </p>
+      <p>
+		Cuando se sobrecarga <code class="function">operator new()</code>, se está reemplazando
+		también el modo de tratar los posibles fallos en la asignación de la memoria. Se
+		debe decidir qué acciones va a realizar en tal caso: devolver cero, un bucle de
+		reintento con llamada al <span class="foreignphrase"><em class="foreignphrase">new-handler</em></span>, o lo que es
+		más frecuente, disparar una excepción <span class="emphasis"><em>bad_alloc</em></span> (tema que se
+		trata en el Volumen 2).
+      </p>
+      <p>
+		La sobrecarga de <code class="keyword">new</code> y <code class="keyword">delete</code> es como la de cualquier otro
+		operador. Existe la posibilidad de elegir entre sobrecarga global y sobrecarga
+		para una clase determinada.
+      </p>
+      <div class="sect3" title="Sobrecarga global de new y delete">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7682192"></a>Sobrecarga global de <code class="keyword">new</code> y <code class="keyword">delete</code></h4>
+            </div>
+          </div>
+        </div>
+        <p>
+		Este es el modo más drástico de abordar el asunto, resulta útil cuando el
+		comportamiento de <code class="keyword">new</code> y <code class="keyword">delete</code> no es satisfactorio para la mayor
+		parte del sistema.  Al sobrecargar la versión global, quedan inaccesibles las
+		originales, y ya no es posible llamarlas desde dentro de las funciones
+		sobrecargadas.
+	  </p>
+        <p>
+		El <code class="keyword">new</code> sobrecargado debe tomar un argumento del tipo <code class="type">size_t</code>
+		(el estándar de C) para tamaños. Este argumento es generado y pasado por el
+		compilador, y se refiere al tamaño del objeto para el que ahora tenemos la
+		responsabilidad de la asignación de memoria. Debe devolver un puntero a un bloque
+		de ese tamaño, (o mayor, si hubiera motivos para hacerlo así), o cero en el caso
+		de no se encontrara un bloque adecuado. Si eso sucede, no se producirá la llamada
+		al constructor. Por supuesto, hay que hacer algo más informativo que sólo devolver
+		cero, por ejemplo llamar al «new-handler» o disparar una excepción,
+		para indicar que hubo un problema.
+	  </p>
+        <p>
+		El valor de retorno de <code class="function">operator new()</code> es <code class="type">void*</code>,
+		no un puntero a un tipo particular. Lo que hace es obtener un bloque de memoria,
+		no un objeto definido, no hasta que que sea llamado el constructor, un acto que el
+		compilador garantiza y que está fuera del control de este operador.
+	  </p>
+        <p>
+		El operador <code class="function">operator delete()</code> toma como argumento un puntero
+		<code class="type">void*</code> a un bloque obtenido con el <code class="function">operator
+		new()</code>. Es un <code class="type">void*</code> ya que el <code class="keyword">delete</code> obtiene el
+		puntero sólo <span class="emphasis"><em>después</em></span> de que haya sido llamado el destructor,
+		lo que efectivamente elimina su caracter de objeto convirtiéndolo en un simple
+		bloque de memoria. El tipo de retorno para <code class="keyword">delete</code> es <code class="type">void</code>.
+	  </p>
+        <p>
+		A continuación se expone un ejemplo del modo de sobrecargar globalmente
+		<code class="keyword">new</code> y <code class="keyword">delete</code>:
+	  </p>
+        <div class="example">
+          <a id="idp7693000"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:GlobalOperatorNew.cpp</span>
+<span class="hl slc">// Overload global new/delete</span>
+<span class="hl ppc">#include &lt;cstdio&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> sz<span class="hl opt">) {</span>
+  <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;operator new: %d Bytes</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> sz<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> m <span class="hl opt">=</span> <span class="hl kwd">malloc</span><span class="hl opt">(</span>sz<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>m<span class="hl opt">)</span> <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;out of memory&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">return</span> m<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> m<span class="hl opt">) {</span>
+  <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;operator delete&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">free</span><span class="hl opt">(</span>m<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> S <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">[</span><span class="hl num">100</span><span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">S</span><span class="hl opt">() {</span> <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;S::S()&quot;</span><span class="hl opt">); }</span>
+  <span class="hl opt">~</span><span class="hl kwd">S</span><span class="hl opt">() {</span> <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;S::~S()&quot;</span><span class="hl opt">); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;creating &amp; destroying an int&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwb">int</span><span class="hl opt">*</span> p <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">(</span><span class="hl num">47</span><span class="hl opt">);</span>
+  <span class="hl kwa">delete</span> p<span class="hl opt">;</span>
+  <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;creating &amp; destroying an s&quot;</span><span class="hl opt">);</span>
+  S<span class="hl opt">*</span> s <span class="hl opt">=</span> <span class="hl kwa">new</span> S<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> s<span class="hl opt">;</span>
+  <span class="hl kwd">puts</span><span class="hl opt">(</span><span class="hl str">&quot;creating &amp; destroying S[3]&quot;</span><span class="hl opt">);</span>
+  S<span class="hl opt">*</span> sa <span class="hl opt">=</span> <span class="hl kwa">new</span> S<span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">];</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>sa<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.8. C13/GlobalOperatorNew.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Aquí puede verse la forma general de sobrecarga de operadores <code class="keyword">new</code> y
+	  <code class="keyword">delete</code>.  Estos operadores sustitutivos usan las funciones
+	  <code class="function">malloc()</code> y <code class="function">free()</code> de la biblioteca
+	  estándar de C, que es probablemente lo que ocurre en los operadores
+	  originales. Imprimen también mensajes sobre lo que están haciendo. Nótese que no se
+	  han usado <code class="literal">iostreams</code> sino <code class="function">printf()</code> y
+	  <code class="function">puts()</code>. Esto se hace debido a que los objetos
+	  <code class="type">iostream</code> como los globales <code class="varname">cin</code>,
+	  <code class="varname">cout</code> y <code class="varname">cerr</code> llaman a <code class="keyword">new</code> para obtener
+	  memoria <sup>[<a id="idp7699816" href="#ftn.idp7699816" class="footnote">73</a>]</sup>. Usar
+	  <code class="function">printf()</code> evita el fatal bloqueo, ya que no hace llamadas a
+	  <code class="keyword">new</code>.
+	</p>
+        <p>
+		En <code class="function">main()</code>, se crean algunos objetos de tipos básicos para
+		demostrar que también en estos casos se llama a los operadores <code class="keyword">new</code> y
+		<code class="keyword">delete</code> sobrecargados. Posteriormente, se crean un objeto simple y un
+		vector, ambos de tipo <code class="classname">S</code>. En el caso del vector se puede
+		ver, por el número de bytes pedidos, que se solicita algo de memoria extra para
+		incluir información sobre el número de objetos que tendrá. En todos los casos se
+		efectúa la llamada a las versiones globales sobrecargadas de <code class="keyword">new</code> y
+		<code class="keyword">delete</code>.
+	  </p>
+      </div>
+      <div class="sect3" title="Sobrecarga de new y delete específica para una clase">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7705320"></a>
+		Sobrecarga de <code class="keyword">new</code> y <code class="keyword">delete</code> específica para una clase
+	  </h4>
+            </div>
+          </div>
+        </div>
+        <p>
+		Aunque no es necesario poner el modificador <code class="keyword">static</code>, cuando se sobrecarga
+		<code class="keyword">new</code> y <code class="keyword">delete</code> para una clase se están creando métodos estáticos
+		(métodos de clase). La sintaxis es la misma que para cualquier otro
+		operador. Cuando el compilador encuentra una expresión <code class="keyword">new</code> para crear un
+		objeto de una clase, elige, si existe, un método de la clase llamado
+		<code class="function">operator new()</code> en lugar del <code class="keyword">new</code> global. Para el
+		resto de tipos o clases se usan los operadores globales (a menos que tengan
+		definidos los suyos propios).
+	  </p>
+        <p>
+		En el siguiente ejemplo se usa un primitivo sistema de asignación de
+		almacenamiento para la clase <code class="classname">Framis</code>. Se reserva un bloque
+		de memoria en el área de datos estática FIXME , y se usa esa memoria para asignar
+		alojamiento para los objetos de tipo <code class="classname">Framis</code>. Para
+		determinar qué bloques se han asignado, se usa un sencillo vector de bytes, un
+		byte por bloque.
+	  </p>
+        <div class="example">
+          <a id="idp7711768"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:Framis.cpp</span>
+<span class="hl slc">// Local overloaded new &amp; delete</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span> <span class="hl slc">// Size_t</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;new&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;Framis.out&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">class</span> Framis <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> sz <span class="hl opt">=</span> <span class="hl num">10</span> <span class="hl opt">};</span>
+  <span class="hl kwb">char</span> c<span class="hl opt">[</span>sz<span class="hl opt">];</span> <span class="hl slc">// To take up space, not used</span>
+  <span class="hl kwb">static unsigned char</span> pool<span class="hl opt">[];</span>
+  <span class="hl kwb">static bool</span> alloc_map<span class="hl opt">[];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> psize <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>  <span class="hl slc">// frami allowed</span>
+  <span class="hl kwd">Framis</span><span class="hl opt">() {</span> out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Framis()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Framis</span><span class="hl opt">() {</span> out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Framis() ... &quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span><span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>bad_alloc<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*);</span>
+<span class="hl opt">};</span>
+<span class="hl kwb">unsigned char</span> Framis<span class="hl opt">::</span>pool<span class="hl opt">[</span>psize <span class="hl opt">*</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>Framis<span class="hl opt">)];</span>
+<span class="hl kwb">bool</span> Framis<span class="hl opt">::</span>alloc_map<span class="hl opt">[</span>psize<span class="hl opt">] = {</span><span class="hl kwa">false</span><span class="hl opt">};</span>
+
+<span class="hl slc">// Size is ignored -- assume a Framis object</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span> 
+Framis<span class="hl opt">::</span><span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span><span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>bad_alloc<span class="hl opt">) {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> psize<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    <span class="hl kwa">if</span><span class="hl opt">(!</span>alloc_map<span class="hl opt">[</span>i<span class="hl opt">]) {</span>
+      out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;using block &quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; ... &quot;</span><span class="hl opt">;</span>
+      alloc_map<span class="hl opt">[</span>i<span class="hl opt">] =</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Mark it used</span>
+      <span class="hl kwa">return</span> pool <span class="hl opt">+ (</span>i <span class="hl opt">*</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>Framis<span class="hl opt">));</span>
+    <span class="hl opt">}</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;out of memory&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">throw</span> <span class="hl kwd">bad_alloc</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Framis<span class="hl opt">::</span><span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> m<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>m<span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span> <span class="hl slc">// Check for null pointer</span>
+  <span class="hl slc">// Assume it was created in the pool</span>
+  <span class="hl slc">// Calculate which block number it is:</span>
+  <span class="hl kwb">unsigned long</span> block <span class="hl opt">= (</span><span class="hl kwb">unsigned long</span><span class="hl opt">)</span>m
+    <span class="hl opt">- (</span><span class="hl kwb">unsigned long</span><span class="hl opt">)</span>pool<span class="hl opt">;</span>
+  block <span class="hl opt">/=</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>Framis<span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;freeing block &quot;</span> <span class="hl opt">&lt;&lt;</span> block <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Mark it free:</span>
+  alloc_map<span class="hl opt">[</span>block<span class="hl opt">] =</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Framis<span class="hl opt">*</span> f<span class="hl opt">[</span>Framis<span class="hl opt">::</span>psize<span class="hl opt">];</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> Framis<span class="hl opt">::</span>psize<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      f<span class="hl opt">[</span>i<span class="hl opt">] =</span> <span class="hl kwa">new</span> Framis<span class="hl opt">;</span>
+    <span class="hl kwa">new</span> Framis<span class="hl opt">;</span> <span class="hl slc">// Out of memory</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>bad_alloc<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Out of memory!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">delete</span> f<span class="hl opt">[</span><span class="hl num">10</span><span class="hl opt">];</span>
+  f<span class="hl opt">[</span><span class="hl num">10</span><span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Use released memory:</span>
+  Framis<span class="hl opt">*</span> x <span class="hl opt">=</span> <span class="hl kwa">new</span> Framis<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> x<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> Framis<span class="hl opt">::</span>psize<span class="hl opt">;</span> j<span class="hl opt">++)</span>
+    <span class="hl kwa">delete</span> f<span class="hl opt">[</span>j<span class="hl opt">];</span> <span class="hl slc">// Delete f[10] OK</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.9. C13/Framis.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		El espacio de almacenamiento para el montículo <code class="classname">Framis</code> se
+		crea sobre el bloque obtenido al declarar un vector de tamaño suficiente para
+		contener <code class="varname">psize</code> objetos de clase
+		<code class="classname">Framis</code>. Se ha declarado también una variable lógica para
+		cada uno de los <code class="varname">psize</code> bloques en el vector. Todas estas
+		variables lógicas son inicializadas a <code class="constant">false</code> usando el truco
+		consistente en inicializar el primer elemento para que el compilador lo haga
+		automáticamente con los restantes iniciándolos a su valor por defecto,
+		<code class="constant">false</code>, en el caso de variables lógicas.
+	</p>
+        <p>
+		El <code class="function">operador new()</code> local usa la misma sintaxis que el
+		global. Lo único que hace es buscar una posición libre, es decir, un valor
+		<code class="constant">false</code> en el mapa de localización
+		<code class="varname">alloc_map</code>. Si la encuentra, cambia su valor a
+		<code class="constant">true</code> para marcarla como ocupada, y devuelve la dirección del
+		bloque correspondiente. En caso de no encontrar ningún bloque libre, envía un
+		mensaje al fichero de trazas y dispara una excepción de tipo
+		<code class="type">bad_alloc</code>.
+	</p>
+        <p>
+		Este es el primer ejemplo con excepción que aparece en este libro.  En
+		el Volumen 2 se verá una discusión detallada del tratamiento de
+		excepciones, por lo que en este ejemplo se hace un uso muy simple del
+		mismo. En el <code class="function">operador new</code> hay dos expresiones
+		relacionadas con el tratamiento de excepciones. Primero, a la lista de
+		argumentos de función le sigue la expresión
+		<code class="code">throw(bad_alloc)</code>, esto informa al compilador que la
+		función puede disparar una excepción del tipo indicado. En segundo
+		lugar, si efectivamente se agota la memoria, la función alcanzará la
+		sentencia <code class="code">throw bad_alloc()</code> lanzando la excepción. En el
+		caso de que esto ocurra, la función deja de ejecutarse y se cede el
+		control del programa a la rutina de tratamiento de excepción que se ha
+		definido en una cláusula <code class="code">catch(bad_alloc)</code>.
+     </p>
+        <p>
+		  En <code class="function">main()</code> se puede ver la cláusula
+		  <span class="emphasis"><em>try-catch</em></span> que es la otra parte del mecanismo. El
+		  código que puede lanzar la excepción queda dentro del bloque
+		  <code class="keyword">try</code>; en este caso, llamadas a <code class="keyword">new</code> para objetos
+		  <code class="classname">Framis</code>. Justo a continuación de dicho bloque
+		  sigue una o varias cláusulas <code class="keyword">catch</code>, especificando en cada una
+		  la excepción a la que se destina. En este caso,
+		  <code class="code">catch(bad_alloc)</code> indica que en ese bloque se
+		  tratarán las excepciones de tipo <code class="type">bad_alloc</code>.  El código de
+		  este bloque sólo se ejecutará si se dispara la excepción, continuando
+		  la ejecución del programa justo después de la última del grupo de
+		  cláusulas <code class="keyword">catch</code> que existan. Aquí sólo hay una, pero podría
+		  haber más.
+		</p>
+        <p>
+		  En este ejemplo, el uso de <code class="literal">iostream</code> es correcto ya
+		  que el <code class="function">operator new()</code> global no ha sido modificado.
+		</p>
+        <p>
+		  El <code class="function">operator delete()</code> asume que la dirección de
+		  <code class="classname">Framis</code> ha sido obtenida de nuestro almacén
+		  particular. Una asunción justa, ya que cada vez que se crea un objeto
+		  <code class="classname">Framis</code> simple se llama al <code class="function">operator
+		  new()</code> local; pero cuando se crea un vector de tales objetos
+		  se llama al <code class="keyword">new</code> global. Esto causaría problemas si el usuario
+		  llamara accidentalmente al operador <code class="keyword">delete</code> sin usar la
+		  sintaxis para destrucción de vectores. Podría ser que incluso
+		  estuviera tratando de borrar un puntero a un objeto de la pila. Si
+		  cree que estas cosas puedan suceder, conviene pensar en añadir una
+		  línea que asegurare que la dirección está en el intervalo correcto
+		  (aquí se demuestra el potencial que tiene la sobrecarga de los
+		  operadores <code class="keyword">new</code> y <code class="keyword">delete</code> para la localización de
+		  fugas de memoria).
+		</p>
+        <p>
+		  <code class="function">operador delete()</code> calcula el bloque al que el
+		  puntero representa y después pone a <code class="constant">false</code> la
+		  bandera correspondiente en el mapa de localización, para indicar que
+		  dicho bloque está libre.
+		</p>
+        <p>
+		  En la función <code class="function">main()</code>, se crean dinámicamente
+		  suficientes objetos <code class="classname">Framis</code> para agotar la
+		  memoria. Con esto se prueba el comportamiento del programa en este
+		  caso. A continuación, se libera uno de los objetos y se crea otro para
+		  mostrar la reutilización del bloque recién liberado.
+		</p>
+        <p>
+		  Este esquema específico de asignación de memoria es probablemente
+		  mucho más rápido que el esquema de propósito general que usan los
+		  operadores <code class="keyword">new</code> y <code class="keyword">delete</code> originales. Se debe
+		  advertir, no obstante, que este enfoque no es automáticamente
+		  utilizable cuando se usa herencia, un tema que verá en el Capítulo 14 (FIXME).
+		</p>
+      </div>
+      <div class="sect3" title="Sobrecarga de new y delete para vectores">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7737464"></a>Sobrecarga de <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Si se sobrecargan los operadores <code class="keyword">new</code> y
+	  <code class="keyword">delete</code> para una clase, esos operadores se
+	  llaman cada vez que se crea un objeto simple de esa clase. Sin
+	  embargo, al crear un vector de tales objetos se llama al
+	  <code class="function">operator new()</code> global para obtener el
+	  espacio necesario para el vector, y al <code class="function">operator
+	  delete()</code> global para liberarlo. Es posible
+	  controlar también la asignación de memoria para vectores
+	  sobrecargando los métodos <code class="function">operator new[]</code>
+	  y <code class="function">operator delete[]</code>; se trata de
+	  versiones especiales para vectores. A continuación se expone
+	  un ejemplo que muestra el uso de ambas versiones.
+	</p>
+        <div class="example">
+          <a id="idp7742216"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:ArrayOperatorNew.cpp</span>
+<span class="hl slc">// Operator new for arrays</span>
+<span class="hl ppc">#include &lt;new&gt;</span> <span class="hl slc">// Size_t definition</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">trace</span><span class="hl opt">(</span><span class="hl str">&quot;ArrayOperatorNew.out&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">class</span> Widget <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> sz <span class="hl opt">=</span> <span class="hl num">10</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">[</span>sz<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Widget</span><span class="hl opt">() {</span> trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;*&quot;</span><span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Widget</span><span class="hl opt">() {</span> trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> sz<span class="hl opt">) {</span>
+    trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Widget::new: &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> sz <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; bytes&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">::</span><span class="hl kwa">new</span> <span class="hl kwb">char</span><span class="hl opt">[</span>sz<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+    trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Widget::delete&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">::</span><span class="hl kwa">delete</span> <span class="hl opt">[]</span>p<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">[](</span><span class="hl kwb">size_t</span> sz<span class="hl opt">) {</span>
+    trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Widget::new[]: &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> sz <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; bytes&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">::</span><span class="hl kwa">new</span> <span class="hl kwb">char</span><span class="hl opt">[</span>sz<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">[](</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+    trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Widget::delete[]&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">::</span><span class="hl kwa">delete</span> <span class="hl opt">[]</span>p<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;new Widget&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  Widget<span class="hl opt">*</span> w <span class="hl opt">=</span> <span class="hl kwa">new</span> Widget<span class="hl opt">;</span>
+  trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">delete Widget&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> w<span class="hl opt">;</span>
+  trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">new Widget[25]&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  Widget<span class="hl opt">*</span> wa <span class="hl opt">=</span> <span class="hl kwa">new</span> Widget<span class="hl opt">[</span><span class="hl num">25</span><span class="hl opt">];</span>
+  trace <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">delete []Widget&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>wa<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.10. C13/ArrayOperatorNew.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Si exceptuamos la información de rastreo que se añade aquí,
+	  las llamadas a las versiones globales de
+	  <code class="keyword">new</code> y <code class="keyword">delete</code> causan el
+	  mismo efecto que si estos operadores no se hubieran
+	  sobrecargado. Como se ha visto anteriormente, es posible usar
+	  cualquier esquema conveniente de asignación de memoria en
+	  estos operadores modificados.
+	</p>
+        <p>
+	  Se puede observar que la sintaxis de <code class="keyword">new</code> y
+	  <code class="keyword">delete</code> para vectores es la misma que la
+	  usada para objetos simples añadiéndoles el operador subíndice
+	  <code class="literal">[]</code>. En ambos casos se le pasa a
+	  <code class="keyword">new</code> como argumento el tamaño del bloque de
+	  memoria solicitado. A la versión para vectores se le pasa el
+	  tamaño necesario para albergar todos sus componentes. Conviene
+	  tener en cuenta que lo único que se requiere del
+	  <code class="function">operator new()</code> es que devuelva un puntero
+	  a un bloque de memoria suficientemente grande. Aunque es
+	  posible inicializar el bloque referido, eso es trabajo del
+	  constructor, que se llamará automáticamente por el compilador.
+	</p>
+        <p>
+	  El constructor y el destructor simplemente imprimen
+	  mensajes para que pueda verse que han sido llamados. A
+	  continuación se muestran dichos mensajes:
+	</p>
+        <pre class="screen">
+	    new Widget
+	    Widget::new: 40 bytes
+	    *
+	    delete Widget
+	    ~Widget::delete
+	    new Widget[25]
+	    Widget::new: 1004 bytes
+	    *************************
+	    delete []Widget
+	    ~~~~~~~~~~~~~~~~~~~~~~~~~Widget::delete[]
+	</pre>
+        <p>
+	  La creación de un único objeto <code class="classname">Widget</code>
+	  requiere 40 bytes, tal y como se podría esperar para una
+	  máquina que usa 32 bits para un <code class="type">int</code>. Se invoca al
+	  <code class="function">operator new()</code> y luego al constructor,
+	  que se indica con la impresión del carácter
+	  «*». De forma complementaria, la llamada a
+	  <code class="keyword">delete</code> provoca primero la invocación del
+	  destructor y sólo después, la de <code class="literal">operator
+	  delete()</code>.
+	</p>
+        <p>
+	  Cuando lo que se crea es un vector de objetos
+	  <code class="classname">Widget</code>, se observa el uso de la versión
+	  de <code class="function">operator new()</code> para vectores, de acuerdo
+	  con lo dicho anteriormente. Se observa que el tamaño del
+	  bloque solicitado en este caso es cuatro bytes mayor que el
+	  esperado. Es en estos cuatro bytes extra donde el compilador
+	  guarda la información sobre el tamaño del vector. De ese
+	  modo, la expresión
+	</p>
+        <pre class="programlisting">
+<span class="hl kwa">delete</span> <span class="hl opt">[]</span>Widget<span class="hl opt">;</span>
+</pre>
+        <p>
+	  informa al compilador que se trata de un vector, con lo cual,
+	  generará el código para extraer la información que indica el
+	  número de objetos y para llamar otras tantas veces al
+	  destructor. Obsérvese que aunque se llame solo una vez a
+	  <code class="function">operator new()</code> y <code class="function">operator
+	  delete()</code> para el vector, se llama al constructor y
+	  al destructor una vez para cada uno de los objetos del vector.
+	</p>
+      </div>
+      <div class="sect3" title="Llamadas al constructor">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7756960"></a>Llamadas al constructor</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Considerando que
+	</p>
+        <pre class="programlisting">
+MyType<span class="hl opt">*</span> f <span class="hl opt">=</span> <span class="hl kwa">new</span> MyType<span class="hl opt">;</span>
+</pre>
+        <p>
+	  llama a <code class="keyword">new</code> para obtener un bloque del
+	  tamaño de <code class="classname">MyType</code> invocando después a su
+	  constructor, ¿qué pasaría si la asignación de memoria falla en
+	  <code class="keyword">new</code>?. En tal caso, no habrá llamada al
+	  constructor al que se le tendría que pasar un puntero
+	  <code class="varname">this</code> nulo, para un objeto que no se ha
+	  creado . He aquí un ejemplo que lo
+	  demuestra:
+	</p>
+        <div class="example">
+          <a id="idp7760184"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:NoMemory.cpp</span>
+<span class="hl slc">// Constructor isn't called if new fails</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;new&gt;</span> <span class="hl slc">// bad_alloc definition</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> NoMemory <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">NoMemory</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;NoMemory::NoMemory()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> sz<span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>bad_alloc<span class="hl opt">){</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;NoMemory::operator new&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">throw</span> <span class="hl kwd">bad_alloc</span><span class="hl opt">();</span> <span class="hl slc">// &quot;Out of memory&quot;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  NoMemory<span class="hl opt">*</span> nm <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    nm <span class="hl opt">=</span> <span class="hl kwa">new</span> NoMemory<span class="hl opt">;</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>bad_alloc<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Out of memory exception&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;nm = &quot;</span> <span class="hl opt">&lt;&lt;</span> nm <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.11. C13/NoMemory.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Cuando se ejecuta, el programa imprime los mensajes del
+	  <code class="function">operator new()</code> y del manejador de
+	  excepción, pero no el del constructor. Como
+	  <code class="keyword">new</code> nunca retorna, no se llama al
+	  constructor y por tanto no se imprime su mensaje.
+	</p>
+        <p>
+	  Para asegurar que no se usa indebidamente, Es importante
+	  inicializar <code class="varname">nm</code> a cero, debido a que
+	  <code class="keyword">new</code> no se completa. El código de manejo de
+	  excepciones debe hacer algo más que imprimir un mensaje y
+	  continuar como si el objeto hubiera sido creado con
+	  éxito. Idealmente, debería hacer algo que permitiera al
+	  programa recuperarse del fallo, o al menos, provocar la salida
+	  después de registrar un error.
+	</p>
+        <p>
+	  En las primeras versiones de C++, el comportamiento estándar
+	  consistía en hacer que <code class="keyword">new</code> retornara un
+	  puntero nulo si la asignación de memoria fallaba. Esto podía
+	  impedir que se llamara al constructor. Si se intenta hacer
+	  esto con un compilador que sea conforme al estándar actual, le
+	  informará de que en lugar de devolver un valor nulo, debe
+	  disparar una excepción de tipo <code class="type">bad_alloc</code>.
+	</p>
+      </div>
+      <div class="sect3" title="Operadores new y delete de [FIXME emplazamiento (situación)]">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7766840"></a>
+	    Operadores <code class="keyword">new</code> y
+	    <code class="keyword">delete</code> de [FIXME emplazamiento (situación)]
+	  </h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  He aquí otros dos usos, menos comunes, para la sobrecarga de
+	    <code class="function">operador new()</code>:
+	</p>
+        <div class="orderedlist">
+          <ol class="orderedlist" type="1">
+            <li class="listitem">
+              <p>
+		Puede ocurrir que necesite emplazar un objeto en un
+		lugar específico de la memoria.  Esto puede ser
+		importante en programas en los que algunos de los
+		objetos se refieren o son sinónimos de componentes
+		hardware mapeados sobre una zona de la memoria.
+	      </p>
+            </li>
+            <li class="listitem">
+              <p>
+		Si se quiere permitir la elección entre varios
+		asignadores de memoria (allocators) en la llamada a
+		<code class="keyword">new</code>.
+	      </p>
+            </li>
+          </ol>
+        </div>
+        <p>
+	  Ambas situaciones se resuelven mediante el mismo mecanismo: la
+	  función <code class="function">operator new()</code> puede tomar más de
+	  un argumento. Como se ha visto, el primer argumento de
+	  <code class="keyword">new</code> es siempre el tamaño del objeto,
+	  calculado en secreto y pasado por el compilador. El resto de
+	  argumentos puede ser de cualquier otro tipo que se necesite:
+	  la dirección en la que queremos emplazar el objeto, una
+	  referencia a una función de asignación de memoria, o
+	  cualquiera otra cosa que se considere conveniente.
+	</p>
+        <p>
+	  Al principio puede parecer curioso el modo en que se pasan los
+	  argumentos extra al <code class="function">operator
+	  new()</code>. Después de la palabra clave
+	  <code class="keyword">new</code> y antes del nombre de clase del objeto
+	  que se pretende crear, se pone la lista de argumentos, sin
+	  contar con el correspondiente al <code class="literal">size_t</code> del
+	  objeto, que le pasa el compilador.  Por ejemplo, la expresión:
+	</p>
+        <pre class="programlisting">
+X<span class="hl opt">*</span> xp <span class="hl opt">=</span> <span class="hl kwa">new</span><span class="hl opt">(</span>a<span class="hl opt">)</span> X<span class="hl opt">;</span>
+</pre>
+        <p>
+	  pasará <code class="varname">a</code> como segundo argumento al operador
+	  <code class="function">operator new()</code>. Por supuesto, sólo
+	  funcionará si ha sido declarado el <code class="function">operator
+	  new()</code> adecuado.
+	</p>
+        <p>
+	  He aquí un ejemplo demostrativo de cómo se usa esto para
+	  colocar un objeto en una posición particular:
+	</p>
+        <div class="example">
+          <a id="idp7777512"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:PlacementOperatorNew.cpp</span>
+<span class="hl slc">// Placement with operator new()</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span> <span class="hl slc">// Size_t</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;this = &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">X</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;X::~X(): &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span><span class="hl opt">,</span> <span class="hl kwb">void</span><span class="hl opt">*</span> loc<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> loc<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">int</span> l<span class="hl opt">[</span><span class="hl num">10</span><span class="hl opt">];</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;l = &quot;</span> <span class="hl opt">&lt;&lt;</span> l <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  X<span class="hl opt">*</span> xp <span class="hl opt">=</span> <span class="hl kwa">new</span><span class="hl opt">(</span>l<span class="hl opt">)</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">47</span><span class="hl opt">);</span> <span class="hl slc">// X at location l</span>
+  xp<span class="hl opt">-&gt;</span>X<span class="hl opt">::~</span><span class="hl kwd">X</span><span class="hl opt">();</span> <span class="hl slc">// Explicit destructor call</span>
+  <span class="hl slc">// ONLY use with placement!</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.12. C13/PlacementOperatorNew.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Observe que lo único que hace el operador
+	  <code class="keyword">new</code> es retornar el puntero que se
+	  pasa. Por tanto, es posible especificar la dirección en la
+	  que se quiere construir el objeto.
+	</p>
+        <p>
+	  Aunque este ejemplo muestra sólo un argumento adicional, nada
+	  impide añadir otros, si se considera conveniente para sus
+	  propósitos.
+	</p>
+        <p>
+		  Al tratar de destruir estos objetos surge un problema.  Sólo hay una
+		  versión del operador <code class="keyword">delete</code>, de modo que no hay forma de
+		  decir:  "Usa mi función de liberación de memoria para este objeto".
+		  Se requiere llamar al destructor, pero sin utilizar el mecanismo de
+		  memoria dinámica, ya que el objeto no está alojado en el montículo.
+		</p>
+        <p>
+		  La solución tiene una sintaxis muy especial. Se debe llamar
+		  explícitamente al destructor, tal como se muestra:
+		</p>
+        <pre class="programlisting">
+xp<span class="hl opt">-&gt;</span>X<span class="hl opt">::~</span><span class="hl kwd">X</span><span class="hl opt">();</span>  <span class="hl slc">//Llamada explícita al destructor</span>
+</pre>
+        <p>
+	  Hay que hacer una llamada de atención al respecto. Algunas
+	  personas ven esto como un modo de destruir objetos en algún
+	  momento anterior al determinado por las reglas de ámbito, en
+	  lugar de ajustar el ámbito, o más correctamente, en lugar de
+	  usar asignación dinámica como medio de determinar la duración
+	  del objeto en tiempo de ejecución. Esto es un error, que puede
+	  provocar problemas si se trata de destruir de esta manera un
+	  objeto ordinario creado en la pila, ya que el destructor será
+	  llamado de nuevo cuando se produzca la salida del ámbito
+	  correspondiente. Si se llama de esta forma directa al
+	  destructor de un objeto creado dinámicamente, se llevará a
+	  cabo la destrucción, pero no la liberación del bloque de
+	  memoria, lo que probablemente no es lo que se desea. La única
+	  razón para este tipo de llamada explícita al destructor es
+	  permitir este uso especial del operador
+	  <code class="keyword">new</code>, para emplazamiento en memoria.
+	</p>
+        <p>
+	  Existe también una forma de operador <code class="keyword">delete</code>
+	  de emplazamiento que sólo es llamada en caso de que el
+	  constructor dispare una excepción, con lo que la memoria se
+	  libera automáticamente durante la excepción. El operador
+	  <code class="keyword">delete</code> de emplazamiento usa una lista de
+	  argumentos que se corresponde con la del operador
+	  <code class="keyword">new</code> de emplazamiento que fue llamado
+	  previamente a que el constructor lanzase la excepción. Este
+	  asunto se tratará en el Volumen 2, en un capítulo dedicado al
+	  tratamiento de excepciones.
+	</p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp7699816" href="#idp7699816" class="para">73</a>] </sup>Provocaría una serie continua de llamadas a <code class="keyword">new</code>
+	  hasta agotar la pila y abortaría el programa.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch13s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch13s03s02.html">13.3.2. Cuando se supera el espacio de almacenamiento</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch13s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s04.html">13.4. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

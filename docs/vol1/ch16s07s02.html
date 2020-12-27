@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>16.7.2. PStash con iteradores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch16s07.html" title="16.7. Introducción a los iteradores" />
+    <link rel="prev" href="ch16s07.html" title="16.7. Introducción a los iteradores" />
+    <link rel="next" href="ch16s08.html" title="16.8. Por qué usar iteradores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s07.html">16.7. Introducción a los iteradores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch16s07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s08.html">16.8. Por qué usar iteradores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="16.7.2. PStash con iteradores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8673728"></a>16.7.2. PStash con iteradores</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Para la mayoría de los contenedores tiene sentido tener un
+	iterador. Aquí tenemos un iterador añadido a la clase
+	<code class="classname">PStash</code>:
+      </p>
+      <div class="example">
+        <a id="idp8674744"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:TPStash2.h</span>
+<span class="hl slc">// Templatized PStash with nested iterator</span>
+<span class="hl ppc">#ifndef TPSTASH2_H</span>
+<span class="hl ppc">#define TPSTASH2_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr <span class="hl opt">=</span> <span class="hl num">20</span><span class="hl opt">&gt;</span>
+<span class="hl kwc">class</span> PStash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span>
+  T<span class="hl opt">**</span> storage<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase <span class="hl opt">=</span> incr<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">PStash</span><span class="hl opt">() :</span> <span class="hl kwd">quantity</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">storage</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">PStash</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span>T<span class="hl opt">*</span> element<span class="hl opt">);</span>
+  T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> next<span class="hl opt">; }</span>
+  <span class="hl slc">// Nested iterator class:</span>
+  <span class="hl kwc">class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Declaration required</span>
+  <span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span> <span class="hl slc">// Make it a friend</span>
+  <span class="hl kwc">class</span> iterator <span class="hl opt">{</span> <span class="hl slc">// Now define it</span>
+    PStash<span class="hl opt">&amp;</span> ps<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>PStash<span class="hl opt">&amp;</span> pStash<span class="hl opt">)</span>
+      <span class="hl opt">:</span> <span class="hl kwd">ps</span><span class="hl opt">(</span>pStash<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+    <span class="hl slc">// To create the end sentinel:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>PStash<span class="hl opt">&amp;</span> pStash<span class="hl opt">,</span> <span class="hl kwb">bool</span><span class="hl opt">)</span>
+      <span class="hl opt">:</span> <span class="hl kwd">ps</span><span class="hl opt">(</span>pStash<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span>ps<span class="hl opt">.</span>next<span class="hl opt">) {}</span>
+    <span class="hl slc">// Copy-constructor:</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span>
+      <span class="hl opt">:</span> <span class="hl kwd">ps</span><span class="hl opt">(</span>rv<span class="hl opt">.</span>ps<span class="hl opt">),</span> <span class="hl kwd">index</span><span class="hl opt">(</span>rv<span class="hl opt">.</span>index<span class="hl opt">) {}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">) {</span>
+      ps <span class="hl opt">=</span> rv<span class="hl opt">.</span>ps<span class="hl opt">;</span>
+      index <span class="hl opt">=</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(++</span>index <span class="hl opt">&lt;=</span> ps<span class="hl opt">.</span>next<span class="hl opt">,</span>
+        <span class="hl str">&quot;PStash::iterator::operator++ &quot;</span>
+        <span class="hl str">&quot;moves index out of bounds&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span>
+      <span class="hl kwa">return</span> <span class="hl kwc">operator</span><span class="hl opt">++();</span>
+    <span class="hl opt">}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">--() {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(--</span>index <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span>
+        <span class="hl str">&quot;PStash::iterator::operator-- &quot;</span>
+        <span class="hl str">&quot;moves index out of bounds&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">--(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> 
+      <span class="hl kwa">return</span> <span class="hl kwc">operator</span><span class="hl opt">--();</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Jump interator forward or backward:</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">+=(</span><span class="hl kwb">int</span> amount<span class="hl opt">) {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">+</span> amount <span class="hl opt">&lt;</span> ps<span class="hl opt">.</span>next <span class="hl opt">&amp;&amp;</span> 
+        index <span class="hl opt">+</span> amount <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+        <span class="hl str">&quot;PStash::iterator::operator+= &quot;</span>
+        <span class="hl str">&quot;attempt to index out of bounds&quot;</span><span class="hl opt">);</span>
+      index <span class="hl opt">+=</span> amount<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">-=(</span><span class="hl kwb">int</span> amount<span class="hl opt">) {</span>
+      <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">-</span> amount <span class="hl opt">&lt;</span> ps<span class="hl opt">.</span>next <span class="hl opt">&amp;&amp;</span> 
+        index <span class="hl opt">-</span> amount <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+        <span class="hl str">&quot;PStash::iterator::operator-= &quot;</span>
+        <span class="hl str">&quot;attempt to index out of bounds&quot;</span><span class="hl opt">);</span>
+      index <span class="hl opt">-=</span> amount<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Create a new iterator that's moved forward</span>
+    iterator <span class="hl kwc">operator</span><span class="hl opt">+(</span><span class="hl kwb">int</span> amount<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      iterator <span class="hl kwd">ret</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+      ret <span class="hl opt">+=</span> amount<span class="hl opt">;</span> <span class="hl slc">// op+= does bounds check</span>
+      <span class="hl kwa">return</span> ret<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    T<span class="hl opt">*</span> <span class="hl kwd">current</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> ps<span class="hl opt">.</span>storage<span class="hl opt">[</span>index<span class="hl opt">];</span>
+    <span class="hl opt">}</span>
+    T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">*()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwd">current</span><span class="hl opt">(); }</span>
+    T<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">-&gt;()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+      <span class="hl kwd">require</span><span class="hl opt">(</span>ps<span class="hl opt">.</span>storage<span class="hl opt">[</span>index<span class="hl opt">] !=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+        <span class="hl str">&quot;PStash::iterator::operator-&gt;returns 0&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">return</span> <span class="hl kwd">current</span><span class="hl opt">();</span> 
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Remove the current element:</span>
+    T<span class="hl opt">*</span> <span class="hl kwd">remove</span><span class="hl opt">(){</span>
+      <span class="hl kwa">return</span> ps<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">(</span>index<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// Comparison tests for end:</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">==</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> rv<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> index <span class="hl opt">!=</span> rv<span class="hl opt">.</span>index<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  iterator <span class="hl kwd">begin</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">); }</span>
+  iterator <span class="hl kwd">end</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">,</span> <span class="hl kwa">true</span><span class="hl opt">);}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Destruction of contained objects:</span>
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::~</span><span class="hl kwd">PStash</span><span class="hl opt">() {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> next<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    <span class="hl kwa">delete</span> storage<span class="hl opt">[</span>i<span class="hl opt">];</span> <span class="hl slc">// Null pointers OK</span>
+    storage<span class="hl opt">[</span>i<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// Just to be safe</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+<span class="hl kwb">int</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">add</span><span class="hl opt">(</span>T<span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">();</span>
+  storage<span class="hl opt">[</span>next<span class="hl opt">++] =</span> element<span class="hl opt">;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span> <span class="hl kwc">inline</span>
+T<span class="hl opt">*</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwc">operator</span><span class="hl opt">[](</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;PStash::operator[] index negative&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>storage<span class="hl opt">[</span>index<span class="hl opt">] !=</span> <span class="hl num">0</span><span class="hl opt">,</span> 
+    <span class="hl str">&quot;PStash::operator[] returned null pointer&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">return</span> storage<span class="hl opt">[</span>index<span class="hl opt">];</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+T<span class="hl opt">*</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">remove</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">) {</span>
+  <span class="hl slc">// operator[] performs validity checks:</span>
+  T<span class="hl opt">*</span> v <span class="hl opt">=</span> <span class="hl kwc">operator</span><span class="hl opt">[](</span>index<span class="hl opt">);</span>
+  <span class="hl slc">// &quot;Remove&quot; the pointer:</span>
+  storage<span class="hl opt">[</span>index<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> v<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">,</span> <span class="hl kwb">int</span> incr<span class="hl opt">&gt;</span>
+<span class="hl kwb">void</span> PStash<span class="hl opt">&lt;</span>T<span class="hl opt">,</span> incr<span class="hl opt">&gt;::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwb">const int</span> tsz <span class="hl opt">=</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>T<span class="hl opt">*);</span>
+  T<span class="hl opt">**</span> st <span class="hl opt">=</span> <span class="hl kwa">new</span> T<span class="hl opt">*[</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">];</span>
+  <span class="hl kwd">memset</span><span class="hl opt">(</span>st<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">, (</span>quantity <span class="hl opt">+</span> increase<span class="hl opt">) *</span> tsz<span class="hl opt">);</span>
+  <span class="hl kwd">memcpy</span><span class="hl opt">(</span>st<span class="hl opt">,</span> storage<span class="hl opt">,</span> quantity <span class="hl opt">*</span> tsz<span class="hl opt">);</span>
+  quantity <span class="hl opt">+=</span> increase<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span> <span class="hl slc">// Old storage</span>
+  storage <span class="hl opt">=</span> st<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TPSTASH2_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.27. C16/TPStash2.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La mayoría de este archivo es un traducción prácticamente
+	directa del anterior <code class="classname">PStash </code> y el iterador
+	anidado dentro de un template. Esta vez, sin embargo, el
+	operador devuelve referencias al iterador actual, la cual es
+	una aproximación más típica y flexible.
+      </p>
+      <p>
+	El destructor llama a <code class="function">delete </code> para todos
+	los punteros que contiene, y como el tipo es obtenido de la
+	plantilla, se ejecutará la destrucción adecuada.  Hay que
+	estar precavido que si el contenedor controla punteros al tipo
+	de la clase base, este tipo debe tener un destructor <code class="keyword">virtual </code> para asegurar un limpiado
+	adecuado de los objetos derivados que hayan usado un upcast
+	cuando se los alojó en el contenedor.
+      </p>
+      <p>
+	El <code class="varname">PStash::iterator</code> mantiene el modelo de
+	engancharse a un único objeto contenedor durante su ciclo de
+	vida. Además, el constructor de copia permite crear un nuevo
+	iterador que apunte a la misma posición del iterador desde el
+	que se le creo, creando de esta manera un marcador dentro del
+	contenedor. Las funciones miembro <code class="function">operator+=
+	</code> y el <code class="function">operator-=</code> permiten
+	mover un iterador un número de posiciones, mientras se
+	respeten los límites del contenedor.  Los operadores
+	sobrecargados de incremento y decremento mueven el iterador
+	una posición.  El <code class="function">operator+</code> produce un
+	nuevo iterador que se mueve adelante la cantidad añadida. Como
+	en el ejemplo anterior, los operadores de desreferencia de
+	punteros son usados para manejar el elemento al que el
+	iterador está referenciando, y <code class="function">remove()</code>
+	destruye el objeto actual llamando al
+	<code class="function">remove()</code> del contenedor.
+      </p>
+      <p>
+	Se usa la misma clase de código de antes para crear el
+	marcador final: un segundo constructor, la función miembro del
+	contenedor <code class="function">end()</code>, y el
+	<code class="function">operator== </code> y <code class="function">operator!=
+	</code> para comparaciones.
+      </p>
+      <p>
+	El siguiente ejemplo crea y comprueba dos diferentes clases de
+	objetos <code class="classname">Stash</code>, uno para una nueva clase
+	llamada <code class="classname">Int</code> que anuncia su construcción y
+	destrucción y otra que gestiona objetos <code class="type">string
+	</code> de la librería Estándar.
+      </p>
+      <div class="example">
+        <a id="idp8691312"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:TPStash2Test.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TPStash2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Int <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Int</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;&gt;&quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">' '</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Int</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~&quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">' '</span><span class="hl opt">; }</span>
+  <span class="hl kwc">operator</span> <span class="hl kwb">int</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> i<span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Int<span class="hl opt">&amp;</span> x<span class="hl opt">) {</span>
+      <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Int: &quot;</span> <span class="hl opt">&lt;&lt;</span> x<span class="hl opt">.</span>i<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Int<span class="hl opt">*</span> x<span class="hl opt">) {</span>
+      <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Int: &quot;</span> <span class="hl opt">&lt;&lt;</span> x<span class="hl opt">-&gt;</span>i<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl opt">{</span> <span class="hl slc">// To force destructor call</span>
+    PStash<span class="hl opt">&lt;</span>Int<span class="hl opt">&gt;</span> ints<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">30</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      ints<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Int</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+    cout <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    PStash<span class="hl opt">&lt;</span>Int<span class="hl opt">&gt;::</span>iterator it <span class="hl opt">=</span> ints<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    it <span class="hl opt">+=</span> <span class="hl num">5</span><span class="hl opt">;</span>
+    PStash<span class="hl opt">&lt;</span>Int<span class="hl opt">&gt;::</span>iterator it2 <span class="hl opt">=</span> it <span class="hl opt">+</span> <span class="hl num">10</span><span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(;</span> it <span class="hl opt">!=</span> it2<span class="hl opt">;</span> it<span class="hl opt">++)</span>
+      <span class="hl kwa">delete</span> it<span class="hl opt">.</span><span class="hl kwd">remove</span><span class="hl opt">();</span> <span class="hl slc">// Default removal</span>
+    cout <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span>it <span class="hl opt">=</span> ints<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>it <span class="hl opt">!=</span> ints<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span>it<span class="hl opt">++)</span>
+      <span class="hl kwa">if</span><span class="hl opt">(*</span>it<span class="hl opt">)</span> <span class="hl slc">// Remove() causes &quot;holes&quot;</span>
+        cout <span class="hl opt">&lt;&lt; *</span>it <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span> <span class="hl slc">// &quot;ints&quot; destructor called here</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">-------------------</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>  
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;TPStash2Test.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;TPStash2Test.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// Instantiate for String:</span>
+  PStash<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> strings<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    strings<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  PStash<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;::</span>iterator sit <span class="hl opt">=</span> strings<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  <span class="hl kwa">for</span><span class="hl opt">(;</span> sit <span class="hl opt">!=</span> strings<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span> sit<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt; **</span>sit <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  sit <span class="hl opt">=</span> strings<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> n <span class="hl opt">=</span> <span class="hl num">26</span><span class="hl opt">;</span>
+  sit <span class="hl opt">+=</span> n<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(;</span> sit <span class="hl opt">!=</span> strings<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span> sit<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> n<span class="hl opt">++ &lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt; **</span>sit <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.28. C16/TPStash2Test.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Por conveniencia <code class="classname">Int </code> tiene asociado un
+	<code class="varname">ostream operator&lt;&lt;</code> para
+	<code class="classname">Int&amp;</code> y <code class="classname">Int*</code>.
+      </p>
+      <p>
+	El primer bloque de código en <code class="function">main()</code> está
+	rodeado de llaves para forzar la destrucción de
+	<code class="varname">PStash&lt;Int&gt;</code> que produce un limpiado
+	automático por este destructor. Unos cuantos elementos son
+	sacados y borrados a mano para mostrar que <code class="classname">PStash
+	</code> limpia el resto.
+      </p>
+      <p>
+	Para ambas instancias de <code class="classname">PStash</code>, se
+	crea un iterador y se usa para moverse a través del
+	contenedor. Note la elegancia generada por el uso de estos
+	constructores; no hay que preocuparse por los detalles de
+	implementación de usar un array. Se le dice al contenedor y al
+	iterador <span class="emphasis"><em>qué</em></span> hacer y no
+	<span class="emphasis"><em>cómo</em></span> hacerlo. Esto produce una solución
+	más sencilla de conceptualizar, construir y modificar.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s07.html">16.7. Introducción a los iteradores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch16s07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s08.html">16.8. Por qué usar iteradores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

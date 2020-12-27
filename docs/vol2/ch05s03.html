@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.3. Manejo errores de stream</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C04.html" title="5: Iostreams" />
+    <link rel="prev" href="ch05s02s03.html" title="5.2.3. Entrada orientada a líneas" />
+    <link rel="next" href="ch05s03s02.html" title="5.3.2. Streams y excepciones" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02s03.html">5.2.3. Entrada orientada a líneas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">5.3.2. Streams y excepciones</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="5.3. Manejo errores de stream">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4070448"></a>5.3. Manejo errores de <code class="classname">stream</code></h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      El extractor de <code class="classname">Date</code> mostrado antes
+      activa el bit de error de un <code class="classname">stream</code> bajo
+      ciertas condiciones. ¿Como sabe un usuario que este error ha
+      ocurrido? Puede detectar errores del
+      <code class="classname">stream</code> llamando a ciertas funciones
+      miembro del stream para ver si tenemos un estado de error, o si
+      a usted no le preocupa qué tipo de error ha pasado, puede
+      evaluar el <code class="filename">stream</code> en un contexto
+      Booleano. Ambas técnicas derivan del estado del bit de error de
+      un <code class="classname">stream</code>.
+    </p>
+      <div class="sect2" title="5.3.1. Estados del stream">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp4073056"></a>5.3.1. Estados del <code class="classname">stream</code></h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	La clase <code class="classname">ios_base</code>, desde la que
+	<code class="classname">ios</code> deriva,<sup>[<a id="idp4074016" href="#ftn.idp4074016" class="footnote">12</a>]</sup>define cuatro banderas
+	que puede usar para comprobar el estado de un
+	<code class="classname">stream</code>:
+      </p>
+        <p>
+      Bandera
+    </p>
+        <p>
+      Significado
+    </p>
+        <p>
+     <code class="code">badbit</code>
+    </p>
+        <p>
+      Algún error fatal (quizás físico) ha ocurrido. El
+      <code class="classname">stream</code> debe considerarse no usable.
+    </p>
+        <p>
+      <code class="code">eofbit</code>
+    </p>
+        <p>
+      Ha ocurrido un final de entrada (ya sea por haber encontrado un final físico de un <code class="classname">stream</code> de fichero o por que el usuario ha terminado el <code class="classname">stream</code> de consola, (usando un Ctrl-Z o Ctrl-D).
+    </p>
+        <p>
+      <code class="code">failbit</code>
+    </p>
+        <p>
+      Una operación de E/S ha fallado, casi seguro que por datos inválidos (p.e. encontrar
+      letras cuando se intentaba leer un número). El <code class="classname">stream</code> todavía se
+      puede usar. El <code class="code">failbit</code> también se activa cuando ocurre un final de entrada.
+    </p>
+        <p>
+      <code class="code">goodbit</code>
+    </p>
+        <p>
+      Todo va bien; no hay errores. La final de la entrada todavía no ha ocurrido.
+    </p>
+        <p>
+      Puede comprobar si alguna de estas condiciones ha ocurrido
+      llamando a la función miembro correspondiente que retorna un
+      valor Booleano indicando cual de estas ha sido activada.  La
+      función miembro de <code class="classname">stream </code>
+      <code class="function">good()</code> retorna cierto si ninguno de los
+      otros tres bits se han activado. La función
+      <code class="function">eof()</code> retorna cierto si <code class="code">eofbit</code>
+      está activado, que ocurre con un intento de leer de un
+      <code class="classname">stream</code> que ya no tiene datos
+      (generalmente un fichero). Como el final de una entrada ocurre
+      en C++ cuando tratamos de leer pasado el final del medio físico,
+      <code class="code">failbit</code> también se activa para indicar que los
+      datos esperados no han sido correctamente leídos. La función
+      <code class="function">fail()</code> retorna cierto si
+      <code class="code">failbit</code> o <code class="code">badbit</code> están activados, y
+      <code class="function">bad()</code> retorna cierto solo si
+      <code class="code">badbit</code> está activado.
+    </p>
+        <p>
+      Una vez alguno de los bit de error de un <code class="classname">stream</code> se activa,
+      permanece activo, cosa que no siempre es lo que se quiere. Cuando leemos un fichero,
+      usted puede querer colocarse en una posición anterior en el fichero antes de su final.
+      Simplemenete moviendo el puntero del fichero no se desactiva el <code class="code">eofbit</code> o
+      el <code class="code">failbit</code>; debe hacerlo usted mismo con la función <code class="function">clear()</code>,
+      haciendo algo así:
+    </p>
+        <pre class="programlisting">
+myStream<span class="hl opt">.</span><span class="hl kwd">clear</span><span class="hl opt">();</span> <span class="hl slc">// Clears all error bits</span>
+</pre>
+        <p>
+      Después de llamar a <code class="function">clear()</code>,
+      <code class="function">good()</code> retornará cierto si es llamada
+      inmediatamente. Como vió en el extractor de
+      <code class="classname">Date</code> antes, la función
+      <code class="function">setstate()</code> activa los bits que usted le
+      pasa.¿Eso significa que setstate no afecta a los otros bits? Si
+      ya esta activo, permanece activo. Si usted quiere activar
+      ciertos bits pero en el mismo momento, desactivar el resto,
+      usted puede llamar una versión sobrecargada de
+      <code class="function">clear()</code>, pasandole una expresion binaria
+      representando los bits que quiere que se activen, así:
+    </p>
+        <pre class="programlisting">
+myStream<span class="hl opt">.</span><span class="hl kwd">clear</span><span class="hl opt">(</span>ios<span class="hl opt">::</span>failbit <span class="hl opt">|</span> ios<span class="hl opt">::</span>eofbit<span class="hl opt">);</span>
+</pre>
+        <p>
+      La mayoría del tiempo usted no estará interesado en comprobar los bits de estado
+      del <code class="classname">stream</code> individualmente. Generalmente usted simplemente
+      quiere conocer si todo va bien. Ese es el caso cuando quiere leer un fichero del
+      principio al final; usted quiere saber simplemente cuando la entrada de datos se
+      ha agotado. Puede usar una conversion de la función definida para <code class="type">void*</code>
+      que es automáticamente llamada cuando un <code class="classname">stream</code> esta en una
+      expresión booleana. Leer un <code class="classname">stream</code> hasta el final de la entrada
+      usando este idioma se parece a lo siguiente:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwa">while</span><span class="hl opt">(</span>myStream <span class="hl opt">&gt;&gt;</span> i<span class="hl opt">)</span>
+  cout <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+</pre>
+        <p>
+      Recuerde que <code class="function">operator&gt;&gt;()</code> retorna su
+      argumento <code class="classname">stream</code>, así que la sentencia
+      <code class="code">while</code> anterior comprueba el
+      <code class="classname">stream</code> como una expresión booleana. Este
+      ejemplo particular asume que el <code class="classname">stream</code> de
+      entrada myStream contiene enteros separados por un espacio en
+      blanco. La función <code class="function">ios_base::operator
+      void*()</code> simplemente llama a
+      <code class="function">good()</code> en su <code class="classname">stream</code>
+      y retorna el resultado.<sup>[<a id="idp4094688" href="#ftn.idp4094688" class="footnote">13</a>]</sup> Como la mayoría de operaciones de
+      <code class="classname">stream</code> retornan su
+      <code class="classname">stream</code>, usar ese idioma es conveniente.
+    </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp4074016" href="#idp4074016" class="para">12</a>] </sup>Por esa
+	razón usted puede escribir <code class="classname">ios::failbit</code>
+	en lugar de <code class="classname">ios_base::failbit</code> para
+	ahorrar pulsaciones.</p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp4094688" href="#idp4094688" class="para">13</a>] </sup>Es común el uso de
+      <code class="function">operator void*()</code> en vez de
+      <code class="function">operator bool()</code> porque las conversiones
+      implícitas de booleano a entero pueden causar sorpresas; pueden
+      emplazarle incorrectamente un stream en un contexto donde una
+      conversion a integer puede ser aplicada. La función
+      <code class="function">operator void*()</code> solo será llamada
+      implícitamente en el cuerpo de una expresión
+      booleana.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02s03.html">5.2.3. Entrada orientada a líneas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">5.3.2. Streams y excepciones</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

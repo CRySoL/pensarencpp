@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.2. Un framework de pruebas unitarias sencillo</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C02.html" title="3: Programación defensiva" />
+    <link rel="prev" href="C02.html" title="3: Programación defensiva" />
+    <link rel="next" href="ch03s02s02.html" title="3.2.2. El Framework TestSuite" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C02.html">3: Programación defensiva</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02s02.html">3.2.2. El Framework TestSuite </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="3.2. Un framework de pruebas unitarias sencillo">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp3565280"></a>3.2. Un framework de pruebas unitarias sencillo </h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Escribir software es todo sobre encontrar requerimientos.[20]
+      Crear estos requerimientos es difícil, y pueden cambiar de un
+      día a otro; podría descubrir en una reunión de proyecto semanal
+      que lo que ha empleado la semana haciendo no es exactamente lo
+      que los usuarios realmente quieren.
+    </p>
+      <p>
+      Las personas no pueden articular requerimientos de software sin
+      muestrear un sistema de trabajo en evolución. Es mucho mejor
+      especificar un poco, diseñar un poco, codificar un poco y probar
+      un poco. Entonces, después de evaluar el resultado, hacerlo todo
+      de nuevo. La habilidad para desarrollar con una moda iterativa
+      es uno de los mejores avances del enfoque orientado a objetos,
+      pero requiere programadores ágiles que pueden hacer código
+      fuerte. El cambio es duro.
+    </p>
+      <p>
+      Otro ímpetu para el cambio viene de usted, el programador. El
+      artífice que hay en usted quiere continuamente mejorar el diseño
+      de su código. ¿Qué programador de mantenimiento no ha maldecido
+      el envejecimiento, el producto de la compañía insignia como un
+      mosaico de espaguetis inmodificable, enrevesado? La reluctancia
+      de los supervisores en permitir que uno interfiera con un
+      sistema que funciona le roba al código la
+      flexibilidad que necesita para que perdure. Si no
+      está roto, no arreglarlo finalmente le da el camino para, no
+      podemos arreglarlo reescribámoslo. El cambio es necesario.
+    </p>
+      <p>
+      Afortunadamente, nuestra industria está creciendo acostumbrada
+      a la disciplina de refactoring, el arte de reestructura
+      internamente código para mejorar su diseño, sin cambiar su
+      comportamiento.[21] Tales mejoras incluyen extraer una nueva
+      función de otra, o de forma inversa, combinar funciones,
+      reemplazar una función con un objeto; parametrizar una función o
+      clase; y reemplazar condicionales con polimorfismo. Refactorizar
+      ayuda al código evolucionar.
+    </p>
+      <p>
+      Si la fuerza para el cambio viene de los usuarios o
+      programadores, los cambios hoy pueden destrozar lo trabajado
+      ayer. Necesitamos un modo para construir código que resista el
+      cambio y mejoras a lo largo del tiempo.
+    </p>
+      <p>
+      La Programación Extrema (XP)[22] es sólo uno de las muchas
+      prácticas que motivan la agilidad. En esta
+      sección exploramos lo que pensamos es la clave para hacer un
+      desarrollo flexible, incremental que tenga éxito: un framework
+      de pruebas unitarias automatizada fácil de usar. (Note que los
+      probadores, profesionales de software que prueban el código de
+      otros para ganarse la vida, son todavía indispensables. Aquí,
+      estamos simplemente describiendo un modo para ayudar a los
+      desarrolladores a escribir mejor código.)
+    </p>
+      <p>
+      Los desarrolladores escriben pruebas unitarias para conseguir
+      confianza para decir las dos cosas más importantes que
+      cualquier desarrollador puede decir:
+    </p>
+      <p>
+      1. Entiendo los requerimientos.
+    </p>
+      <p>
+      Mi código cumple esos requerimientos (hasta donde yo sé)
+    </p>
+      <p>
+      No hay mejor modo para asegurar que sabe lo que el código que está por
+      escribir debería hacer mejor que escribir primero pruebas
+      unitarias. Este ejercicio sencillo ayuda a centrar la mente en las
+      tareas siguientes y probablemente guiará a código que
+      funcionalmente más rápido mejor que sólo saltar a codificar. O,
+      expresarlo en términos XP:
+    </p>
+      <p>
+      Probar + programar es más rápido que sólo programar.
+    </p>
+      <p>
+      Escribir primero pruebas sólo le protegen contra condiciones
+      límite que podrían destrozar su código, por lo tanto su código
+      es más robusto.
+    </p>
+      <p>
+      Cuando su código pasa todas sus pruebas, sabe que si el sistema no
+      está funcionando, su código no es probablemente el problema. La
+      frase todas mis pruebas funcionan es un fuerte razonamiento.
+    </p>
+      <div class="sect2" title="3.2.1. Pruebas automatizadas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp3575096"></a>3.2.1.  Pruebas automatizadas </h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Por lo tanto, ¿qué aspecto tiene una prueba unitaria? Demasiado
+	a menudo los desarrolladores simplemente usan alguna entrada
+	correcta para producir alguna salida esperada, que examinan
+	visualmente. Existen dos peligros en este enfoque. Primero,
+	los programas no siempre reciben sólo entradas
+	correctas. Todos sabemos que deberíamos probar los límites de
+	entrada de un programa, pero es duro pensar esto cuando está
+	intentando simplemente hacer que las cosas funcionar. Si escribe
+	primero la prueba para una función antes de comenzar a
+	codificar, puede ponerse su traje de probador y preguntarse a
+	si mismo, ¿qué haría posiblemente destrozar esto? Codificar
+	una prueba que probará la función que escribirá no es erróneo,
+	y luego ponerte el traje de desarrollador y hacerlo
+	pasar. Escribirá mejor código que si no había escrito la
+	prueba primero.
+      </p>
+        <p>
+	El segundo peligro es que esperar una salida visualmente es
+	tedioso y propenso a error. La mayoría de cualquier tipo de cosas que un
+	humano puede hacer un ordenador puede hacerlas, pero sin el
+	error humano. Es mejor formular pruebas como colecciones
+	de expresiones boolean y tener un programa de prueba que
+	informa de cualquier fallo.
+      </p>
+        <p>
+	Por ejemplo, suponga que necesita construir una clase Fecha
+	que tiene las siguientes propiedades:
+      </p>
+        <p>
+	Una fecha puede estar inicializada con una cadena (AAAAMMDD),
+	3 enteros (A, M, D), o nada (dando la fecha de hoy).
+      </p>
+        <p>
+	Un objecto fecha puede producir su año, mes y día o una cadena
+	de la forma AAAAMMDD.
+      </p>
+        <p>
+	Todas las comparaciones relacionales están disponibles, además
+	de calcular la duración entre dos fechas (en años, meses, y
+	días).
+      </p>
+        <p>
+	Las fechas para ser comparadas necesitan poder extenderse un
+	número arbitrario de siglos(por ejemplo, 16002200).
+      </p>
+        <p>
+	Su clase puede almacenar tres enteros que representan el año, mes
+	y día. (Sólo asegúrese que el año es al menos de 16 bits de
+	tamaño para satisfacer el último punto.) La interfaz de su
+	clase Fecha se podría parecer a esto:
+      </p>
+        <div class="example">
+          <a id="idp3580960"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C02:Date1.h</span>
+<span class="hl slc">// A first pass at Date.h.</span>
+<span class="hl ppc">#ifndef DATE1_H</span>
+<span class="hl ppc">#define DATE1_H</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+
+<span class="hl kwc">class</span> Date <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// A struct to hold elapsed time:</span>
+  <span class="hl kwb">struct</span> Duration <span class="hl opt">{</span>
+    <span class="hl kwb">int</span> years<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> months<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> days<span class="hl opt">;</span>
+    <span class="hl kwd">Duration</span><span class="hl opt">(</span><span class="hl kwb">int</span> y<span class="hl opt">,</span> <span class="hl kwb">int</span> m<span class="hl opt">,</span> <span class="hl kwb">int</span> d<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">years</span><span class="hl opt">(</span>y<span class="hl opt">),</span> <span class="hl kwd">months</span><span class="hl opt">(</span>m<span class="hl opt">),</span> <span class="hl kwd">days</span><span class="hl opt">(</span>d<span class="hl opt">) {}</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwd">Date</span><span class="hl opt">();</span>
+  <span class="hl kwd">Date</span><span class="hl opt">(</span><span class="hl kwb">int</span> year<span class="hl opt">,</span> <span class="hl kwb">int</span> month<span class="hl opt">,</span> <span class="hl kwb">int</span> day<span class="hl opt">);</span>
+  <span class="hl kwd">Date</span><span class="hl opt">(</span><span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;);</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getYear</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getMonth</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getDay</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  std<span class="hl opt">::</span>string <span class="hl kwd">toString</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">&gt;(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;=(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">&gt;=(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+   <span class="hl kwc">friend</span> <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+  <span class="hl kwc">friend</span> Duration <span class="hl kwd">duration</span><span class="hl opt">(</span><span class="hl kwb">const</span> Date<span class="hl opt">&amp;,</span> <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DATE1_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 3.2. C02/Date1.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Antes de que implemente esta clase, puede solidificar sus
+	conocimientos de los requerimientos escribiendo el principio
+	de un programa de prueba. Podría idear algo como lo siguiente:
+      </p>
+        <div class="example">
+          <a id="idp3583312"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C02:SimpleDateTest.cpp</span>
+<span class="hl slc">//{L} Date</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Date.h&quot;</span><span class="hl ppc"></span> <span class="hl slc">// From Appendix B</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Test machinery</span>
+<span class="hl kwb">int</span> nPass <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> nFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl kwb">void</span> <span class="hl kwd">test</span><span class="hl opt">(</span><span class="hl kwb">bool</span> t<span class="hl opt">) {</span> <span class="hl kwa">if</span><span class="hl opt">(</span>t<span class="hl opt">)</span> nPass<span class="hl opt">++;</span> <span class="hl kwa">else</span> nFail<span class="hl opt">++; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Date <span class="hl kwd">mybday</span><span class="hl opt">(</span><span class="hl num">1951</span><span class="hl opt">,</span> <span class="hl num">10</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getYear</span><span class="hl opt">() ==</span> <span class="hl num">1951</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getMonth</span><span class="hl opt">() ==</span> <span class="hl num">10</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getDay</span><span class="hl opt">() ==</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Passed: &quot;</span> <span class="hl opt">&lt;&lt;</span> nPass <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, Failed: &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> nFail <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl com">/* Expected output:</span>
+<span class="hl com">Passed: 3, Failed: 0</span>
+<span class="hl com">*/</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 3.3. C02/SimpleDateTest.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	En este caso trivial, la función test( ) mantiene las
+	variables globales nAprobar y nSuspender. La única revisión
+	visual que hace es leer el resultado final. Si una prueba falla,
+	un test( ) más sofisticado muestra un mensaje apropiado. El
+	framework descrito más tarde en este capítulo tiene un función
+	de prueba, entre otras cosas.
+      </p>
+        <p>
+	Puede ahora implementar la clase Fecha para hacer pasar estas
+	pruebas, y luego puede proceder iterativamente hasta que se
+	satisfagan todos los requerimientos. Escribiendo primero
+	pruebas, es más probable que piense en casos límite que podrían
+	destrozar su próxima implementación, y es más probable que
+	escriba el código correctamente la primera vez. Como ejercicio
+	podría realizar la siguiente versión de una prueba
+	para la clase Fecha:
+      </p>
+        <div class="example">
+          <a id="idp3586968"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C02:SimpleDateTest2.cpp</span>
+<span class="hl slc">//{L} Date</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Date.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Test machinery</span>
+<span class="hl kwb">int</span> nPass <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">,</span> nFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl kwb">void</span> <span class="hl kwd">test</span><span class="hl opt">(</span><span class="hl kwb">bool</span> t<span class="hl opt">) {</span> <span class="hl kwa">if</span><span class="hl opt">(</span>t<span class="hl opt">) ++</span>nPass<span class="hl opt">;</span> <span class="hl kwa">else</span> <span class="hl opt">++</span>nFail<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Date <span class="hl kwd">mybday</span><span class="hl opt">(</span><span class="hl num">1951</span><span class="hl opt">,</span> <span class="hl num">10</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  Date today<span class="hl opt">;</span>
+   Date <span class="hl kwd">myevebday</span><span class="hl opt">(</span><span class="hl str">&quot;19510930&quot;</span><span class="hl opt">);</span>
+
+  <span class="hl slc">// Test the operators</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;</span> today<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;=</span> today<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">!=</span> today<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">==</span> mybday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;=</span> mybday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;=</span> mybday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>myevebday <span class="hl opt">&lt;</span> mybday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;</span> myevebday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;=</span> myevebday<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday <span class="hl opt">!=</span> myevebday<span class="hl opt">);</span>
+
+  <span class="hl slc">// Test the functions</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getYear</span><span class="hl opt">() ==</span> <span class="hl num">1951</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getMonth</span><span class="hl opt">() ==</span> <span class="hl num">10</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getDay</span><span class="hl opt">() ==</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getYear</span><span class="hl opt">() ==</span> <span class="hl num">1951</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getMonth</span><span class="hl opt">() ==</span> <span class="hl num">9</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getDay</span><span class="hl opt">() ==</span> <span class="hl num">30</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">toString</span><span class="hl opt">() ==</span> <span class="hl str">&quot;19511001&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">toString</span><span class="hl opt">() ==</span> <span class="hl str">&quot;19510930&quot;</span><span class="hl opt">);</span>
+
+  <span class="hl slc">// Test duration</span>
+  Date <span class="hl kwd">d2</span><span class="hl opt">(</span><span class="hl num">2003</span><span class="hl opt">,</span> <span class="hl num">7</span><span class="hl opt">,</span> <span class="hl num">4</span><span class="hl opt">);</span>
+  Date<span class="hl opt">::</span>Duration dur <span class="hl opt">=</span> <span class="hl kwd">duration</span><span class="hl opt">(</span>mybday<span class="hl opt">,</span> d2<span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>years <span class="hl opt">==</span> <span class="hl num">51</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>months <span class="hl opt">==</span> <span class="hl num">9</span><span class="hl opt">);</span>
+  <span class="hl kwd">test</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>days <span class="hl opt">==</span> <span class="hl num">3</span><span class="hl opt">);</span>
+
+  <span class="hl slc">// Report results:</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Passed: &quot;</span> <span class="hl opt">&lt;&lt;</span> nPass <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, Failed: &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> nFail <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 3.4. C02/SimpleDateTest2.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Esta prueba puede ser desarrollada por completo. Por ejemplo,
+	no hemos probado que duraciones grandes son manejadas
+	correctamente. Pararemos aquí, pero coja la idea. La
+	implementación entera para la case Fecha está disponible en
+	los ficheros Date.h y Date.cpp en el apéndice.[23]
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C02.html">3: Programación defensiva</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02s02.html">3.2.2. El Framework TestSuite </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

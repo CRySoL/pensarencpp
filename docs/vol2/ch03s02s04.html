@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.2.4. El código del framework de prueba</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch03s02.html" title="3.2. Un framework de pruebas unitarias sencillo" />
+    <link rel="prev" href="ch03s02s03.html" title="3.2.3. Suites de test" />
+    <link rel="next" href="ch03s03.html" title="3.3. Técnicas de depuración" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s02s03.html">3.2.3. Suites de test </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s03.html">3.3. Técnicas de depuración </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="3.2.4. El código del framework de prueba">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3612784"></a>3.2.4. El código del framework de prueba </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	El código del framework de pruebas es un subdirectorio llamado
+	TestSuite en la distribución de código disponible en
+	www.MindView.net. Para usarlo, incluya la ruta de búsqueda
+	para el subdirectorio TestSuite en la ruta de búsqueda de la
+	biblioteca. Aquí está la cabecera para Test.h:
+      </p>
+      <div class="example">
+        <a id="idp3613992"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: TestSuite:Test.h</span>
+<span class="hl ppc">#ifndef TEST_H</span>
+<span class="hl ppc">#define TEST_H</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>string<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>ostream<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>cout<span class="hl opt">;</span>
+
+<span class="hl slc">// fail_() has an underscore to prevent collision with</span>
+<span class="hl slc">// ios::fail(). For consistency, test_() and succeed_()</span>
+<span class="hl slc">// also have underscores.</span>
+
+<span class="hl ppc">#define test_(cond) \</span>
+<span class="hl ppc">  do_test(cond, #cond, __FILE__, __LINE__)</span>
+<span class="hl ppc">#define fail_(str) \</span>
+<span class="hl ppc">  do_fail(str, __FILE__, __LINE__)</span>
+
+<span class="hl kwa">namespace</span> TestSuite <span class="hl opt">{</span>
+
+<span class="hl kwc">class</span> Test <span class="hl opt">{</span>
+  ostream<span class="hl opt">*</span> osptr<span class="hl opt">;</span>
+  <span class="hl kwb">long</span> nPass<span class="hl opt">;</span>
+  <span class="hl kwb">long</span> nFail<span class="hl opt">;</span>
+  <span class="hl slc">// Disallowed:</span>
+  <span class="hl kwd">Test</span><span class="hl opt">(</span><span class="hl kwb">const</span> Test<span class="hl opt">&amp;);</span>
+  Test<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Test<span class="hl opt">&amp;);</span>
+<span class="hl kwc">protected</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">do_test</span><span class="hl opt">(</span><span class="hl kwb">bool</span> cond<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> lbl<span class="hl opt">,</span>
+    <span class="hl kwb">const char</span><span class="hl opt">*</span> fname<span class="hl opt">,</span> <span class="hl kwb">long</span> lineno<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">do_fail</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> lbl<span class="hl opt">,</span>
+    <span class="hl kwb">const char</span><span class="hl opt">*</span> fname<span class="hl opt">,</span> <span class="hl kwb">long</span> lineno<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Test</span><span class="hl opt">(</span>ostream<span class="hl opt">*</span> osptr <span class="hl opt">= &amp;</span>cout<span class="hl opt">) {</span>
+    <span class="hl kwa">this</span><span class="hl opt">-&gt;</span>osptr <span class="hl opt">=</span> osptr<span class="hl opt">;</span>
+    nPass <span class="hl opt">=</span> nFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Test</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">getNumPassed</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> nPass<span class="hl opt">; }</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">getNumFailed</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> nFail<span class="hl opt">; }</span>
+  <span class="hl kwb">const</span> ostream<span class="hl opt">*</span> <span class="hl kwd">getStream</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> osptr<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">setStream</span><span class="hl opt">(</span>ostream<span class="hl opt">*</span> osptr<span class="hl opt">) {</span> <span class="hl kwa">this</span><span class="hl opt">-&gt;</span>osptr <span class="hl opt">=</span> osptr<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">succeed_</span><span class="hl opt">() { ++</span>nPass<span class="hl opt">; }</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">report</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">reset</span><span class="hl opt">() {</span> nPass <span class="hl opt">=</span> nFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl opt">}</span> <span class="hl slc">// namespace TestSuite</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TEST_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.8. </strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Hay tres funciones virtuales en la clase Test:
+      </p>
+      <p>
+	Un destructor virtual
+      </p>
+      <p>
+	La función reset( )
+      </p>
+      <p>
+	La función virtual pura run( )
+      </p>
+      <p>
+	Como se explicó en el Volumen 1, es un error eliminar un
+	objeto derivado de la pila a través de un puntero base a
+	menos que la clase base tenga un destructor virtual. Cualquier
+	clase propuesta para ser una clase base (normalmente
+	evidenciadas por la presencia de al menos una de las otras
+	funciones virtuales) tendría un destructor virtual. La
+	implementación por defecto de Test::reset( ) pone los
+	contadores de éxitos y fallos a cero. Podría querer
+	sobreescribir esta función para poner el estado de los datos
+	en su objeto de test derivado; sólo asegúrese de llamar a
+	Test::rest( ) explícitamente en su sobreescritura de modo que
+	los contadores se reajusten. La función Test::run( ) es
+	virtual pura ya que es necesario para sobreescribirla en su
+	clase derivada.
+      </p>
+      <p>
+	Las macros test_( ) y fail_( ) pueden incluir la información
+	disponible del nombre del fichero y el número de línea del
+	preprocesador. Originalmente omitimos el guión bajo en los
+	nombres, pero la macro fail colisiona con ios::fail( ),
+	provocando errores de compilación.
+      </p>
+      <p>
+	Aquí está la implementación del resto de las funciones Test:
+      </p>
+      <div class="example">
+        <a id="idp3621376"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: TestSuite:Test.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Test.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;typeinfo&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> TestSuite<span class="hl opt">;</span>
+
+<span class="hl kwb">void</span> Test<span class="hl opt">::</span><span class="hl kwd">do_test</span><span class="hl opt">(</span><span class="hl kwb">bool</span> cond<span class="hl opt">,</span> <span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> lbl<span class="hl opt">,</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> fname<span class="hl opt">,</span> <span class="hl kwb">long</span> lineno<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>cond<span class="hl opt">)</span>
+    <span class="hl kwd">do_fail</span><span class="hl opt">(</span>lbl<span class="hl opt">,</span> fname<span class="hl opt">,</span> lineno<span class="hl opt">);</span>
+  <span class="hl kwa">else</span>
+    <span class="hl kwd">succeed_</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Test<span class="hl opt">::</span><span class="hl kwd">do_fail</span><span class="hl opt">(</span><span class="hl kwb">const</span> std<span class="hl opt">::</span>string<span class="hl opt">&amp;</span> lbl<span class="hl opt">,</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> fname<span class="hl opt">,</span> <span class="hl kwb">long</span> lineno<span class="hl opt">) {</span>
+  <span class="hl opt">++</span>nFail<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>osptr<span class="hl opt">) {</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl kwc">typeid</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">).</span><span class="hl kwd">name</span><span class="hl opt">()</span>
+           <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;failure: (&quot;</span> <span class="hl opt">&lt;&lt;</span> lbl <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) , &quot;</span> <span class="hl opt">&lt;&lt;</span> fname
+           <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; (line &quot;</span> <span class="hl opt">&lt;&lt;</span> lineno <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;)&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">long</span> Test<span class="hl opt">::</span><span class="hl kwd">report</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>osptr<span class="hl opt">) {</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Test</span> <span class="hl esc">\&quot;</span><span class="hl str">&quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwc">typeid</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">).</span><span class="hl kwd">name</span><span class="hl opt">()</span>
+           <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\&quot;</span><span class="hl str">:</span><span class="hl esc">\n\t</span><span class="hl str">Passed: &quot;</span> <span class="hl opt">&lt;&lt;</span> nPass
+           <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">Failed: &quot;</span> <span class="hl opt">&lt;&lt;</span> nFail
+           <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">return</span> nFail<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.9. </strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La clase Test lleva la cuenta del número de éxitos y fracasos
+	además de la cadena donde quiere que Test::report( ) muestre los
+	resultados. Las macros test_( ) y fail_() extraen la
+	información del nombre del fichero actual y el número de línea
+	del preprocesador y pasa el nombre del fichero a do_test( ) y
+	el número de línea a do_fail( ), que hacen el mismo trabajo de
+	mostrar un mensaje y actualizar el contador apropiado. No
+	podemos pensar una buena razón para permitir copiar y asignar
+	objetos de prueba, por lo que hemos rechazado estas
+	operaciones para hacer sus prototipos privados y omitir el
+	cuerpo de sus respectivas funciones.
+      </p>
+      <p>
+	Aquí está el fichero de cabecera para Suite:
+      </p>
+      <div class="example">
+        <a id="idp3624288"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: TestSuite:Suite.h</span>
+<span class="hl ppc">#ifndef SUITE_H</span>
+<span class="hl ppc">#define SUITE_H</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;stdexcept&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../TestSuite/Test.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>vector<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>logic_error<span class="hl opt">;</span>
+
+<span class="hl kwa">namespace</span> TestSuite <span class="hl opt">{</span>
+
+<span class="hl kwc">class</span> TestSuiteError <span class="hl opt">:</span> <span class="hl kwc">public</span> logic_error <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">TestSuiteError</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> s <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">logic_error</span><span class="hl opt">(</span>s<span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Suite <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span>
+  ostream<span class="hl opt">*</span> osptr<span class="hl opt">;</span>
+  vector<span class="hl opt">&lt;</span>Test<span class="hl opt">*&gt;</span> tests<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">reset</span><span class="hl opt">();</span>
+  <span class="hl slc">// Disallowed ops:</span>
+  <span class="hl kwd">Suite</span><span class="hl opt">(</span><span class="hl kwb">const</span> Suite<span class="hl opt">&amp;);</span>
+  Suite<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Suite<span class="hl opt">&amp;);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Suite</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">,</span> ostream<span class="hl opt">*</span> osptr <span class="hl opt">= &amp;</span>cout<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">name</span><span class="hl opt">(</span>name<span class="hl opt">) {</span> <span class="hl kwa">this</span><span class="hl opt">-&gt;</span>osptr <span class="hl opt">=</span> osptr<span class="hl opt">; }</span>
+  string <span class="hl kwd">getName</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> name<span class="hl opt">; }</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">getNumPassed</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">getNumFailed</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">const</span> ostream<span class="hl opt">*</span> <span class="hl kwd">getStream</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> osptr<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">setStream</span><span class="hl opt">(</span>ostream<span class="hl opt">*</span> osptr<span class="hl opt">) {</span> <span class="hl kwa">this</span><span class="hl opt">-&gt;</span>osptr <span class="hl opt">=</span> osptr<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addTest</span><span class="hl opt">(</span>Test<span class="hl opt">*</span> t<span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>TestSuiteError<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addSuite</span><span class="hl opt">(</span><span class="hl kwb">const</span> Suite<span class="hl opt">&amp;);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">();</span>  <span class="hl slc">// Calls Test::run() repeatedly</span>
+  <span class="hl kwb">long</span> <span class="hl kwd">report</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">free</span><span class="hl opt">();</span>  <span class="hl slc">// Deletes tests</span>
+<span class="hl opt">};</span>
+
+<span class="hl opt">}</span> <span class="hl slc">// namespace TestSuite</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// SUITE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.10. </strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La clase Suite tiene punteros a sus objetos Test en un
+	vector. Fíjese en la especificación de la excepción en
+	la función addTest( ). Cuando añada una prueba a una suite,
+	Suite::addTest( ) verifique que el puntero que pasa no sea null;
+	si es null, se lanza una excepción TestSuiteError. Puesto que
+	esto hace imposible añadir un puntero null a una suite,
+	addSuite( ) afirma esta condición en cada prueba, como hacen
+	las otras funciones que atraviesan el vector de pruebas (vea
+	la siguiente implementación). Copiar y asignar están
+	desestimados como están en la clase Test.
+      </p>
+      <div class="example">
+        <a id="idp3627744"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: TestSuite:Suite.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Suite.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> TestSuite<span class="hl opt">;</span>
+
+<span class="hl kwb">void</span> Suite<span class="hl opt">::</span><span class="hl kwd">addTest</span><span class="hl opt">(</span>Test<span class="hl opt">*</span> t<span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>TestSuiteError<span class="hl opt">) {</span>
+  <span class="hl slc">// Verify test is valid and has a stream:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>t <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    <span class="hl kwa">throw</span> <span class="hl kwd">TestSuiteError</span><span class="hl opt">(</span><span class="hl str">&quot;Null test in Suite::addTest&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">else if</span><span class="hl opt">(</span>osptr <span class="hl opt">&amp;&amp; !</span>t<span class="hl opt">-&gt;</span><span class="hl kwd">getStream</span><span class="hl opt">())</span>
+    t<span class="hl opt">-&gt;</span><span class="hl kwd">setStream</span><span class="hl opt">(</span>osptr<span class="hl opt">);</span>
+  tests<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>t<span class="hl opt">);</span>
+  t<span class="hl opt">-&gt;</span><span class="hl kwd">reset</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Suite<span class="hl opt">::</span><span class="hl kwd">addSuite</span><span class="hl opt">(</span><span class="hl kwb">const</span> Suite<span class="hl opt">&amp;</span> s<span class="hl opt">) {</span>
+   <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> s<span class="hl opt">.</span>tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+     <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+      <span class="hl kwd">addTest</span><span class="hl opt">(</span>s<span class="hl opt">.</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Suite<span class="hl opt">::</span><span class="hl kwd">free</span><span class="hl opt">() {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">delete</span> tests<span class="hl opt">[</span>i<span class="hl opt">];</span>
+    tests<span class="hl opt">[</span>i<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Suite<span class="hl opt">::</span><span class="hl kwd">run</span><span class="hl opt">() {</span>
+  <span class="hl kwd">reset</span><span class="hl opt">();</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+    tests<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">run</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">long</span> Suite<span class="hl opt">::</span><span class="hl kwd">report</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>osptr<span class="hl opt">) {</span>
+    <span class="hl kwb">long</span> totFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Suite</span> <span class="hl esc">\&quot;</span><span class="hl str">&quot;</span> <span class="hl opt">&lt;&lt;</span> name
+             <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\&quot;\n</span><span class="hl str">=======&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwb">size_t</span> i<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> name<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">)</span>
+      <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">'='</span><span class="hl opt">;</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;=&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+      <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+      totFail <span class="hl opt">+=</span> tests<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">report</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;=======&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> name<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">)</span>
+      <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">'='</span><span class="hl opt">;</span>
+    <span class="hl opt">*</span>osptr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;=&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> totFail<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">else</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">getNumFailed</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">long</span> Suite<span class="hl opt">::</span><span class="hl kwd">getNumPassed</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwb">long</span> totPass <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+    totPass <span class="hl opt">+=</span> tests<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">getNumPassed</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">return</span> totPass<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">long</span> Suite<span class="hl opt">::</span><span class="hl kwd">getNumFailed</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwb">long</span> totFail <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+    totFail <span class="hl opt">+=</span> tests<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">getNumFailed</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">return</span> totFail<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Suite<span class="hl opt">::</span><span class="hl kwd">reset</span><span class="hl opt">() {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> tests<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">) {</span>
+    <span class="hl kwa">assert</span><span class="hl opt">(</span>tests<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+    tests<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">reset</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.11. </strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Usaremos el framework TestSuite donde sea pertinente a lo largo
+	del resto de este libro.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s02s03.html">3.2.3. Suites de test </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s03.html">3.3. Técnicas de depuración </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.4.3. Actividades ocultas en contructores y destructores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch09s04.html" title="9.4. Funciones inline y el compilador" />
+    <link rel="prev" href="ch09s04s02.html" title="9.4.2. Referencias adelantadas" />
+    <link rel="next" href="ch09s05.html" title="9.5. Reducir el desorden" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s02.html">9.4.2. Referencias adelantadas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s05.html">9.5. Reducir el desorden</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.4.3. Actividades ocultas en contructores y destructores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6414352"></a>9.4.3. Actividades ocultas en contructores y destructores</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Constructores y destructores son dos lugares dónde puede
+	engañarse al pensar que una inline es más eficiente de lo que
+	realmente es. Constructores y destructores pueden tener
+	actividades ocultas, porque la clase puede contener subobjetos
+	cuyos constructores y destructores deben invocarse. Estos
+	subobjetos pueden ser objetos miembro (atributos), o pueden
+	existir por herencia (tratado en el Capítulo 14). Como un
+	ejemplo de clase con un objeto miembro:
+      </p>
+      <div class="example">
+        <a id="idp6415624"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Hidden.cpp</span>
+<span class="hl slc">// Hidden activities in inlines</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Member <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">,</span> j<span class="hl opt">,</span> k<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Member</span><span class="hl opt">(</span><span class="hl kwb">int</span> x <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>x<span class="hl opt">),</span> <span class="hl kwd">j</span><span class="hl opt">(</span>x<span class="hl opt">),</span> <span class="hl kwd">k</span><span class="hl opt">(</span>x<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Member</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Member&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> WithMembers <span class="hl opt">{</span>
+  Member q<span class="hl opt">,</span> r<span class="hl opt">,</span> s<span class="hl opt">;</span> <span class="hl slc">// Have constructors</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">WithMembers</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span> <span class="hl slc">// Trivial?</span>
+  <span class="hl opt">~</span><span class="hl kwd">WithMembers</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~WithMembers&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  WithMembers <span class="hl kwd">wm</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.14. C09/Hidden.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	El constructor para <code class="classname">Member</code> es
+	suficientemente simple para ser inline, dado que no hay nada
+	especial en él - ninguna herencia u objeto miembro está
+	provocando actividades ocultas adicionales. Pero en la clase
+	<code class="classname">WithMembers</code> hay más de lo que se ve a
+	simple vista. Los constructores y destructores para los
+	atributos <code class="varname">q</code>, <code class="varname">r</code> y
+	<code class="varname">s</code> se llaman automáticamente, y esos
+	constructores y destructores también son inline, así que la
+	diferencia es significativa respecto a métodos normales. Esto no
+	significa necesariamente que los constructores y destructores
+	deban ser no-inline; hay casos en que tiene sentido. También,
+	cuando se está haciendo un prototipo inicial de un programa
+	escribiendo código rápidamente, es conveniente a menudo usar
+	inlines. Pero si está preocupado por la eficiencia, es un sitio
+	donde mirar.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s02.html">9.4.2. Referencias adelantadas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s05.html">9.5. Reducir el desorden</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

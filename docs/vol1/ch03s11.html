@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.11. Make: cómo hacer compilación separada</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C03.html" title="3: C en C++" />
+    <link rel="prev" href="ch03s10s04.html" title="3.10.4. Arrays de punteros a funciones" />
+    <link rel="next" href="ch03s11s02.html" title="3.11.2. Los Makefiles de este libro" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s10s04.html">3.10.4. Arrays de punteros a funciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s11s02.html">3.11.2. Los Makefiles de este libro</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s11s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="3.11. Make: cómo hacer compilación separada">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5027752"></a>3.11. Make: cómo hacer compilación separada</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Cuando se usa <span class="emphasis"><em>compilación separada</em></span>
+      (dividiendo el código en varias unidades de traducción), aparece
+      la <span class="emphasis"><em>necesidad</em></span> de un medio para compilar
+      automáticamente cada fichero y decirle al enlazador como montar
+      todas las piezas - con las librerías apropiadas y el código de
+      inicio - en un fichero ejecutable. La mayoría de los compiladores
+      le permiten hacerlo desde una sólo instrucción desde línea de
+      comandos. Por ejemplo, para el compilador de C++ de <acronym class="acronym">GNU</acronym> se puede hacer:
+    </p>
+      <pre class="screen">
+$ g++ SourceFile1.cpp SourceFile2.cpp
+</pre>
+      <p>
+      En problema con este método es que el compilador compilará cada
+      fichero individual tanto si el fichero
+      <span class="emphasis"><em>necesita</em></span> ser recompilado como sino. Cuando un
+      proyecto tiene muchos ficheros, puede resultar prohibitivo
+      recompilar todo cada vez que se cambia una línea en un fichero.
+    </p>
+      <p>
+      La solución a este problema, desarrollada en Unix pero disponible
+      de alún modo en todos los sistemas es un programa llamado
+      <span class="command"><strong>make</strong></span>. La utilidad <span class="command"><strong>make</strong></span>
+      maneja todos los ficheros individuales de un proyecto siguiendo
+      las instrucciones escritas en un fichero de texto llamado
+      <code class="filename">makefile</code>. Cuando edite alguno de los ficheros
+      del proyecto y ejecute <span class="command"><strong>make</strong></span>, el programa
+      <span class="command"><strong>make</strong></span> seguirá las directrices del
+      <code class="filename">makefile</code> para comparar las fechas de los
+      ficheros fuente con las de los ficheros resultantes
+      correspondientes, y si una fichero fuente es más reciente que su
+      fichero resultante, <span class="command"><strong>make</strong></span> recompila ese fichero
+      fuente. <span class="command"><strong>make</strong></span> sólo recompila los ficheros fuente
+      que han cambiado, y cualquier otro fichero que esté afectado por
+      el fichero modificado. Usando <span class="command"><strong>make</strong></span> no tendrá
+      que recompilar todos los ficheros de su proyecto cada vez que haga
+      un cambio, ni tendrá que comprobar si todo se construye
+      adecuadamente. El <code class="filename">makefile</code> contiene todas las
+      instrucciones para montar el proyecto. Aprender a usar
+      <span class="command"><strong>make</strong></span> le permitirá ahorrar mucho tiempo y
+      frustraciones. También descubrirá que <span class="command"><strong>make</strong></span> es
+      el método típico para instalar software nuevo en máquinas GNU o
+      Unix<sup>[<a id="idp5037216" href="#ftn.idp5037216" class="footnote">45</a>]</sup>
+      (aunque esos <code class="filename">makefiles</code> tienen a ser mucho más
+      complicados que los que aparecen en este libro, y a menudo podrá
+      generar automáticamente un <code class="filename">makefile</code> para su
+      máquina particular como parte del proceso de instalación).
+    </p>
+      <p>
+      Como <span class="command"><strong>make</strong></span> está disponible de algún modo para
+      prácticamente todos los compiladores de C++ (incluso si no lo
+      está, puede usar <span class="command"><strong>makes</strong></span> libres con cualquier
+      compilador), será la herramienta usada en este libro. Sin embargo,
+      los fabricantes de compiladores crean también sus propias
+      herramientas para construir proyectos. Estás herramientas
+      preguntan qué ficheros hay en el proyecto y determinan las
+      relaciones entre ellos. Estas herramientas utilizan algo similar a
+      un <code class="filename">makefile</code>, normalmente llamado
+      <span class="emphasis"><em>fichero de proyecto</em></span>, pero el entorno de
+      programación mantiene este fichero para que el programador no
+      tenga que preocuparse de él. La configuración y uso de los
+      ficheros de proyecto varía de un entorno de desarrollo a otro, de
+      modo que tendrá que buscar la documentación apropiada en cada caso
+      (aunque esas herramientas proporcionadas por el fabricante
+      normalmente son tan simples de usar que es fácil aprender a
+      usarlas jugando un poco con ellas - mi método educativo favorito).
+    </p>
+      <p>
+      Los <code class="filename">makefiles</code> que acompañan a este libro
+      deberían funcionar bien incluso si también usa una herramienta
+      específica para construcción de proyectos.
+    </p>
+      <div class="sect2" title="3.11.1. Las actividades de Make">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5043128"></a>3.11.1. Las actividades de Make</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Cuando escribe <span class="command"><strong>make</strong></span> (o cualquiera que sea el
+	nombre del su programa <span class="command"><strong>make</strong></span>),
+	<span class="command"><strong>make</strong></span> busca un fichero llamado
+	<code class="filename">makefile</code> o <code class="filename">Makefile</code> en
+	el directorio actual, que usted habrá creado para su
+	proyecto. Este fichero contiene una lista de dependencias entre
+	ficheros fuente, <span class="command"><strong>make</strong></span> comprueba las fechas de
+	los ficheros. Si un fichero tiene una fecha más antigua que el
+	fichero del que depende, <span class="command"><strong>make</strong></span> ejecuta la
+	<span class="emphasis"><em>regla</em></span> indicada después de la dependencia.
+      </p>
+        <p>
+	Todos los comentarios de los <code class="filename">makefiles</code>
+	empiezan con un <span class="token">#</span> y continúan hasta el fina
+	de la línea.
+      </p>
+        <p>
+	Como un ejemplo sencillo, el <code class="filename">makefile</code> para
+	una programa llamado «hello» podría contener:
+      </p>
+        <pre class="programlisting">
+<span class="hl ppc"># A comment</span>
+hello<span class="hl opt">.</span>exe<span class="hl opt">:</span> hello<span class="hl opt">.</span>cpp
+        mycompiler hello<span class="hl opt">.</span>cpp
+</pre>
+        <p>
+	Esto dice que <code class="filename">hello.exe</code> (el objetivo)
+	depende de <code class="filename">hello.cpp</code>. Cuando
+	<code class="filename">hello.cpp</code> tiene una fecha más reciente que
+	<code class="filename">hello.exe</code>, <span class="command"><strong>make</strong></span> ejecuta
+	la «regla» <span class="command"><strong>mycompiler
+	hello.cpp</strong></span>. Puede haber múltiples dependencias y
+	múltiples reglas. Muchas implementaciones de
+	<span class="command"><strong>make</strong></span> requieren que todas las reglas empiecen
+	con un tabulador. Para lo demás, por norma general los espacios
+	en blanco se ignoran de modo que se pueden usar a efectos de
+	legibilidad.
+      </p>
+        <p>
+	Las reglas no están restringidas a llamadas al compilador; puede
+	llamar a cualquier programa que quiera. Creando grupos de reglas
+	de dependencia, puede modificar sus ficheros fuentes, escribir
+	<code class="filename">make</code> y estar seguro de que todos los
+	fichero afectados serán re-construidos correctamente.
+      </p>
+        <div class="sect3" title="Macros">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp5053232"></a>Macros</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Un <code class="filename">makefile</code> puede contener
+	  <span class="emphasis"><em>macros</em></span> (tenga en cuenta que estas macros
+	  no tienen nada que ver con las del preprocesador de C/C++). La
+	  macros permiten reemplazar cadenas de texto. Los
+	  <code class="filename">makefiles</code> del libro usan una macro para
+	  invocar el compilador de C++. Por ejemplo,
+	</p>
+          <pre class="programlisting">
+CPP <span class="hl opt">=</span> mycompiler
+hello<span class="hl opt">.</span>exe<span class="hl opt">:</span> hello<span class="hl opt">.</span>cpp
+        $<span class="hl opt">(</span>CPP<span class="hl opt">)</span> hello<span class="hl opt">.</span>cpp
+</pre>
+          <p>
+	  El <span class="token">=</span> se usa para indicar que
+	  <code class="function">CPP</code> es una macro, y el
+	  <span class="token">$</span> y los paréntesis expanden la macro. En
+	  este caso, la expansión significa que la llamada a la macro
+	  <code class="varname">$(CPP)</code> será reemplazada con la cadena
+	  <code class="literal">mycompiler</code>. Con esta macro, si quiere
+	  utilizar un compilador diferente llamado
+	  <span class="command"><strong>cpp</strong></span>, sólo tiene que cambiar la macro a:
+	</p>
+          <pre class="programlisting">
+CPP <span class="hl opt">=</span> cpp
+</pre>
+          <p>
+	  También puede añadir a la macro opciones del compilador, etc.,
+	  o usar otras macros para añadir dichas opciones.
+	</p>
+        </div>
+        <div class="sect3" title="Reglas de sufijo">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp5058424"></a>Reglas de sufijo</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Es algo tedioso tener que decir a <span class="command"><strong>make</strong></span> que
+	  invoque al compilador para cada fichero
+	  <code class="filename">cpp</code> del proyecto, cuando se sabe que
+	  básicamente siempre es el mismo proceso. Como
+	  <span class="command"><strong>make</strong></span> está diseñado para ahorrar tiempo,
+	  también tiene un modo de abreviar acciones, siempre que
+	  dependan del sufijo de los ficheros. Estas abreviaturas se
+	  llaman <span class="emphasis"><em>reglas de sufijo</em></span>. Una regla de
+	  sufijo es la la forma de indicar a <span class="command"><strong>make</strong></span>
+	  cómo convertir un fichero con cierta extensión
+	  (<code class="filename">.cpp</code> por ejemplo) en un fichero con otra
+	  extensión (<code class="filename">.obj</code> o
+	  <code class="filename">.exe</code>). Una vez que le haya indicado a
+	  <span class="command"><strong>make</strong></span> las reglas para producir un tipo de
+	  fichero a partir de otro, lo único que tiene que hacer es
+	  decirle a <span class="command"><strong>make</strong></span> cuales son las dependencias
+	  respecto a otros ficheros. Cuando <span class="command"><strong>make</strong></span>
+	  encuentra un fichero con una fecha previa a otro fichero del
+	  que depende, usa la regla para crear la versión actualizada
+	  del fichero objetivo.
+	</p>
+          <p>
+	  La regla de sufijo le dice a <span class="command"><strong>make</strong></span> que no se
+	  necesitan reglas explícitas para construir cada cosa, en su
+	  lugar le explica cómo construir cosas en base a la extensión
+	  del fichero. En este caso dice «Para contruir un fichero
+	  con extensión <code class="filename">.exe</code> a partir de uno con
+	  extensión <code class="filename">.cpp</code>, invocar el siguiente
+	  comando». Así sería para ese ejemplo:
+	</p>
+          <pre class="programlisting">
+CPP <span class="hl opt">=</span> mycompiler
+<span class="hl opt">.</span>SUFFIXES<span class="hl opt">: .</span>exe <span class="hl opt">.</span>cpp
+<span class="hl opt">.</span>cpp<span class="hl opt">.</span>exe<span class="hl opt">:</span>
+        $<span class="hl opt">(</span>CPP<span class="hl opt">)</span> $<span class="hl opt">&lt;</span>
+</pre>
+          <p>
+	  La directiva <code class="varname">.SUFFIXES</code> le dice a
+	  <span class="command"><strong>make</strong></span> que debe vigilar las extensiones que
+	  se indican porque tiene un significado especial para este
+	  <code class="filename">makefile</code> en particular. Lo siguiente que
+	  aparece es la regla de sufijo <code class="literal">.cpp.exe</code>, que
+	  dice «cómo convertir cualquier fichero con extensión
+	  <code class="filename">.cpp</code> a uno con extensión
+	  <code class="filename">.exe</code>» (cuando el fichero
+	  <code class="filename">.cpp</code> es más reciente que el fichero
+	  .<code class="filename">.exe</code>). Como antes, se usa la macro
+	  <code class="varname">$(CPP)</code>, pero aquí aparece algo nuevo:
+	  <code class="varname">$&lt;</code>. Como empieza con un
+	  <span class="token">$</span> es que es una macro, pero esta es una
+	  de las macros especiales predefinidas por
+	  <span class="command"><strong>make</strong></span>. El <code class="varname">$&lt;</code> se puede
+	  usar sólo en reglas de sufijo y significa «cualquier
+	  prerrequisito que dispare la regla» (a veces llamado
+	  <span class="emphasis"><em>dependencia</em></span>), que en este caso se refiere
+	  al «fichero <code class="filename">.cpp</code> que necesita ser
+	  compilado».
+	</p>
+          <p>
+	  Una ver que las reglas de sufijo se han fijado, puede indicar
+	  por ejemplo algo tan simple como <span class="command"><strong>make
+	  Union.exe</strong></span> y se aplicará la regla sufijo, incluso
+	  aunque no se mencione «Union» en ninguna parte
+	  del <code class="filename">makefile</code>.
+	</p>
+        </div>
+        <div class="sect3" title="Objetivos predeterminados">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp5073368"></a>Objetivos predeterminados</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Después de las macros y las reglas de sufijo,
+	  <span class="command"><strong>make</strong></span> busca la primero «regla»
+	  del fichero, y la ejecuta, a menos que se especifica una regla
+	  diferente. Así que pare el siguiente
+	  <code class="filename">makefile</code>:
+	</p>
+          <pre class="programlisting">
+CPP <span class="hl opt">=</span> mycompiler
+<span class="hl opt">.</span>SUFFIXES<span class="hl opt">: .</span>exe <span class="hl opt">.</span>cpp
+<span class="hl opt">.</span>cpp<span class="hl opt">.</span>exe<span class="hl opt">:</span>
+        $<span class="hl opt">(</span>CPP<span class="hl opt">)</span> $<span class="hl opt">&lt;</span>
+target1<span class="hl opt">.</span>exe<span class="hl opt">:</span>
+target2<span class="hl opt">.</span>exe<span class="hl opt">:</span>
+</pre>
+          <p>
+	  Si ejecuta simplemente <span class="command"><strong>make</strong></span>, se construirá
+	  <code class="filename">target1.exe</code> (usando la regla de sufijo
+	  predeterminada) porque ese es el primer objetivo que
+	  <span class="command"><strong>make</strong></span> va a encontrar. Para construir
+	  <code class="filename">target2.exe</code> se debe indicar
+	  explícitamente diciendo <span class="command"><strong>make
+	  target2.exe</strong></span>. Esto puede resultar tedioso de modo que
+	  normalmente se crea un objetivo «dummy» por
+	  defecto que depende del resto de objetivos, como éste:
+	</p>
+          <pre class="programlisting">
+CPP <span class="hl opt">=</span> mycompiler
+<span class="hl opt">.</span>SUFFIXES<span class="hl opt">: .</span>exe <span class="hl opt">.</span>cpp
+<span class="hl opt">.</span>cpp<span class="hl opt">.</span>exe<span class="hl opt">:</span>
+        $<span class="hl opt">(</span>CPP<span class="hl opt">)</span> $<span class="hl opt">&lt;</span>
+all<span class="hl opt">:</span> target1<span class="hl opt">.</span>exe target2<span class="hl opt">.</span>exe
+</pre>
+          <p>
+	  Aquí, <code class="literal">all</code> no existe y no hay ningún
+	  fichero llamada <code class="literal">all</code>, así que cada vez que
+	  ejecute <span class="command"><strong>make</strong></span>, el programa verá que
+	  <code class="literal">all</code> es el primer objetivo de la lista (y
+	  por tanto el objetivo por defecto), entonces comprobará que
+	  <code class="literal">all</code> no existe y analizará sus
+	  dependencias. Comprueba <code class="filename">target1.exe</code> y
+	  (usando la regla de sufijo) comprobará (1) que
+	  <code class="filename">target1.exe</code> existe y (2) que
+	  <code class="filename">target1.cpp</code> es más reciente que
+	  <code class="filename">target1.exe</code> , y si es así ejecutará la
+	  regla (si proporciona una regla explícita para un objetivo
+	  concreto, se usará esa regla en su lugar). Después pasa a
+	  analizar el siguiente fichero de la lista de objetivos por
+	  defecto. De este modo, breando una lista de objetivos por
+	  defecto (típicamente llamada <code class="literal">all</code> por convenio,
+	  aunque se puede tener cualquier nombre) puede conseguir que se
+	  construyan todos los ejecutables de su proyecto simplemente
+	  escribiendo <span class="command"><strong>make</strong></span>. Además, puede tener otras
+	  listas de objetivos para hacer otras cosas - por ejemplo,
+	  podría hacer que escribiendo <span class="command"><strong>make debug</strong></span> se
+	  reconstruyeran todos los ficheros pero incluyendo información
+	  de depuración.
+	</p>
+        </div>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5037216" href="#idp5037216" class="para">45</a>] </sup>
+	  (N. de T.) El método del que habla el autor se refiere
+	  normalmente a software instalado a partir de su código
+	  fuente. La instalación de paquetes binarios es mucho más
+	  simple y automatizada en la mayoría de las variantes actuales
+	  del sistema operativo GNU.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s10s04.html">3.10.4. Arrays de punteros a funciones</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s11s02.html">3.11.2. Los Makefiles de este libro</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s11s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

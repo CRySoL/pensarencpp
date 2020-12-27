@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>14.5. Funciones que no heredan automáticamente</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C14.html" title="14: Herencia y Composición" />
+    <link rel="prev" href="ch14s04.html" title="14.4. Ocultación de nombres" />
+    <link rel="next" href="ch14s05s02.html" title="14.5.2. Composición vs. herencia" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s04.html">14.4. Ocultación de nombres</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C14.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s05s02.html">14.5.2. Composición vs. herencia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="14.5. Funciones que no heredan automáticamente">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7895720"></a>14.5. Funciones que no heredan automáticamente</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      No todas las funciones son heredadas automáticamente desde la
+      clase base a la clase derivada. Los constructores y destructores
+      manejan la creación y la destrucción de un objeto y sólo ellos
+      saben que hacer con los aspectos de un objeto en sus clases
+      particulares y por ello los constructores y destructores
+      inferiores de la jerarquía deben llamarlos. Así, los constructores
+      y destructores no se heredan y deben ser creados específicamente
+      en cada clase derivada.
+    </p>
+      <p>
+      Además, operator= tampoco se hereda porque realiza una acción
+      parecida al constructor. Esto es, sólo porque conoce como asignar
+      todos los miembros de un objeto, la parte izquierda del = a la
+      parte derecha del otro objeto, no significa que la asignación
+      tendrá el mismo significado después de la herencia.
+    </p>
+      <p>
+      En la herencia, estas funciones son creadas por el compilador si
+      no son creadas por usted. (Con constructores, no se pueden crear
+      constructores para que el compilador cree el constructor por
+      defecto y el constructor copia.) Esto fue brevemente descrito en
+      el capítulo 6. Los constructores creados se usan en inicialización
+      de sus miembros y la creación del operator= usa la asignación de
+      los miembros. A continuación, un ejemplo de las funciones que son
+      creadas por el compilador.
+    </p>
+      <div class="example">
+        <a id="idp7899128"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C14:SynthesizedFunctions.cpp</span>
+<span class="hl slc">// Functions that are synthesized by the compiler</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> GameBoard <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">GameBoard</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;GameBoard()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwd">GameBoard</span><span class="hl opt">(</span><span class="hl kwb">const</span> GameBoard<span class="hl opt">&amp;) {</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;GameBoard(const GameBoard&amp;)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  GameBoard<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> GameBoard<span class="hl opt">&amp;) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;GameBoard::operator=()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">GameBoard</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~GameBoard()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Game <span class="hl opt">{</span>
+  GameBoard gb<span class="hl opt">;</span> <span class="hl slc">// Composition</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Default GameBoard constructor called:</span>
+  <span class="hl kwd">Game</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Game()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl slc">// You must explicitly call the GameBoard</span>
+  <span class="hl slc">// copy-constructor or the default constructor</span>
+  <span class="hl slc">// is automatically called instead:</span>
+  <span class="hl kwd">Game</span><span class="hl opt">(</span><span class="hl kwb">const</span> Game<span class="hl opt">&amp;</span> g<span class="hl opt">) :</span> <span class="hl kwd">gb</span><span class="hl opt">(</span>g<span class="hl opt">.</span>gb<span class="hl opt">) {</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Game(const Game&amp;)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  <span class="hl kwd">Game</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Game(int)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  Game<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Game<span class="hl opt">&amp;</span> g<span class="hl opt">) {</span>
+    <span class="hl slc">// You must explicitly call the GameBoard</span>
+    <span class="hl slc">// assignment operator or no assignment at </span>
+    <span class="hl slc">// all happens for gb!</span>
+    gb <span class="hl opt">=</span> g<span class="hl opt">.</span>gb<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Game::operator=()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">class</span> Other <span class="hl opt">{};</span> <span class="hl slc">// Nested class</span>
+  <span class="hl slc">// Automatic type conversion:</span>
+  <span class="hl kwc">operator</span> <span class="hl kwd">Other</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Game::operator Other()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">Other</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Game</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Game()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Chess <span class="hl opt">:</span> <span class="hl kwc">public</span> Game <span class="hl opt">{};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Game<span class="hl opt">::</span>Other<span class="hl opt">) {}</span>
+
+<span class="hl kwc">class</span> Checkers <span class="hl opt">:</span> <span class="hl kwc">public</span> Game <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Default base-class constructor called:</span>
+  <span class="hl kwd">Checkers</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Checkers()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl slc">// You must explicitly call the base-class</span>
+  <span class="hl slc">// copy constructor or the default constructor</span>
+  <span class="hl slc">// will be automatically called instead:</span>
+  <span class="hl kwd">Checkers</span><span class="hl opt">(</span><span class="hl kwb">const</span> Checkers<span class="hl opt">&amp;</span> c<span class="hl opt">) :</span> <span class="hl kwd">Game</span><span class="hl opt">(</span>c<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Checkers(const Checkers&amp; c)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Checkers<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Checkers<span class="hl opt">&amp;</span> c<span class="hl opt">) {</span>
+    <span class="hl slc">// You must explicitly call the base-class</span>
+    <span class="hl slc">// version of operator=() or no base-class</span>
+    <span class="hl slc">// assignment will happen:</span>
+    Game<span class="hl opt">::</span><span class="hl kwc">operator</span><span class="hl opt">=(</span>c<span class="hl opt">);</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Checkers::operator=()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Chess d1<span class="hl opt">;</span>  <span class="hl slc">// Default constructor</span>
+  Chess <span class="hl kwd">d2</span><span class="hl opt">(</span>d1<span class="hl opt">);</span> <span class="hl slc">// Copy-constructor</span>
+<span class="hl slc">//! Chess d3(1); // Error: no int constructor</span>
+  d1 <span class="hl opt">=</span> d2<span class="hl opt">;</span> <span class="hl slc">// Operator= synthesized</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>d1<span class="hl opt">);</span> <span class="hl slc">// Type-conversion IS inherited</span>
+  Game<span class="hl opt">::</span>Other go<span class="hl opt">;</span>
+<span class="hl slc">//!  d1 = go; // Operator= not synthesized </span>
+           <span class="hl slc">// for differing types</span>
+  Checkers c1<span class="hl opt">,</span> <span class="hl kwd">c2</span><span class="hl opt">(</span>c1<span class="hl opt">);</span>
+  c1 <span class="hl opt">=</span> c2<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 14.10. C14/SynthesizedFunctions.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Los constructores y el operator= de GameBoard y Game se describen
+      por si solos y por ello distinguirá cuando son utilizados por el
+      compilador. Además, el operador Other() ejecuta una conversión
+      automática de tipo desde un objeto Game a un objeto de la clase
+      anidada Other. La clase Chess simplemente hereda de Game y no crea
+      ninguna función (sólo para ver como responde el compilador) La
+      función f() coge un objeto Other para comprobar la conversión
+      automática del tipo.
+    </p>
+      <p>
+      En main(), el constructor creado por defecto y el constructor
+      copia de la clase derivada Chess son ejecutados. Las versiones de
+      Game de estos constructores son llamados como parte de la
+      jerarquía de llamadas a los constructores. Aun cuando esto es
+      parecido a la herencia, los nuevos constructores son realmente
+      creados por el compilador. Como es de esperar, ningún constructor
+      con argumentos es ejecutado automáticamente porque es demasiado
+      trabajo para el compilador y no es capaz de intuirlo.
+    </p>
+      <p>
+      El operator= es también es creado como una nueva función en Chess
+      usando la asignación (así, la versión de la clase base es
+      ejecutada) porque esta función no fue explícitamente escrita en la
+      nueva clase. Y, por supuesto el destructor es creado
+      automáticamente por el compilador.
+    </p>
+      <p>
+      El porqué de todas estas reglas acerca de la reescritura de
+      funciones en relación a la creación de un objeto pueden parecer un
+      poco extrañas en una primera impresión y como se heredan las
+      conversiones automáticas de tipo. Pero todo esto tiene sentido -
+      si existen suficiente piezas en Game para realizar un objeto
+      Other, aquellas piezas están todavía en cualquier objeto derivado
+      de Game y el tipo de conversión es válido (aun cuando puede, si lo
+      desea, redefinirlo).
+    </p>
+      <p>
+      El operator= es creado automáticamente sólo para asignar objeto
+      del mismo tipo. Si desea asignar otro tipo, deberá escribir el
+      operator= usted mismo.
+    </p>
+      <p>
+      Si mira con detenimiento Game, observará que el constructor copia
+      y la asignación tienen llamadas explicitas a constructor copia del
+      objeto miembro y al operador de asignación. En la mayoría de
+      ocasiones, deberá hacer esto porque sino, en vez del constructor
+      copia, será llamado el constructor por defecto del objeto miembro,
+      y en el caso del operador de asignación, ¡ninguna asignación se
+      hará en los objetos miembros!
+    </p>
+      <p>
+      Por último, fíjese en Checkers, dónde explícitamente se escribe un
+      constructor por defecto, constructor copia y los operadores de
+      asignación. En el caso del constructor por defecto, el constructor
+      por defecto de la clase base se llama automáticamente, y esto es
+      lo normalmente que se desea hacer. Pero, aquí existe un punto
+      importante, tan pronto que se decide escribir nuestro propio
+      constructor copia y operador de asignación, el compilador asume
+      que usted sabe lo que esta haciendo y no ejecutará automáticamente
+      las versiones de la clase base así como las funciones creadas
+      automáticamente. Si se quiere ejecutar las versiones de la clase
+      base, debe llamarlas explícitamente. En el constructor copia de
+      Checkers, esta llamada aparece en la lista de inicialización del
+      constructor:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwd">Checkers</span><span class="hl opt">(</span><span class="hl kwb">const</span> Checkers<span class="hl opt">&amp;</span> c<span class="hl opt">) :</span> <span class="hl kwd">Game</span><span class="hl opt">(</span>c<span class="hl opt">) {</span>
+</pre>
+      <p>
+      En el operador de asignación de Checkers, la clase base se llama
+      en la primera línea del cuerpo de la función:
+    </p>
+      <pre class="programlisting">
+Game<span class="hl opt">::</span><span class="hl kwc">operator</span><span class="hl opt">=(</span>c<span class="hl opt">);</span>
+</pre>
+      <p>
+      Estas llamadas deben seguirse de forma canónica cuando usa
+      cualquier clase derivada.
+    </p>
+      <div class="sect2" title="14.5.1. Herencia y métodos estáticos">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7912056"></a>14.5.1. Herencia y métodos estáticos</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Las funciones miembro estáticas funcionan igual que las
+	funciones miembros no estáticas:
+      </p>
+        <div class="orderedlist">
+          <ol class="orderedlist" type="1">
+            <li class="listitem">
+              <p>
+	    Son heredadas en la clase derivada.
+	  </p>
+            </li>
+            <li class="listitem">
+              <p>
+	    Si redefine un miembro estático, el resto de funciones
+	    sobrecargadas en la clase base son ocultas.
+	  </p>
+            </li>
+            <li class="listitem">
+              <p>
+	    Si cambia la signatura de una función en la clase base,
+	    todas las versiones con ese nombre de función en la clase
+	    base son ocultadas (esto es realmente una variación del
+	    punto anterior).
+	  </p>
+            </li>
+          </ol>
+        </div>
+        <p>
+	Sin embargo, las funciones miembro estáticas no pueden ser
+	virtuales (este tema se cubrirá detenidamente en el capítulo
+	15).
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s04.html">14.4. Ocultación de nombres</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C14.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s05s02.html">14.5.2. Composición vs. herencia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

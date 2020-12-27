@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.5. Especificaciones de enlazado alternativo</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C10.html" title="10: Control de nombres" />
+    <link rel="prev" href="ch10s04.html" title="10.4. Dependencia en la inicialización de variables estáticas" />
+    <link rel="next" href="ch10s06.html" title="10.6. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04.html">10.4. Dependencia en la inicialización de variables
+      estáticas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06.html">10.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.5. Especificaciones de enlazado alternativo">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6771544"></a>10.5. Especificaciones de enlazado alternativo</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      ¿Qué pasa si está escribiendo un programa en C++ y quiere usar
+      una librería de C? Si hace uso de la declaración de funciones de
+      C,
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">float</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span> a<span class="hl opt">,</span> <span class="hl kwb">char</span> b<span class="hl opt">);</span>
+</pre>
+      <p>
+      el compilador de C++ adornará el nombre como algo tipo
+      <code class="literal">_f_int_char</code> para permitir la sobrecarga de la
+      función (y el enlazado con verificación de tipos). De todas
+      formas, el compilador de C que compiló su librería C
+      definitivamente no decoró ese nombre, por lo que su nombre
+      interno será <code class="literal">_f</code>. Así pues, el enlazador no
+      será capaz de resolver sus llamadas tipo C++ a
+      <code class="function">f()</code>.
+    </p>
+      <p>
+      La forma de resolver esto que se propone en C++ es la
+      <span class="emphasis"><em>especificación de enlazado alternativo</em></span>, que
+      se produjo en el lenguaje sobrecargando la palabra clave
+      <code class="keyword">extern</code>. A la palabra clave <code class="keyword">extern</code> le sigue una
+      cadena que especifica el enlazado deseado para la declaración,
+      seguido por la declaración:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl str">&quot;C&quot;</span> <span class="hl kwb">float</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span> a<span class="hl opt">,</span> <span class="hl kwb">char</span> b<span class="hl opt">);</span>
+</pre>
+      <p>
+      Esto le dice al compilador que <code class="function">f()</code> tiene
+      enlazado tipo C, de forma que el compilador no decora el
+      nombre. Las dos únicas especificaciones de enlazado soportadas
+      por el estándar son «C» y «C++», pero algunos vendedores ofrecen
+      compiladores que también soportan otros lenguajes.
+    </p>
+      <p>
+      Si tiene un grupo de declaraciones con enlazado alternativo,
+      póngalas entre llaves, como a continuación:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl str">&quot;C&quot;</span> <span class="hl opt">{</span>
+    <span class="hl kwb">float</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span> a<span class="hl opt">,</span> <span class="hl kwb">char</span> b<span class="hl opt">);</span>
+    <span class="hl kwb">double</span> <span class="hl kwd">d</span><span class="hl opt">(</span><span class="hl kwb">int</span> a<span class="hl opt">,</span> <span class="hl kwb">char</span> b<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+      O, para archivos de cabecera,
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl str">&quot;C&quot;</span> <span class="hl opt">{</span>
+    <span class="hl ppc">#include</span> <span class="hl pps">&quot;Myheader.h&quot;</span><span class="hl ppc"></span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+      La mayoría de compiladores disponibles de C++ manejan las
+      especificaciones de enlazado alternativo dentro de sus propios
+      archivos de cabecera que trabajan tanto con C como con C++, por
+      lo que no tiene que preocuparse de eso.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04.html">10.4. Dependencia en la inicialización de variables
+      estáticas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06.html">10.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

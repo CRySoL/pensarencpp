@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.9. Estrategia: elegir el algoritno en tiempo de ejecución</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s08.html" title="9.8. Template Method" />
+    <link rel="next" href="ch09s10.html" title="9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s08.html">9.8. Template Method</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s10.html">9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s10.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.9. Estrategia: elegir el algoritno en tiempo de ejecución">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5110448"></a>9.9. Estrategia: elegir el algoritno en tiempo de ejecución</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+Observe que el Template Method es el código que no cambia, y las
+funciones que sobreescribe son el código cambiante. Sin embargo, este
+cambio está fijado en tiempo de compilación, a través de la
+herencia. Siguiendo la máxima de preferir composición a herencia, se
+puede usar una composición para aproximar el problema de separar
+código que cambia de código que permanece, y generar el patrón
+Estrategia. Esta aproximación tiene un beneficio único: en tiempo de
+ejecución se puede insertar el código que cambia. Estrategia también
+añade un Contexto que puede ser una clase sucedánea que controla la
+selección y uso del objeto estrategia -¡igual que Estado!.
+    </p>
+      <p>
+Estrategia significa exactamente eso: se puede resolver un problema de
+muchas maneras. Imagine que ha olvidado el nombre de alguien. Estas
+son las diferentes maneras para lidiar con esa situación:
+    </p>
+      <div class="example">
+        <a id="idp5113144"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Strategy.cpp</span>
+<span class="hl slc">// The Strategy design pattern.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> NameStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">greet</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> SayHi <span class="hl opt">:</span> <span class="hl kwc">public</span> NameStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">greet</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Hi! How's it going?&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Ignore <span class="hl opt">:</span> <span class="hl kwc">public</span> NameStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">greet</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;(Pretend I don't see you)&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Admission <span class="hl opt">:</span> <span class="hl kwc">public</span> NameStrategy <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">greet</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;I'm sorry. I forgot your name.&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// The &quot;Context&quot; controls the strategy:</span>
+<span class="hl kwc">class</span> Context <span class="hl opt">{</span>
+  NameStrategy<span class="hl opt">&amp;</span> strategy<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Context</span><span class="hl opt">(</span>NameStrategy<span class="hl opt">&amp;</span> strat<span class="hl opt">) :</span> <span class="hl kwd">strategy</span><span class="hl opt">(</span>strat<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">greet</span><span class="hl opt">() {</span> strategy<span class="hl opt">.</span><span class="hl kwd">greet</span><span class="hl opt">(); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  SayHi sayhi<span class="hl opt">;</span>
+  Ignore ignore<span class="hl opt">;</span>
+  Admission admission<span class="hl opt">;</span>
+  Context <span class="hl kwd">c1</span><span class="hl opt">(</span>sayhi<span class="hl opt">),</span> <span class="hl kwd">c2</span><span class="hl opt">(</span>ignore<span class="hl opt">),</span> <span class="hl kwd">c3</span><span class="hl opt">(</span>admission<span class="hl opt">);</span>
+  c1<span class="hl opt">.</span><span class="hl kwd">greet</span><span class="hl opt">();</span>
+  c2<span class="hl opt">.</span><span class="hl kwd">greet</span><span class="hl opt">();</span>
+  c3<span class="hl opt">.</span><span class="hl kwd">greet</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.21. C10/Strategy.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+Normalmente, Context::greet() sería más complejo; es el análogo de
+Template Method porque contiene el código que no cambia. Pero puede
+ver en main() que la elección de la estrategia puede realizarse en
+tiempo de ejecución. Llendo un paso más allá, se puede combinar esto
+con el patrón Estado y cambiar la Estrategia durante el tiempo de vida
+del objeto Contexto.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s08.html">9.8. Template Method</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s10.html">9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s10.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

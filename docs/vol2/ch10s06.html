@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.6. Cooperación entre hilos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C11.html" title="10: Concurrencia" />
+    <link rel="prev" href="ch10s05s04.html" title="10.5.4. Interrupción" />
+    <link rel="next" href="ch10s06s02.html" title="10.6.2. Relación de productor/consumidor" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s04.html">10.5.4. Interrupción</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06s02.html">10.6.2. Relación de productor/consumidor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.6. Cooperación entre hilos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5463640"></a>10.6. Cooperación entre hilos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="sect2" title="10.6.1. Wait y signal">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5464592"></a>10.6.1. Wait y signal</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <div class="example">
+          <a id="idp5465872"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:WaxOMatic.cpp {RunByHand}</span>
+<span class="hl slc">// Basic thread cooperation.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Condition.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Car <span class="hl opt">{</span>
+  Mutex lock<span class="hl opt">;</span>
+  Condition condition<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> waxOn<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Car</span><span class="hl opt">() :</span> <span class="hl kwd">condition</span><span class="hl opt">(</span>lock<span class="hl opt">),</span> <span class="hl kwd">waxOn</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">waxed</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    waxOn <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Ready to buff</span>
+    condition<span class="hl opt">.</span><span class="hl kwd">signal</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buffed</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    waxOn <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span> <span class="hl slc">// Ready for another coat of wax</span>
+    condition<span class="hl opt">.</span><span class="hl kwd">signal</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">waitForWaxing</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>waxOn <span class="hl opt">==</span> <span class="hl kwa">false</span><span class="hl opt">)</span>
+      condition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">waitForBuffing</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>waxOn <span class="hl opt">==</span> <span class="hl kwa">true</span><span class="hl opt">)</span>
+      condition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> WaxOn <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CountedPtr<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;</span> car<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">WaxOn</span><span class="hl opt">(</span>CountedPtr<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;&amp;</span> c<span class="hl opt">) :</span> <span class="hl kwd">car</span><span class="hl opt">(</span>c<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Wax On!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">200</span><span class="hl opt">);</span>
+        car<span class="hl opt">-&gt;</span><span class="hl kwd">waxed</span><span class="hl opt">();</span>
+        car<span class="hl opt">-&gt;</span><span class="hl kwd">waitForBuffing</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Ending Wax On process&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> WaxOff <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CountedPtr<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;</span> car<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">WaxOff</span><span class="hl opt">(</span>CountedPtr<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;&amp;</span> c<span class="hl opt">) :</span> <span class="hl kwd">car</span><span class="hl opt">(</span>c<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        car<span class="hl opt">-&gt;</span><span class="hl kwd">waitForWaxing</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Wax Off!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">200</span><span class="hl opt">);</span>
+        car<span class="hl opt">-&gt;</span><span class="hl kwd">buffed</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Ending Wax Off process&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;Enter&gt; to quit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    CountedPtr<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;</span> <span class="hl kwd">car</span><span class="hl opt">(</span><span class="hl kwa">new</span> Car<span class="hl opt">);</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">WaxOff</span><span class="hl opt">(</span>car<span class="hl opt">));</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">WaxOn</span><span class="hl opt">(</span>car<span class="hl opt">));</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.29. C11/WaxOMatic.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s04.html">10.5.4. Interrupción</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06s02.html">10.6.2. Relación de productor/consumidor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

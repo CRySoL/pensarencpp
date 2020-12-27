@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>12.3. Operadores sobrecargables</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C12.html" title="12: Sobrecarga de operadores" />
+    <link rel="prev" href="ch12s02.html" title="12.2. Sintaxis" />
+    <link rel="next" href="ch12s03s02.html" title="12.3.2. Operadores binarios" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s02.html">12.2. Sintaxis</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s03s02.html">12.3.2. Operadores binarios</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="12.3. Operadores sobrecargables">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7127360"></a>12.3. Operadores sobrecargables </h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Aunque puede sobrecargar casi todos los operadores disponibles en C, el uso de
+      operadores sobrecargados es bastante restrictivo. En particular, no puede combinar
+      operadores que actualmente no tienen significado en C (como <code class="literal">**</code> para
+      representar la potencia), no puede cambiar la precedencia de evaluación de operadores,
+      y tampoco el número de argumentos requeridos por un operador. Estas restricciones
+      existen para prevenir que la creación de nuevos operadores ofusquen el significado
+	  en lugar de clarificarlo.
+	</p>
+      <p>
+      Las siguientes dos subsecciones muestran ejemplos de todos los operadores normales,
+      sobrecargados en la forma habitual.
+    </p>
+      <div class="sect2" title="12.3.1. Operadores unarios">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7129600"></a>12.3.1. Operadores unarios</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+		El siguiente ejemplo muestra la sintaxis para sobrecargar todos los operadores
+		unarios, en ambas formas: como funciones globales (funciones <code class="keyword">friend</code>, no
+		métodos) y como métodos. Estas expandirán la clase <code class="classname">Integer</code>
+		vista previamente y añadirá una nueva clase <code class="classname">byte</code>. El
+		significado de sus operadores particulares dependerá de la forma en que los use,
+		pero considere a los programadores del grupo antes de hacer algo inesperado.  He
+		aquí un catálogo de todas las funciones unarias:
+      </p>
+        <div class="example">
+          <a id="idp7131888"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C12:OverloadingUnaryOperators.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Non-member functions:</span>
+<span class="hl kwc">class</span> Integer <span class="hl opt">{</span>
+  <span class="hl kwb">long</span> i<span class="hl opt">;</span>
+  Integer<span class="hl opt">*</span> <span class="hl kwd">This</span><span class="hl opt">() {</span> <span class="hl kwa">return this</span><span class="hl opt">; }</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Integer</span><span class="hl opt">(</span><span class="hl kwb">long</span> ll <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ll<span class="hl opt">) {}</span>
+  <span class="hl slc">// No side effects takes const&amp; argument:</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">+(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer
+    <span class="hl kwc">operator</span><span class="hl opt">-(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer
+    <span class="hl kwc">operator</span><span class="hl opt">~(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl kwc">friend</span> Integer<span class="hl opt">*</span>
+    <span class="hl kwc">operator</span><span class="hl opt">&amp;(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">int</span>
+    <span class="hl kwc">operator</span><span class="hl opt">!(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl slc">// Side effects have non-const&amp; argument:</span>
+  <span class="hl slc">// Prefix:</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">++(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl slc">// Postfix:</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer
+    <span class="hl kwc">operator</span><span class="hl opt">++(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">,</span> <span class="hl kwb">int</span><span class="hl opt">);</span>
+  <span class="hl slc">// Prefix:</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span>
+    <span class="hl kwc">operator</span><span class="hl opt">--(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">);</span>
+  <span class="hl slc">// Postfix:</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">const</span> Integer
+    <span class="hl kwc">operator</span><span class="hl opt">--(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">,</span> <span class="hl kwb">int</span><span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Global operators:</span>
+<span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">+(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;+Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> a<span class="hl opt">;</span> <span class="hl slc">// Unary + has no effect</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">const</span> Integer <span class="hl kwc">operator</span><span class="hl opt">-(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;-Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl kwd">Integer</span><span class="hl opt">(-</span>a<span class="hl opt">.</span>i<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">const</span> Integer <span class="hl kwc">operator</span><span class="hl opt">~(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl kwd">Integer</span><span class="hl opt">(~</span>a<span class="hl opt">.</span>i<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+Integer<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">&amp;(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;&amp;Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> a<span class="hl opt">.</span><span class="hl kwd">This</span><span class="hl opt">();</span> <span class="hl slc">// &amp;a is recursive!</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">!(</span><span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;!Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl opt">!</span>a<span class="hl opt">.</span>i<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl slc">// Prefix; return incremented value</span>
+<span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">++(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;++Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  a<span class="hl opt">.</span>i<span class="hl opt">++;</span>
+  <span class="hl kwa">return</span> a<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl slc">// Postfix; return the value before increment:</span>
+<span class="hl kwb">const</span> Integer <span class="hl kwc">operator</span><span class="hl opt">++(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">,</span> <span class="hl kwb">int</span><span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Integer++</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  Integer <span class="hl kwd">before</span><span class="hl opt">(</span>a<span class="hl opt">.</span>i<span class="hl opt">);</span>
+  a<span class="hl opt">.</span>i<span class="hl opt">++;</span>
+  <span class="hl kwa">return</span> before<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl slc">// Prefix; return decremented value</span>
+<span class="hl kwb">const</span> Integer<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">--(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;--Integer</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  a<span class="hl opt">.</span>i<span class="hl opt">--;</span>
+  <span class="hl kwa">return</span> a<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl slc">// Postfix; return the value before decrement:</span>
+<span class="hl kwb">const</span> Integer <span class="hl kwc">operator</span><span class="hl opt">--(</span>Integer<span class="hl opt">&amp;</span> a<span class="hl opt">,</span> <span class="hl kwb">int</span><span class="hl opt">) {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Integer--</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+  Integer <span class="hl kwd">before</span><span class="hl opt">(</span>a<span class="hl opt">.</span>i<span class="hl opt">);</span>
+  a<span class="hl opt">.</span>i<span class="hl opt">--;</span>
+  <span class="hl kwa">return</span> before<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Show that the overloaded operators work:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Integer a<span class="hl opt">) {</span>
+  <span class="hl opt">+</span>a<span class="hl opt">;</span>
+  <span class="hl opt">-</span>a<span class="hl opt">;</span>
+  <span class="hl opt">~</span>a<span class="hl opt">;</span>
+  Integer<span class="hl opt">*</span> ip <span class="hl opt">= &amp;</span>a<span class="hl opt">;</span>
+  <span class="hl opt">!</span>a<span class="hl opt">;</span>
+  <span class="hl opt">++</span>a<span class="hl opt">;</span>
+  a<span class="hl opt">++;</span>
+  <span class="hl opt">--</span>a<span class="hl opt">;</span>
+  a<span class="hl opt">--;</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Member functions (implicit &quot;this&quot;):</span>
+<span class="hl kwc">class</span> Byte <span class="hl opt">{</span>
+  <span class="hl kwb">unsigned char</span> b<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Byte</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> bb <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">b</span><span class="hl opt">(</span>bb<span class="hl opt">) {}</span>
+  <span class="hl slc">// No side effects: const member function:</span>
+  <span class="hl kwb">const</span> Byte<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">+()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;+Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const</span> Byte <span class="hl kwc">operator</span><span class="hl opt">-()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;-Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">Byte</span><span class="hl opt">(-</span>b<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const</span> Byte <span class="hl kwc">operator</span><span class="hl opt">~()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">Byte</span><span class="hl opt">(~</span>b<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  Byte <span class="hl kwc">operator</span><span class="hl opt">!()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;!Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">Byte</span><span class="hl opt">(!</span>b<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  Byte<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">&amp;() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;&amp;Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Side effects: non-const member function:</span>
+  <span class="hl kwb">const</span> Byte<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span> <span class="hl slc">// Prefix</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;++Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    b<span class="hl opt">++;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const</span> Byte <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl slc">// Postfix</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Byte++</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    Byte <span class="hl kwd">before</span><span class="hl opt">(</span>b<span class="hl opt">);</span>
+    b<span class="hl opt">++;</span>
+    <span class="hl kwa">return</span> before<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const</span> Byte<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">--() {</span> <span class="hl slc">// Prefix</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;--Byte</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl opt">--</span>b<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">const</span> Byte <span class="hl kwc">operator</span><span class="hl opt">--(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl slc">// Postfix</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Byte--</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    Byte <span class="hl kwd">before</span><span class="hl opt">(</span>b<span class="hl opt">);</span>
+    <span class="hl opt">--</span>b<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> before<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">(</span>Byte b<span class="hl opt">) {</span>
+  <span class="hl opt">+</span>b<span class="hl opt">;</span>
+  <span class="hl opt">-</span>b<span class="hl opt">;</span>
+  <span class="hl opt">~</span>b<span class="hl opt">;</span>
+  Byte<span class="hl opt">*</span> bp <span class="hl opt">= &amp;</span>b<span class="hl opt">;</span>
+  <span class="hl opt">!</span>b<span class="hl opt">;</span>
+  <span class="hl opt">++</span>b<span class="hl opt">;</span>
+  b<span class="hl opt">++;</span>
+  <span class="hl opt">--</span>b<span class="hl opt">;</span>
+  b<span class="hl opt">--;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Integer a<span class="hl opt">;</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>a<span class="hl opt">);</span>
+  Byte b<span class="hl opt">;</span>
+  <span class="hl kwd">g</span><span class="hl opt">(</span>b<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 12.2. C12/OverloadingUnaryOperators.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		Las funciones están agrupadas de acuerdo a la forma en que se pasan los
+		argumentos.  Más tarde se darán unas cuantas directrices de cómo pasar y devolver
+		argumentos. Las clases expuestas anteriormente (y las que siguen en la siguiente
+		sección) son las típicas, así que empiece con ellas como un patrón cuando
+		sobrecargue sus propios operadores.
+      </p>
+        <div class="sect3" title="Incremento y decremento">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp7139064"></a>Incremento y decremento</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+		  Los operadores de incremento<code class="literal">++</code> y de decremento <code class="literal">--</code>
+		  provocan un conflicto porque querrá ser capaz de llamar diferentes funciones
+		  dependiendo de si aparecen antes (prefijo) o después (postfijo) del objeto sobre
+		  el que actúan. La solución es simple, pero la gente a veces lo encuentra un poco
+		  confusa inicialmente. Cuando el compilador ve, por ejemplo, <code class="code">++a</code> (un
+		  pre-incremento), genera una llamada al <code class="function">operator++(a)</code> pero
+		  cuando ve <code class="literal">a++</code>, genera una llamada a <code class="function">operator++(a,
+		  int)</code>. Así es como el compilador diferencia entre los dos tipos,
+		  generando llamadas a funciones sobrecargadas diferentes. En
+		  <code class="filename">OverloadingUnaryOperators.cpp</code> para la versión de funciones
+		  miembro, si el compilador ve <code class="code">++b</code>, genera una llamada a
+		  <code class="function">B::operator++()</code>y si ve <code class="code">b++</code>genera una llamada a
+		  <code class="function">B::operator++(int)</code>.
+		</p>
+          <p>
+		  Todo lo que el usuario ve es que se llama a una función diferente para las
+		  versiones postfija y prefija. Internamente, sin embargo, las dos llamadas de
+		  funciones tienen diferentes firmas, así que conectan con dos cuerpos
+		  diferentes. El compilador pasa un valor constante ficticio para el argumento
+		  <code class="type">int</code> (el cual nunca se proporcionada por un identificador porque el
+		  valor nunca se usa) para generar las diferentes firmas para la versión postfija.
+		</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s02.html">12.2. Sintaxis</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s03s02.html">12.3.2. Operadores binarios</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

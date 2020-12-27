@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.4.4. Código simplificado mediante guardas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s04.html" title="9.4. Comparición de recursos limitados" />
+    <link rel="prev" href="ch09s04s03.html" title="9.4.3. Control de acceso" />
+    <link rel="next" href="ch09s04s05.html" title="9.4.5. Almacenamiento local al hilo" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s03.html">9.4.3. Control de acceso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s05.html">9.4.5. Almacenamiento local al hilo</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.4.4. Código simplificado mediante guardas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5121960"></a>9.4.4. Código simplificado mediante guardas</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	El uso de mutexes se convierte rápidamente complicado cuando
+	se introducen excepciones. Para estar seguro de que el mutes
+	siempre se libera, debe asegurar que cualquier camino a una
+	excepción incluya una llamada a release(). Además, cualquier
+	función que tenga múltiples caminos para retornar debe
+	asegurar cuidadosamente que se llama a release() en el momento
+	adecuado.
+      </p>
+      <p>
+	Esos problemas pueden se fácilmente solucionados utilizando el
+	hecho de que los objetos de la pila (automáticos) tiene un
+	destructor que siempre se llama sea cual sea la forma en que
+	salga del ámbito de la función. En la librería ZThread, esto
+	se implementa en la plantilla <code class="classname">Guard</code>. La
+	plantilla <code class="classname">Guard</code> crea objetos que
+	adquieren un objeto <code class="classname">Lockable</code> cuando se
+	construyen y lo liberan cuando son destruidos. Los
+	objetos <code class="classname">Guard</code> creados en la pila local
+	serán eliminados automáticamente independientemente de la
+	forma en el que la función finalice y siempre desbloqueará el
+	objeto <code class="classname">Lockable</code>. A continuación, el
+	ejemplo anterior reimplementado para
+	utilizar <code class="classname">Guard</code>s:
+      </p>
+      <div class="example">
+        <a id="idp5125760"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:GuardedEvenGenerator.cpp {RunByHand}</span>
+<span class="hl slc">// Simplifying mutexes with the Guard template.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;EvenChecker.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> GuardedEvenGenerator <span class="hl opt">:</span> <span class="hl kwc">public</span> Generator <span class="hl opt">{</span>
+  <span class="hl kwb">unsigned int</span> currentEvenValue<span class="hl opt">;</span>
+  Mutex lock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">GuardedEvenGenerator</span><span class="hl opt">() {</span> currentEvenValue <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">GuardedEvenGenerator</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~GuardedEvenGenerator&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">nextValue</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span>
+    Thread<span class="hl opt">::</span><span class="hl kwd">yield</span><span class="hl opt">();</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> currentEvenValue<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  EvenChecker<span class="hl opt">::</span>test<span class="hl opt">&lt;</span>GuardedEvenGenerator<span class="hl opt">&gt;();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.19. C11/GuardedEvenGenerator.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Note que el valor de retorno temporal ya no es necesario en
+	nextValue(). En general, hay menos código que escribir y la
+	probabilidad de errores por parte del usuario se reduce en
+	gran medida.
+      </p>
+      <p>
+	Una característica interesante de la
+	plantilla <code class="classname">Guard</code> es que puede ser usada
+	para manipular otros elementos de seguridad. Por ejemplo, un
+	segundo <code class="classname">Guard</code> puede ser utilizado
+	temporalmente para desbloquear un elemento de seguridad:
+      </p>
+      <div class="example">
+        <a id="idp5129240"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:TemporaryUnlocking.cpp</span>
+<span class="hl slc">// Temporarily unlocking another guard.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> TemporaryUnlocking <span class="hl opt">{</span>
+  Mutex lock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl slc">// lock is acquired</span>
+    <span class="hl slc">// ...</span>
+    <span class="hl opt">{</span>
+      Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">,</span> UnlockedScope<span class="hl opt">&gt;</span> <span class="hl kwd">h</span><span class="hl opt">(</span>g<span class="hl opt">);</span>
+      <span class="hl slc">// lock is released</span>
+      <span class="hl slc">// ...</span>
+      <span class="hl slc">// lock is acquired</span>
+    <span class="hl opt">}</span>
+    <span class="hl slc">// ...</span>
+    <span class="hl slc">// lock is released</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  TemporaryUnlocking t<span class="hl opt">;</span>
+  t<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.20. C11/TemporaryUnlocking.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Un <code class="classname">Guard</code> también puede utilizarse para
+	adquirir un lock durante un determinado tiempo y, después,
+	liberarlo:
+      </p>
+      <div class="example">
+        <a id="idp5131240"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:TimedLocking.cpp</span>
+<span class="hl slc">// Limited time locking.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> TimedLocking <span class="hl opt">{</span>
+  Mutex lock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">,</span> TimedLockedScope<span class="hl opt">&lt;</span><span class="hl num">500</span><span class="hl opt">&gt; &gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl slc">// ...</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  TimedLocking t<span class="hl opt">;</span>
+  t<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.21. C11/TimedLocking.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	En este ejemplo, se lanzará
+	una <code class="classname">Timeout_Exception</code> si el lock no
+	puede ser adquirido en 500 milisegundos.
+      </p>
+      <p>Sincronización de clases completas</p>
+      <p>
+	La librería ZThread también proporciona la
+	plantilla <code class="classname">GuardedClass</code> para crear
+	automáticamente un recubrimiento de sincronización para toda
+	una clase. Esto quiere decir que cualquier método de una clase
+	estará automáticamente protegido:
+      </p>
+      <div class="example">
+        <a id="idp5134264"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:SynchronizedClass.cpp {-dmc}</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/GuardedClass.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> MyClass <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">func1</span><span class="hl opt">() {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">func2</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  MyClass a<span class="hl opt">;</span>
+  a<span class="hl opt">.</span><span class="hl kwd">func1</span><span class="hl opt">();</span> <span class="hl slc">// Not synchronized</span>
+  a<span class="hl opt">.</span><span class="hl kwd">func2</span><span class="hl opt">();</span> <span class="hl slc">// Not synchronized</span>
+  GuardedClass<span class="hl opt">&lt;</span>MyClass<span class="hl opt">&gt;</span> <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl kwa">new</span> MyClass<span class="hl opt">);</span>
+  <span class="hl slc">// Synchronized calls, only one thread at a time allowed:</span>
+  b<span class="hl opt">-&gt;</span><span class="hl kwd">func1</span><span class="hl opt">();</span>
+  b<span class="hl opt">-&gt;</span><span class="hl kwd">func2</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.22. C11/SynchronizedClass.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	El objeto a no está sincronizado, por lo que func1() y func2()
+	pueden ser llamadas en cualquier momento por cualquier número
+	de hilos. El objeto b está protegido por el
+	recubrimiento <code class="classname">GuardedClass</code>, así que
+	cada método se sincroniza automáticamente y solo se puede
+	llamar a una función por objeto en cualquier instante.
+      </p>
+      <p>
+	El recubrimiento bloquea un tipo de nivel de granularidad, que
+	podría afectar al rendimiento.[151] Si una clase contiene
+	funciones no vinculadas, puede ser mejor sincronizarlas
+	internamente con 2 locks diferentes. Sin embargo, si se
+	encuentra haciendo esto, significa que la clase contiene
+	grupos de datos que puede no estar fuertemente
+	asociados. Considere dividir la clase en dos.
+      </p>
+      <p>
+	Proteger todos los métodos de una clase con un mutex no hace
+	que esa clase sea segura automáticamente cuando se utilicen
+	hilos. Debe tener cuidado con estas cuestiones para garantizar
+	la seguridad cuando se usan hilos.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s03.html">9.4.3. Control de acceso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s05.html">9.4.5. Almacenamiento local al hilo</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

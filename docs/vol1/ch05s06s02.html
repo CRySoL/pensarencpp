@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.6.2. Reducir la recompilación</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch05s06.html" title="5.6. Manejo de clases" />
+    <link rel="prev" href="ch05s06.html" title="5.6. Manejo de clases" />
+    <link rel="next" href="ch05s07.html" title="5.7. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s06.html">5.6. Manejo de clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s07.html">5.7. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="5.6.2. Reducir la recompilación">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5657712"></a>5.6.2. Reducir la recompilación</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Su entorno de programación provocará una recompilación de un
+	fichero si este se modifica, o si se modifica otro fichero del
+	que depende, es decir, un archivo de cabecera que se haya
+	incluido. Esto significa que cada vez que se haga un cambio
+	en una clase, ya sea a la interfaz pública o a las
+	declaraciones de los miembros privados, se provocará una
+	recompilación de todo lo que incluya ese archivo de
+	cabecera. Este efecto se conoce usualmente como <span class="emphasis"><em> el
+	  problema de la clase-base frágil</em></span>. Para un proyecto
+	grande en sus comienzos esto puede ser un gran problema pues
+	la implementación suele cambiar a menudo; si el proyecto es
+	muy grande, el tiempo de las compilaciones puede llegar a ser
+	un gran problema.
+      </p>
+      <p>
+	La técnica para resolver esto se llama a veces
+	<span class="emphasis"><em>clases manejador</em></span> o el «gato de
+	Chesire» <sup>[<a id="idp5660384" href="#ftn.idp5660384" class="footnote">53</a>]</sup> - toda la información sobre
+	la implementación desaparece excepto por un puntero, la
+	"sonrisa".  El puntero apunta a una estructura cuya definición
+	se encuentra en el fichero de implementación junto con todas
+	las definiciones de las funciones miembro. Así, siempre que la
+	interfaz no se cambie, el archivo de cabecera permanece
+	inalterado. La implementación puede cambiar a su gusto, y sólo
+	el fichero de implementación deberá ser recompilado y
+	reenlazado con el proyecto.
+      </p>
+      <p>
+	Aquí hay un ejemplo que demuestra como usar esta técnica. El
+	archivo de cabecera contiene solo la interfaz publica y un
+	puntero de una clase especificada de forma incompleta:
+      </p>
+      <div class="example">
+        <a id="idp5662536"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C05:Handle.h</span>
+<span class="hl slc">// Handle classes</span>
+<span class="hl ppc">#ifndef HANDLE_H</span>
+<span class="hl ppc">#define HANDLE_H</span>
+
+<span class="hl kwc">class</span> Handle <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Cheshire<span class="hl opt">;</span> <span class="hl slc">// Class declaration only</span>
+  Cheshire<span class="hl opt">*</span> smile<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">cleanup</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">read</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">change</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">);</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// HANDLE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.8. C05/Handle.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Esto es todo lo que el programador cliente puede ver. La linea
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">struct</span> Cheshire<span class="hl opt">;</span>
+</pre>
+      <p>
+	es una <span class="emphasis"><em>especificación de tipo incompleta</em></span>
+	o una <span class="emphasis"><em>declaración de clase</em></span> (una
+	<span class="emphasis"><em>definición de clase</em></span> debe incluir el
+	cuerpo de la clase). Le dice al compilador que
+	<span class="emphasis"><em>Chesire</em></span> es el nombre de una estructura,
+	pero no detalles sobre ella. Esta es información suficiente
+	para crear un puntero a la estructura; no puede crear un
+	objeto hasta que el cuerpo de la estructura quede definido. En
+	esta técnica, el cuerpo de la estructura está escondido en el
+	fichero de implementación:
+      </p>
+      <div class="example">
+        <a id="idp5666256"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C05:Handle.cpp {O}</span>
+<span class="hl slc">// Handle implementation</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Handle.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl slc">// Define Handle's implementation:</span>
+<span class="hl kwb">struct</span> Handle<span class="hl opt">::</span>Cheshire <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> Handle<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">() {</span>
+  smile <span class="hl opt">=</span> <span class="hl kwa">new</span> Cheshire<span class="hl opt">;</span>
+  smile<span class="hl opt">-&gt;</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Handle<span class="hl opt">::</span><span class="hl kwd">cleanup</span><span class="hl opt">() {</span>
+  <span class="hl kwa">delete</span> smile<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Handle<span class="hl opt">::</span><span class="hl kwd">read</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> smile<span class="hl opt">-&gt;</span>i<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Handle<span class="hl opt">::</span><span class="hl kwd">change</span><span class="hl opt">(</span><span class="hl kwb">int</span> x<span class="hl opt">) {</span>
+  smile<span class="hl opt">-&gt;</span>i <span class="hl opt">=</span> x<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.9. C05/Handle.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	<span class="emphasis"><em>Chesire</em></span> es una estructura anidada, así
+	que se debe ser definido con resolución de ámbito:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">struct</span> Handle<span class="hl opt">::</span>Cheshire <span class="hl opt">{</span>
+</pre>
+      <p>
+	En <code class="function">Handle::initialize()</code>, se solicita
+	espacio de almacenamiento para una estructura
+	<code class="classname">Chesire</code>, y en
+	<code class="function">Handle::cleanup()</code> se libera ese espacio.
+	Este espacio se usa para almacenar todos los datos que
+	estarían normalmente en la sección privada de la clase. Cuando
+	compile <code class="filename">Handle.cpp</code>, esta definición de la
+	estructura estará escondida en el fichero objeto donde nadie
+	puede verla. Si cambia los elementos de
+	<span class="emphasis"><em>Chesire</em></span>, el único archivo que debe ser
+	recompilado es <code class="filename">Handle.cpp</code> pues el archivo
+	de cabecera permanece inalterado.
+      </p>
+      <p>
+	El uso de <code class="classname">Handle</code> es como el uso de cualquier
+	clase: incluir la cabecera, crear objetos, y mandar mensajes.
+      </p>
+      <div class="example">
+        <a id="idp5672016"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C05:UseHandle.cpp</span>
+<span class="hl slc">//{L} Handle</span>
+<span class="hl slc">// Use the Handle class</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Handle.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Handle u<span class="hl opt">;</span>
+  u<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  u<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">();</span>
+  u<span class="hl opt">.</span><span class="hl kwd">change</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+  u<span class="hl opt">.</span><span class="hl kwd">cleanup</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.10. C05/UseHandle.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La única cosa a la que el programador cliente puede
+	acceder es a la interfaz publica, así que mientras la
+	implementación sea lo único que cambie, el fichero anterior no
+	necesita recompilarse. Así, aunque esto no es ocultación de
+	implementación perfecta, es una gran mejora.
+      </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5660384" href="#idp5660384" class="para">53</a>] </sup>Este nombre se le atribuye a
+	John Carolan, uno de los pioneros del C++, y por supuesto,
+	Lewis Carroll. Esta técnica se puede ver también como una
+	forma del tipo de diseño «puente», descrito en el
+	segundo volumen.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s06.html">5.6. Manejo de clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s07.html">5.7. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

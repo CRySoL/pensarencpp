@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.6.4. Broadcast</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s06.html" title="10.6. Cooperación entre hilos" />
+    <link rel="prev" href="ch10s06s03.html" title="10.6.3. Resolución de problemas de hilos mediante colas" />
+    <link rel="next" href="ch10s07.html" title="10.7. Bloqueo letal" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s06s03.html">10.6.3. Resolución de problemas de hilos mediante colas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s07.html">10.7. Bloqueo letal</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.6.4. Broadcast">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5491760"></a>10.6.4. Broadcast </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp5492464"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:CarBuilder.cpp {RunByHand}</span>
+<span class="hl slc">// How broadcast() works.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Condition.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TQueue.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Car <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> engine<span class="hl opt">,</span> driveTrain<span class="hl opt">,</span> wheels<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Car</span><span class="hl opt">(</span><span class="hl kwb">int</span> idn<span class="hl opt">) :</span> <span class="hl kwd">id</span><span class="hl opt">(</span>idn<span class="hl opt">),</span> <span class="hl kwd">engine</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span>
+  <span class="hl kwd">driveTrain</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span> <span class="hl kwd">wheels</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl slc">// Empty Car object:</span>
+  <span class="hl kwd">Car</span><span class="hl opt">() :</span> <span class="hl kwd">id</span><span class="hl opt">(-</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">engine</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span>
+  <span class="hl kwd">driveTrain</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span> <span class="hl kwd">wheels</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl slc">// Unsynchronized -- assumes atomic bool operations:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getId</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> id<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addEngine</span><span class="hl opt">() {</span> engine <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">engineInstalled</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> engine<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addDriveTrain</span><span class="hl opt">() {</span> driveTrain <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">driveTrainInstalled</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> driveTrain<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addWheels</span><span class="hl opt">() {</span> wheels <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">wheelsInstalled</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> wheels<span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Car<span class="hl opt">&amp;</span> c<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Car &quot;</span> <span class="hl opt">&lt;&lt;</span> c<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; [&quot;</span>
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; engine: &quot;</span> <span class="hl opt">&lt;&lt;</span> c<span class="hl opt">.</span>engine
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; driveTrain: &quot;</span> <span class="hl opt">&lt;&lt;</span> c<span class="hl opt">.</span>driveTrain
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; wheels: &quot;</span> <span class="hl opt">&lt;&lt;</span> c<span class="hl opt">.</span>wheels <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; ]&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">typedef</span> CountedPtr<span class="hl opt">&lt;</span> TQueue<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt; &gt;</span> CarQueue<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> ChassisBuilder <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CarQueue carQueue<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> counter<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">ChassisBuilder</span><span class="hl opt">(</span>CarQueue<span class="hl opt">&amp;</span> cq<span class="hl opt">) :</span> <span class="hl kwd">carQueue</span><span class="hl opt">(</span>cq<span class="hl opt">),</span><span class="hl kwd">counter</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1000</span><span class="hl opt">);</span>
+        <span class="hl slc">// Make chassis:</span>
+        Car <span class="hl kwd">c</span><span class="hl opt">(</span>counter<span class="hl opt">++);</span>
+        cout <span class="hl opt">&lt;&lt;</span> c <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl slc">// Insert into queue</span>
+        carQueue<span class="hl opt">-&gt;</span><span class="hl kwd">put</span><span class="hl opt">(</span>c<span class="hl opt">);</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;ChassisBuilder off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Cradle <span class="hl opt">{</span>
+  Car c<span class="hl opt">;</span> <span class="hl slc">// Holds current car being worked on</span>
+  <span class="hl kwb">bool</span> occupied<span class="hl opt">;</span>
+  Mutex workLock<span class="hl opt">,</span> readyLock<span class="hl opt">;</span>
+  Condition workCondition<span class="hl opt">,</span> readyCondition<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> engineBotHired<span class="hl opt">,</span> wheelBotHired<span class="hl opt">,</span> driveTrainBotHired<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Cradle</span><span class="hl opt">()</span>
+  <span class="hl opt">:</span> <span class="hl kwd">workCondition</span><span class="hl opt">(</span>workLock<span class="hl opt">),</span> <span class="hl kwd">readyCondition</span><span class="hl opt">(</span>readyLock<span class="hl opt">) {</span>
+    occupied <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    engineBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+    wheelBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+    driveTrainBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">insertCar</span><span class="hl opt">(</span>Car chassis<span class="hl opt">) {</span>
+    c <span class="hl opt">=</span> chassis<span class="hl opt">;</span>
+    occupied <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Car <span class="hl kwd">getCar</span><span class="hl opt">() {</span> <span class="hl slc">// Can only extract car once</span>
+    <span class="hl kwa">if</span><span class="hl opt">(!</span>occupied<span class="hl opt">) {</span>
+      cerr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;No Car in Cradle for getCar()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl kwa">return</span> <span class="hl kwd">Car</span><span class="hl opt">();</span> <span class="hl slc">// &quot;Null&quot; Car object</span>
+    <span class="hl opt">}</span>
+    occupied <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> c<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Access car while in cradle:</span>
+  Car<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">-&gt;() {</span> <span class="hl kwa">return</span> <span class="hl opt">&amp;</span>c<span class="hl opt">; }</span>
+  <span class="hl slc">// Allow robots to offer services to this cradle:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">offerEngineBotServices</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>workLock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>engineBotHired<span class="hl opt">)</span>
+      workCondition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+    engineBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Accept the job</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">offerWheelBotServices</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>workLock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>wheelBotHired<span class="hl opt">)</span>
+      workCondition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+    wheelBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Accept the job</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">offerDriveTrainBotServices</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>workLock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>driveTrainBotHired<span class="hl opt">)</span>
+      workCondition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+    driveTrainBotHired <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Accept the job</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Tell waiting robots that work is ready:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">startWork</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>workLock<span class="hl opt">);</span>
+    engineBotHired <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    wheelBotHired <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    driveTrainBotHired <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    workCondition<span class="hl opt">.</span><span class="hl kwd">broadcast</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Each robot reports when their job is done:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">taskFinished</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>readyLock<span class="hl opt">);</span>
+    readyCondition<span class="hl opt">.</span><span class="hl kwd">signal</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Director waits until all jobs are done:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">waitUntilWorkFinished</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>readyLock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(!(</span>c<span class="hl opt">.</span><span class="hl kwd">engineInstalled</span><span class="hl opt">() &amp;&amp;</span> c<span class="hl opt">.</span><span class="hl kwd">driveTrainInstalled</span><span class="hl opt">()</span>
+            <span class="hl opt">&amp;&amp;</span> c<span class="hl opt">.</span><span class="hl kwd">wheelsInstalled</span><span class="hl opt">()))</span>
+      readyCondition<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">typedef</span> CountedPtr<span class="hl opt">&lt;</span>Cradle<span class="hl opt">&gt;</span> CradlePtr<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Director <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CarQueue chassisQueue<span class="hl opt">,</span> finishingQueue<span class="hl opt">;</span>
+  CradlePtr cradle<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Director</span><span class="hl opt">(</span>CarQueue<span class="hl opt">&amp;</span> cq<span class="hl opt">,</span> CarQueue<span class="hl opt">&amp;</span> fq<span class="hl opt">,</span> CradlePtr cr<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">chassisQueue</span><span class="hl opt">(</span>cq<span class="hl opt">),</span> <span class="hl kwd">finishingQueue</span><span class="hl opt">(</span>fq<span class="hl opt">),</span> <span class="hl kwd">cradle</span><span class="hl opt">(</span>cr<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until chassis is available:</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">insertCar</span><span class="hl opt">(</span>chassisQueue<span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">());</span>
+        <span class="hl slc">// Notify robots car is ready for work</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">startWork</span><span class="hl opt">();</span>
+        <span class="hl slc">// Wait until work completes</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">waitUntilWorkFinished</span><span class="hl opt">();</span>
+        <span class="hl slc">// Put car into queue for further work</span>
+        finishingQueue<span class="hl opt">-&gt;</span><span class="hl kwd">put</span><span class="hl opt">(</span>cradle<span class="hl opt">-&gt;</span><span class="hl kwd">getCar</span><span class="hl opt">());</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Director off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> EngineRobot <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CradlePtr cradle<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">EngineRobot</span><span class="hl opt">(</span>CradlePtr cr<span class="hl opt">) :</span> <span class="hl kwd">cradle</span><span class="hl opt">(</span>cr<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until job is offered/accepted:</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">offerEngineBotServices</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Installing engine&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl opt">(*</span>cradle<span class="hl opt">)-&gt;</span><span class="hl kwd">addEngine</span><span class="hl opt">();</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">taskFinished</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;EngineRobot off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> DriveTrainRobot <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CradlePtr cradle<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">DriveTrainRobot</span><span class="hl opt">(</span>CradlePtr cr<span class="hl opt">) :</span> <span class="hl kwd">cradle</span><span class="hl opt">(</span>cr<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until job is offered/accepted:</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">offerDriveTrainBotServices</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Installing DriveTrain&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl opt">(*</span>cradle<span class="hl opt">)-&gt;</span><span class="hl kwd">addDriveTrain</span><span class="hl opt">();</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">taskFinished</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;DriveTrainRobot off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> WheelRobot <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CradlePtr cradle<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">WheelRobot</span><span class="hl opt">(</span>CradlePtr cr<span class="hl opt">) :</span> <span class="hl kwd">cradle</span><span class="hl opt">(</span>cr<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until job is offered/accepted:</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">offerWheelBotServices</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Installing Wheels&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl opt">(*</span>cradle<span class="hl opt">)-&gt;</span><span class="hl kwd">addWheels</span><span class="hl opt">();</span>
+        cradle<span class="hl opt">-&gt;</span><span class="hl kwd">taskFinished</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;WheelRobot off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Reporter <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CarQueue carQueue<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Reporter</span><span class="hl opt">(</span>CarQueue<span class="hl opt">&amp;</span> cq<span class="hl opt">) :</span> <span class="hl kwd">carQueue</span><span class="hl opt">(</span>cq<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        cout <span class="hl opt">&lt;&lt;</span> carQueue<span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Reporter off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;Enter&gt; to quit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    CarQueue <span class="hl kwd">chassisQueue</span><span class="hl opt">(</span><span class="hl kwa">new</span> TQueue<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;),</span>
+             <span class="hl kwd">finishingQueue</span><span class="hl opt">(</span><span class="hl kwa">new</span> TQueue<span class="hl opt">&lt;</span>Car<span class="hl opt">&gt;);</span>
+    CradlePtr <span class="hl kwd">cradle</span><span class="hl opt">(</span><span class="hl kwa">new</span> Cradle<span class="hl opt">);</span>
+    ThreadedExecutor assemblyLine<span class="hl opt">;</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">EngineRobot</span><span class="hl opt">(</span>cradle<span class="hl opt">));</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">DriveTrainRobot</span><span class="hl opt">(</span>cradle<span class="hl opt">));</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">WheelRobot</span><span class="hl opt">(</span>cradle<span class="hl opt">));</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>
+      <span class="hl kwa">new</span> <span class="hl kwd">Director</span><span class="hl opt">(</span>chassisQueue<span class="hl opt">,</span> finishingQueue<span class="hl opt">,</span> cradle<span class="hl opt">));</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Reporter</span><span class="hl opt">(</span>finishingQueue<span class="hl opt">));</span>
+    <span class="hl slc">// Start everything running by producing chassis:</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">ChassisBuilder</span><span class="hl opt">(</span>chassisQueue<span class="hl opt">));</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    assemblyLine<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.34. C11/CarBuilder.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s06s03.html">10.6.3. Resolución de problemas de hilos mediante colas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s07.html">10.7. Bloqueo letal</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

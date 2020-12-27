@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.3.3. Ceder el paso</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s03.html" title="10.3. Utilización de los hilos" />
+    <link rel="prev" href="ch10s03s02.html" title="10.3.2. Simplificación con Ejecutores" />
+    <link rel="next" href="ch10s03s04.html" title="10.3.4. Dormido" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s02.html">10.3.2. Simplificación con Ejecutores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s04.html">10.3.4. Dormido</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.3.3. Ceder el paso">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5305800"></a>10.3.3. Ceder el paso</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Si sabe que ha logrado realizar lo que necesita durante una
+	pasada a través de un bucle en su función run() (la mayoría de
+	las funciones run() suponen un periodo largo de tiempo de
+	ejecución), puede darle un toque al mecanismo de planificación
+	de hilos, decirle que ya ha hecho suficiente y que algún otro
+	hilo puede tener la CPU. Este toque (y es un toque - no hay
+	garantía de que su implementación vaya a escucharlo) adopta la
+	forma de la función yield().
+      </p>
+      <p>
+	Podemos construir una versión modificada
+	de los ejemplos de <code class="classname">LiftOff</code> cediendo el
+	paso después de cada bucle:
+      </p>
+      <div class="example">
+        <a id="idp5307696"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:YieldingTask.cpp</span>
+<span class="hl slc">// Suggesting when to switch threads with yield().</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> YieldingTask <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> countDown<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">YieldingTask</span><span class="hl opt">(</span><span class="hl kwb">int</span> ident <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">countDown</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">YieldingTask</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; completed&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> YieldingTask<span class="hl opt">&amp;</span> yt<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;#&quot;</span> <span class="hl opt">&lt;&lt;</span> yt<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> yt<span class="hl opt">.</span>countDown<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwa">true</span><span class="hl opt">) {</span>
+      cout <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl kwa">if</span><span class="hl opt">(--</span>countDown <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">yield</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">YieldingTask</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.11. C11/YieldingTask.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Puede ver que la tarea del método <code class="function">run()</code>
+	es en un bucle infinito en su totalidad. Utilizando yield(),
+	la salida se equilibra bastante que en el caso en el que no se
+	cede el paso. Pruebe a comentar la llamada a Thread::yield()
+	para ver la diferencia. Sin embargo, en general, yield() es
+	útil en raras ocasiones, y no puede contar con ella para
+	realizar un afinamiento serio sobre su aplicación.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s02.html">10.3.2. Simplificación con Ejecutores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s04.html">10.3.4. Dormido</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

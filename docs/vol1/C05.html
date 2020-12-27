@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5: Ocultar la implementación</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="prev" href="ch04s10.html" title="4.10. Ejercicios" />
+    <link rel="next" href="ch05s02.html" title="5.2. Control de acceso en C++" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s10.html">4.10. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s02.html">5.2. Control de acceso en C++</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="5: Ocultar la implementación">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C05"></a>5: Ocultar la implementación</h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C05.html#idp5550848">5.1. Establecer los límites</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s02.html">5.2. Control de acceso en C++</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s03.html">5.3. Amigos (friends)</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s04.html">5.4. Capa de objetos</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s05.html">5.5. La clase</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s06.html">5.6. Manejo de clases</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s07.html">5.7. Resumen</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch05s08.html">5.8. Ejercicios</a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <div class="highlights">
+        <p>
+      Una librería C típica contiene una estructura y una serie de
+      funciones que actúan sobre esa estructura. Hasta ahora hemos visto
+      cómo C++ toma funciones <span class="emphasis"><em>conceptualmente</em></span>
+      asociadas y las asocia <span class="emphasis"><em>literalmente</em></span>
+    </p>
+      </div>
+      <p>
+    poniendo la declaración de la función dentro del dominio de la
+    estructura, cambiando la forma en que se invoca a las funciones
+    desde las estructuras, eliminando el paso de la dirección de la
+    estructura como primer parámetro, y añadiendo un nuevo tipo al
+    programa (de ese modo no es necesario crear un <code class="keyword">typedef</code>
+    para la estructura).
+  </p>
+      <p>
+    Todo esto son mejoras, le ayuda a organizar su código haciéndolo
+    más fácil de escribir y leer. Sin embargo, hay otros aspectos
+    importantes a la hora de hacer que las librerías sean más
+    sencillas en C++, especialmente los aspectos de seguridad y
+    control. Este capítulo se centra en el tema de la frontera de las
+    estructuras.
+  </p>
+      <div class="sect1" title="5.1. Establecer los límites">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp5550848"></a>5.1. Establecer los límites</h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      En toda relación es importante tener fronteras que todas las
+      partes respeten. Cuando crea una librería, establece una relación
+      con el <span class="emphasis"><em>programador cliente</em></span> que la usa para
+      crear un programa u otra librería.
+    </p>
+        <p>
+      En una estructura de C, como casi todo en C, no hay reglas. Los
+      programadores cliente pueden hacer lo que quieran con esa
+      estructura, y no hay forma de forzar un comportamiento
+      particular. Por ejemplo, aunque vio en el capítulo anterior la
+      importancia de las funciones llamadas
+      <code class="function">initialize()</code> y <code class="function">cleanup()</code>, el
+      programador cliente tiene la opción de no llamarlas. (Veremos una
+      forma mejor de hacerlo en el capítulo siguiente.) Incluso si
+      realmente prefiere que el programador cliente no manipule
+      directamente algunos miembros de su estructura, en C no hay forma
+      de evitarlo. Todo está expuesto al todo el mundo.
+    </p>
+        <p>
+      Hay dos razones para controlar el acceso a los miembros. La
+      primera es no dejar que el programador cliente ponga las manos
+      sobre herramientas que no debería tocar, herramientas que son
+      necesarias para los entresijos del tipo definido, pero no parte
+      del interfaz que el programador cliente necesita para resolver sus
+      problemas particulares. Esto es realmente una ventaja para los
+      programadores cliente porque así pueden ver lo que es realmente
+      importante para ellos e ignorar el resto.
+    </p>
+        <p>
+      La segunda razón para el control de acceso es permitir al
+      diseñador de la librería cambiar su funcionamiento interno sin
+      preocuparse de como afectara al programador cliente. En el
+      ejemplo <code class="classname">Stack</code> del capítulo anterior,
+      podría querer solicitar espacio de almacenamiento en grandes
+      trozos, para conseguir mayor velocidad, en vez de crear un nuevo
+      espacio cada vez que un elemento es añadido. Si la interfaz y la
+      implementación están claramente separadas y protegidas, puede
+      hacerlo y forzar al programador cliente sólo a enlazar de
+      nuevo sus programas.
+    </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s10.html">4.10. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s02.html">5.2. Control de acceso en C++</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

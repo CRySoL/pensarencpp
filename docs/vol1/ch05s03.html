@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.3. Amigos (friends)</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C05.html" title="5: Ocultar la implementación" />
+    <link rel="prev" href="ch05s02.html" title="5.2. Control de acceso en C++" />
+    <link rel="next" href="ch05s03s02.html" title="5.3.2. ¿Es eso puro?" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02.html">5.2. Control de acceso en C++</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">5.3.2. ¿Es eso puro?</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="5.3. Amigos (friends)">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5574640"></a>5.3. Amigos (friends)</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      ¿Que pasa si explícitamente se quiere dar acceso a una función que
+      no es miembro de la estructura? Esto se consigue declarando la
+      función como <code class="keyword">friend</code> dentro de la declaración de
+      la estructura. Es importante que la declaración de una función
+      <code class="keyword">friend</code> se haga dentro de la declaración de la
+      estructura pues usted (y el compilador) necesita ver la
+      declaración de la estructura y todas las reglas sobre el tamaño y
+      comportamiento de ese tipo de dato. Y una regla muy importante en
+      toda relación es, «¿Quién puede acceder a mi parte
+      privada?»
+    </p>
+      <p>
+      La clase controla que código tiene acceso a sus miembros. No hay
+      ninguna manera mágica de «colarse» desde el
+      exterior si no eres <code class="keyword">friend</code>; no puedes declarar una
+      nueva clase y decir, «Hola, soy <code class="keyword">friend</code> de
+      <code class="classname">Bob</code>» y esperar ver los miembros
+      <code class="keyword">private</code> y <code class="keyword">protected</code> de
+      <code class="classname">Bob</code>.
+    </p>
+      <p>
+      Puede declarar una función global como <code class="keyword">friend</code>, también
+      puede declarar un método de otra estructura, o incluso una
+      estructura completa, como <code class="keyword">friend</code>. Aquí hay un ejemplo:
+    </p>
+      <div class="example">
+        <a id="idp5582344"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C05:Friend.cpp</span>
+<span class="hl slc">// Friend allows special access</span>
+
+<span class="hl slc">// Declaration (incomplete type specification):</span>
+<span class="hl kwb">struct</span> X<span class="hl opt">;</span>
+
+<span class="hl kwb">struct</span> Y <span class="hl opt">{</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>X<span class="hl opt">*);</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">struct</span> X <span class="hl opt">{</span> <span class="hl slc">// Definition</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">(</span>X<span class="hl opt">*,</span> <span class="hl kwb">int</span><span class="hl opt">);</span> <span class="hl slc">// Global friend</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">void</span> Y<span class="hl opt">::</span><span class="hl kwd">f</span><span class="hl opt">(</span>X<span class="hl opt">*);</span>  <span class="hl slc">// Struct member friend</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">struct</span> Z<span class="hl opt">;</span> <span class="hl slc">// Entire struct is a friend</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">void</span> <span class="hl kwd">h</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> X<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">() {</span> 
+  i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">(</span>X<span class="hl opt">*</span> x<span class="hl opt">,</span> <span class="hl kwb">int</span> i<span class="hl opt">) {</span> 
+  x<span class="hl opt">-&gt;</span>i <span class="hl opt">=</span> i<span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Y<span class="hl opt">::</span><span class="hl kwd">f</span><span class="hl opt">(</span>X<span class="hl opt">*</span> x<span class="hl opt">) {</span> 
+  x<span class="hl opt">-&gt;</span>i <span class="hl opt">=</span> <span class="hl num">47</span><span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl kwb">struct</span> Z <span class="hl opt">{</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  <span class="hl kwb">int</span> j<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">(</span>X<span class="hl opt">*</span> x<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> Z<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">() {</span> 
+  j <span class="hl opt">=</span> <span class="hl num">99</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Z<span class="hl opt">::</span><span class="hl kwd">g</span><span class="hl opt">(</span>X<span class="hl opt">*</span> x<span class="hl opt">) {</span> 
+  x<span class="hl opt">-&gt;</span>i <span class="hl opt">+=</span> j<span class="hl opt">;</span> 
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">h</span><span class="hl opt">() {</span>
+  X x<span class="hl opt">;</span>
+  x<span class="hl opt">.</span>i <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span> <span class="hl slc">// Direct data manipulation</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  X x<span class="hl opt">;</span>
+  Z z<span class="hl opt">;</span>
+  z<span class="hl opt">.</span><span class="hl kwd">g</span><span class="hl opt">(&amp;</span>x<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.3. C05/Friend.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      <code class="code">struct Y</code> tiene un método <code class="function">f()</code>
+      que modifica un objeto de tipo <code class="classname">X</code>. Aquí
+      hay un poco de lío pues en C++ el compilador necesita que usted
+      declare todo antes de poder hacer referencia a ello, así
+      <code class="code">struct Y</code> debe estar declarado antes de que su
+      método <code class="function">Y::f(X*)</code> pueda ser declarado como
+      <code class="keyword">friend</code> en <code class="code">struct X</code>. Pero para declarar
+      <code class="function">Y::f(X*)</code>, <code class="code">struct X</code> debe estar
+      declarada antes!
+    </p>
+      <p>
+      Aquí vemos la solución. Dese cuenta de que
+      <code class="function">Y::f(X*)</code> toma como argumento la dirección
+      de un objeto de tipo <code class="classname">X</code>. Esto es
+      fundamental pues el compilador siempre sabe cómo pasar una
+      dirección, que es de un tamaño fijo sin importar el tipo, aunque
+      no tenga información del tamaño real. Si intenta pasar el objeto
+      completo, el compilador necesita ver la definición completa de
+      <code class="classname">X</code>, para saber el tamaño de lo que quiere
+      pasar y cómo pasarlo, antes de que le permita declarar una
+      función como <code class="function">Y::g(X)</code>.
+    </p>
+      <p>
+      Pasando la dirección de un <code class="classname">X</code>, el compilador le
+      permite hacer una <span class="emphasis"><em>identificación de tipo
+      incompleta</em></span> de <code class="classname">X</code> antes de declarar
+      <code class="function">Y::f(X*)</code>. Esto se consigue con la declaración:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">struct</span> X<span class="hl opt">;</span>
+</pre>
+      <p>
+      Esta declaración simplemente le dice al compilador que hay una
+      estructura con ese nombre, así que es correcto referirse a ella
+      siempre que sólo se necesite el nombre.
+    </p>
+      <p>
+      Ahora, en <code class="code">struct X</code>, la función
+      <code class="function">Y::f(X*)</code> puede ser declarada como
+      <code class="keyword">friend</code> sin problemas. Si intenta declararla antes de
+      que el compilador haya visto la especificación completa de
+      <code class="classname">Y</code>, habría dado un error. Esto es una
+      restricción para asegurar consistencia y eliminar errores.
+    </p>
+      <p>
+      Fíjese en las otras dos funciones <code class="keyword">friend</code>. La
+      primera declara una función global ordinaria
+      <code class="function">g()</code> como <code class="keyword">friend</code>. Pero
+      <code class="function">g()</code> no ha sido declarada antes como global!. Se
+      puede usar <code class="keyword">friend</code> de esta forma para declarar
+      la función y darle el estado de <code class="keyword">friend</code>
+      simultáneamente. Esto se extiende a estructuras completas:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">friend</span> <span class="hl kwb">struct</span> Z<span class="hl opt">;</span>
+</pre>
+      <p>
+      es una especificación incompleta del tipo <code class="classname">Z</code>, y
+      da a toda la estructura el estado de <code class="keyword">friend</code>.
+    </p>
+      <div class="sect2" title="5.3.1. Amigas anidadas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5599168"></a>5.3.1. Amigas anidadas</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Hacer una estructura anidada no le da acceso a los miembros
+	privados. Para conseguir esto, se debe: primero, declarar (sin
+	definir) la estructura anidada, después declararla como
+	<code class="keyword">friend</code>, y finalmente definir la estructura. La
+	definición de la estructura debe estar separada de su
+	declaración como <code class="keyword">friend</code>, si no el compilador
+	la vería como no miembro. Aquí hay un ejemplo:
+      </p>
+        <div class="example">
+          <a id="idp5601448"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C05:NestFriend.cpp</span>
+<span class="hl slc">// Nested friends</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cstring&gt;</span> <span class="hl slc">// memset()</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">const int</span> sz <span class="hl opt">=</span> <span class="hl num">20</span><span class="hl opt">;</span>
+
+<span class="hl kwb">struct</span> Holder <span class="hl opt">{</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  <span class="hl kwb">int</span> a<span class="hl opt">[</span>sz<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  <span class="hl kwb">struct</span> Pointer<span class="hl opt">;</span>
+  <span class="hl kwc">friend</span> <span class="hl kwb">struct</span> Pointer<span class="hl opt">;</span>
+  <span class="hl kwb">struct</span> Pointer <span class="hl opt">{</span>
+  <span class="hl kwc">private</span><span class="hl opt">:</span>
+    Holder<span class="hl opt">*</span> h<span class="hl opt">;</span>
+    <span class="hl kwb">int</span><span class="hl opt">*</span> p<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">(</span>Holder<span class="hl opt">*</span> h<span class="hl opt">);</span>
+    <span class="hl slc">// Move around in the array:</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">next</span><span class="hl opt">();</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">previous</span><span class="hl opt">();</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">top</span><span class="hl opt">();</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">end</span><span class="hl opt">();</span>
+    <span class="hl slc">// Access values:</span>
+    <span class="hl kwb">int</span> <span class="hl kwd">read</span><span class="hl opt">();</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">set</span><span class="hl opt">(</span><span class="hl kwb">int</span> i<span class="hl opt">);</span>
+  <span class="hl opt">};</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">() {</span>
+  <span class="hl kwd">memset</span><span class="hl opt">(</span>a<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> sz <span class="hl opt">*</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">));</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">(</span>Holder<span class="hl opt">*</span> rv<span class="hl opt">) {</span>
+  h <span class="hl opt">=</span> rv<span class="hl opt">;</span>
+  p <span class="hl opt">=</span> rv<span class="hl opt">-&gt;</span>a<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">next</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>p <span class="hl opt">&lt; &amp;(</span>h<span class="hl opt">-&gt;</span>a<span class="hl opt">[</span>sz <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">]))</span> p<span class="hl opt">++;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">previous</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>p <span class="hl opt">&gt; &amp;(</span>h<span class="hl opt">-&gt;</span>a<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]))</span> p<span class="hl opt">--;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">top</span><span class="hl opt">() {</span>
+  p <span class="hl opt">= &amp;(</span>h<span class="hl opt">-&gt;</span>a<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">end</span><span class="hl opt">() {</span>
+  p <span class="hl opt">= &amp;(</span>h<span class="hl opt">-&gt;</span>a<span class="hl opt">[</span>sz <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">]);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">read</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> <span class="hl opt">*</span>p<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Holder<span class="hl opt">::</span>Pointer<span class="hl opt">::</span><span class="hl kwd">set</span><span class="hl opt">(</span><span class="hl kwb">int</span> i<span class="hl opt">) {</span>
+  <span class="hl opt">*</span>p <span class="hl opt">=</span> i<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Holder h<span class="hl opt">;</span>
+  Holder<span class="hl opt">::</span>Pointer hp<span class="hl opt">,</span> hp2<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+
+  h<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  hp<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">(&amp;</span>h<span class="hl opt">);</span>
+  hp2<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">(&amp;</span>h<span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> sz<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    hp<span class="hl opt">.</span><span class="hl kwd">set</span><span class="hl opt">(</span>i<span class="hl opt">);</span>
+    hp<span class="hl opt">.</span><span class="hl kwd">next</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  hp<span class="hl opt">.</span><span class="hl kwd">top</span><span class="hl opt">();</span>
+  hp2<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span>i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> sz<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;hp = &quot;</span> <span class="hl opt">&lt;&lt;</span> hp<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">()</span>
+         <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, hp2 = &quot;</span> <span class="hl opt">&lt;&lt;</span> hp2<span class="hl opt">.</span><span class="hl kwd">read</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+    hp<span class="hl opt">.</span><span class="hl kwd">next</span><span class="hl opt">();</span>
+    hp2<span class="hl opt">.</span><span class="hl kwd">previous</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 5.4. C05/NestFriend.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Una vez que <code class="classname">Pointer</code> está declarado, se
+	le da acceso a los miembros privados de
+	<code class="classname">Holder</code> con la sentencia:
+      </p>
+        <pre class="programlisting">
+<span class="hl kwc">friend</span> Pointer<span class="hl opt">;</span>
+</pre>
+        <p>
+	La estructura <code class="classname">Holder</code> contiene un array de
+	enteros y <code class="classname">Pointer</code> le permite acceder a
+	ellos. Como <code class="classname">Pointer</code> está fuertemente asociada
+	con <code class="classname">Holder</code>, es comprensible que sea una
+	estructura miembro de <code class="classname">Holder</code>. Pero como
+	<code class="classname">Pointer</code> es una clase separada de
+	<code class="classname">Holder</code>, puede crear más de una instancia en
+	el <code class="function">main()</code> y usarlas para seleccionar
+	diferentes partes del array. <code class="classname">Pointer</code> es una
+	estructura en vez de un puntero de C, así que puede garantizar
+	que siempre apuntará dentro de <code class="classname">Holder</code>.
+      </p>
+        <p>
+	La función de la librería estándar de C
+	<code class="function">memset()</code> (en
+	&lt;<code class="filename">cstring</code>&gt;) se usa en el programa
+	por conveniencia. Hace que toda la memoria a partir de una
+	determinada dirección (el primer argumento) se cargue con un
+	valor particular (el segundo argumento) para
+	<code class="varname">n</code> bytes a partir de la dirección donde se
+	empezó (<code class="varname">n</code> es el tercer argumento). Por
+	supuesto, se podría haber usado un bucle para hacer lo mismo,
+	pero <code class="function">memset()</code> está disponible, bien
+	probada (así que es más factible que produzca menos errores),
+	y probablemente es más eficiente.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02.html">5.2. Control de acceso en C++</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">5.3.2. ¿Es eso puro?</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

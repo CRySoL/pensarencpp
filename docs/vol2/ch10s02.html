@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.2. Concurrencia en C++</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C11.html" title="10: Concurrencia" />
+    <link rel="prev" href="C11.html" title="10: Concurrencia" />
+    <link rel="next" href="ch10s02s02.html" title="10.2.2. Definición de tareas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C11.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C11.html">10: Concurrencia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s02s02.html">10.2.2. Definición de tareas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.2. Concurrencia en C++">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5237336"></a>10.2. Concurrencia en C++</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+    Cuando el Comité de Estándares de C++ estaba creando el estándar
+    inicial de C++, el mecanismo de concurrencia fue excluído de forma
+    explícita porque C no tenía uno y también porque había varíos enfoques
+    rivales acerca de su implementación. Parecía demasiado restrictivo
+    forzar a los programadores a usar una sola alternativa.
+    </p>
+      <p>
+    Sin embargo, la alternativa resultó ser peor. Para usar concurriencia,
+    tenías que encontrar y aprender una librería y ocuparte de su
+    indiosincrasia y las incertidumbres de trabajar con un vendedor
+    particular. Además, no había garantía de que una librería funcionaría
+    en diferentes compiladores o en distintas plataformas. También, desde
+    que la concurrencia no formaba parte del estándar del lenguaje, fue
+    más difícil encontrar programadores C++ que también entendieran la
+    programación concurrente.
+    </p>
+      <p>
+    Otra influencia pudo ser el lenguaje Java, que incluyó concurrencia en
+    el núcleo del lenguaje. Aunque el multihilado is aún complicado, los
+    programadores de Java tienden a empezar a aprenderlo y usarlo desde el
+    principio.
+    </p>
+      <p>
+    El Comité de Estándares de C++ está considerando incluir el soporte a
+    la concurrencia en la siguiente iteración de C++, pero en el momento
+    de este escrito no estaba claro qué aspecto tendrá la
+    librería. Decidimos usar la librería ZThread como base para este
+    capítulo. La escogimos por su diseño, y es open-source y gratuitamente
+    descargable desde http://zthread.sourceforge.net. Eric Crahen de IBM,
+    el autor de la librería ZThread, fue decisivo para crear este
+    capítulo.[150]
+    </p>
+      <p>
+    Este capítulo utiliza sólo un subgrupo de la librería ZThread, de
+    acuerdo con el convenio de ideas fundamentales sobre los hilos. La
+    librería ZThread contiene un soporte a los hilos significativamente
+    más sofisticado que el que se muestra aquí, y deberías estudiar esa
+    librería más profundamente para comprender completamente sus
+    posibilidades.
+    </p>
+      <div class="sect2" title="10.2.1. Instalación de ZThreads">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5241720"></a>10.2.1. Instalación de ZThreads</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+      Por favor, note que la librería ZThread es un proyecto independiente y
+      no está soportada por el autor de este libro; simplemente estamos
+      usando la librería en este capítulo y no podemos dar soporte técnico a
+      las características de la instalación. Mira el sitio web de ZThread
+      para obtener soporte en la instalación y reporte de errores.
+      </p>
+        <p>
+      La librería ZThread se distribuye como código fuente. Después de
+      descargarla (versión 2.3 o superior) desde la web de ZThread, debes
+      compilar la librería primero, y después configurar tu proyecto para
+      que use la librería.
+      --&gt;
+      </p>
+        <p>
+      El método habitual para compilar la librería ZThreads para los
+      distintos sabores de UNIX (Linux, SunOS, Cygwin, etc) es usar un
+      script de configuración. Después de desempaquetar los archivos (usando
+      tar), simplemente ejecuta: ./configure &amp;&amp; make install
+      </p>
+        <p>
+      en el directorio principal de ZThreads para compilar e instalar una
+      copia de la librería en directorio /usr/local. Puedes personalizar
+      algunas opciones cuando uses el script, incluída la localización de
+      los ficheros. Para más detalles, utiliza este comando: ./configure
+      ?help
+      </p>
+        <p>
+      El código de ZThreads está estructurado para simplificar la
+      compilación para otras plataformas (como Borland, Microsoft y
+      Metrowerks). Para hacer esto, crea un nuevo proyecto y añade todos los
+      archivos .cxx en el directorio src de ZThreads a la lista de archivos
+      a compilar.  Además, asegúrate de incluir el directorio incluído del
+      archivo en la ruta de búsqueda de la cabecera para tu proyecto???. Los
+      detalles exactos variarán de compilador en compilador, por lo que
+      necesitarás estar algo familiarizado con tu conjunto de herramientas
+      para ser capaz de utilizar esta opción.
+      </p>
+        <p>
+      Una vez la compilación ha finalizado con éxito, el siguiente paso es
+      crear un proyecto que use la nueva librería compilada. Primero,
+      permite al compilador saber donde están localizadas las cabeceras, por
+      lo que tu instrucción #include funcionará
+      correctamente. Habitualmente, necesitarás en tu proyecto una opción
+      como se muestra:
+      </p>
+        <pre class="programlisting">
+<span class="hl opt">-</span>I<span class="hl opt">/</span>path<span class="hl opt">/</span>to<span class="hl opt">/</span>installation<span class="hl opt">/</span>include
+</pre>
+        <p>
+      Si utilizaste el script de configuración, la ruta de instalación
+      será el prefijo de la que definiste (por defecto, /usr/local). Si
+      utilizaste uno de los archivos de proyecto en la creación del
+      directorio, la ruta instalación debería ser simplemente la ruta al
+      directorio principal del archivo ZThreads.
+      </p>
+        <p>
+      Después, necesitarás añadir una opción a tu proyecto que permitirá al
+      enlazador saber donde está la librería. Si usaste el script de
+      configuración, se parecerá a lo siguiente:
+      </p>
+        <pre class="programlisting">
+<span class="hl opt">-</span>L<span class="hl opt">/</span>path<span class="hl opt">/</span>to<span class="hl opt">/</span>installation<span class="hl opt">/</span>lib ?lZThread
+</pre>
+        <p>
+      Si usaste uno de los archivos del proyecto proporcionados, será
+      similar a:
+      </p>
+        <pre class="programlisting">
+<span class="hl opt">-</span>L<span class="hl opt">/</span>path<span class="hl opt">/</span>to<span class="hl opt">/</span>installation<span class="hl opt">/</span>Debug ZThread<span class="hl opt">.</span>lib
+</pre>
+        <p>
+      De nuevo, si usaste el script de configuración, la ruta de instalación
+      s será el prefijo de la que definistes. Si su utilizaste un archivo
+      del proyecto, la ruta será la misma que la del directorio principal de
+      ZThreads.
+      </p>
+        <p>
+      Nota que si estás utilizando Linux, o Cygwin (www.cygwin.com) bajo
+      Windows, no deberías necesitar modificar la ruta de include o de la
+      librería; el proceso por defecto de instalación tendrá cuidado para
+      hacerlo por ti, normalmente.
+      </p>
+        <p>
+	En GNU/Linux, es posible que necesites añadir lo siguiente a tu .bashrc
+      para que el sistema pueda encontrar la el archivo de la
+      librería compartida LibZThread-x.x.so.0 cuando ejecute programas de
+      este capítulo.
+      </p>
+        <pre class="programlisting">
+export LD_LIBRARY_PATH<span class="hl opt">=/</span>usr<span class="hl opt">/</span>local<span class="hl opt">/</span>lib<span class="hl opt">:</span>$<span class="hl opt">{</span>LD_LIBRARY_PATH<span class="hl opt">}</span>
+</pre>
+        <p>
+      (Asumiendo que utilizas el proceso de instalación por defecto y la
+      librería compartida acaba en /user/local/lib/; en otro caso, cambia la
+      ruta por tu localización.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C11.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C11.html">10: Concurrencia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s02s02.html">10.2.2. Definición de tareas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

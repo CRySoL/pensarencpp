@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.9. Consejos para depuración</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C03.html" title="3: C en C++" />
+    <link rel="prev" href="ch03s08s05.html" title="3.8.5. Arrays" />
+    <link rel="next" href="ch03s09s02.html" title="3.9.2. Convertir variables y expresiones en cadenas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s08s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s08s05.html">3.8.5. Arrays</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s09s02.html">3.9.2. Convertir variables y expresiones en cadenas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s09s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="3.9. Consejos para depuración">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4960184"></a>3.9. Consejos para depuración</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En un entorno ideal, habrá un depurador excelente disponible que
+      hará que el comportamiento de su programa sea transparente y podrá
+      descubrir cualquier error rápidamente. Sin embargo, muchos
+      depuradores tienen puntos débiles, y eso puede requerir tenga que
+      añadir trozos de código a su programa que le ayuden a entender que
+      está pasando. Además, puede que para la plataforma para la que esté
+      desarrollando (por ejemplo en sistemas empotrados, con lo que yo
+      tuve que tratar durante mis años de formación) no haya ningún
+      depurador disponible, y quizá tenga una realimentación muy
+      limitada (por ejemplo, un display de LEDs de una línea). En esos
+      casos debe ser creativo a la hora de descubrir y representar
+      información acerca de la ejecución de su programa. Esta sección
+      sugiere algunas técnicas para conseguirlo.
+    </p>
+      <div class="sect2" title="3.9.1. Banderas para depuración">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp4962656"></a>3.9.1. Banderas para depuración</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+        Si coloca el código de depuración mezclado con un programa,
+        tendrá problemas. Empezará a tener demasiada información, que
+        hará que los errores sean difíciles de aislar. Cuando cree que
+        ha encontrado el error empieza a quitar el código de depuración,
+        sólo para darse cuenta que necesita ponerlo de nuevo.  Puede
+        resolver estos problemas con dos tipos de banderas: banderas de
+        depuración del preprocesador y banderas de depuración en
+        ejecución.
+      </p>
+        <div class="sect3" title="Banderas de depuración para el preprocesador">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp4963880"></a>Banderas de depuración para el preprocesador</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  Usando el preprocesador para definir (con <code class="keyword">#define</code>) una o más banderas
+	  de depuración (preferiblemente en un fichero de cabecera), puede probar una
+	  bandera usando una sentencia <code class="keyword">#ifdef</code> e incluir condicionalmente código
+	  de depuración. Cuando crea que la depuración ha terminado, simplemente utilice
+	  <code class="keyword">#undef</code> la bandera y el código quedará eliminado automáticamente (y
+	  reducirá el tamaño y sobrecarga del fichero ejecutable).
+	</p>
+          <p>
+	  Es mejor decidir los nombres de las banderas de depuración
+	  antes de empezar a contruir el proyecto para que los nombres
+	  sean consistentes. Las banderas del preprocesador
+	  tradicionalmente se distinguen de las variables porque se
+	  escriben todo en mayúsculas. Un nombre habitual es simplemente
+	  <code class="constant">DEBUG</code> (pero tenga cuidado de no usar
+	  <code class="constant">NDEBUG</code>, que está reservado en C). La
+	  secuencia de sentencias podrías ser:
+	</p>
+          <pre class="programlisting">
+<span class="hl ppc">#define DEBUG</span> <span class="hl slc">// Probably in a header file</span>
+<span class="hl ppc"></span><span class="hl slc">//...</span>
+<span class="hl ppc">#ifdef DEBUG</span> <span class="hl slc">// Check to see if flag is defined</span>
+<span class="hl ppc"></span><span class="hl com">/* debugging code here */</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DEBUG</span><span class="hl ppc"></span>
+</pre>
+          <p>
+	  La mayoría de las implementaciones de C y C++ también le
+	  permitirán definir y eliminar banderas (con <code class="keyword">#define</code> y
+	  <code class="keyword">#undef</code>) desde línea de comandos, y de ese modo puede
+	  recompilar código e insertar información de depuración con un
+	  único comando (preferiblemente con un
+	  <code class="filename">makefile</code>, una herramienta que será
+	  descrita en breve). Compruebe la documentación de su entorno si
+	  necesita más detalles.
+	</p>
+        </div>
+        <div class="sect3" title="Banderas para depuración en tiempo de ejecución">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp4970776"></a>Banderas para depuración en tiempo de ejecución</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  En algunas situaciones es más conveniente activar y desactivar
+	  las banderas de depuración durante la ejecución del programa,
+	  especialmente cuando el programa se ejecuta usando la línea de
+	  comandos. Con programas grandes resulta pesado recompilar sólo
+	  para insertar código de depuración.
+	</p>
+          <p>
+	  Para activar y desactivar código de depuración dinámicamente
+	  cree banderas booleanas.
+	</p>
+          <div class="example">
+            <a id="idp4972416"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C03:DynamicDebugFlags.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl slc">// Debug flags aren't necessarily global:</span>
+<span class="hl kwb">bool</span> debug <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> argc<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwd">string</span><span class="hl opt">(</span>argv<span class="hl opt">[</span>i<span class="hl opt">]) ==</span> <span class="hl str">&quot;--debug=on&quot;</span><span class="hl opt">)</span>
+      debug <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> go <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>go<span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>debug<span class="hl opt">) {</span>
+      <span class="hl slc">// Debugging code here</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Debugger is now on!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span> <span class="hl kwa">else</span> <span class="hl opt">{</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Debugger is now off.&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>  
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Turn debugger [on/off/quit]: &quot;</span><span class="hl opt">;</span>
+    string reply<span class="hl opt">;</span>
+    cin <span class="hl opt">&gt;&gt;</span> reply<span class="hl opt">;</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>reply <span class="hl opt">==</span> <span class="hl str">&quot;on&quot;</span><span class="hl opt">)</span> debug <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span> <span class="hl slc">// Turn it on</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>reply <span class="hl opt">==</span> <span class="hl str">&quot;off&quot;</span><span class="hl opt">)</span> debug <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span> <span class="hl slc">// Off</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>reply <span class="hl opt">==</span> <span class="hl str">&quot;quit&quot;</span><span class="hl opt">)</span> <span class="hl kwa">break</span><span class="hl opt">;</span> <span class="hl slc">// Out of 'while'</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 3.62. C03/DynamicDebugFlags.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  Este programa sigue permitiéndole activar y desactivar la bandera de depuración
+	  hasta que escriba <strong class="userinput"><code>quit</code></strong> para indicarle que quiere
+	  salir. Fíjese que es necesario escribir palabras completas, no solo letras
+	  (puede abreviarlo a letras si lo desea). Opcionalmente, también se puede usar un
+	  argumento en línea de comandos para comenzar la depuración - este argumento
+	  puede aparecer en cualquier parte de la línea de comando, ya que el código de
+	  activación en <code class="function">main()</code> busca en todos los argumentos. La
+	  comprobación es bastante simple como se ve en la expresión:
+	</p>
+          <pre class="programlisting">
+<span class="hl kwd">string</span><span class="hl opt">(</span>argv<span class="hl opt">[</span>i<span class="hl opt">])</span>
+</pre>
+          <p>
+	  Esto toma la cadena <code class="varname">argv[i]</code> y crea un
+	  <code class="classname">string</code>, el cual se puede comparar
+	  fácilmente con lo que haya a la derecha de <code class="literal">==</code>. El
+	  programa anterior busca la cadena completa
+	  <code class="literal">--debug=on</code>. También puede buscar
+	  <code class="literal">--debug=</code> y entonces ver que hay después,
+	  para proporcionar más opciones. El Volumen 2 (disponible en
+	  <a class="ulink" href="http://www.bruceeckel.com" target="_top">www.BruceEckel.com</a>)
+	  contiene un capítulo dedicado a la clase
+	  <code class="classname">string</code> Estándar de C++.
+	</p>
+          <p>
+	  Aunque una bandera de depuración es uno de los relativamente
+	  pocos casos en los que tiene mucho sentido usar una variable
+	  global, no hay nada que diga que debe ser así. Fíjese en que
+	  la variable está escrita en minúsculas para recordar al lector
+	  que no es una bandera del preprocesador.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s08s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s08s05.html">3.8.5. Arrays</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s09s02.html">3.9.2. Convertir variables y expresiones en cadenas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s09s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

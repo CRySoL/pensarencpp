@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.5.3. Detrás del telón</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s05.html" title="15.5. Cómo implementa C++ la ligadura dinámica" />
+    <link rel="prev" href="ch15s05s02.html" title="15.5.2. Pintar funciones virtuales" />
+    <link rel="next" href="ch15s05s04.html" title="15.5.4. Instalar el vpointer" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s05s02.html">15.5.2. Pintar funciones virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s04.html">15.5.4. Instalar el vpointer</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.5.3. Detrás del telón">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8122552"></a>15.5.3. Detrás del telón</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Puede ser útil ver el código ensamblador que se genera con la
+	llamada a una función virtual, para poder ver como funciona la
+	ligadura dinámica. Aquí está la salida de un compilador a la
+	llamada
+      </p>
+      <pre class="programlisting">
+i<span class="hl opt">.</span><span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+</pre>
+      <p>
+	dentro de la función <code class="literal">f(Instrument&amp; i)</code>:
+      </p>
+      <pre class="programlisting">
+push <span class="hl num">1</span>
+push si
+mov  bx<span class="hl opt">,</span> word ptr <span class="hl opt">[</span>si<span class="hl opt">]</span>
+call word ptr <span class="hl opt">[</span>bx<span class="hl opt">+</span><span class="hl num">4</span><span class="hl opt">]</span>
+add  sp<span class="hl opt">,</span> <span class="hl num">4</span>
+</pre>
+      <p>
+	Los argumentos de una llamada a una función C++, como los de a
+	una función C, son colocados en la pila de derecha a izquierda
+	(este orden es necesario para poder soportar las listas de
+	argumentos variables de C), por lo que el argumento
+	<code class="constant">1</code> se pone al principio en la pila. En este
+	punto en la función, el registro <code class="varname">si</code> (que es
+	parte de la arquitectura del procesador
+	<span class="trademark">Intel</span>&#8482; <span class="productname">X86</span>&#8482;)
+	contiene la dirección de <code class="varname">i</code>. También se
+	introduce en la pila porque es la dirección de comienzo del
+	objeto de interés. Hay que recordar que la dirección del
+	comienzo del objeto corresponde al valor de
+	<code class="literal">this</code>, y <code class="literal">this</code> es
+	introducido en la pila de manera oculta antes de cualquier
+	llamada a función, por lo que la función miembro sabe sobre qué
+	objeto en concreto está trabajando. Debido a esto se verá
+	siempre uno más que el número de argumentos introducidos en la
+	pila antes de una llamada a una función miembro (excepto para
+	las funciones miembro <code class="keyword">static</code>, que no tienen
+	<code class="literal">this</code>).
+      </p>
+      <p>
+	Ahora se puede ejecutar la llamada a la función virtual. Primero
+	hay que producir el VPTR para poder encontrar la VTABLE. Para el
+	compilador el VPTR se inserta al principio del objeto, por lo
+	que el contenido de <code class="literal">this</code> corresponde al
+	VPTR. La línea
+      </p>
+      <pre class="programlisting">
+mov bx<span class="hl opt">,</span> word ptr <span class="hl opt">[</span>si<span class="hl opt">]</span>
+</pre>
+      <p>
+	busca la dirección <span class="emphasis"><em>(word)</em></span> a la que apunta
+	<code class="varname">si</code>, que es el VPTR y la coloca dentro del
+	registro <code class="varname">bx</code>.
+      </p>
+      <p>
+	El VPTR contenido en <code class="varname">bx</code> apunta a la dirección
+	inicial de la VTABLE, pero el puntero de la función a llamar no
+	se encuentra en la posición cero de la VTABLE, si no en la
+	segunda posición (debido a que es la tercera función en la
+	lista). Debido al modelo de memoria cada puntero a función ocupa
+	dos bytes, por lo que el compilador suma cuatro al VPTR para
+	calcular donde está la dirección de la función apropiada. Hay
+	que hacer notar que este es un valor constante establecido en
+	tiempo de compilación, por lo que lo único que ocurre es que el
+	puntero a función que está en la posición dos apunta a
+	<code class="function">adjust()</code>. Afortunadamente, el compilador se
+	encarga de todo y se asegura de que todos los punteros a
+	funciones en todas las VTABLEs de una jerarquía particular se
+	creen con el mismo orden, a pesar del orden en que se hayan
+	sobreescrito las funciones en las clases derivadas.
+      </p>
+      <p>
+	Una vez se ha calculado en la VTABLE la dirección del puntero
+	apropiado, se llama a la función a la que apunta el
+	puntero. Esto es, se busca la dirección y se llama de una sola
+	vez con la sentencia:
+      </p>
+      <pre class="programlisting">
+call word ptr <span class="hl opt">[</span>bx<span class="hl opt">+</span><span class="hl num">4</span><span class="hl opt">]</span>
+</pre>
+      <p>
+	Finalmente, se retrocede el puntero de la pila para limpiar los
+	argumentos que se pusieron antes de la llamada. En código
+	ensamblador de C y de C++ se ve a menudo la instrucción para
+	limpiar la lista de argumentos pero puede variar dependiendo del
+	procesador o de la implementación del compilador.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s05s02.html">15.5.2. Pintar funciones virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s04.html">15.5.4. Instalar el vpointer</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.10.4. Destructores virtuales puros</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+    <link rel="prev" href="ch15s10s03.html" title="15.10.3. Destructores y destructores virtuales" />
+    <link rel="next" href="ch15s10s05.html" title="15.10.5. Mecanismo virtual en los destructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s03.html">15.10.3. Destructores y destructores virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s05.html">15.10.5. Mecanismo virtual en los destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.10.4. Destructores virtuales puros">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8282280"></a>15.10.4. Destructores virtuales puros</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Mientras que los destructores virtuales puros son legales en el
+	Standard C++, hay una restricción añadida cuando se usan: hay
+	que proveer de un cuerpo de función a los destructores virtuales
+	puros. Esto parece antinatural; ¿Cómo puede una función virtual
+	ser "pura" si necesita el cuerpo de una función? Pero si se
+	tiene en cuenta que los constructores y los destructores son
+	operaciones especiales tiene más sentido, especialmente si se
+	recuerda que todos los destructores en una jerarquía de clases
+	son llamados siempre. Si se quita la definición de un destructor
+	virtual puro, ¿a qué cuerpo de función se llamará durante la
+	destrucción? Por esto, es absolutamente necesario que el
+	compilador y el enlazador requieran la existencia del cuerpo de
+	una función para un destructor virtual puro.
+      </p>
+      <p>
+	Si es puro, pero la función tiene cuerpo ¿cuál es su valor? La
+	única diferencia que se verá entre el destructor virtual puro y
+	el no-puro es que el destructor virtual puro convierte a la
+	clase base en abstracta, por lo que no se puede crear un objeto
+	de la clase base (aunque esto también sería verdad si cualquier
+	otra función miembro de esa clase base fuera virtual pura).
+      </p>
+      <p>
+	Sin embargo, las cosas son un poco confusas cuando se hereda una
+	clase de otra que contenga un destructor puro virtual. Al
+	contrario que en el resto de las funciones virtuales puras,
+	<span class="emphasis"><em>no</em></span> es necesario dar una definición de un
+	destructor virtual puro en la clase derivada. El hecho de que el
+	siguiente código compile es la prueba:
+      </p>
+      <div class="example">
+        <a id="idp8286448"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:UnAbstract.cpp</span>
+<span class="hl slc">// Pure virtual destructors </span>
+<span class="hl slc">// seem to behave strangely</span>
+
+<span class="hl kwc">class</span> AbstractBase <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">AbstractBase</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+AbstractBase<span class="hl opt">::~</span><span class="hl kwd">AbstractBase</span><span class="hl opt">() {}</span>
+
+<span class="hl kwc">class</span> Derived <span class="hl opt">:</span> <span class="hl kwc">public</span> AbstractBase <span class="hl opt">{};</span>
+<span class="hl slc">// No overriding of destructor necessary?</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span> Derived d<span class="hl opt">; }</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.13. C15/UnAbstract.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Normalmente, una función virtual pura en una clase base causará
+	que la clase derivada sea abstracta a menos que esa (y todas las
+	demás funciones virtuales puras) tengan una definición. Pero
+	aquí, no parece ser el caso. Sin embargo, hay que recordar que
+	el compilador crea <span class="emphasis"><em>automáticamente</em></span> una
+	definición del destructor en todas las clases si no se crea una
+	de forma explícita. Esto es lo que sucede aquí - el destructor
+	de la clase base es sobreescrito de forma oculta, y una
+	definición es puesta por el compilador por lo que
+	<code class="classname">Derived</code> no es abstracta.
+      </p>
+      <p>
+	Esto nos brinda una cuestión interesante: ¿Cuál es el sentido de
+	un destructor virtual puro? Al contrario que con las funciones
+	virtuales puras ordinarias en las que hay que
+	<span class="emphasis"><em>dar</em></span> el cuerpo de una función, en una clase
+	derivada de otra con un destructor virtual puro, no se está
+	obligado a implementar el cuerpo de la función porque el
+	compilador genera automáticamente el destructor. Entonces ¿Cuál
+	es la diferencia entre un destructor virtual normal y un
+	destructor virtual puro?
+      </p>
+      <p>
+	La única diferencia ocurre cuando se tiene una clase que sólo
+	tiene una función virtual pura: el destructor. En este caso, el
+	único efecto de la <span class="emphasis"><em>pureza</em></span> del destructor es
+	prevenir la instanciación de la clase base, pero si no existen
+	otros destructores en las clase heredadas, el destructor virtual
+	se ejecutará. Por esto, mientras que el añadir un destructor
+	virtual es esencial, el hecho de que sea puro o no lo sea no es
+	tan importante.
+      </p>
+      <p>
+	Cuando se ejecuta el siguiente ejemplo, se puede ver que se
+	llama al cuerpo de la función virtual pura después de la versión
+	que está en la clase derivada, igual que con cualquier otro
+	destructor.
+      </p>
+      <div class="example">
+        <a id="idp8292768"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:PureVirtualDestructors.cpp</span>
+<span class="hl slc">// Pure virtual destructors</span>
+<span class="hl slc">// require a function body</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Pet</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+Pet<span class="hl opt">::~</span><span class="hl kwd">Pet</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Pet()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Dog</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Dog()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Pet<span class="hl opt">*</span> p <span class="hl opt">=</span> <span class="hl kwa">new</span> Dog<span class="hl opt">;</span> <span class="hl slc">// Upcast</span>
+  <span class="hl kwa">delete</span> p<span class="hl opt">;</span> <span class="hl slc">// Virtual destructor call</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.14. C15/PureVirtualDestructors.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Como guía, cada vez que se tenga una función virtual en una
+	clase, se debería añadir inmediatamente un destructor virtual
+	(aunque no haga nada). De esta forma se evitan posteriores
+	sorpresas.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s03.html">15.10.3. Destructores y destructores virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s05.html">15.10.5. Mecanismo virtual en los destructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

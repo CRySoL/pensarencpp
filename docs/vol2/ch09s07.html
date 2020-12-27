@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.7. Adaptador</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s06s02.html" title="9.6.2. Estado: cambiar el comportamiento del objeto" />
+    <link rel="next" href="ch09s08.html" title="9.8. Template Method" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06s02.html">9.6.2. Estado: cambiar el comportamiento del objeto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s08.html">9.8. Template Method</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.7. Adaptador">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5094888"></a>9.7. Adaptador</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+Un Adaptador coge un tipo y genera una interfaz para algún otro
+tipo. Es útil cuando se tiene una librería o trozo de código que tiene
+una interfaz particular, y otra librería o trozo de código que usa las
+mismas ideas básicas que la primera librería, pero se expresa de forma
+diferente. Si se adaptan las formas de expresión entre sí, se puede
+crear una solución rápidamente.
+    </p>
+      <p>
+Suponga que tiene una clase productora que genera los números de
+Fibonacci:
+    </p>
+      <div class="example">
+        <a id="idp5096488"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:FibonacciGenerator.h</span>
+<span class="hl ppc">#ifndef FIBONACCIGENERATOR_H</span>
+<span class="hl ppc">#define FIBONACCIGENERATOR_H</span>
+
+<span class="hl kwc">class</span> FibonacciGenerator <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> n<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> val<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">FibonacciGenerator</span><span class="hl opt">() :</span> <span class="hl kwd">n</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {</span> val<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] =</span> val<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">()() {</span>
+    <span class="hl kwb">int</span> result <span class="hl opt">=</span> n <span class="hl opt">&gt;</span> <span class="hl num">2</span> ? val<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] +</span> val<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] :</span> n <span class="hl opt">&gt;</span> <span class="hl num">0</span> ? <span class="hl num">1</span> <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl opt">++</span>n<span class="hl opt">;</span>
+    val<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">] =</span> val<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">];</span>
+    val<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] =</span> result<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> n<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// FIBONACCIGENERATOR_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.17. C10/FibonacciGenerator.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+Como es un productor, se usa llamando al operador(), de esta forma:
+    </p>
+      <div class="example">
+        <a id="idp5098096"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:FibonacciGeneratorTest.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;FibonacciGenerator.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  FibonacciGenerator f<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span><span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> f<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">() &lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">f</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.18. C10/FibonacciGeneratorTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+A lo mejor le gustaría coger este generador y realizar operaciones de
+algoritmos numéricos STL con él. Desafortunadamente, los algoritmos
+STL sólo trabajan con iteradores, así que tiene dos interfaces que no
+casan. La solución es crear un adaptador que coja el
+FibonacciGenerator y produzca un iterador para los algoritmos STL a
+usar. Dado que los algoritmos numéricos sólo necesitan un iterador de
+entrada, el Adaptador es bastante directo (para algo que produce un
+iterador STL, es decir):
+    </p>
+      <div class="example">
+        <a id="idp5100256"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:FibonacciAdapter.cpp</span>
+<span class="hl slc">// Adapting an interface to something you already have.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;numeric&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;FibonacciGenerator.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../C06/PrintSequence.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> FibonacciAdapter <span class="hl opt">{</span> <span class="hl slc">// Produce an iterator</span>
+  FibonacciGenerator f<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> length<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">FibonacciAdapter</span><span class="hl opt">(</span><span class="hl kwb">int</span> size<span class="hl opt">) :</span> <span class="hl kwd">length</span><span class="hl opt">(</span>size<span class="hl opt">) {}</span>
+  <span class="hl kwc">class</span> iterator<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> iterator<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> iterator <span class="hl opt">:</span> <span class="hl kwc">public</span> std<span class="hl opt">::</span>iterator<span class="hl opt">&lt;</span>
+    std<span class="hl opt">::</span>input_iterator_tag<span class="hl opt">,</span> FibonacciAdapter<span class="hl opt">,</span> <span class="hl kwb">ptrdiff_t</span><span class="hl opt">&gt; {</span>
+    FibonacciAdapter<span class="hl opt">&amp;</span> ap<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwc">typedef</span> <span class="hl kwb">int</span> value_type<span class="hl opt">;</span>
+    <span class="hl kwd">iterator</span><span class="hl opt">(</span>FibonacciAdapter<span class="hl opt">&amp;</span> a<span class="hl opt">) :</span> <span class="hl kwd">ap</span><span class="hl opt">(</span>a<span class="hl opt">) {}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">==(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> ap<span class="hl opt">.</span>f<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">() ==</span> ap<span class="hl opt">.</span>length<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">bool</span> <span class="hl kwc">operator</span><span class="hl opt">!=(</span><span class="hl kwb">const</span> iterator<span class="hl opt">&amp;</span> x<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+      <span class="hl kwa">return</span> <span class="hl opt">!(*</span><span class="hl kwa">this</span> <span class="hl opt">==</span> x<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">int</span> <span class="hl kwc">operator</span><span class="hl opt">*()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> ap<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">(); }</span>
+    iterator<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">++() {</span> <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">; }</span>
+    iterator <span class="hl kwc">operator</span><span class="hl opt">++(</span><span class="hl kwb">int</span><span class="hl opt">) {</span> <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">; }</span>
+  <span class="hl opt">};</span>
+  iterator <span class="hl kwd">begin</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">); }</span>
+  iterator <span class="hl kwd">end</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl kwd">iterator</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const int</span> SZ <span class="hl opt">=</span> <span class="hl num">20</span><span class="hl opt">;</span>
+  FibonacciAdapter <span class="hl kwd">a1</span><span class="hl opt">(</span>SZ<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;accumulate: &quot;</span>
+    <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">accumulate</span><span class="hl opt">(</span>a1<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> a1<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> <span class="hl num">0</span><span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  FibonacciAdapter <span class="hl kwd">a2</span><span class="hl opt">(</span>SZ<span class="hl opt">),</span> <span class="hl kwd">a3</span><span class="hl opt">(</span>SZ<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;inner product: &quot;</span>
+    <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">inner_product</span><span class="hl opt">(</span>a2<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> a2<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> a3<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  FibonacciAdapter <span class="hl kwd">a4</span><span class="hl opt">(</span>SZ<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> r1<span class="hl opt">[</span>SZ<span class="hl opt">] = {</span><span class="hl num">0</span><span class="hl opt">};</span>
+  <span class="hl kwb">int</span><span class="hl opt">*</span> end <span class="hl opt">=</span> <span class="hl kwd">partial_sum</span><span class="hl opt">(</span>a4<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> a4<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> r1<span class="hl opt">);</span>
+  <span class="hl kwd">print</span><span class="hl opt">(</span>r1<span class="hl opt">,</span> end<span class="hl opt">,</span> <span class="hl str">&quot;partial_sum&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">);</span>
+  FibonacciAdapter <span class="hl kwd">a5</span><span class="hl opt">(</span>SZ<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> r2<span class="hl opt">[</span>SZ<span class="hl opt">] = {</span><span class="hl num">0</span><span class="hl opt">};</span>
+  end <span class="hl opt">=</span> <span class="hl kwd">adjacent_difference</span><span class="hl opt">(</span>a5<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> a5<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> r2<span class="hl opt">);</span>
+  <span class="hl kwd">print</span><span class="hl opt">(</span>r2<span class="hl opt">,</span> end<span class="hl opt">,</span> <span class="hl str">&quot;adjacent_difference&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot; &quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.19. C10/FibonacciAdapter.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+Se inicializa un FibonacciAdapter diciéndole cuán largo puede ser la
+secuencia de Fibonacci. Cuando se crea un iterador, simplemente
+captura una referencia al FibonacciAdapter que lo contiene para que
+pueda acceder al FibonacciGenerator y la longitud. Observe que la
+comparación de equivalencia ignora el valor de la derecha, porque el
+único asunto importante es si el generador ha alcanzado su
+longitud. Además, el operator++() no modifica el iterador; la única
+operación que cambia el estado del FibonacciAdapter es llamar a la
+función operator() del generador en el FibonacciGenerator. Puede
+aceptarse esta versión extremadamente simple del iterador porque las
+restricciones de un Input Iterator son muy estrictas; concretamente,
+sólo se puede leer cada valor de la secuencia una vez.
+    </p>
+      <p>
+En main(), puede verse que los cuatro tipos distintos de algoritmos
+numéricos se testan satisfactoriamente con el FibonacciAdapter.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06s02.html">9.6.2. Estado: cambiar el comportamiento del objeto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s08.html">9.8. Template Method</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

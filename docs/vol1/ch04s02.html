@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>4.2. ¿Qué tiene de malo?</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C04.html" title="4: Abstracción de Datos" />
+    <link rel="prev" href="C04.html" title="4: Abstracción de Datos" />
+    <link rel="next" href="ch04s03.html" title="4.3. El objeto básico" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C04.html">4: Abstracción de Datos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s03.html">4.3. El objeto básico</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="4.2. ¿Qué tiene de malo?">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5285288"></a>4.2. ¿Qué tiene de malo?</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Somos seres realmente destinados a la adaptación, incluso a las
+      que quizá <span class="emphasis"><em>no deberíamos</em></span> adaptarnos. El estilo
+      de la librería <code class="type">CStash</code> ha sido un modelo a seguir para
+      los programadores en C durante mucho tiempo. Sin embargo, si nos
+      ponemos a examinarla por un momento, nos daremos cuenta de que
+      utilizar esta librería puede resultar incómodo. Cuando la usamos
+      debemos, por ejemplo, pasar la dirección de la estructura a cada
+      función de la librería. Por eso, cuando leemos el código, los
+      mecanismos de la librería se mezclan con el significado de las
+      llamadas a las funciones, lo cual dificulta la comprecsión del
+      programa.
+    </p>
+      <p>
+      Sin embargo, uno de los mayores obstáculos al trabajar con
+      librerías en C es el problema llamado <span class="emphasis"><em>conflicto de
+      nombres</em></span> (<span class="foreignphrase"><em class="foreignphrase">name
+      clashes</em></span>). C trabaja con un único espacio de
+      nombres de funciones. Esto significa que, cuando el enlazador
+      busca por el nombre de una función, lo hace en una única lista de
+      nombres maestra. Además, cuando el compilador trabaja sobre una
+      unidad de traducción, un nombre de función sólo puede hacer
+      referencia a una única función con ese nombre.
+    </p>
+      <p>
+      Supongamos que compramos dos librerías de diferentes proveedores y
+      que cada librería consta de una estructura que debe inicializar y
+      destruir. Supongamos que cada proveedor ha decidido nombrar a
+      dichas operaciones <code class="function">initialize()</code> y
+      <code class="function">cleanup()</code>. ¿Cómo se comportaría el compilador
+      si incluyéramos los archivos de cabecera de ambas librerías en la
+      misma unidad de traducción? Afortunadamente, el compilador C dará
+      un mensaje de error diciéndonos que hay una incoherencia de tipos
+      en las listas de argumentos de ambas declaraciones. No obstante,
+      aunque no incluyamos los archivos de cabecera en la unidad de
+      traducción igual tendremos problemas con el enlazador. Un buen
+      enlazador detectará y avisará cuando se produzca uno de estos
+      conflictos de nombres. Sin embargo, hay otros que simplemente
+      tomarán el primer nombre de la función que encuentren, buscando en
+      los archivos objeto en el orden en el que fueron pasados en la
+      lista de enlazado. (Este comportamiento se puede considerar
+      como una ventaja ya que permite reemplazar las funciones de
+      las librerías ajenas con funciones propias.)
+    </p>
+      <p>
+      En cualquiera de los dos casos, llegamos a la conclusión de que en
+      C es imposible usar dos bibliotecas en las cuales existan
+      funciones con nombres idénticos. Para solucionar este problema,
+      los proveedores de librerías en C ponen un prefijo único a todas
+      las funciones de la librería. En nuestro ejemplo, las funciones
+      <code class="function">initialize()</code> y <code class="function">cleanup()</code>
+      habría que renombrarlas como
+      <code class="function">CStash_initialize()</code> y
+      <code class="function">CStash_cleanup()</code>. Esta es una técnica lógica:
+      decoramos los nombres de las funciones con el nombre de la
+      estructura sobre la cual trabajan.
+    </p>
+      <p>
+      Este es el momento de dirigir nuestros pasos a las primeras
+      nociones de construcción de clases en C++. Como el lector ha de
+      saber, las variables declaradas dentro de una estructura no tienen
+      conflictos de nombres con las variables globales. ¿Por qué,
+      entonces, no aprovechar esta característica de las variables para
+      evitar los conflictos de nombres de funciones declarándolas dentro
+      de la estructura sobre la cual operan? O sea, ¿por qué no hacer
+      que las funciones sean también miembros de las estructuras?
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C04.html">4: Abstracción de Datos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s03.html">4.3. El objeto básico</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.5. Finalización de tareas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C11.html" title="10: Concurrencia" />
+    <link rel="prev" href="ch10s04s05.html" title="10.4.5. Almacenamiento local al hilo" />
+    <link rel="next" href="ch10s05s02.html" title="10.5.2. El jardín ornamental" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04s05.html">10.4.5. Almacenamiento local al hilo</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05s02.html">10.5.2. El jardín ornamental</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.5. Finalización de tareas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5405608"></a>10.5. Finalización de tareas</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En los ejemplos anteriores, hemos visto el uso de una "bandera
+      de terminación" o de la
+      interfaz <code class="classname">Cancelable</code> para finalizar una
+      tarea. Este es un enfoque razonable para el problema. Sin
+      embargo, en algunas ocasiones la tarea tiene que ser finalizada
+      más abruptamente. En esta sección, aprenderá sobre las
+      cuestiones y problemas de este tipo de finalización.
+    </p>
+      <p>
+      Primeramente, veamos en un ejemplo que no sólo demuestra el
+      problema de la finalización sino que, además, es un ejemplo
+      adicional de comparición de recursos. Para mostrar el ejemplo,
+      primero necesitaremos resolver el problema de la colisión de
+      iostream.
+    </p>
+      <div class="sect2" title="10.5.1. Prevención de coliciones en iostream">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5407976"></a>10.5.1. Prevención de coliciones en iostream</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+FIXME: dos versiones:
+
+	Podría haberse dado cuenta en los anteriores ejemplos que la
+	salida es confusa en algunas ocasiones. Los iostreams de C++
+	no fueron creados pensando en el sistema de hilos, por lo que
+	no hay
+
+	Puede haberse dado cuenta en los ejemplos anteriores que la
+	salida es FIXMEconfusa. El sistema iostream de C++ no fue
+	creado con el sistema de hilos en mente, por no lo que no hay
+	nada que prevenga que la salida de un hilo interfiera con la
+	salida de otro hilo. Por ello, debe escribir aplicaciones de
+	tal forma que sincronicen el uso de iostreams.
+
+      </p>
+        <p>
+	Para solucionar el problema, primero necesitamos crear un
+	paquete completo de salida y, después, decidir explícitamente
+	cuando intentamos mandarlo a la consola. Una sencilla solución
+	pasa por escribir la informacion en un ostringstream y
+	posteriormente utilizar un único objeto con un mutex como
+	punto de salida de todos los hilos, para evitar que más de un
+	hilo escriba al mismo tiempo:
+      </p>
+        <div class="example">
+          <a id="idp5410224"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:Display.h</span>
+<span class="hl slc">// Prevents ostream collisions.</span>
+<span class="hl ppc">#ifndef DISPLAY_H</span>
+<span class="hl ppc">#define DISPLAY_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;sstream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Display <span class="hl opt">{</span> <span class="hl slc">// Share one of these among all threads</span>
+  ZThread<span class="hl opt">::</span>Mutex iolock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">output</span><span class="hl opt">(</span>std<span class="hl opt">::</span>ostringstream<span class="hl opt">&amp;</span> os<span class="hl opt">) {</span>
+    ZThread<span class="hl opt">::</span>Guard<span class="hl opt">&lt;</span>ZThread<span class="hl opt">::</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>iolock<span class="hl opt">);</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> os<span class="hl opt">.</span><span class="hl kwd">str</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DISPLAY_H ///:~</span><span class="hl ppc"></span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.24. C11/Display.h</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	De esta manera, predefinimos la función estandar
+	<code class="function">operator&lt;&lt;()</code> y el objeto puede ser
+	construido en memoria utilizando operadores habituales de
+	ostream. Cuando una tarea quiere mostrar una salida, crea un
+	objeto ostringstream temporal que utiliza FIXME. Cuando llama
+	a output(), el mutex evita que varios hilos escriban a este
+	objeto <code class="classname">Display</code>. (Debe usar solo un
+	objeto <code class="classname">Display</code> en su programa, tal y
+	como verá en los siguientes ejemplos.)
+      </p>
+        <p>
+	Todo esto muestra la idea básica pero, si es necesario, puede
+	construir un entorno más elaborado. Por ejemplo, podría forzar
+	el requisito de que solo haya un
+	objeto <code class="classname">Display</code> en un programa
+	haciéndolo Singleton. (La librería ZThread tiene una
+	plantilla <code class="classname">Singleton</code> para dar soporte a
+	Singletons).
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04s05.html">10.4.5. Almacenamiento local al hilo</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05s02.html">10.5.2. El jardín ornamental</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

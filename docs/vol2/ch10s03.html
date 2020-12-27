@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.3. Utilización de los hilos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C11.html" title="10: Concurrencia" />
+    <link rel="prev" href="ch10s02s02.html" title="10.2.2. Definición de tareas" />
+    <link rel="next" href="ch10s03s02.html" title="10.3.2. Simplificación con Ejecutores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s02s02.html">10.2.2. Definición de tareas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">10.3.2. Simplificación con Ejecutores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.3. Utilización de los hilos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5261784"></a>10.3. Utilización de los hilos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+    Para controlar un objeto Runnable con un hilo, crea un objeto Thread
+    separado y utiliza un pontero Runnable al constructor de Thread. Esto
+    lleva a cabo la inicialización del hilo y, después, llama a run ( ) de
+    Runnable como un hilo capaz de ser interrumpido. Manejando LiftOff con
+    un hilo, el ejemplo siguiente muestra como cualquier tarea puede ser
+    ejecutada en el contexto de cualquier otro hilo:
+    </p>
+      <div class="example">
+        <a id="idp5263224"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:BasicThreads.cpp</span>
+<span class="hl slc">// The most basic use of the Thread class.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">));</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Waiting for LiftOff&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.3. C11/BasicThreads.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+    Synchronization_Exception forma parte de la librería ZThread y la
+    clase base para todas las excepciones de ZThread. Se lanzará si hay un
+    error al crear o usar un hilo.
+    </p>
+      <p>
+      Un constructor de <code class="classname">Thread</code> sólo necesita un
+      puntero a un objeto Runnable. Al crear un objeto
+      <code class="classname">Thread</code> se efectuará la incialización
+      necesaria del hilo y después se llamará a
+      <code class="function">Runnable::run()</code>
+    </p>
+      <p>
+      Puede añadir más hilos fácilmente para controlar más tareas. A
+      continuación, puede ver cómo los hilos se ejecutan con algún otro:
+    </p>
+      <div class="example">
+        <a id="idp5267112"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:MoreBasicThreads.cpp</span>
+<span class="hl slc">// Adding more threads.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const int</span> SZ <span class="hl opt">=</span> <span class="hl num">5</span><span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> SZ<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      Thread <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Waiting for LiftOff&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.4. C11/MoreBasicThreads.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El segundo argumento del constructor
+      de <code class="classname">LiftOff</code> identifica cada tarea. Cuando
+      ejecute el programa, verá que la ejecución de las distintas
+      tareas se mezclan a medida que los hilos entran y salen de su
+      ejecución. Este intercambio está controlado automáticamente por
+      el planificador de hilos. Si tiene múltiples procesadores en su
+      máquina, el planificador de hilos distribuirá los hilos entre
+      los procesadores de forma transparente.
+    </p>
+      <p>
+      El bucle for puede parecer un poco extraño a priori ya que se
+      crea localmente dentro del bucle for e inmediatamente después
+      sale del ámbito y es destruído. Esto hace que parezca que el
+      hilo propiamente dicho pueda perderse inmediatamente, pero puede
+      ver por la salida que los hilos, en efecto, están en ejecución
+      hasta su finalización. Cuando crea un
+      objeto <code class="classname">Thread</code>, el hilo asociado se
+      registra en el sistema de hilos, que lo mantiene vivo. A pesar
+      de que el objeto <code class="classname">Thread</code> local se pierde,
+      el hilo sigue vivo hasta que su tarea asociada termina. Aunque
+      puede ser poco intuitivo desde el punto de vista de C++, el
+      concepto de hilos es la excepción de la regla: un hilo crea un
+      hilo de ejecución separado que persiste después de que la
+      llamada a función finalice. Esta excepción se refleja en la
+      persistencia del hilo subyacente después de que el objeto
+      desaparezca.
+    </p>
+      <div class="sect2" title="10.3.1. Creación de interfaces de usuarios interactivas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5272088"></a>10.3.1. Creación de interfaces de usuarios interactivas</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Como se dijo anteriormente, uno de las motivaciones para usar
+	hilos es crear interfaces de usuario interactivas. Aunque en
+	este libro no cubriremos las interfaces gráficas de usuario,
+	verá un ejemplo sencillo de una interfaz de usuario basada en
+	consola.
+      </p>
+        <p>
+	El siguiente ejemplo lee líneas de un archivo y las imprime a
+	la consola, durmiéndose (suspender el hilo actual) durante un
+	segundo después de que cada línea sea mostrada. (Aprenderá más
+	sobre el proceso de dormir hilos en el capítulo.) Durante este
+	proceso, el programa no busca la entrada del usuario, por lo
+	que la IU no es interactiva:
+      </p>
+        <div class="example">
+          <a id="idp5274104"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:UnresponsiveUI.cpp {RunByHand}</span>
+<span class="hl slc">// Lack of threading produces an unresponsive UI.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;Enter&gt; to quit:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  ifstream <span class="hl kwd">file</span><span class="hl opt">(</span><span class="hl str">&quot;UnresponsiveUI.cpp&quot;</span><span class="hl opt">);</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>file<span class="hl opt">,</span> line<span class="hl opt">)) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> line <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1000</span><span class="hl opt">);</span> <span class="hl slc">// Time in milliseconds</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Read input from the console</span>
+  cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Shutting down...&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.5. C11/UnresponsiveUI.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Para hacer este programa interactivo, puede ejecutar una tarea
+	que muestre el archivo en un hilo separado. De esta forma, el
+	hilo principal puede leer la entrada del usuario, por lo que
+	el programa se vuelve interactivo:
+      </p>
+        <div class="example">
+          <a id="idp5276056"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:ResponsiveUI.cpp {RunByHand}</span>
+<span class="hl slc">// Threading for a responsive user interface.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> DisplayTask <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  ifstream in<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> quitFlag<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">DisplayTask</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> file<span class="hl opt">) :</span> <span class="hl kwd">quitFlag</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {</span>
+    in<span class="hl opt">.</span><span class="hl kwd">open</span><span class="hl opt">(</span>file<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">DisplayTask</span><span class="hl opt">() {</span> in<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">(); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">) &amp;&amp; !</span>quitFlag<span class="hl opt">) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> line <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1000</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">quit</span><span class="hl opt">() {</span> quitFlag <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;Enter&gt; to quit:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    DisplayTask<span class="hl opt">*</span> dt <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">DisplayTask</span><span class="hl opt">(</span><span class="hl str">&quot;ResponsiveUI.cpp&quot;</span><span class="hl opt">);</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span>dt<span class="hl opt">);</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    dt<span class="hl opt">-&gt;</span><span class="hl kwd">quit</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Shutting down...&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.6. C11/ResponsiveUI.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Ahora el hilo main() puede responder inmediatamente cuando
+	pulse Return e invocar quit()
+	sobre <code class="classname">DisplayTask</code>.
+      </p>
+        <p>
+	Este ejemplo también muestra la necesidad de una comunicación
+	entre tareas - la tarea en el hilo main() necesita parar
+	al <code class="classname">DisplayTask</code>. Dado que tenemos un
+	puntero a DisplayTask, puede pensar que bastaría con llamar al
+	destructor de ese puntero para matar la tarea, pero esto hace
+	que los programas sean poco fiables. El problema es que la
+	tarea podría estar en mitad de algo importante cuando lo
+	destruye y, por lo tanto, es probable que ponga el programa en
+	un estado inestable. En este sentido, la propia tarea decide
+	cuando es seguro terminar. La manera más sencilla de hacer
+	esto es simplemente notificar a la tarea que desea detener
+	mediante una bandera booleana. Cuando la tarea se encuentre en
+	un punto estable puede consultar esa bandera y hacer lo que
+	sea necesario para limpiar el estado después de regresar de
+	run(). Cuando la tarea vuelve de
+	run(), <code class="classname">Thread</code> sabe que la tarea se ha
+	completado.
+      </p>
+        <p>
+	Aunque este programa es lo suficientemente simple para que no
+	haya problemas, hay algunos pequeños defectos respecto a la
+	comunicación entre pilas. Es un tema importante que se cubrirá
+	más tarde en este capítulo.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s02s02.html">10.2.2. Definición de tareas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">10.3.2. Simplificación con Ejecutores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

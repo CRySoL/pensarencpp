@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.4.2. Acceso no apropiado a recursos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s04.html" title="10.4. Comparición de recursos limitados" />
+    <link rel="prev" href="ch10s04.html" title="10.4. Comparición de recursos limitados" />
+    <link rel="next" href="ch10s04s03.html" title="10.4.3. Control de acceso" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04.html">10.4. Comparición de recursos limitados</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s04s03.html">10.4.3. Control de acceso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.4.2. Acceso no apropiado a recursos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5349336"></a>10.4.2. Acceso no apropiado a recursos</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Considere el siguiente ejemplo, donde una tarea genera números
+	constantes y otras tareas consumen esos números. Ahora, el
+	único trabajo de los hilos consumidores es probar la validez
+	de los números constantes.
+      </p>
+      <p>
+	Primeramente, definiremos <code class="classname">EvenChecker</code>,
+	el hilo consumidor, puesto que será reutilizado en todos los
+	ejemplos siguientes. Para
+	desacoplar <code class="classname">EvenChecker</code> de los varios
+	tipos de generadores con los que experimentaremos, crearemos
+	una interfaz llamada <code class="classname">Generator</code> que
+	contiene el número mínimo de funciones
+	que <code class="classname">EvenChecker</code> necesita conocer: por
+	lo que tiene una función nextValue() y que puede ser
+	cancelada.
+      </p>
+      <div class="example">
+        <a id="idp5351976"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:EvenChecker.h</span>
+<span class="hl ppc">#ifndef EVENCHECKER_H</span>
+<span class="hl ppc">#define EVENCHECKER_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/CountedPtr.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Cancelable.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Generator <span class="hl opt">:</span> <span class="hl kwc">public</span> ZThread<span class="hl opt">::</span>Cancelable <span class="hl opt">{</span>
+  <span class="hl kwb">bool</span> canceled<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Generator</span><span class="hl opt">() :</span> <span class="hl kwd">canceled</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">int</span> <span class="hl kwd">nextValue</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">cancel</span><span class="hl opt">() {</span> canceled <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">isCanceled</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> canceled<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> EvenChecker <span class="hl opt">:</span> <span class="hl kwc">public</span> ZThread<span class="hl opt">::</span>Runnable <span class="hl opt">{</span>
+  ZThread<span class="hl opt">::</span>CountedPtr<span class="hl opt">&lt;</span>Generator<span class="hl opt">&gt;</span> generator<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">EvenChecker</span><span class="hl opt">(</span>ZThread<span class="hl opt">::</span>CountedPtr<span class="hl opt">&lt;</span>Generator<span class="hl opt">&gt;&amp;</span> g<span class="hl opt">,</span> <span class="hl kwb">int</span> ident<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">generator</span><span class="hl opt">(</span>g<span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">EvenChecker</span><span class="hl opt">() {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~EvenChecker &quot;</span> <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(!</span>generator<span class="hl opt">-&gt;</span><span class="hl kwd">isCanceled</span><span class="hl opt">()) {</span>
+      <span class="hl kwb">int</span> val <span class="hl opt">=</span> generator<span class="hl opt">-&gt;</span><span class="hl kwd">nextValue</span><span class="hl opt">();</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>val <span class="hl opt">%</span> <span class="hl num">2</span> <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+        std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> val <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; not even!&quot;</span> <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+        generator<span class="hl opt">-&gt;</span><span class="hl kwd">cancel</span><span class="hl opt">();</span> <span class="hl slc">// Cancels all EvenCheckers</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Test any type of generator:</span>
+  <span class="hl kwc">template</span><span class="hl opt">&lt;</span>typename GenType<span class="hl opt">&gt;</span> <span class="hl kwb">static void</span> <span class="hl kwd">test</span><span class="hl opt">(</span><span class="hl kwb">int</span> n <span class="hl opt">=</span> <span class="hl num">10</span><span class="hl opt">) {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press Control-C to exit&quot;</span> <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      ZThread<span class="hl opt">::</span>ThreadedExecutor executor<span class="hl opt">;</span>
+      ZThread<span class="hl opt">::</span>CountedPtr<span class="hl opt">&lt;</span>Generator<span class="hl opt">&gt;</span> <span class="hl kwd">gp</span><span class="hl opt">(</span><span class="hl kwa">new</span> GenType<span class="hl opt">);</span>
+      <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> n<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+        executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">EvenChecker</span><span class="hl opt">(</span>gp<span class="hl opt">,</span> i<span class="hl opt">));</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>ZThread<span class="hl opt">::</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+      std<span class="hl opt">::</span>cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// EVENCHECKER_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.16. C11/EvenChecker.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La clase <code class="classname">Generator</code> presenta la clase
+	abstracta <code class="classname">Cancelable</code>, que es parte de
+	la biblioteca de ZThread. El propósito
+	de <code class="classname">Cancelable</code> es proporcionar una
+	interfaz consistente para cambiar el estado de un objeto via
+	cancel() y ver si el objeto ha sido cancelado con la función
+	isCanceled(). Aquí utilizamos el enfoque simple de una bandera
+	de cancelación booleana similar a quitFlag, vista previamente
+	en ResponsiveUI.cpp. Note que en este ejemplo la clase que
+	es <code class="classname">Cancelable</code> no
+	es <code class="classname">Runnable</code>. En su lugar, toda
+	tarea <code class="classname">EvenChecker</code> que dependa de un
+	objeto <code class="classname">Cancelable</code>
+	(el <code class="classname">Generator</code>) lo comprueba para ver
+	que ha sido cancelado, como puede ver en run(). De esta
+	manera, las tareas que comparten recursos comunes
+	(el <code class="classname">Cancelable</code> <code class="classname">Generator</code>)
+	estén atentos a la señal de ese recurso para terminar. Esto
+	elimina la también conocida condición de carrera, donde dos o
+	más tareas compiten por responder una condición y, así,
+	colisionar o producir resultados inconsistentes. Debe pensar
+	sobre esto cuidadosamente y protegerse de todas las formas
+	posible de los fallos de un sistema concurrente. Por ejemplo,
+	una tarea no puede depender de otra porque el orden de
+	finalización de las tareas no está garantizado. En este
+	sentido, eliminamos la potencial condición de carrera haciendo
+	que las tareas dependan de objetos que no son tareas (que son
+	contados referencialmente
+	utilizando <code class="classname">CountedPtr</code>.
+      </p>
+      <p>
+	En las secciones posteriores, verá que la librería ZThread
+	contiene más mecanismos generales para la terminación de hilos.
+      </p>
+      <p>
+	Debido a que muchos objetos <code class="classname">EvenChecker</code>
+	podrían terminar compartiendo
+	un <code class="classname">Generator</code>, la
+	plantilla <code class="classname">CountedPtr</code> se usa para contar
+	las referencias de los
+	objetos <code class="classname">Generator</code>.
+      </p>
+      <p>
+	El último método en <code class="classname">EvenChecker</code> es un
+	miembro estático de la plantilla que configura y realiza una
+	comprobación de los tipos de <code class="classname">Generator</code>
+	creando un <code class="classname">CountedPtr</code> dentro y,
+	seguidamente, lanzar un número
+	de <code class="classname">EvenChecker</code>s que usan
+	ese <code class="classname">Generator</code>. Si
+	el <code class="classname">Generator</code> provoca un fallo, test()
+	lo reportará y volverá; en otro caso, deberá pulsar Control-C
+	para finalizarlo.
+      </p>
+      <p>
+	Las tareas <code class="classname">EvenChecker</code> leen
+	constantemente y comprueban que los valores de
+	sus <code class="classname">Generator</code>s asociados. Vea que si
+	generator-&gt;isCanceled() es verdadero, run() retorna, con lo
+	que se le dice al <code class="classname">Executor</code> de
+	EvenChecker::test() que la tarea se ha
+	completado. Cualquier tarea <code class="classname">EvenChecker</code>
+	puede llamar a cancel() sobre
+	su <code class="classname">Generator</code> asociado, lo que causará
+	que todos los demás <code class="classname">EvenChecker</code>s que
+	utilicen ese <code class="classname">Generator</code> finalicen con
+	elegancia.
+      </p>
+      <p>
+	<code class="classname">EvenGenerator</code> es simple -
+	nextValue() produce el siguiente valor constante:
+      </p>
+      <div class="example">
+        <a id="idp5366216"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:EvenGenerator.cpp</span>
+<span class="hl slc">// When threads collide.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;EvenChecker.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> EvenGenerator <span class="hl opt">:</span> <span class="hl kwc">public</span> Generator <span class="hl opt">{</span>
+  <span class="hl kwb">unsigned int</span> currentEvenValue<span class="hl opt">;</span> <span class="hl slc">// Unsigned can't overflow</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">EvenGenerator</span><span class="hl opt">() {</span> currentEvenValue <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">EvenGenerator</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~EvenGenerator&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">nextValue</span><span class="hl opt">() {</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span> <span class="hl slc">// Danger point here!</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> currentEvenValue<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  EvenChecker<span class="hl opt">::</span>test<span class="hl opt">&lt;</span>EvenGenerator<span class="hl opt">&gt;();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.17. C11/EvenGenerator.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Es posible que un hilo llame a nextValue() después de el
+	primer incremento de currentEvenValue y antes del segundo (en
+	el lugar "Danger point here!" del código comentado), que pone
+	el valor en un estado "incorrecto". Para probar que esto puede
+	ocurrir, EventChecker::test() crea un grupo de
+	objetos <code class="classname">EventChecker</code> para leer
+	continuamente la salida de
+	un <code class="classname">EvenGenerator</code> y ver si cada valor es
+	constante. Si no es así, el error se reporta y el programa
+	finaliza.
+      </p>
+      <p>
+	Este programa podría no detectar el problema hasta
+	que <code class="classname">EvenGenerator</code> ha completado varios
+	ciclos, dependiendo de las particuliaridades de su sistema
+	operativo y otros detalles de implementación. Si quiere ver
+	que falla mucho más rápido, pruebe a poner una llamada a
+	yield() entre el primero y segundo incremento. En algún
+	evento, fallará puntualmente a causa de que los
+	hilos <code class="classname">EvenChecker</code> pueden acceder a la
+	información en <code class="classname">EvenGenerator</code> mientras
+	se encuentra en un estado "incorrecto".
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s04.html">10.4. Comparición de recursos limitados</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s04s03.html">10.4.3. Control de acceso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

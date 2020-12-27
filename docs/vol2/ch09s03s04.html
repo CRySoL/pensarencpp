@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.3.4. Dormido</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s03.html" title="9.3. Utilización de los hilos" />
+    <link rel="prev" href="ch09s03s03.html" title="9.3.3. Ceder el paso" />
+    <link rel="next" href="ch09s03s05.html" title="9.3.5. Prioridad" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03s03.html">9.3.3. Ceder el paso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s03s05.html">9.3.5. Prioridad</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s03s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.3.4. Dormido">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5051504"></a>9.3.4. Dormido</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Otra forma con la que puede tener control sobre el
+	comportamiento de su hilos es llamando a sleep() para cesar la
+	ejecución de uno de ellos durante un número de milisegundos
+	dado. En el ejemplo que viene a continuación, si cambia la llamada a
+	yield() por una a sleep(), obtendrá lo siguiente:
+      </p>
+      <div class="example">
+        <a id="idp5052640"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:SleepingTask.cpp</span>
+<span class="hl slc">// Calling sleep() to pause for awhile.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> SleepingTask <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> countDown<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">SleepingTask</span><span class="hl opt">(</span><span class="hl kwb">int</span> ident <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">countDown</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">SleepingTask</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; completed&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> SleepingTask<span class="hl opt">&amp;</span> st<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;#&quot;</span> <span class="hl opt">&lt;&lt;</span> st<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> st<span class="hl opt">.</span>countDown<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwa">true</span><span class="hl opt">) {</span>
+      <span class="hl kwa">try</span> <span class="hl opt">{</span>
+        cout <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl kwa">if</span><span class="hl opt">(--</span>countDown <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+      <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+        cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">SleepingTask</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.12. C11/SleepingTask.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Thread::sleep() puede lanzar
+	una <code class="classname">Interrupted_Exception</code>(sobre las
+	interrupciones aprenderá más adelante), y puede ver que esta
+	excepción se captura en run(). Sin embargo, la tarea se crea y
+	se ejecuta dentro de un bloque try en main() que
+	captura <code class="classname">Interrupted_Exception</code> (la clase
+	base para todas las excepciones de ZThread), por lo que ¿no
+	sería posible ignorar la excepción en run() y asumir que se
+	propagará al manejador en main()?. Esto no funcionará porque
+	las excepciones no se propagarán a lo largo de los hilos para
+	volver hacia main(). De esta forma, debe manejar cualquier
+	excepción que pueda ocurrir dentro de una tarea de forma
+	local.
+      </p>
+      <p>
+	Notará que los hilos tienden a ejecutarse en cualquier orden,
+	lo que quiere decir que sleep() tampoco es una forma de
+	controlar el orden de la ejecución de los hilos. Simplemente
+	para la ejecución del hilo durante un rato. La única garantía
+	que tiene es que el hilo se dormirá durante, al menos, 100
+	milisegundos (en este ejemplo), pero puede que tarde más
+	después de que el hilo reinicie la ejecución ya que el
+	planificador de hilos tiene que volver a él tras haber
+	expirado el intervalo.
+      </p>
+      <p>
+	Si debe tener control sobre el orden de la ejecución de hilos,
+	su mejor baza es el uso de controles de sincronización
+	(descritos más adelante) o, en algunos casos, no usar hilos en
+	todo, FIXMEbut instead to write your own cooperative routines that
+	hand control to each other in a specified order.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03s03.html">9.3.3. Ceder el paso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s03s05.html">9.3.5. Prioridad</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s03s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

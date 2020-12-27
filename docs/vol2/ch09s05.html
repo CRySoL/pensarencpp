@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.5. Comando: elegir la operación</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s04.html" title="9.4. Singleton" />
+    <link rel="next" href="ch09s06.html" title="9.6. Desacoplamiento de objetos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04.html">9.4. Singleton</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06.html">9.6. Desacoplamiento de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.5. Comando: elegir la operación">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5048384"></a>9.5. Comando: elegir la operación </h2>
+          </div>
+        </div>
+      </div>
+      <p>
+	  El patrón <code class="keyword">Comando</code> es estructuralmente muy sencillo,
+pero puede tener un impacto importante en el desacoplamiento (y, por
+ende, en la limpieza) de su código.
+    </p>
+      <p>
+	  En "Advanced C++: Programming Styles And Idioms (Addison Wesley,
+1992)", Jim Coplien acuña el término <code class="keyword">functor</code>, que es un
+objeto cuyo único propósito es encapsular una función (dado
+que <code class="keyword">functor</code> tiene su significado en matemáticas, usaremos el
+término "objeto función", que es más explícito). El quid está en
+desacoplar la elección de la función que hay que llamar del sitio
+donde se llama a dicha función.
+    </p>
+      <p>
+	  Este término se menciona en el GoF, pero no se usa. Sin embargo,
+el concepto de "objeto función" se repite en numerosos patrones del
+libro.
+    </p>
+      <p>
+	  Un <code class="keyword">Comando</code> es un objeto función en su estado más puro:
+una función que tiene un objeto. Al envolver una función en un objeto,
+puede pasarla a otras funciones u objetos como parámetro, para
+decirles que realicen esta operación concreta mientras llevan a cabo
+su petición. Se podría decir que un <code class="keyword">Comando</code> es un Mensajero
+que lleva un comportamiento.
+    </p>
+      <div class="example">
+        <a id="idp5053856"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:CommandPattern.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Command <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">execute</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Hello <span class="hl opt">:</span> <span class="hl kwc">public</span> Command <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">execute</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Hello &quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> World <span class="hl opt">:</span> <span class="hl kwc">public</span> Command <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">execute</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;World! &quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> IAm <span class="hl opt">:</span> <span class="hl kwc">public</span> Command <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">execute</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;I'm the command pattern!&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// An object that holds commands:</span>
+<span class="hl kwc">class</span> Macro <span class="hl opt">{</span>
+  vector<span class="hl opt">&lt;</span>Command<span class="hl opt">*&gt;</span> commands<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">add</span><span class="hl opt">(</span>Command<span class="hl opt">*</span> c<span class="hl opt">) {</span> commands<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>c<span class="hl opt">); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    vector<span class="hl opt">&lt;</span>Command<span class="hl opt">*&gt;::</span>iterator it <span class="hl opt">=</span> commands<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> commands<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+      <span class="hl opt">(*</span>it<span class="hl opt">++)-&gt;</span><span class="hl kwd">execute</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Macro macro<span class="hl opt">;</span>
+  macro<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> Hello<span class="hl opt">);</span>
+  macro<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> World<span class="hl opt">);</span>
+  macro<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> IAm<span class="hl opt">);</span>
+  macro<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.12. C10/CommandPattern.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	  El punto principal del <code class="keyword">Comando</code> es permitirle dar una
+acción deseada a una función u objeto. En el ejemplo anterior, esto
+provee una manera de encolar un conjunto de acciones que se deben
+ejecutar colectivamente. Aquí, puede crear dinámicamente nuevos
+comportamientos, algo que puede hacer normalmente escribiendo nuevo
+código, pero en el ejemplo anterior podría hacerse interpretando
+un <code class="keyword">script</code> (vea el patrón Intérprete si lo que necesita hacer
+se vuelve demasiado complicado).
+    </p>
+      <p>
+	  Según el GoF, los <code class="keyword">Comandos</code> son un sustituto orientado a
+	  objetos de las <code class="keyword">retrollamadas</code>
+	  (<code class="keyword">callbacks</code>). [141] Sin embargo, pensamos que la palabra
+	  "retro" es una parte esencial del concepto de retrollamada -una
+	  retrollamada retorna al creador de la misma. Por otro lado, un
+	  objeto <code class="keyword">Comando</code>, simplemente se crea y se entrega a
+	  alguna función u objeto, y no se permanece conectado de por vida
+	  al objecto <code class="keyword">Comando</code>.
+    </p>
+      <p>
+Un ejemplo habitual del patrón <code class="keyword">Comando</code> es la implementación
+de la funcionalidad de "deshacer" en una aplicación. Cada vez que el
+usuario realiza una operación, se coloca el correspondiente objeto
+Comando de deshacer en una cola. Cada objeto Comando que se ejecuta
+guarda el estado del programa en el paso anterior.
+    </p>
+      <div class="sect2" title="9.5.1. Desacoplar la gestión de eventos con Comando">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5061944"></a>9.5.1. Desacoplar la gestión de eventos con Comando</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+Como se verá en el siguiente capítulo, una de las razones para emplear
+técnicas de concurrencia es facilitar la gestión de la programación
+dirigida por eventos, donde los eventos pueden aparecer en el programa
+de forma impredecible. Por ejemplo, un usuario que pulsa un botón de
+"Salir" mientras se está realizando una operación espera que el
+programa responda rápidamente.
+      </p>
+        <p>
+Un motivo para usar concurrencia es que previene el aclopamiento entre
+los bloques del código. Es decir, si está ejecutando un hilo aparte
+para vigilar el botónde salida, las operaciones normales de su
+programa no necesitan saber nada sobre el botón ni sobe ninguna de las
+demás operaciones que se están vigilando.
+      </p>
+        <p>
+Sin embargo, una vez que comprenda que el quiz está en el
+acoplamiento, puede evitarlo usando el patrón Comando. Cada operación
+normal debe llamar periódicamente a una función para que compruebe el
+estado de los eventos, pero con el patrón Comando, estas operaciones
+normales no tienen porqué saber nada sobre lo que están comprobando, y
+por lo tanto, están desacopladas del código de manejo de eventos:
+      </p>
+        <div class="example">
+          <a id="idp5064944"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:MulticastCommand.cpp {RunByHand}</span>
+<span class="hl slc">// Decoupling event management with the Command pattern.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Framework for running tasks:</span>
+<span class="hl kwc">class</span> Task <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">operation</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> TaskRunner <span class="hl opt">{</span>
+  <span class="hl kwb">static</span> vector<span class="hl opt">&lt;</span>Task<span class="hl opt">*&gt;</span> tasks<span class="hl opt">;</span>
+  <span class="hl kwd">TaskRunner</span><span class="hl opt">() {}</span> <span class="hl slc">// Make it a Singleton</span>
+  TaskRunner<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span>TaskRunner<span class="hl opt">&amp;);</span> <span class="hl slc">// Disallowed</span>
+  <span class="hl kwd">TaskRunner</span><span class="hl opt">(</span><span class="hl kwb">const</span> TaskRunner<span class="hl opt">&amp;);</span> <span class="hl slc">// Disallowed</span>
+  <span class="hl kwb">static</span> TaskRunner tr<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">static void</span> <span class="hl kwd">add</span><span class="hl opt">(</span>Task<span class="hl opt">&amp;</span> t<span class="hl opt">) {</span> tasks<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(&amp;</span>t<span class="hl opt">); }</span>
+  <span class="hl kwb">static void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    vector<span class="hl opt">&lt;</span>Task<span class="hl opt">*&gt;::</span>iterator it <span class="hl opt">=</span> tasks<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> tasks<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+      <span class="hl opt">(*</span>it<span class="hl opt">++)-&gt;</span><span class="hl kwd">operation</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+TaskRunner TaskRunner<span class="hl opt">::</span>tr<span class="hl opt">;</span>
+vector<span class="hl opt">&lt;</span>Task<span class="hl opt">*&gt;</span> TaskRunner<span class="hl opt">::</span>tasks<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> EventSimulator <span class="hl opt">{</span>
+  <span class="hl kwb">clock_t</span> creation<span class="hl opt">;</span>
+  <span class="hl kwb">clock_t</span> delay<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">EventSimulator</span><span class="hl opt">() :</span> <span class="hl kwd">creation</span><span class="hl opt">(</span><span class="hl kwd">clock</span><span class="hl opt">()) {</span>
+    delay <span class="hl opt">=</span> CLOCKS_PER_SEC<span class="hl opt">/</span><span class="hl num">4</span> <span class="hl opt">* (</span><span class="hl kwd">rand</span><span class="hl opt">() %</span> <span class="hl num">20</span> <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">);</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;delay = &quot;</span> <span class="hl opt">&lt;&lt;</span> delay <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">fired</span><span class="hl opt">() {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">clock</span><span class="hl opt">() &gt;</span> creation <span class="hl opt">+</span> delay<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Something that can produce asynchronous events:</span>
+<span class="hl kwc">class</span> Button <span class="hl opt">{</span>
+  <span class="hl kwb">bool</span> pressed<span class="hl opt">;</span>
+  string id<span class="hl opt">;</span>
+  EventSimulator e<span class="hl opt">;</span> <span class="hl slc">// For demonstration</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Button</span><span class="hl opt">(</span>string name<span class="hl opt">) :</span> <span class="hl kwd">pressed</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>name<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">press</span><span class="hl opt">() {</span> pressed <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">isPressed</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>e<span class="hl opt">.</span><span class="hl kwd">fired</span><span class="hl opt">())</span> <span class="hl kwd">press</span><span class="hl opt">();</span> <span class="hl slc">// Simulate the event</span>
+    <span class="hl kwa">return</span> pressed<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Button<span class="hl opt">&amp;</span> b<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> b<span class="hl opt">.</span>id<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// The Command object</span>
+<span class="hl kwc">class</span> CheckButton <span class="hl opt">:</span> <span class="hl kwc">public</span> Task <span class="hl opt">{</span>
+  Button<span class="hl opt">&amp;</span> button<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> handled<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">CheckButton</span><span class="hl opt">(</span>Button <span class="hl opt">&amp;</span> b<span class="hl opt">) :</span> <span class="hl kwd">button</span><span class="hl opt">(</span>b<span class="hl opt">),</span> <span class="hl kwd">handled</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">operation</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>button<span class="hl opt">.</span><span class="hl kwd">isPressed</span><span class="hl opt">() &amp;&amp; !</span>handled<span class="hl opt">) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> button <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; pressed&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      handled <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// The procedures that perform the main processing. These</span>
+<span class="hl slc">// need to be occasionally &quot;interrupted&quot; in order to</span>
+<span class="hl slc">// check the state of the buttons or other events:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">procedure1</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Perform procedure1 operations here.</span>
+  <span class="hl slc">// ...</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">run</span><span class="hl opt">();</span> <span class="hl slc">// Check all events</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">procedure2</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Perform procedure2 operations here.</span>
+  <span class="hl slc">// ...</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">run</span><span class="hl opt">();</span> <span class="hl slc">// Check all events</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">procedure3</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Perform procedure3 operations here.</span>
+  <span class="hl slc">// ...</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">run</span><span class="hl opt">();</span> <span class="hl slc">// Check all events</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Randomize</span>
+  Button <span class="hl kwd">b1</span><span class="hl opt">(</span><span class="hl str">&quot;Button 1&quot;</span><span class="hl opt">),</span> <span class="hl kwd">b2</span><span class="hl opt">(</span><span class="hl str">&quot;Button 2&quot;</span><span class="hl opt">),</span> <span class="hl kwd">b3</span><span class="hl opt">(</span><span class="hl str">&quot;Button 3&quot;</span><span class="hl opt">);</span>
+  CheckButton <span class="hl kwd">cb1</span><span class="hl opt">(</span>b1<span class="hl opt">),</span> <span class="hl kwd">cb2</span><span class="hl opt">(</span>b2<span class="hl opt">),</span> <span class="hl kwd">cb3</span><span class="hl opt">(</span>b3<span class="hl opt">);</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span>cb1<span class="hl opt">);</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span>cb2<span class="hl opt">);</span>
+  TaskRunner<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span>cb3<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Control-C to exit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwa">true</span><span class="hl opt">) {</span>
+    <span class="hl kwd">procedure1</span><span class="hl opt">();</span>
+    <span class="hl kwd">procedure2</span><span class="hl opt">();</span>
+    <span class="hl kwd">procedure3</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.13. C10/MulticastCommand.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		Aquí, el objeto Comando está representado por <code class="keyword">Tarea</code>s
+		ejecutadas por el
+		Singleton <code class="keyword">TaskRunner</code>. <code class="keyword">EventSimulator</code> crea un
+		retraso aleatorio, de modo que si se llama periódicamente a la
+		función fired() el resultado cambiará de <code class="keyword">false</code>
+		a <code class="keyword">true</code> en algún momento aleatorio. Los
+		objetos <code class="keyword">EventSimulator</code> se utilizan dentro de los
+		Botones para simular que ocurre un evento de usuario en un
+		momento impredecible. <code class="keyword">CheckButton</code> es la
+		implementación de la Tarea que es comprobada periódicamente
+		por todo el código "normal" del progama. Puede ver cómo ocurre
+		al final de procedure1(), procedure2() y procedure3().
+      </p>
+        <p>
+Aunque esto requiere un poco más de razonamiento para establecerlo, verá en el
+Capítulo 11 que utilizar hilos requiere mucho pensamiento y cuidado para prevenir
+las muchas dificultades inhenerentes a la programación concurrente, por lo que
+la solución más simple puede ser preferible. También puede crear un esquema de hilos
+muy simple moviendo las llamadas a TaskRunner::run() a un objeto temporizador multi-hilo.
+Al hacer esto, se elimina todo el acoplamiento entre las operaciones "normales"
+(los "procedures" en el ejemplo anterior) y el código de eventos.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04.html">9.4. Singleton</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06.html">9.6. Desacoplamiento de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

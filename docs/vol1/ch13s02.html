@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>13.2. Rediseño de los ejemplos anteriores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C13.html" title="13: Creación dinámica de objetos" />
+    <link rel="prev" href="C13.html" title="13: Creación dinámica de objetos" />
+    <link rel="next" href="ch13s02s02.html" title="13.2.2. Responsabilidad de la limpieza cuando se usan punteros" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C13.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C13.html">13: Creación dinámica de objetos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C13.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s02s02.html">13.2.2. Responsabilidad de la limpieza cuando se usan punteros</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="13.2. Rediseño de los ejemplos anteriores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7569744"></a>13.2. Rediseño de los ejemplos anteriores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+	  Puede reescribirse el ejemplo <code class="classname">Stash</code> que vimos anteriormente
+	  en el libro, haciendo uso de los operadores <code class="keyword">new</code> y <code class="keyword">delete</code>, con las
+	  características que se han visto desde entonces. A la vista del nuevo código se
+	  pueden repasar estas cuestiones.
+    </p>
+      <p>
+	  Hasta este punto del libro, ninguna de las clases <code class="classname">Stash</code> ni
+	  <code class="classname">Stack</code> poseerán los objetos a los que apuntan; es decir,
+	  cuando el objeto <code class="classname">Stash</code> o <code class="classname">Stack</code> sale de
+	  ámbito, no se invoca <code class="keyword">delete</code> para cada uno de los objetos a los que
+	  apunta. La razón por la que eso no es posible es porque, en un intento de conseguir
+	  más generalidad, utilizan punteros <code class="type">void</code>. Usar <code class="keyword">delete</code> con
+	  punteros <code class="literal">void</code> libera el bloque de memoria pero, al no existir
+	  información de tipo, el compilador no sabe qué destructor debe invocar.
+    </p>
+      <div class="sect2" title="13.2.1. delete void* probablemente es un error">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7575392"></a>13.2.1. <code class="keyword">delete</code> <code class="type">void*</code> probablemente es un error</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+		Es necesario puntualizar que, llamar a <code class="keyword">delete</code> con un argumento
+		<code class="type">void*</code> es casi con seguridad un error en el programa, a no ser que el
+		puntero apunte a un objeto muy simple; en particular, que no tenga un destructor.
+		He aquí un ejemplo ilustrativo:
+      </p>
+        <div class="example">
+          <a id="idp7577736"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C13:BadVoidPointerDeletion.cpp</span>
+<span class="hl slc">// Deleting void pointers can cause memory leaks</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Object <span class="hl opt">{</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> data<span class="hl opt">;</span> <span class="hl slc">// Some storage</span>
+  <span class="hl kwb">const int</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">const char</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Object</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">,</span> <span class="hl kwb">char</span> c<span class="hl opt">) :</span> <span class="hl kwd">size</span><span class="hl opt">(</span>sz<span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>c<span class="hl opt">) {</span>
+    data <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">char</span><span class="hl opt">[</span>size<span class="hl opt">];</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Constructing object &quot;</span> <span class="hl opt">&lt;&lt;</span> id 
+         <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, size = &quot;</span> <span class="hl opt">&lt;&lt;</span> size <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Object</span><span class="hl opt">() {</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Destructing object &quot;</span> <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> <span class="hl opt">[]</span>data<span class="hl opt">;</span> <span class="hl slc">// OK, just releases storage,</span>
+    <span class="hl slc">// no destructor calls are necessary</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Object<span class="hl opt">*</span> a <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Object</span><span class="hl opt">(</span><span class="hl num">40</span><span class="hl opt">,</span> <span class="hl str">'a'</span><span class="hl opt">);</span>
+  <span class="hl kwa">delete</span> a<span class="hl opt">;</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> b <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Object</span><span class="hl opt">(</span><span class="hl num">40</span><span class="hl opt">,</span> <span class="hl str">'b'</span><span class="hl opt">);</span>
+  <span class="hl kwa">delete</span> b<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 13.3. C13/BadVoidPointerDeletion.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		La clase <code class="classname">Object</code> contiene la variable
+		<code class="varname">data</code> de tipo <code class="type">void*</code> que es inicializada para
+		apuntar a un objeto simple que no tiene destructor. En el destructor de
+		<code class="classname">Object</code> se llama a <code class="keyword">delete</code> con este puntero, sin que
+		tenga consecuencias negativas puesto que lo único que se necesita aquí es liberar
+		la memoria.
+      </p>
+        <p>
+		Ahora bien, se puede ver en <code class="function">main()</code> la necesidad de que
+		<code class="keyword">delete</code> conozca el tipo del objeto al que apunta su argumento. Esta es la
+		salida del programa:
+      </p>
+        <pre class="screen">
+	Construyendo objeto a, tamaño = 40
+	Destruyendo objeto a
+	Construyendo objeto b, tamaño = 40
+      </pre>
+        <p>
+		Como <code class="keyword">delete</code> sabe que <code class="varname">a</code> es un puntero a
+		<code class="classname">Object</code>, se lleva a cabo la llamada al destructor de
+		<code class="classname">Object</code>, con lo que se libera el espacio asignado a
+		<code class="varname">data</code>. En cambio, cuando se manipula un objeto usando un
+		<code class="type">void*</code>, como es el caso en <code class="code">delete b</code>, se libera el bloque
+		de <code class="classname">Object</code>, pero no se efectúa la llamada a su destructor,
+		con lo que tampoco se liberará el espacio asignado a <code class="varname">data</code>,
+		miembro de <code class="classname">Object</code>. Probablemente no se mostrará ningún
+		mensaje de advertencia al compilar el programa; no hay ningún error
+		sintáctico. Como resultado obtenemos un programa con una silenciosa fuga de
+		memoria.
+      </p>
+        <p>
+		Cuando se tiene una fuga de memoria, se debe buscar entre todas las llamadas a
+		<code class="keyword">delete</code> para comprobar el tipo de puntero que se le pasa. Si es un
+		<code class="type">void*</code>, puede estar ante una de las posibles causas (Sin embargo, C++
+		proporciona otras muchas oportunidades para la fuga de memoria).
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C13.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C13.html">13: Creación dinámica de objetos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C13.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s02s02.html">13.2.2. Responsabilidad de la limpieza cuando se usan punteros</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

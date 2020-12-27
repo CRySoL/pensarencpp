@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>11.3.3. El constructor de copia por defecto</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch11s03.html" title="11.3. El constructor de copia" />
+    <link rel="prev" href="ch11s03s02.html" title="11.3.2. Construcción por copia" />
+    <link rel="next" href="ch11s03s04.html" title="11.3.4. Alternativas a la construcción por copia" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s03s02.html">11.3.2. Construcción por copia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch11s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s04.html">11.3.4. Alternativas a la construcción por copia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="11.3.3. El constructor de copia por defecto">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6992904"></a>11.3.3. El constructor de copia por defecto</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Como el constructor de copia implementa el paso y retorno por
+	valor, es importante que el compilador cree uno en el caso de
+	estructuras simples (de hecho, es lo mismo que hace C). Sin
+	embargo todo lo que se ha visto es el comportamiento por
+	defecto: una copia bit a bit.
+      </p>
+      <p>
+	Cuando se utilizan tipos más complejos, el compilador de C++
+	creará un constructor de copia automáticamente si no se implementa
+	explícitamente. De nuevo, una copia bit a bit no tiene
+	sentido, porque no tiene porqué ser el comportamiento que se
+	necesita.
+      </p>
+      <p>
+	He aquí un ejemplo para mostrar el comportamiento más
+	inteligente del compilador. Suponga que crea una nueva clase
+	compuesta por objetos de varias clases diferentes. A esto se le
+	denomina <span class="emphasis"><em>composición</em></span>, y es una de las
+	formas en las que se pueden hacer nuevas clases a partir de las
+	ya existentes. Ahora desempeñe el papel de un novato que trata
+	de resolver un problema rápidamente creando una nueva clase de
+	esta manera. No sabe nada sobre los constructores de copia, así
+	que no lo implementa. El ejemplo muestra lo que el compilador
+	hace cuando crea un constructor de copia por defecto para su nueva
+	clase:
+      </p>
+      <div class="example">
+        <a id="idp6996136"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:DefaultCopyConstructor.cpp</span>
+<span class="hl slc">// Automatic creation of the copy-constructor</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> WithCC <span class="hl opt">{</span> <span class="hl slc">// With copy-constructor</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Explicit default constructor required:</span>
+  <span class="hl kwd">WithCC</span><span class="hl opt">() {}</span>
+  <span class="hl kwd">WithCC</span><span class="hl opt">(</span><span class="hl kwb">const</span> WithCC<span class="hl opt">&amp;) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;WithCC(WithCC&amp;)&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> WoCC <span class="hl opt">{</span> <span class="hl slc">// Without copy-constructor</span>
+  string id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">WoCC</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> ident <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">) :</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>msg<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() !=</span> <span class="hl num">0</span><span class="hl opt">)</span> cout <span class="hl opt">&lt;&lt;</span> msg <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span><span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Composite <span class="hl opt">{</span>
+  WithCC withcc<span class="hl opt">;</span> <span class="hl slc">// Embedded objects</span>
+  WoCC wocc<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Composite</span><span class="hl opt">() :</span> <span class="hl kwd">wocc</span><span class="hl opt">(</span><span class="hl str">&quot;Composite()&quot;</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    wocc<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span>msg<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Composite c<span class="hl opt">;</span>
+  c<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;Contents of c&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Calling Composite copy-constructor&quot;</span>
+       <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  Composite c2 <span class="hl opt">=</span> c<span class="hl opt">;</span>  <span class="hl slc">// Calls copy-constructor</span>
+  c2<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;Contents of c2&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 11.9. C11/DefaultCopyConstructor.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La clase <code class="classname">WithCC</code> contiene un constructor
+	de copia, que simplemente anuncia que ha sido llamado, y esto
+	demuestra una cuestión interesante: dentro de la clase
+	<code class="classname">Composite</code> se crea un objeto tipo
+	<code class="classname">WithCC</code> utilizando el constructor por
+	defecto. Si <code class="classname">WithCC</code> no tuviera ningún
+	constructor, el compilador crearía uno por defecto
+	automáticamente, el cual, en este caso, no haría nada. No
+	obstante, si añade un constructor por defecto, le está
+	diciendo al compilador que ha de utilizar los constructores
+	disponibles, por lo que él no crea ningún constructor por
+	defecto y se quejará a no ser que explícitamente cree un
+	constructor por defecto, como se hizo en
+	<code class="classname">WithCC</code>.
+      </p>
+      <p>
+	La clase <code class="classname">WoCC</code> no tiene constructor de
+	copia, pero su constructor almacenará un <code class="type">string</code>
+	interno imprimible por la función
+	<code class="function">print()</code>.  La lista de inicialización del
+	constructor (presentado brevemente en el <a class="link" href="C08.html" title="8: Constantes">
+	Capítulo 8</a> y tratado completamente en el <a class="link" href="C14.html" title="14: Herencia y Composición">Capítulo 14</a>) de
+	<code class="classname">Composite</code> llama explícitamente a este
+	constructor. La razón de esto se verá posteriormente.
+	</p>
+      <p>
+	La clase <code class="classname">Composite</code> tiene objetos
+	miembro tanto de <code class="classname">WithCC</code> como de
+	<code class="classname">WoCC</code> (note que el objeto interno
+	<code class="varname">wocc</code> se inicializa en la lista de
+	inicializadores del constructor de
+	<code class="classname">Composite</code>, como debe ser), pero no
+	están inicializados explícitamente en el constructor de
+	copia. Sin embargo un objeto <code class="classname">Composite</code> se
+	crea en <code class="function">main()</code> utilizando el constructor
+	de copia:
+      </p>
+      <pre class="programlisting">
+Composite c2 <span class="hl opt">=</span> c<span class="hl opt">;</span>
+</pre>
+      <p>
+	El compilador ha creado un constructor de copia para
+	<code class="classname">Composite</code> automáticamente, y la salida del
+	programa revela la manera en que se crea:
+      </p>
+      <pre class="programlisting">
+Contents of c<span class="hl opt">:</span> <span class="hl kwd">Composite</span><span class="hl opt">()</span>
+Calling Composite copy<span class="hl opt">-</span>constructor
+<span class="hl kwd">WithCC</span><span class="hl opt">(</span>WithCC<span class="hl opt">&amp;)</span>
+Contents of c2<span class="hl opt">:</span> <span class="hl kwd">Composite</span><span class="hl opt">()</span>
+</pre>
+      <p>
+	Para la creación de un constructor de copia para una clase que
+	utiliza composición (y herencia, que se trata en el <a class="link" href="C14.html" title="14: Herencia y Composición">Capítulo 14</a>), el compilador llama a todos
+	los constructores de copia de todos los miembros objeto y de
+	las clases base de manera recursiva. Es decir, si el miembro
+	también contiene otro objeto, también se llama a su
+	constructor de copia. En el ejemplo, el compilador llama al
+	constructor de copia de <code class="classname">WithCC</code>. La
+	salida muestra que se llama a este constructor. Como
+	<code class="classname">WoCC</code> no tiene constructor de copia, el
+	compilador crea uno que realiza simplemente una copia bit a
+	bit para que el constructor de copia de
+	<code class="classname">Composite</code> lo pueda llamar. La llamada a
+	<code class="code">Composite::print()</code> en <code class="function">main()</code>
+	muestra que esto ocurre, porque el contenido de
+	<code class="varname">c2.wocc</code> es idéntico al contenido de
+	<code class="varname">c.wocc</code>. El proceso que realiza el
+	compilador para crear un constructor de copia se denomina
+	<span class="emphasis"><em>inicialización de miembros</em></span>
+	(<span class="foreignphrase"><em class="foreignphrase">memberwise initialization</em></span>).
+	</p>
+      <p>
+	Se recomienda definir constructor de copia propio en vez de
+	usar el que crea el compilador. Eso garantiza que estará bajo
+	su control.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s03s02.html">11.3.2. Construcción por copia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch11s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s04.html">11.3.4. Alternativas a la construcción por copia</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

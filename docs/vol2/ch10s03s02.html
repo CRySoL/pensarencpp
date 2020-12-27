@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.3.2. Simplificación con Ejecutores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s03.html" title="10.3. Utilización de los hilos" />
+    <link rel="prev" href="ch10s03.html" title="10.3. Utilización de los hilos" />
+    <link rel="next" href="ch10s03s03.html" title="10.3.3. Ceder el paso" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03.html">10.3. Utilización de los hilos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s03.html">10.3.3. Ceder el paso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.3.2. Simplificación con Ejecutores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5282408"></a>10.3.2. Simplificación con Ejecutores</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Utilizando los Ejecutores de ZThread, puede simplificar su
+	código. Los Ejecutores proporcionan una capa de indirección
+	entre un cliente y la ejecución de una tarea; a diferencia de
+	un cliente que ejecuta una tarea directamente, un objeto
+	intermediario ejecuta la tarea.
+      </p>
+      <p>
+	Podemos verlo utilizando un Ejecutor en vez de la creación
+	explícita de objetos <code class="classname">Thread</code> en
+	MoreBasicThreads.cpp. Un objeto <code class="classname">LiftOff</code>
+	conoce cómo ejecutar una tarea específica; como el patrón
+	Command, expone una única función a ejecutar. Un
+	objeto <code class="classname">Executor</code> conoce como construir
+	el contexto apropiado para lanzar
+	objetos <code class="classname">Runnable</code>. En el siguiente
+	ejemplo, <code class="classname">ThreadedExecutor</code> crea un hilo
+	por tarea:
+      </p>
+      <div class="example">
+        <a id="idp5285352"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: c11:ThreadedExecutor.cpp</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.7. C11/ThreadedExecutor.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Note que algunos casos un <code class="classname">Executor</code>
+	individual puede ser usado para crear y gestionar todo los
+	hilos en su sistema. Debe colocar el código correspondiente a
+	los hilos dentro de un bloque try porque el método execute()
+	de un <code class="classname">Executor</code> puede lanzar una
+	<code class="classname">Synchronization_Exception</code> si algo va
+	mal. Esto es válido para cualquier función que implique
+	cambiar el estado de un objeto de sincronización (arranque de
+	hilos, la adquisición de mutexes, esperas en condiciones,
+	etc.), tal y como aprenderá más adelante en este capítulo.
+      </p>
+      <p>
+	El programa finalizará cuando todas las tareas en
+	el <code class="classname">Executor</code> hayan concluido.
+      </p>
+      <p>
+	En el siguiente
+	ejemplo, <code class="classname">ThreadedExecutor</code> crea un hilo
+	para cada tarea que quiera ejecutar, pero puede cambiar
+	fácilmente la forma en la que esas tareas son ejecutadas
+	reemplazando el <code class="classname">ThreadedExecutor</code> por un
+	tipo diferente de <code class="classname">Executor</code>. En este
+	capítulo, usar un <code class="classname">ThreadedExecutor</code> está
+	bien, pero para código en producción puede resultar
+	excesivamente costoso para la creación de muchos hilos. En ese
+	caso, puede reemplazarlo por
+	un <code class="classname">PoolExecutor</code>, que utilizará un
+	conjunto limitado de hilos para lanzar las tareas registradas
+	en paralelo:
+      </p>
+      <div class="example">
+        <a id="idp5291160"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:PoolExecutor.cpp</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/PoolExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    <span class="hl slc">// Constructor argument is minimum number of threads:</span>
+    PoolExecutor <span class="hl kwd">executor</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">);</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.8. C11/PoolExecutor.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Con <code class="classname">PoolExecutor</code> puede realizar una
+	asignación inicial de hilos costosa de una sola vez, por
+	adelantado, y los hilos se reutilizan cuando sea posible. Esto
+	ahorra tiempo porque no está pagando el gasto de la creación
+	de hilos por cada tarea individual de forma constante. Además,
+	en un sistema dirigido por eventos, los eventos que requieren
+	hilos para manejarlos puede ser generados tan rápido como
+	quiera, basta con traerlos del pool. No excederá los recursos
+	disponibles porque <code class="classname">PoolExecutor</code> utiliza
+	un número limitado de
+	objetos <code class="classname">Thread</code>. Así, aunque en este
+	libro se utilizará <code class="classname">ThreadedExecutors</code>,
+	tenga en cuenta utilizar <code class="classname">PoolExecutor</code>
+	para código en producción.
+      </p>
+      <p>
+	<code class="classname">ConcurrentExecutor</code> es
+	como <code class="classname">PoolExecutor</code> pero con un tamaño
+	fijo de hilos. Es útil para cualquier cosa que quiera lanzar
+	en otro hilo de forma continua (una tarea de larga duración),
+	como una tare que escucha conexiones entrantes en un
+	socket. También es útil para tareas cortas que quiera lanzar
+	en un hilo, por ejemplo, pequeñas tareas que actualizar un log
+	local o remoto, o para un hilo que atienda a eventos.
+      </p>
+      <p>
+	Si hay más de una tarea registrada en
+	un <code class="classname">ConcurrentExecutor</code>, cada una de
+	ellas se ejecutará completamente hasta que la siguiente
+	empiece; todas utilizando el mismo hilo. En el ejemplo
+	siguiente, verá que cada tarea se completa, en el orden en el
+	que fue registrada, antes de que la siguiente comience. De
+	esta forma, un <code class="classname">ConcurrentExecutor</code>
+	serializa las tareas que le fueron asignadas.
+      </p>
+      <div class="example">
+        <a id="idp5297328"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:ConcurrentExecutor.cpp</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ConcurrentExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ConcurrentExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.9. C11/ConcurrentExecutor.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Como un <code class="classname">ConcurrentExecutor</code>,
+	un <code class="classname">SynchronousExecutor</code> se usa cuando
+	quiera una única tarea se ejecute al mismo tiempo, en serie en
+	lugar de concurrente. A diferencia
+	de <code class="classname">ConcurrentExecutor</code>,
+	un <code class="classname">SynchronousExecutor</code> no crea ni
+	gestiona hilos sobre si mismo. Utiliza el hilo que añadió la
+	tarea y, así, únicamente actúa como un punto focal para la
+	sincronización. Si tiene n tareas registradas en
+	un <code class="classname">SynchronousExecutor</code>, nunca habrá 2
+	tareas que se ejecuten a la vez. En lugar de eso, cada una se
+	ejecutará hasta su finalización y la siguiente en la cola
+	comenzará.
+      </p>
+      <p>
+	Por ejemplo, suponga que tiene un número de hilos ejecutando
+	tareas que usan un sistema de archivos, pero está escribiendo
+	código portable luego no quiere utilizar flock() u otra
+	llamada al sistema operativo específica para bloquear un
+	archivo. Puede lanzar esas tareas con
+	un <code class="classname">SynchronousExecutor</code> para asegurar
+	que solamente una de ellas, en un tiempo determinado, está
+	ejecutándose desde cualquier hilo. De esta manera, no necesita
+	preocuparse por la sincronización del recurso compartido (y,
+	de paso, no se cargará el sistema de archivos). Una mejor
+	solución pasa por sincronizar el recurso (lo cual aprenderá
+	más adelante en este capítulo), sin embargo
+	un <code class="classname">SynchronousExecutor</code> le permite
+	evitar las molestias de obtener una coordinación adecuada para
+	prototipar algo.
+      </p>
+      <div class="example">
+        <a id="idp5303040"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:SynchronousExecutor.cpp</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/SynchronousExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    SynchronousExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.10. C11/SynchronousExecutor.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Cuando ejecuta el programa verá que las tareas son lanzadas en
+	el orden en el que fueron registradas, y cada tarea se ejecuta
+	completamente antes de que la siguiente empiece. ¿Qué es lo
+	que no ve y que hace que no se creen nuevos hilos? El hilo
+	main() se usa para cada tarea, y debido a este ejemplo, ese es
+	el hilo que registra todas las tareas. Podría no utilizar
+	un <code class="classname">SynchronousExecutor</code> en código en
+	producción porque, principalmente, es para prototipado.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03.html">10.3. Utilización de los hilos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s03.html">10.3.3. Ceder el paso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

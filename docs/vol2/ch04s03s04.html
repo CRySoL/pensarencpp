@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>4.3.4. Comparar cadenas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch04s03.html" title="4.3. Buscar en cadenas" />
+    <link rel="prev" href="ch04s03s03.html" title="4.3.3. Borrar caracteres de cadenas" />
+    <link rel="next" href="ch04s03s05.html" title="4.3.5. Cadenas y rasgos de caracteres" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s03s03.html">4.3.3. Borrar caracteres de cadenas </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch04s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s03s05.html">4.3.5. Cadenas y rasgos de caracteres</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s03s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="4.3.4. Comparar cadenas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3838256"></a>4.3.4. Comparar cadenas </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Comparar cadenas es inherentemente diferente a comparar
+	enteros. Los nombres tienen un significado universal y
+	constante. Para evaluar la relación entre las magnitudes de
+	dos cadenas, se necesita hacer una comparación léxica. Una
+	comparación léxica significa que cuando se comprueba un
+	carácter para saber si es <span class="emphasis"><em>"mayor que"</em></span> o
+	<span class="emphasis"><em>"menor que"</em></span> otro carácter, está en
+	realidad comparando la representación numérica de aquellos
+	caracteres tal como están especificados en el orden del
+	conjunto de caracteres que está siendo usado. La ordenación
+	más habitual suele ser la secuencia ASCII, que asigna a los
+	caracteres imprimibles para el lenguaje inglés números en un
+	rango del 32 al 127 decimal. En la codificación ASCII, el
+	primer <span class="emphasis"><em>"carácter"</em></span> en la lista es el
+	espacio, seguido de diversas marcas de puntuación común, y
+	después las letras mayúsculas y minúsculas. Respecto al
+	alfabeto, esto significa que las letras cercanas al principio
+	tienen un valor ASCII menor a aquellos más cercanos al
+	final. Con estos detalles en mente, se vuelve más fácil
+	recordar que cuando una comparació léxica reporta que
+	<code class="varname">s1</code> es <span class="emphasis"><em>"mayor que"</em></span>
+	<code class="varname">s2</code>, simplemente significa que cuando fueron
+	comparados, el primer carácter diferente en
+	<code class="varname">s1</code> estaba atrás en el alfabeto que el
+	carácter en la misma posición en <code class="varname">s2</code>.
+      </p>
+      <p>
+	C++ provee varias maneras de comparar cadenas, y cada una
+	tiene ventajas. La más simple de usar son las funciones
+	no-miembro sobrecargadas de operador:
+	<code class="function">operator==</code>,
+	<code class="function">operator!=</code>
+	<code class="function">operator&gt;</code>,
+	<code class="function">operator&lt;</code>,
+	<code class="function">operator&gt;=</code> y
+	<code class="function">operator&lt;=</code>.
+      </p>
+      <div class="example">
+        <a id="idp3845056"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:CompStr.h</span>
+<span class="hl ppc">#ifndef COMPSTR_H</span>
+<span class="hl ppc">#define COMPSTR_H</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../TestSuite/Test.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>string<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> CompStrTest <span class="hl opt">:</span> <span class="hl kwc">public</span> TestSuite<span class="hl opt">::</span>Test <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl slc">// Strings to compare</span>
+    string <span class="hl kwd">s1</span><span class="hl opt">(</span><span class="hl str">&quot;This&quot;</span><span class="hl opt">);</span>
+    string <span class="hl kwd">s2</span><span class="hl opt">(</span><span class="hl str">&quot;That&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">==</span> s1<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">!=</span> s2<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">&gt;</span> s2<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">&gt;=</span> s2<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">&gt;=</span> s1<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s2 <span class="hl opt">&lt;</span> s1<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s2 <span class="hl opt">&lt;=</span> s1<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>s1 <span class="hl opt">&lt;=</span> s1<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// COMPSTR_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.22. C03/CompStr.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <div class="example">
+        <a id="idp3846688"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:CompStr.cpp</span>
+<span class="hl slc">//{L} ../TestSuite/Test</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;CompStr.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  CompStrTest t<span class="hl opt">;</span>
+  t<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">();</span>
+  <span class="hl kwa">return</span> t<span class="hl opt">.</span><span class="hl kwd">report</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.23. C03/CompStr.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Los operadores de comaración sobrecargados son útiles para
+	comparar dos cadenas completas y elementos individuales de una
+	cadena de caracteres.
+      </p>
+      <p>
+	Nótese en el siguiente ejemplo la flexibilidad de los tipos de
+	argumento ambos lados de los operadores de comparación. Por
+	eficiencia, la clase <code class="classname">string</code> provee
+	operadores sobrecargados para la comparación directa de
+	objetos <code class="classname">string</code>, literales de cadena, y
+	punteros a cadenas estilo C sin tener que crear objetos
+	<code class="classname">string</code> temporales.
+      </p>
+      <div class="example">
+        <a id="idp3849512"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Equivalence.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">s2</span><span class="hl opt">(</span><span class="hl str">&quot;That&quot;</span><span class="hl opt">),</span> <span class="hl kwd">s1</span><span class="hl opt">(</span><span class="hl str">&quot;This&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// The lvalue is a quoted literal</span>
+  <span class="hl slc">// and the rvalue is a string:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl str">&quot;That&quot;</span> <span class="hl opt">==</span> s2<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;A match&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// The left operand is a string and the right is</span>
+  <span class="hl slc">// a pointer to a C-style null terminated string:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>s1 <span class="hl opt">!=</span> s2<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">())</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;No match&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.24. C03/Equivalence.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La función <code class="function">c_str()</code> retorna un <code class="type">const
+	char*</code> que apunta a una cadena estilo C terminada en
+	nulo, equivalente en contenidos al objeto
+	<code class="classname">string</code>. Esto se vuelve muy útil cuando
+	se quiere pasar un strin a una función C, como atoi() o
+	cualquiera de las funciones definidas en la cabecera
+	<span class="emphasis"><em>cstring</em></span>. Es un error usar el valor
+	retornado por <code class="varname">c_str()</code> como un argumento
+	constante en cualquier función.
+      </p>
+      <p>
+	No encontrará el operador <span class="emphasis"><em>not</em></span>
+	(<code class="function">!</code>) o los operadores de comparación
+	lógicos (<code class="function">&amp;&amp;</code> y
+	<code class="function">||</code>) entre los operadore para
+	<code class="classname">string</code>. (No encontrará ninguna versión
+	sobrecargada de los operadores de bits de C: &amp;, |, ^, o
+	~.) Los operadores de conversión no miembros sobrecargados
+	para la clases <code class="classname">string</code> están limitados a
+	un subconjunto que tiene una aplicación clara y no ambigua
+	para caracteres individuales o grupos de caracteres.
+      </p>
+      <p>
+	La función miembro <code class="function">compare()</code> le ofrece un
+	gran modo de comparación más sofisticado y preciso que el
+	conjunto de operadores nomiembro. Provee versiones
+	sobrecargadas para comparar:
+      </p>
+      <p>
+	</p>
+      <div class="itemizedlist">
+        <ul class="itemizedlist" type="disc">
+          <li class="listitem">
+            <p>Dos <code class="classname">string</code> completos</p>
+          </li>
+          <li class="listitem">
+            <p>Parte de un <code class="classname">string</code> con un <code class="classname">string</code> completo</p>
+          </li>
+          <li class="listitem">
+            <p>Partes de dos <code class="classname">string</code></p>
+          </li>
+        </ul>
+      </div>
+      <p>
+      </p>
+      <div class="example">
+        <a id="idp3858592"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Compare.cpp</span>
+<span class="hl slc">// Demonstrates compare() and swap().</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">first</span><span class="hl opt">(</span><span class="hl str">&quot;This&quot;</span><span class="hl opt">);</span>
+  string <span class="hl kwd">second</span><span class="hl opt">(</span><span class="hl str">&quot;That&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>first<span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>second<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>second<span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Which is lexically greater?</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>second<span class="hl opt">) &gt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>second<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>first<span class="hl opt">) &lt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  first<span class="hl opt">.</span><span class="hl kwd">swap</span><span class="hl opt">(</span>second<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>second<span class="hl opt">) &lt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>second<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>first<span class="hl opt">) &gt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.25. C03/Compare.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La función <code class="function">swap()</code> en este ejemplo hace lo
+      que su nombre implica: cambia el contenido del objeto por el del
+      parámetro. Para comparar un subconjunto de caracteres en un o
+      ambos <code class="classname">string</code>, añada argumentos que
+      definen donde empezar y cuantos caracteres considerar. Por
+      ejemplo, puede usar las siguientes versiones sobrecargadas de
+      <code class="function">compare()</code>:
+    </p>
+      <p>
+      <code class="code">s1.compare(s1StartPos, s1NumberChars, s2, s2StartPos,
+      s2NumberChars);</code>
+    </p>
+      <p>
+      Aqui un ejemplo:
+    </p>
+      <div class="example">
+        <a id="idp3862592"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Compare2.cpp</span>
+<span class="hl slc">// Illustrate overloaded compare().</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">first</span><span class="hl opt">(</span><span class="hl str">&quot;This is a day that will live in infamy&quot;</span><span class="hl opt">);</span>
+  string <span class="hl kwd">second</span><span class="hl opt">(</span><span class="hl str">&quot;I don't believe that this is what &quot;</span>
+                <span class="hl str">&quot;I signed up for&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// Compare &quot;his is&quot; in both strings:</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">7</span><span class="hl opt">,</span> second<span class="hl opt">,</span> <span class="hl num">22</span><span class="hl opt">,</span> <span class="hl num">7</span><span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Compare &quot;his is a&quot; to &quot;his is w&quot;:</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span> <span class="hl num">9</span><span class="hl opt">,</span> second<span class="hl opt">,</span> <span class="hl num">22</span><span class="hl opt">,</span> <span class="hl num">9</span><span class="hl opt">) &lt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.26. C03/Compare2.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Hasta ahora, en los ejemplos, hemos usado la sintaxis de
+      indexación de arrays estilo C para referirnos a un carácter
+      individual en un <code class="classname">string</code>. C++ provee de
+      una alternativa a la notación <code class="code">s[n]</code>: el miembro
+      <code class="function">at()</code>. Estos dos mecanismos de indexación
+      producen los mismos resultados si todo va bien:
+    </p>
+      <div class="example">
+        <a id="idp3865968"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:StringIndexing.cpp</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">s</span><span class="hl opt">(</span><span class="hl str">&quot;1234&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>s<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">] ==</span> <span class="hl str">'2'</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>s<span class="hl opt">.</span><span class="hl kwd">at</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">) ==</span> <span class="hl str">'2'</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.27. C03/StringIndexing.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Sin embargo, existe una importante diferencia entre <code class="function">[
+	]</code> y <code class="function">at() </code>. Cuando usted intenta
+      referenciar el elemento de un arreglo que esta fuera de sus
+      límites, <code class="function">at()</code> tiene la delicadeza de lanzar
+      una excepción, mientras que ordinariamente <code class="function">[
+	]</code> le dejará a su suerte.
+    </p>
+      <div class="example">
+        <a id="idp3869192"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:BadStringIndexing.cpp</span>
+<span class="hl ppc">#include &lt;exception&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">s</span><span class="hl opt">(</span><span class="hl str">&quot;1234&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// at() saves you by throwing an exception:</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    s<span class="hl opt">.</span><span class="hl kwd">at</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.28. C03/BadStringIndexing.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Los programadores responsables no usarán índices erráticos, pero
+      puede que quiera beneficiarse de la comprobación automática de
+      indices, usando<code class="function">at()</code> en el lugar de
+      <code class="function">[ ]</code> le da la oportunidad de recuperar
+      diligentemente de las referencias a elementos de un arreglo que
+      no existen. La ejecución de sobre uno de nuestros compiladores
+      le da la siguiente salida: <span class="foreignphrase"><em class="foreignphrase">"invalid string
+      position"</em></span>
+    </p>
+      <p>
+      La función miembro <code class="function">at()</code> lanza un objeto de
+      clase <code class="classname">out_of_class</code>, que deriva finalmente
+      de<code class="classname"> std::exception</code>. Capturando este objeto
+      en un manejador de excepciones, puede tomar las medidas
+      adecuadas como recalcular el índice incorrecto o hacer crecer el
+      arreglo. Usar
+      <code class="classname">string::</code><code class="function">operator[](
+	)</code>  no proporciona ningún tipo de protección y es tan
+      peligroso como el procesado de arreglos de caracteres en C.[37]
+      <sup>[<a id="idp3874384" href="#ftn.idp3874384" class="footnote">7</a>]</sup>
+    </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp3874384" href="#idp3874384" class="para">7</a>] </sup>Por las razones de seguridad mencionadas, el
+	  <span class="foreignphrase"><em class="foreignphrase">C++ Standards Committee</em></span> está
+	  considerando una propuesta de redefinición del
+	  <code class="classname">string::</code><code class="function">operator[]</code>
+	  para comportarse de manera idéntica al
+	  <code class="classname">string::</code><code class="function">at()</code>
+	  para C++0x.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s03s03.html">4.3.3. Borrar caracteres de cadenas </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch04s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s03s05.html">4.3.5. Cadenas y rasgos de caracteres</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s03s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,449 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>11.3.2. Construcción por copia</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch11s03.html" title="11.3. El constructor de copia" />
+    <link rel="prev" href="ch11s03.html" title="11.3. El constructor de copia" />
+    <link rel="next" href="ch11s03s03.html" title="11.3.3. El constructor de copia por defecto" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s03.html">11.3. El constructor de copia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch11s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s03.html">11.3.3. El constructor de copia por defecto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="11.3.2. Construcción por copia">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6951360"></a>11.3.2. Construcción por copia</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	El problema se produce debido a que el compilador hace una
+	suposición sobre cómo crear <span class="emphasis"><em>un nuevo objeto a partir
+	de de otro existente</em></span>. Cuando se pasa un objeto por
+	valor, se crea un nuevo objeto, que estará dentro del ámbito
+	de la función, a partir del objeto original existente fuera
+	del ámbito de la función. Esto también se puede aplicar a
+	menudo cuando una función retorna un objeto. En la expresión
+      </p>
+      <pre class="programlisting">
+HowMany h2 <span class="hl opt">=</span> <span class="hl kwd">f</span><span class="hl opt">(</span>h<span class="hl opt">);</span>
+</pre>
+      <p>
+	<code class="varname">h2</code>, un objeto que no estaba creado
+	anteriormente, se crea a partir del valor que retorna
+	<code class="function">f()</code>; por tanto también se crea un nuevo
+	objeto a partir de otro existente.
+      </p>
+      <p>
+	El compilador supone que la creación ha de hacerse con una
+	copia bit a bit, lo que en muchos casos funciona bien, pero en
+	<code class="classname">HowMany</code> no funciona porque la
+	inicialización va más allá de una simple copia. Otro ejemplo
+	muy común ocurre cuando la clase contiene punteros pues, ¿a
+	qué deben apuntar? ¿debería copiar sólo los punteros o
+	debería asignar memoria nueva y que apuntaran a ella?
+      </p>
+      <p>
+	Afortunadamente, puede intervenir en este proceso e impedir
+	que el compilador haga una copia bit a bit. Se soluciona
+	definiendo su propia función cuando el compilador necesite
+	crear un nuevo objeto a partir de otro. Lógicamente, está
+	creando un nuevo objeto, por lo que esta función es un
+	constructor, y el único argumento del constructor tiene que
+	ver con el objeto del que se pretende partir para crear el
+	nuevo. Pero no puede pasar ese objeto por valor al constructor
+	porque está intentando <span class="emphasis"><em>definir</em></span> la función
+	que maneja el paso por valor, y, por otro lado,
+	sintácticamente no tiene sentido pasar un puntero porque,
+	después de todo, está creando un objeto a partir de de
+	otro. Aquí es cuando las referencias vienen al rescate, y
+	puede utilizar la referencia del objeto origen. Esta función
+	se llama <span class="emphasis"><em>constructor de copia</em></span>, que
+	también se lo puede encontrar como
+	<code class="function">X(X&amp;)</code>, que es el constructor de copia
+	de una clase llamada <code class="classname">X</code>.
+      </p>
+      <p>
+	Si crea un constructor de copia, el compilador no realizará
+	una copia bit a bit cuando cree un nuevo objeto a partir de
+	otro.  El compilador siempre llamará al constructor de
+	copia. Si no crea el constructor de copia, el compilador
+	intentará hacer algo razonable, pero usted tiene la opción de
+	tener control total del proceso.
+      </p>
+      <p>
+	Ahora es posible solucionar el problema en
+	<code class="filename">HowMany.cpp</code>:
+      </p>
+      <div class="example">
+        <a id="idp6959888"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:HowMany2.cpp</span>
+<span class="hl slc">// The copy-constructor</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;HowMany2.out&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">class</span> HowMany2 <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span> <span class="hl slc">// Object identifier</span>
+  <span class="hl kwb">static int</span> objectCount<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">HowMany2</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> id <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">) :</span> <span class="hl kwd">name</span><span class="hl opt">(</span>id<span class="hl opt">) {</span>
+    <span class="hl opt">++</span>objectCount<span class="hl opt">;</span>
+    <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;HowMany2()&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">HowMany2</span><span class="hl opt">() {</span>
+    <span class="hl opt">--</span>objectCount<span class="hl opt">;</span>
+    <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;~HowMany2()&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// The copy-constructor:</span>
+  <span class="hl kwd">HowMany2</span><span class="hl opt">(</span><span class="hl kwb">const</span> HowMany2<span class="hl opt">&amp;</span> h<span class="hl opt">) :</span> <span class="hl kwd">name</span><span class="hl opt">(</span>h<span class="hl opt">.</span>name<span class="hl opt">) {</span>
+    name <span class="hl opt">+=</span> <span class="hl str">&quot; copy&quot;</span><span class="hl opt">;</span>
+    <span class="hl opt">++</span>objectCount<span class="hl opt">;</span>
+    <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;HowMany2(const HowMany2&amp;)&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>msg<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() !=</span> <span class="hl num">0</span><span class="hl opt">)</span> 
+      out <span class="hl opt">&lt;&lt;</span> msg <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">'</span><span class="hl esc">\t</span><span class="hl str">'</span> <span class="hl opt">&lt;&lt;</span> name <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span>
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;objectCount = &quot;</span>
+        <span class="hl opt">&lt;&lt;</span> objectCount <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> HowMany2<span class="hl opt">::</span>objectCount <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+
+<span class="hl slc">// Pass and return BY VALUE:</span>
+HowMany2 <span class="hl kwd">f</span><span class="hl opt">(</span>HowMany2 x<span class="hl opt">) {</span>
+  x<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;x argument inside f()&quot;</span><span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Returning from f()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> x<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  HowMany2 <span class="hl kwd">h</span><span class="hl opt">(</span><span class="hl str">&quot;h&quot;</span><span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entering f()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  HowMany2 h2 <span class="hl opt">=</span> <span class="hl kwd">f</span><span class="hl opt">(</span>h<span class="hl opt">);</span>
+  h2<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;h2 after call to f()&quot;</span><span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Call f(), no return value&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>h<span class="hl opt">);</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;After call to f()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 11.7. C11/HowMany2.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Hay unas cuantas cosas nuevas para que pueda hacerse una idea
+	mejor de lo que pasa. Primeramente, el <code class="code">string
+	name</code> hace de identificador de objeto cuando se imprima
+	en la salida.  Puede poner un identificador (normalmente el
+	nombre del objeto) en el constructor para que se copie en
+	<code class="varname">name</code> utilizando el constructor con un
+	<code class="type">string</code> como argumento. Por defecto se crea un
+	<code class="type">string</code> vacío. El constructor incrementa
+	<code class="varname">objectCount</code> y el destructor lo disminuye,
+	igual que en el ejemplo anterior.
+      </p>
+      <p>
+	Lo siguiente es el constructor de copia,
+	<code class="function">HowMany2(const HowMany2&amp;)</code>. El
+	constructor de copia simplemente crea un objeto a partir de
+	otro existente, así que copia en <code class="varname">name</code> el
+	identificador del objeto origen, seguido de la palabra
+	«copy», y así puede ver de dónde procede.  Si
+	mira atentamente, verá que la llamada
+	<code class="code">name(h.name)</code> en la lista de inicializadores del
+	constructor está llamando al constructor de copia de la clase
+	<code class="type">string</code>.
+      </p>
+      <p>
+	Dentro del constructor de copia, se incrementa el contador
+	igual que en el constructor normal. Esto quiere decir que
+	obtendrá un contador de objetos preciso cuando pase y retorne
+	por valor.
+      </p>
+      <p>
+	La función <code class="function">print()</code> se ha modificado para
+	imprimir en la salida un mensaje, el identificador del objeto
+	y el contador de objetos. Como ahora accede al atributo
+	<code class="varname">name</code> de un objeto concreto, ya no
+	puede ser un método estático.
+      </p>
+      <p>
+	Dentro de <code class="function">main()</code> puede ver que hay una
+	segunda llamada a <code class="function">f()</code>. Sin embargo esta
+	llamada utiliza la característica de C para ignorar el valor
+	de retorno. Pero ahora que sabe cómo se retorna el valor (es
+	decir, código <span class="emphasis"><em>dentro</em></span> de la función que
+	maneja el proceso de retorno poniendo el resultado en un lugar
+	cuya dirección se pasa como un argumento escondido), podría
+	preguntarse qué ocurre cuando se ignora el valor de
+	retorno. La salida del programa mostrará alguna luz sobre el
+	asunto.
+      </p>
+      <p>
+	Pero antes de mostrar la salida, he aquí un pequeño programa
+	que utiliza <code class="classname">iostreams</code> para añadir
+	números de línea a cualquier archivo:
+      </p>
+      <div class="example">
+        <a id="idp6970432"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:Linenum.cpp</span>
+<span class="hl slc">//{T} Linenum.cpp</span>
+<span class="hl slc">// Add line numbers</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cmath&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">,</span> <span class="hl str">&quot;Usage: linenum file</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+    <span class="hl str">&quot;Adds line numbers to file&quot;</span><span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  string line<span class="hl opt">;</span>
+  vector<span class="hl opt">&lt;</span>string<span class="hl opt">&gt;</span> lines<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span> <span class="hl slc">// Read in entire file</span>
+    lines<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>line<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>lines<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() ==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">int</span> num <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Number of lines in file determines width:</span>
+  <span class="hl kwb">const int</span> width <span class="hl opt">=</span> 
+    <span class="hl kwb">int</span><span class="hl opt">(</span><span class="hl kwd">log10</span><span class="hl opt">((</span><span class="hl kwb">double</span><span class="hl opt">)</span>lines<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">())) +</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> lines<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">();</span> i<span class="hl opt">++) {</span>
+    cout<span class="hl opt">.</span><span class="hl kwd">setf</span><span class="hl opt">(</span>ios<span class="hl opt">::</span>right<span class="hl opt">,</span> ios<span class="hl opt">::</span>adjustfield<span class="hl opt">);</span>
+    cout<span class="hl opt">.</span><span class="hl kwd">width</span><span class="hl opt">(</span>width<span class="hl opt">);</span>
+    cout <span class="hl opt">&lt;&lt; ++</span>num <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) &quot;</span> <span class="hl opt">&lt;&lt;</span> lines<span class="hl opt">[</span>i<span class="hl opt">] &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 11.8. C11/Linenum.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	El archivo se pasa a un <code class="type">vector&lt;string&gt;</code>,
+	utilizando el mismo código fuente que ha visto
+	anteriormente en este libro. Cuando se ponen los números de
+	línea, nos gustaría que todas las líneas estuvieran alineadas,
+	y esto necesita conocer el número de líneas en el archivo para
+	que sea coherente.  Se puede conocer el número de líneas con
+	<code class="function">vector::size()</code>, pero lo que realmente
+	necesitamos es conocer si hay más líneas de 10, 100, 1000,
+	etc.  Si se utiliza el logaritmo en base 10 sobre el número de
+	líneas en el archivo, se trunca a un entero y se añade uno al
+	valor resultante, eso determinará el ancho máximo en dígitos
+	que un número de línea puede tener.
+      </p>
+      <p>
+	Nótese que hay un par de llamadas extrañas dentro del bucle
+	<code class="keyword">for</code>: <code class="function">setf()</code> y
+	<code class="function">width()</code>. Hay llamadas de
+	<code class="classname">ostream</code> que permiten controlar, en este
+	caso, la justificación y anchura de la salida. Sin embargo se
+	debe llamar cada vez que se imprime línea y por eso están
+	dentro del bucle <code class="keyword">for</code>. El Volumen 2 de este libro
+	tiene un capítulo entero que explica los
+	<code class="classname">iostreams</code> y que cuenta más sobre estas
+	llamadas así como otras formas de controlar los
+	<code class="classname">iostreams</code>.  </p>
+      <p>
+	Cuando se aplica <code class="filename">Linenum.cpp</code> a
+	<code class="filename">HowMany2.out</code>, resulta:
+      </p>
+      <pre class="screen">
+1) HowMany2()
+2)   h: objectCount = 1
+3) Entering f()
+4) HowMany2(const HowMany2&amp;)
+5)   h copy: objectCount = 2
+6) x argument inside f()
+7)   h copy: objectCount = 2
+8) Returning from f()
+9) HowMany2(const HowMany2&amp;)
+10)   h copy copy: objectCount = 3
+11) ~HowMany2()
+12)   h copy: objectCount = 2
+13) h2 after call to f()
+14)   h copy copy: objectCount = 2
+15) Call f(), no return value
+16) HowMany2(const HowMany2&amp;)
+17)   h copy: objectCount = 3
+18) x argument inside f()
+19)   h copy: objectCount = 3
+20) Returning from f()
+21) HowMany2(const HowMany2&amp;)
+22)   h copy copy: objectCount = 4
+23) ~HowMany2()
+24)   h copy: objectCount = 3
+25) ~HowMany2()
+26)   h copy copy: objectCount = 2
+27) After call to f()
+28) ~HowMany2()
+29)   h copy copy: objectCount = 1
+30) ~HowMany2()
+31)   h: objectCount = 0
+</pre>
+      <p>
+	Como se esperaba, la primera cosa que ocurre es que para
+	<code class="varname">h</code> se llama al constructor normal, el cual
+	incrementa el contador de objetos a uno. Pero entonces,
+	mientras se entra en <code class="function">f()</code>, el compilador
+	llama silenciosamente al constructor de copia para hacer el
+	paso por valor. Se crea un nuevo objeto, que es copia de
+	<code class="varname">h</code> (y por tanto tendrá el identificador
+	«h copy») dentro del ámbito de la función
+	<code class="function">f()</code>.  Así pues, el contador de objetos se
+	incrementa a dos, por cortesía del constructor de copia.
+	</p>
+      <p>
+	La línea ocho indica el principio del retorno de
+	<code class="function">f()</code>. Pero antes de que se destruya la
+	variable local «h copy» (pues sale de ámbito al
+	final de la función), se debe copiar al valor de retorno, que
+	es <code class="varname">h2</code>. Por tanto <code class="varname">h2</code>, que
+	no estaba creado previamente, se crea de un objeto ya
+	existente (la variable local dentro de
+	<code class="function">f()</code>) y el constructor de copia vuelve a
+	utilizarse en la línea 9. Ahora el identificador de
+	<code class="varname">h2</code> es «h copy copy» porque
+	copió el identificador de la variable local de
+	<code class="function">f()</code>. Cuando se devuelve el objeto, pero
+	antes de que la función termine, el contador de objetos se
+	incrementa temporalmente a tres, pero la variable local con
+	identificador «h copy» se destruye, disminuyendo
+	a dos. Después de que se complete la llamada a
+	<code class="function">f()</code> en la línea 13, sólo hay dos objetos,
+	<code class="varname">h</code> y <code class="varname">h2</code>, y puede
+	comprobar, de hecho, que <code class="varname">h2</code> terminó con el
+	identificador «h copy copy».
+      </p>
+      <div class="sect3" title="Objetos temporales">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6987776"></a>Objetos temporales</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  En la línea 15 se empieza la llamada a <code class="code">f(h)</code>, y
+	  esta vez ignora el valor de retorno. Puede ver que se invoca
+	  el constructor de copia en la línea 16, igual que antes,
+	  para pasar el argumento.  Y también, igual que antes, en la
+	  línea 21 se llama al constructor de copia para el valor de
+	  retorno. Pero el constructor de copia necesita una dirección
+	  para utilizar como destino (es decir, para trabajar con el
+	  puntero <code class="keyword">this</code>). ¿De dónde procede esta dirección?
+	</p>
+        <p>
+	  Esto prueba que el compilador puede crear un objeto temporal
+	  cuando lo necesita para evaluar adecuadamente una
+	  expresión. En este caso, crea uno que ni siquiera se le ve
+	  actuar como destino para el valor ignorado retornado por
+	  <code class="function">f()</code>. El tiempo de vida de este objeto
+	  temporal es tan corto como sea posible para que el programa
+	  no se llene de objetos temporales esperando a ser
+	  destruidos, lo cual provocaría la utilización ineficaz de
+	  recursos valiosos. En algunos casos, el objeto temporal
+	  podría pasarse inmediatamente a otra función, pero en este
+	  caso no se necesita después de la llamada a la función, así
+	  que en cuanto la función termina, llamando al destructor del
+	  objeto local (líneas 23 y 24), el objeto temporal también se
+	  destruye (líneas 25 y 26).
+	</p>
+        <p>
+	  Finalmente, de la línea 28 a la línea 31, se destruye el
+	  objeto <code class="varname">h2</code>, seguido de
+	  <code class="varname">h</code> y el contador de objetos vuelve a cero.
+	</p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch11s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch11s03.html">11.3. El constructor de copia</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch11s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch11s03s03.html">11.3.3. El constructor de copia por defecto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch11s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
