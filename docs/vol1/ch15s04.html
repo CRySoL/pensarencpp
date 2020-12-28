@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.4. Funciones virtuales</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s03.html" title="15.3. El problema" />
+    <link rel="next" href="ch15s05.html" title="15.5. Cómo implementa C++ la ligadura dinámica" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s03.html">15.3. El problema</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05.html">15.5. Cómo implementa C++ la ligadura dinámica</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.4. Funciones virtuales">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8055088"></a>15.4. Funciones virtuales</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Para que la ligadura dinámica tenga efecto en una función
+      particular, C++ necesita que se use la palabra reservada
+      <code class="keyword">virtual</code> cuando se declara la función en la
+      clase base. La ligadura en tiempo de ejecución funciona
+      unícamente con las funciones <code class="keyword">virtual</code> es, y sólo
+      cuando se está usando una dirección de la clase base donde exista
+      la función <code class="keyword">virtual</code>, aunque puede ser definida
+      también en una clase base anterior.
+    </p>
+      <p>
+      Para crear una función miembro como <code class="keyword">virtual</code>,
+      simplemente hay que preceder a la declaración de la función con la
+      palabra reservada <code class="keyword">virtual</code>. Sólo la declaración
+      necesita la palabra reservada <code class="keyword">virtual</code>, y no la
+      definición. Si una función es declarada como
+      <code class="keyword">virtual</code>, en la clase base, será entonces
+      <code class="keyword">virtual</code> en todas las clases derivadas. La
+      redefinición de una función <code class="keyword">virtual</code> en una
+      clase derivada se conoce como <span class="foreignphrase"><em class="foreignphrase">overriding</em></span>.
+    </p>
+      <p>
+      Hay que hacer notar que sólo es necesario declarar la función como
+      <code class="keyword">virtual</code> en la clase base. Todas las funciones
+      de las clases derivadas que encajen con la declaración que esté en
+      la clase base serán llamadas usando el mecanismo virtual. Se
+      <span class="emphasis"><em>puede</em></span> usar la palabra reservada
+      <code class="keyword">virtual</code> en las declaraciones de las clases
+      derivadas (no hace ningún mal), pero es redundante y puede causar
+      confusión.
+    </p>
+      <p>
+      Para conseguir el comportamiento deseado de
+      <code class="filename">Instrument2.cpp</code>, simplemente hay que añadir la
+      palabra reservada <code class="keyword">virtual</code> en la clase base
+      antes de <code class="function">play()</code>.
+    </p>
+      <div class="example">
+        <a id="idp8066008"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:Instrument3.cpp</span>
+<span class="hl slc">// Late binding with the virtual keyword</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">enum</span> note <span class="hl opt">{</span> middleC<span class="hl opt">,</span> Csharp<span class="hl opt">,</span> Cflat <span class="hl opt">};</span> <span class="hl slc">// Etc.</span>
+
+<span class="hl kwc">class</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Instrument::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Wind objects are Instruments</span>
+<span class="hl slc">// because they have the same interface:</span>
+<span class="hl kwc">class</span> Wind <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Override interface function:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Wind::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">tune</span><span class="hl opt">(</span>Instrument<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span>
+  <span class="hl slc">// ...</span>
+  i<span class="hl opt">.</span><span class="hl kwd">play</span><span class="hl opt">(</span>middleC<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Wind flute<span class="hl opt">;</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>flute<span class="hl opt">);</span> <span class="hl slc">// Upcasting</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.2. C15/Instrument3.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Este archivo es idéntico a <code class="filename">Instrument2.cpp</code>
+      excepto por la adición de la palabra reservada
+      <code class="keyword">virtual</code> y, sin embargo, el comportamiento es
+      significativamente diferente: Ahora la salida es
+      <code class="computeroutput">Wind::play</code>.
+    </p>
+      <div class="sect2" title="15.4.1. Extensibilidad">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8069208"></a>15.4.1. Extensibilidad</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Con <code class="function">play()</code> definido como
+	<code class="keyword">virtual</code> en la clase base, se pueden añadir
+	tantos nuevos tipos como se quiera sin cambiar la función
+	<code class="function">play()</code>. En un programa orientado a objetos
+	bien diseñado, la mayoría de las funciones seguirán el modelo de
+	<code class="function">play()</code> y se comunicarán únicamente a través
+	de la interfaz de la clase base. Las funciones que usen la
+	interfaz de la clase base no necesitarán ser cambiadas para
+	soportar a las nuevas clases.
+      </p>
+        <p>
+	Aquí está el ejemplo de los instrumentos con más funciones
+	virtuales y un mayor número de nuevas clases, las cuales
+	trabajan de manera correcta con la antigua (sin modificaciones)
+	función <code class="function">play()</code>:
+      </p>
+        <div class="example">
+          <a id="idp8073096"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C15:Instrument4.cpp</span>
+<span class="hl slc">// Extensibility in OOP</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">enum</span> note <span class="hl opt">{</span> middleC<span class="hl opt">,</span> Csharp<span class="hl opt">,</span> Cflat <span class="hl opt">};</span> <span class="hl slc">// Etc.</span>
+
+<span class="hl kwc">class</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Instrument::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> <span class="hl str">&quot;Instrument&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Assume this will modify the object:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Wind <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Wind::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Wind&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Percussion <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Percussion::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Percussion&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Stringed <span class="hl opt">:</span> <span class="hl kwc">public</span> Instrument <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Stringed::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Stringed&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Brass <span class="hl opt">:</span> <span class="hl kwc">public</span> Wind <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Brass::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Brass&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Woodwind <span class="hl opt">:</span> <span class="hl kwc">public</span> Wind <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">play</span><span class="hl opt">(</span>note<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Woodwind::play&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> <span class="hl kwd">what</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Woodwind&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Identical function from before:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">tune</span><span class="hl opt">(</span>Instrument<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span>
+  <span class="hl slc">// ...</span>
+  i<span class="hl opt">.</span><span class="hl kwd">play</span><span class="hl opt">(</span>middleC<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// New function:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Instrument<span class="hl opt">&amp;</span> i<span class="hl opt">) {</span> i<span class="hl opt">.</span><span class="hl kwd">adjust</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">); }</span>
+
+<span class="hl slc">// Upcasting during array initialization:</span>
+Instrument<span class="hl opt">*</span> A<span class="hl opt">[] = {</span>
+  <span class="hl kwa">new</span> Wind<span class="hl opt">,</span>
+  <span class="hl kwa">new</span> Percussion<span class="hl opt">,</span>
+  <span class="hl kwa">new</span> Stringed<span class="hl opt">,</span>
+  <span class="hl kwa">new</span> Brass<span class="hl opt">,</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Wind flute<span class="hl opt">;</span>
+  Percussion drum<span class="hl opt">;</span>
+  Stringed violin<span class="hl opt">;</span>
+  Brass flugelhorn<span class="hl opt">;</span>
+  Woodwind recorder<span class="hl opt">;</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>flute<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>drum<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>violin<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>flugelhorn<span class="hl opt">);</span>
+  <span class="hl kwd">tune</span><span class="hl opt">(</span>recorder<span class="hl opt">);</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>flugelhorn<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 15.3. C15/Instrument4.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Se puede ver que se ha añadido otro nivel de herencia debajo de
+	<code class="classname">Wind</code>, pero el mecanismo
+	<code class="keyword">virtual</code> funciona correctamente sin importar
+	cuantos niveles haya. La función <code class="function">adjust()</code>
+	<span class="emphasis"><em>no</em></span> está redefinida
+	(<span class="foreignphrase"><em class="foreignphrase">override</em></span>) por
+	<code class="classname">Brass</code> y
+	<code class="classname">Woodwind</code>. Cuando esto ocurre, se usa la
+	definición más "cercana" en la jerarquía de herencia - el
+	compilador garantiza que exista <span class="emphasis"><em>alguna</em></span>
+	definición para una función virtual, por lo que nunca acabará en
+	una llamada que no esté enlazada con el cuerpo de una función
+	(lo cual sería desatroso).
+      </p>
+        <p>
+	El array <code class="literal">A[]</code> contiene punteros a la clase
+	base <code class="classname">Instrument</code>, lo que implica que
+	durante el proceso de inicialización del array habrá
+	<span class="foreignphrase"><em class="foreignphrase">upcasting</em></span>. Este array y la
+	función <code class="function">f()</code> serán usados en posteriores
+	discusiones.
+      </p>
+        <p>
+	En la llamada a <code class="function">tune()</code>, el
+	<span class="foreignphrase"><em class="foreignphrase">upcasting</em></span> se realiza en cada tipo
+	de objeto, haciendo que se obtenga siempre el comportamiento
+	deseado. Se puede describir como "enviar un mensaje a un objeto
+	y dejar al objeto que se preocupe sobre qué hacer con él". La
+	función <code class="keyword">virtual</code> es la lente a usar cuando
+	se está analizando un proyecto: ¿Dónde deben estar las clases
+	base y cómo se desea <span class="emphasis"><em>extender</em></span> el programa?
+	Sin embargo, incluso si no se descubre la interfaz apropiada
+	para la clase base y las funciones virtuales durante la creación
+	del programa, a menudo se descubrirán más tarde, incluso mucho
+	más tarde cuando se desee ampliar o se vaya a hacer funciones de
+	mantenimiento en el programa. Esto no implica un error de
+	análisis o de diseño; simplemente significa que no se conocía o
+	no se podía conocer toda la información al principio. Debido a
+	la fuerte modularización de C++, no es mucho problema que esto
+	suceda porque los cambios que se hagan en una parte del sistema
+	no tienden a propagarse a otras partes como sucede en C.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s03.html">15.3. El problema</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05.html">15.5. Cómo implementa C++ la ligadura dinámica</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

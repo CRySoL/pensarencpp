@@ -1,0 +1,436 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9: Funciones inline</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="prev" href="ch08s07.html" title="8.7. Ejercicios" />
+    <link rel="next" href="ch09s02.html" title="9.2. Funciones inline" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s07.html">8.7. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s02.html">9.2. Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="9: Funciones inline">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C09"></a>9: Funciones <code class="keyword">inline</code></h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C09.html#idp6304200">9.1. Los peligros del preprocesador</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s02.html">9.2. Funciones <code class="keyword">inline</code></a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s03.html">9.3. Stash y Stack con inlines</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s04.html">9.4. Funciones inline y el compilador</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s05.html">9.5. Reducir el desorden</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s06.html">9.6. Más características del preprocesador</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s07.html">9.7. Comprobación de errores mejorada</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s08.html">9.8. Resumen</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch09s09.html">9.9. Ejercicios</a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <div class="highlights">
+        <p>
+      Una de las características más importantes que C++ hereda de C es
+      la eficiencia. Si la eficiencia de C++ fuese dramáticamente menor
+      que la de C, podría haber un contingente significativo de
+      programadores que no podrían justificar su uso.
+    </p>
+      </div>
+      <p>
+    En C, una de las maneras de preservar la eficiencia es mediante el
+    uso de macros, lo que permite hacer lo que parece una llamada a
+    una función sin la sobrecarga habitual de la llamada a función.
+    La macro está implementada con el preprocesador en vez del propio
+    compilador, y el preprocesador reemplaza todas las llamadas a
+    macros directamente con el código de la macro, de manera que no
+    hay que complicarse pasando argumentos, escribiendo código de
+    ensamblador para <code class="keyword">CALL</code>, retornando argumentos ni
+    implementando código ensamblador para el <code class="keyword">RETURN</code>. Todo el
+    trabajo lo realizar el preprocesador, de manera que se tiene la
+    coherencia y legibilidad de una llamada a una función pero sin
+    ningún coste.
+  </p>
+      <p>
+    Hay dos problemas respecto al uso del preprocesador con macros en
+    C++. La primera también existe en C: una macro parece una llamada a
+    función, pero no siempre actúa como tal. Esto puede acarrear
+    dificultades para encontrar errores.  El segundo problema es
+    específico de C++: el preprocesador no tiene permisos para acceder a
+    la información de los miembros de una clase. Esto significa que las
+    macros de preprocesador no pueden usarse como métodos de una clase.
+  </p>
+      <p>
+    Para mantener la eficiencia del uso del preprocesador con macros
+    pero añadiendo la seguridad y la semántica de ámbito de verdaderas
+    funciones en las clases. C++ tiene las funciones
+    <code class="keyword">inline</code>. En este capítulo veremos los problemas del uso de
+    las maros de preprocesador en C++, cómo se resuelven estos
+    problemas con funciones <code class="keyword">inline</code>, y las directrices e
+    incursiones en la forma en que trabajan las
+    <span class="emphasis"><em></em></span>funciones inline.
+  </p>
+      <div class="sect1" title="9.1. Los peligros del preprocesador">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp6304200"></a>9.1. Los peligros del preprocesador</h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      La clave de los problemas con las macros de preprocesador radica
+      en que puedes caer en el error de pensar que el comportamiento
+      del preprocesador es igual que el del compilador. Por supuesto,
+      la intención era que una macro se parezca y actúe como una
+      llamada a una función, por eso es bastante fácil caer en este
+      error. Las dificultades comienzan cuando las diferencias
+      aparecen subyacentes.
+    </p>
+        <p>
+      Consideremos un ejemplo sencillo:
+    </p>
+        <pre class="programlisting">
+<span class="hl ppc">#define F (x) (x + 1)</span>
+</pre>
+        <p>
+      Ahora, si hacemos una llamada a <code class="function">F</code> de esta
+      manera:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwd">F</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">)</span>
+</pre>
+        <p>
+      El preprocesador la expande de manera inesperada:
+    </p>
+        <pre class="programlisting">
+<span class="hl opt">(</span>x<span class="hl opt">) (</span>x <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">)(</span><span class="hl num">1</span><span class="hl opt">)</span>
+</pre>
+        <p>
+      El problema se debe al espacio entre `F` y su paréntesis de
+      apertura en la definición de la macro.  Cuando el espacio es
+      eliminado en el código de la macro, puedes llamar a la función
+      incluso incluyendo el espacio.
+    </p>
+        <pre class="programlisting">
+<span class="hl kwd">F</span> <span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">)</span>
+</pre>
+        <p>
+      Y se expandirá de manera correcta a lo siguiente:
+    </p>
+        <pre class="programlisting">
+<span class="hl opt">(</span><span class="hl num">1</span> <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">)</span>
+</pre>
+        <p>
+      El ejemplo anterior es un poco trivial y el problema es demasiado
+      evidente. Las dificultades reales ocurren cuando se usan
+      expresiones como argumentos en llamadas a macros.
+    </p>
+        <p>
+     Hay dos problemas. El primero es que las expresiones pueden
+     expandirse dentro de la macro de modo que la precedencia de la
+     evaluación es diferente a lo que cabría esperar. Por ejemplo:
+    </p>
+        <pre class="programlisting">
+<span class="hl ppc">#define FLOOR(x,b) x&gt;=b?0:1</span>
+</pre>
+        <p>
+      Ahora, si usamos expresiones como argumentos:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwa">if</span> <span class="hl opt">(</span><span class="hl kwd">FLOOR</span><span class="hl opt">(</span>a<span class="hl opt">&amp;</span><span class="hl num">0x0f</span><span class="hl opt">,</span><span class="hl num">0x07</span><span class="hl opt">))</span> <span class="hl slc">// ...</span>
+</pre>
+        <p>
+     La macro se expandiría a:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwa">if</span> <span class="hl opt">(</span>a<span class="hl opt">&amp;</span><span class="hl num">0x0f</span><span class="hl opt">&gt;=</span><span class="hl num">0x07</span>?<span class="hl num">0</span><span class="hl opt">:</span><span class="hl num">1</span><span class="hl opt">)</span>
+</pre>
+        <p>
+      La precedencia del &amp; es menor que la del &gt;=, de modo que la
+      evaluación de la macro te sorprenderá. Una vez hayas descubierto
+      el problema, puedes solucionarlo insertando paréntesis a todo lo
+      que hay dentro de la definición de la macro.  (Este es un buen
+      método a seguir cuando defina macros de preprocesador), algo
+      como:
+    </p>
+        <pre class="programlisting">
+<span class="hl ppc">#define FLOOR(x,b) ((x)&gt;=(b)?0:1)</span>
+</pre>
+        <p>
+      De cualquier manera, descubrir el problema puede ser difícil, y
+      no dará con él hasta después de haber dado por sentado el
+      comportamiento de la macro en sí misma. En la versión sin
+      paréntesis de la macro anterior, la mayoría de las expresiones
+      van a actuar de manera correcta a causa de la precedencia de &gt;=,
+      que es menor que la mayoría de los operadores como +, /, --, e
+      incluso los operadores de desplazamiento. Por lo que puede
+      pensar que funciona con todas las expresiones, incluyendo
+      aquellas que empleen operadores lógicos a nivel de bit.
+    </p>
+        <p>
+      El problema anterior puede solucionarse programando
+      cuidadosamente: poner entre paréntesis todo lo que esté definido
+      dentro de una macro. De todos modos el segundo problema es más
+      sutil. Al contrario de una función normal, cada vez que usa
+      argumentos en una macro, dicho argumento es evaluado. Mientras la
+      macro sea llamada solo con variables corrientes, esta evaluación es
+      benigna, pero si la evaluación de un argumento tiene efectos
+      secundarios, entonces los resultados pueden ser inesperados y
+      definitivamente no imitaran el comportamiento de una función.
+    </p>
+        <p>
+      Por ejemplo, esta macro determina si un argumento entra dentro de
+      cierto rango:
+    </p>
+        <pre class="programlisting">
+<span class="hl ppc">#define BAND(x) (((x)&gt;5 &amp;&amp; (x)&lt;10) ? (x) : 0)</span>
+</pre>
+        <p>
+      Mientras use un argumento «ordinario» la macro
+      trabajará de manera bastante similar a una función real. Pero en
+      cuanto se relaje y comience a creer que realmente es una
+      función, comenzarán los problemas. Así:
+    </p>
+        <div class="example">
+          <a id="idp6317592"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:MacroSideEffects.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl ppc">#define BAND(x) (((x)&gt;5 &amp;&amp; (x)&lt;10) ? (x) : 0)</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;macro.out&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>out<span class="hl opt">,</span> <span class="hl str">&quot;macro.out&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">4</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">11</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    <span class="hl kwb">int</span> a <span class="hl opt">=</span> i<span class="hl opt">;</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;a = &quot;</span> <span class="hl opt">&lt;&lt;</span> a <span class="hl opt">&lt;&lt;</span> endl <span class="hl opt">&lt;&lt;</span> <span class="hl str">'</span><span class="hl esc">\t</span><span class="hl str">'</span><span class="hl opt">;</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;BAND(++a)=&quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">BAND</span><span class="hl opt">(++</span>a<span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\t</span> <span class="hl str">a = &quot;</span> <span class="hl opt">&lt;&lt;</span> a <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.1. C09/MacroSideEffects.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+      Observe el uso de caracteres en mayúscula en el nombre de la
+      macro. Este es un buen recurso ya que advierte al lector que
+      esto es una macro y no una función, entonces si hay algún
+      problema, actúa como recordatorio.
+    </p>
+        <p>
+      A continuación se muestra la salida producida por el programa, que
+      no es para nada lo que se esperaría de una auténtica función:
+    </p>
+        <pre class="screen">
+a = 4
+  BAND(++a)=0
+   a = 5
+a = 5
+  BAND(++a)=8
+   a = 8
+a = 6
+  BAND(++a)=9
+   a = 9
+a = 7
+  BAND(++a)=10
+   a = 10
+a = 8
+  BAND(++a)=0
+   a = 10
+a = 9
+  BAND(++a)=0
+   a = 11
+a = 10
+  BAND(++a)=0
+   a = 12
+    </pre>
+        <p>
+      Cuando <code class="varname">a</code> es cuatro, sólo ocurre la primera
+      parte de la condición, de modo que la expresión es evaluada sólo
+      una vez, y el efecto resultante de la llamada a la macro es que
+      <code class="varname">a</code> será 5, que es lo que se esperaría de una
+      llamada a función normal en la misma situación. De todos modos,
+      cuando el número está dentro del rango, se evalúan ambas
+      condiciones, lo que da como resultado un tercer incremento. Una
+      vez que el número se sale del rango, ambas condiciones siguen
+      siendo evaluadas de manera que se obtienen dos incrementos.  Los
+      efectos colaterales son distintos, dependiendo del argumento.
+    </p>
+        <p>
+      Este no es desde luego el comportamiento que se quiere de una
+      macro que se parece a una llamada a función.  En este caso, la
+      solución obviamente es hacer una autentica función, lo que de
+      hecho implica la cabecera extra y puede reducir la eficiencia si
+      se llama demasiado a esa función. Desafortunadamente, el
+      problema no siempre será tan obvio, y sin saberlo. puede estar
+      utilizando una librería que contiene funciones y macros juntas,
+      de modo que un problema como éste puede esconder errores
+      difíciles de encontrar. Por ejemplo, la macro
+      <code class="function">putc()</code> de <code class="filename">cstdio</code> puede
+      llegar a evaluar dos veces su segundo argumento. Esto está
+      especificado en el Estándar C. Además, la implementación
+      descuidada de <code class="function">toupper()</code> como una macro
+      puede llegar a evaluar el argumento más de una vez, lo que dará
+      resultados inesperados con
+      <code class="code">toupper(*p++)</code><sup>[<a id="idp6325112" href="#ftn.idp6325112" class="footnote">66</a>]</sup>.
+    </p>
+        <div class="sect2" title="9.1.1. Macros y acceso">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp6326264"></a>9.1.1. Macros y acceso</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+        Por supuesto, C requiere codificación cuidadosa y el uso de
+        macros de preprocesador, y se podría hacer lo mismo en C++ si
+        no fuese por un problema: las macros no poseen el concepto de
+        ámbito requerido con los métodos. El preprocesador simplemente
+        hace substitución de texto, de modo que no puede hacer algo
+        como:
+      </p>
+          <pre class="programlisting">
+<span class="hl kwc">class</span> X<span class="hl opt">{</span>
+          <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+        <span class="hl kwc">public</span><span class="hl opt">:</span>
+        <span class="hl ppc">#define VAL(X::i)</span> <span class="hl slc">// Error</span><span class="hl ppc"></span>
+</pre>
+          <p>
+        ni nada parecido. Además, no habría ninguna indicación del
+        objeto al que se está refiriendo.  Simplemente no hay ninguna
+        forma de expresar el ámbito de clase en una macro. No habiendo
+        ninguna alternativa diferente a macros de preprocesador, los
+        programadores se sentirán tentados de crear algunos atributos
+        públicos por el bien de la eficiencia, exponiendo así la
+        implementación subyacente e impidiendo cambios en esa
+        implementación, así como eliminando la protección que
+        proporciona <code class="keyword">private</code>.
+      </p>
+        </div>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp6325112" href="#idp6325112" class="para">66</a>] </sup><span class="author"><span class="firstname">Andrew</span> <span class="surname">Koenig</span></span>
+      entra en más detalles en su libro <em class="citetitle">C Traps &amp;
+      Pitfalls</em> (Addison-Wesley, 1989).</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s07.html">8.7. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s02.html">9.2. Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

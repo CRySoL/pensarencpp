@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.3.3. Encontrar agujeros en memoria</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch03s03.html" title="3.3. Técnicas de depuración" />
+    <link rel="prev" href="ch03s03s02.html" title="3.3.2. Fichero de rastro" />
+    <link rel="next" href="ch03s04.html" title="3.4. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s03s02.html">3.3.2. Fichero de rastro </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s04.html">3.4. Resumen </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="3.3.3. Encontrar agujeros en memoria">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3646304"></a>3.3.3. Encontrar agujeros en memoria </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Las siguientes técnicas sencillas de depuración están
+	explicadas en el Volumen 1:
+      </p>
+      <p>
+	1. Para comprobar los límites de un array, usa la plantilla
+	Array en C16:Array3.cpp del Volumen 1 para todos los
+	arrays. Puede desactivar la comprobación e incrementar la
+	eficiencia cuando esté listo para enviar. (Aunque esto no trata
+	con el caso de coger un puntero a un array.)
+      </p>
+      <p>
+	2. Comprobar destructores no virtuales en clases
+	base. Seguirle la pista a new/delete y malloc/free
+      </p>
+      <p>
+	Los problemas comunes con la asignación de memoria incluyen
+	llamadas por error a delete para memoria que no está libre,
+	borrar el espacio libre más de una vez, y más a menudo,
+	olvidando borrar un puntero. Esta sección discute un sistema
+	que puede ayudarle a localizar estos tipos de problemas.
+      </p>
+      <p>
+	Como cláusula adicional de exención de responsabilidad más
+	allá de la sección precedente: por el modo que sobrecargamos
+	new, la siguiente técnica puede no funcionar en todas las
+	plataformas, y funcionará sólo para programas que no llaman
+	explicitamente al operador de función new( ). Hemos sido
+	bastante cuidadosos en este libro para presentar sólo código
+	que se ajuste completamente al Estándar C++, pero en este
+	ejemplo estamos haciendo una excepción por las siguientes
+	razones:
+      </p>
+      <p>
+	1. A pesar de que es técnicamente ilegal, funciona en muchos
+	compiladores.[29]
+      </p>
+      <p>
+	2. Ilustramos algunos pensamientos útiles en el trascurso del
+	camino.
+      </p>
+      <p>
+	Para usar el sistema de comprobación de memoria, simplemente
+	incluya el fichero de cabecera MemCheck.h, conecte el fichero
+	MemCheck.obj a su aplicación para interceptar todas las
+	llamadas a new y delete, y llame a la macro MEM_ON( )
+	(se explica más tarde en esta sección) para iniciar el
+	seguimiento de la memoria. Un seguimiento de todas las
+	asignaciones y desasignaciones es impreso en la salida
+	estándar (mediante stdout). Cuando use este sistema, todas las
+	llamadas a new almacenan información sobre el fichero y la
+	línea donde fueron llamados. Esto está dotado usando la
+	sintaxis de colocación para el operador new.[30] Aunque
+	normalmente use la sintaxis de colocación cuando necesite
+	colocar objetos en un punto de memoria específico, puede
+	también crear un operador new( ) con cualquier número de
+	argumentos. Esto se usa en el siguiente ejemplo para almacenar
+	los resultados de las macros __FILE__ y __LINE__ cuando se
+	llama a new:
+      </p>
+      <div class="example">
+        <a id="idp3652680"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:MemCheck.h</span>
+<span class="hl ppc">#ifndef MEMCHECK_H</span>
+<span class="hl ppc">#define MEMCHECK_H</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>  <span class="hl slc">// For size_t</span>
+<span class="hl ppc"></span>
+<span class="hl slc">// Usurp the new operator (both scalar and array versions)</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span>std<span class="hl opt">::</span><span class="hl kwb">size_t</span><span class="hl opt">,</span> <span class="hl kwb">const char</span><span class="hl opt">*,</span> <span class="hl kwb">long</span><span class="hl opt">);</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">[](</span>std<span class="hl opt">::</span><span class="hl kwb">size_t</span><span class="hl opt">,</span> <span class="hl kwb">const char</span><span class="hl opt">*,</span> <span class="hl kwb">long</span><span class="hl opt">);</span>
+<span class="hl ppc">#define new new (__FILE__, __LINE__)</span>
+
+<span class="hl kwc">extern</span> <span class="hl kwb">bool</span> traceFlag<span class="hl opt">;</span>
+<span class="hl ppc">#define TRACE_ON() traceFlag = true</span>
+<span class="hl ppc">#define TRACE_OFF() traceFlag = false</span>
+
+<span class="hl kwc">extern</span> <span class="hl kwb">bool</span> activeFlag<span class="hl opt">;</span>
+<span class="hl ppc">#define MEM_ON() activeFlag = true</span>
+<span class="hl ppc">#define MEM_OFF() activeFlag = false</span>
+
+<span class="hl ppc">#endif</span> <span class="hl slc">// MEMCHECK_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.14. C02/MemCheck.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Es importante incluir este fichero en cualquier fichero fuente
+	en el que quiera seguir la actividad de la memoria libre, pero
+	inclúyalo al final (después de sus otras directivas
+	#include). La mayoría de las cabeceras en la biblioteca
+	estándar son plantillas, y puesto que la mayoría de los
+	compiladores usan el modelo de inclusión de compilación de
+	plantilla (significa que todo el código fuente está en las
+	cabeceras), la macro que reemplaza new en MemCheck.h usurpará
+	todas las instancias del operador new en el código fuente de
+	la biblioteca (y casi resultaría en errores de
+	compilación). Además, está sólo interesado en seguir sus
+	propios errores de memoria, no los de la biblioteca.
+      </p>
+      <p>
+	En el siguiente fichero, que contiene la implementación del
+	seguimiento de memoria, todo está hecho con C estándar I/O más
+	que con iostreams C++. No debería influir, puesto
+	que no estamos interfiriendo con el uso de iostream en la
+	memoria libre, pero cuando lo intentamos, algunos compiladores
+	se quejaron. Todos los compiladores estaban felices con la
+	versión &lt;cstdio&gt;.
+      </p>
+      <div class="example">
+        <a id="idp3656712"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:MemCheck.cpp {O}</span>
+<span class="hl ppc">#include &lt;cstdio&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl ppc">#undef new</span>
+
+<span class="hl slc">// Global flags set by macros in MemCheck.h</span>
+<span class="hl kwb">bool</span> traceFlag <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+<span class="hl kwb">bool</span> activeFlag <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+
+<span class="hl kwa">namespace</span> <span class="hl opt">{</span>
+
+<span class="hl slc">// Memory map entry type</span>
+<span class="hl kwb">struct</span> Info <span class="hl opt">{</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> ptr<span class="hl opt">;</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> file<span class="hl opt">;</span>
+  <span class="hl kwb">long</span> line<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Memory map data</span>
+<span class="hl kwb">const size_t</span> MAXPTRS <span class="hl opt">=</span> <span class="hl num">10000u</span><span class="hl opt">;</span>
+Info memMap<span class="hl opt">[</span>MAXPTRS<span class="hl opt">];</span>
+<span class="hl kwb">size_t</span> nptrs <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+
+<span class="hl slc">// Searches the map for an address</span>
+<span class="hl kwb">int</span> <span class="hl kwd">findPtr</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> nptrs<span class="hl opt">; ++</span>i<span class="hl opt">)</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>memMap<span class="hl opt">[</span>i<span class="hl opt">].</span>ptr <span class="hl opt">==</span> p<span class="hl opt">)</span>
+      <span class="hl kwa">return</span> i<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">delPtr</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+  <span class="hl kwb">int</span> pos <span class="hl opt">=</span> <span class="hl kwd">findPtr</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>pos <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl slc">// Remove pointer from map</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> pos<span class="hl opt">;</span> i <span class="hl opt">&lt;</span> nptrs<span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">; ++</span>i<span class="hl opt">)</span>
+    memMap<span class="hl opt">[</span>i<span class="hl opt">] =</span> memMap<span class="hl opt">[</span>i<span class="hl opt">+</span><span class="hl num">1</span><span class="hl opt">];</span>
+  <span class="hl opt">--</span>nptrs<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Dummy type for static destructor</span>
+<span class="hl kwb">struct</span> Sentinel <span class="hl opt">{</span>
+  <span class="hl opt">~</span><span class="hl kwd">Sentinel</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>nptrs <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+      <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Leaked memory at:</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> nptrs<span class="hl opt">; ++</span>i<span class="hl opt">)</span>
+        <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">%p (file: %s, line %ld)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span>
+          memMap<span class="hl opt">[</span>i<span class="hl opt">].</span>ptr<span class="hl opt">,</span> memMap<span class="hl opt">[</span>i<span class="hl opt">].</span>file<span class="hl opt">,</span> memMap<span class="hl opt">[</span>i<span class="hl opt">].</span>line<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwa">else</span>
+      <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;No user memory leaks!</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Static dummy object</span>
+Sentinel s<span class="hl opt">;</span>
+
+<span class="hl opt">}</span> <span class="hl slc">// End anonymous namespace</span>
+
+<span class="hl slc">// Overload scalar new</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span>
+<span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> siz<span class="hl opt">,</span> <span class="hl kwb">const char</span><span class="hl opt">*</span> file<span class="hl opt">,</span> <span class="hl kwb">long</span> line<span class="hl opt">) {</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> p <span class="hl opt">=</span> <span class="hl kwd">malloc</span><span class="hl opt">(</span>siz<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>activeFlag<span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>nptrs <span class="hl opt">==</span> MAXPTRS<span class="hl opt">) {</span>
+      <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;memory map too small (increase MAXPTRS)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">);</span>
+      <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    memMap<span class="hl opt">[</span>nptrs<span class="hl opt">].</span>ptr <span class="hl opt">=</span> p<span class="hl opt">;</span>
+    memMap<span class="hl opt">[</span>nptrs<span class="hl opt">].</span>file <span class="hl opt">=</span> file<span class="hl opt">;</span>
+    memMap<span class="hl opt">[</span>nptrs<span class="hl opt">].</span>line <span class="hl opt">=</span> line<span class="hl opt">;</span>
+    <span class="hl opt">++</span>nptrs<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>traceFlag<span class="hl opt">) {</span>
+    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Allocated %u bytes at address %p &quot;</span><span class="hl opt">,</span> siz<span class="hl opt">,</span> p<span class="hl opt">);</span>
+    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;(file: %s, line: %ld)</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> file<span class="hl opt">,</span> line<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">return</span> p<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Overload array new</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span>
+<span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">[](</span><span class="hl kwb">size_t</span> siz<span class="hl opt">,</span> <span class="hl kwb">const char</span><span class="hl opt">*</span> file<span class="hl opt">,</span> <span class="hl kwb">long</span> line<span class="hl opt">) {</span>
+  <span class="hl kwa">return</span> <span class="hl kwc">operator</span> <span class="hl kwa">new</span><span class="hl opt">(</span>siz<span class="hl opt">,</span> file<span class="hl opt">,</span> line<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Override scalar delete</span>
+<span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwd">findPtr</span><span class="hl opt">(</span>p<span class="hl opt">) &gt;=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    <span class="hl kwd">free</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+    <span class="hl kwa">assert</span><span class="hl opt">(</span>nptrs <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+    <span class="hl kwd">delPtr</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>traceFlag<span class="hl opt">)</span>
+      <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Deleted memory at address %p</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> p<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">else if</span><span class="hl opt">(!</span>p <span class="hl opt">&amp;&amp;</span> activeFlag<span class="hl opt">)</span>
+    <span class="hl kwd">printf</span><span class="hl opt">(</span><span class="hl str">&quot;Attempt to delete unknown pointer: %p</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">,</span> p<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Override array delete</span>
+<span class="hl kwb">void</span> <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">[](</span><span class="hl kwb">void</span><span class="hl opt">*</span> p<span class="hl opt">) {</span>
+  <span class="hl kwc">operator</span> <span class="hl kwa">delete</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.15. C02/MemCheck.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Las banderas booleanas de traceFalg y activeFlag son globales,
+	por lo que pueden ser modificados en su código por las macros
+	TRACE_ON( ), TRACE_OFF( ), MEM_ON( ), y MEM_OFF( ). En
+	general, encierre todo el código en su main( ) dentro una
+	pareja MEM_ON( )-MEM_OFF( ) de modo que la memoria sea siempre
+	trazada. Trazar, que repite la actividad de las funciones de
+	sustitución por el operador new( ) y el operador delete( ), es
+	por defecto, pero puede desactivarlo con TRACE_OFF( ). En
+	cualquier caso, los resultados finales son siempre impresos
+	(vea la prueba que se ejecuta más tarde en este capítulo).
+      </p>
+      <p>
+	La facilidad MemCheck rastrea la memoria guardando todas las
+	direcciones asignadas por el operador new( ) en un array de
+	estructuras Info, que también tiene el nombre del fichero y el
+	número de línea donde la llamada new se encuentra. Para prevenir la
+	colisión con cualquier nombre que haya colocado en el espacio
+	de nombres global, tanta información como sea posible se guarda
+	dentro del espacio de nombre anónimo. La clase Sentinel existe
+	únicamente para llamar a un destructor de objetos con estático
+	cuando el programa termina. Este destructor inspecciona memMap
+	para ver si algún puntero está esperando a ser borrado
+	(indicando una perdida de memoria).
+      </p>
+      <p>
+	Nuestro operador new( ) usa malloc( ) para conseguir memoria,
+	y luego añade el puntero y su información de fichero asociado
+	a memMap. La función de operador delete( ) deshace todo el
+	trabajo llamando a free( ) y decrementando nptrs, pero primero
+	se comprueba para ver si el puntero en cuestión está en el mapa
+	en el primer lugar. Si no es así, o reintenta borrar una
+	dirección que no está en el almacén libre, o re intenta borrar
+	la que ya ha sido borrada y eliminada del mapa. La variable
+	activeFlag es importante aquí porque no queremos procesar
+	ninguna desasignación de alguna actividad del cierre del
+	sistema. Llamando a MEM_OFF( ) al final de su código, activeFlag
+	será puesta a falso, y posteriores llamadas para borrar serán
+	ignoradas. (Está mal en un programa real, pero nuestra
+	intención aquí es encontrar agujeros, no está depurando la
+	biblioteca.) Por simplicidad, enviamos todo el trabajo por
+	array new y delete a sus homólogos escalares.
+      </p>
+      <p>
+	Lo siguiente es un test sencillo usando la facilidad MemCheck:
+      </p>
+      <div class="example">
+        <a id="idp3666560"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:MemTest.cpp</span>
+<span class="hl slc">//{L} MemCheck</span>
+<span class="hl slc">// Test of MemCheck system.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;cstring&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;MemCheck.h&quot;</span><span class="hl ppc"></span>   <span class="hl slc">// Must appear last!</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Foo <span class="hl opt">{</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> s<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Foo</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*</span>s <span class="hl opt">) {</span>
+    <span class="hl kwa">this</span><span class="hl opt">-&gt;</span>s <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">char</span><span class="hl opt">[</span><span class="hl kwd">strlen</span><span class="hl opt">(</span>s<span class="hl opt">) +</span> <span class="hl num">1</span><span class="hl opt">];</span>
+    <span class="hl kwd">strcpy</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">-&gt;</span>s<span class="hl opt">,</span> s<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Foo</span><span class="hl opt">() {</span> <span class="hl kwa">delete</span> <span class="hl opt">[]</span> s<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">MEM_ON</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;hello&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwb">int</span><span class="hl opt">*</span> p <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> p<span class="hl opt">;</span>
+  <span class="hl kwb">int</span><span class="hl opt">*</span> q <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">int</span><span class="hl opt">[</span><span class="hl num">3</span><span class="hl opt">];</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span> q<span class="hl opt">;</span>
+  <span class="hl kwb">int</span><span class="hl opt">*</span> r<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> r<span class="hl opt">;</span>
+  vector<span class="hl opt">&lt;</span><span class="hl kwb">int</span><span class="hl opt">&gt;</span> v<span class="hl opt">;</span>
+  v<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+  Foo <span class="hl kwd">s</span><span class="hl opt">(</span><span class="hl str">&quot;goodbye&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">MEM_OFF</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.16. C02/MemTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Este ejemplo verifica que puede usar MemCheck en presencia
+	de streams, contenedores estándar, y clases que asignan
+	memoria en constructores. Los punteros p y q son asignados y
+	desasignados sin ningún problema, pero r no es un puntero de
+	pila válido, así que la salida indica el error como un intento
+	de borrar un puntero desconocido:
+      </p>
+      <p>
+      hola
+      Asignados 4 bytes en la dirección 0xa010778 (fichero: memtest.cpp, línea: 25)
+      Deleted memory at address 0xa010778
+      Asignados 12 bytes en la dirección 0xa010778 (fichero: memtest.cpp, línea: 27)
+      Memoria borrada en la dirección 0xa010778
+      Intento de borrar puntero desconocido: 0x1
+      Asignados 8 bytes en la dirección 0xa0108c0 (fichero: memtest.cpp, línea: 14)
+      Memoria borrada en la dirección 0xa0108c0
+      ¡No hay agujeros de memoria de usuario!
+      </p>
+      <p>
+	A causa de la llamada a MEM_OFF( ), no se procesan posteriores
+	llamadas al operador delete( ) por vector o ostream. Todavía
+	podría conseguir algunas llamadas a delete realizadas dsede
+	reasignaciones por los contenedores.
+      </p>
+      <p>
+	Si llama a TRACE_OFF( ) al principio del programa, la salida es
+      </p>
+      <p>
+	Hola
+	Intento de borrar puntero desconocido: 0x1
+	¡No hay agujeros de memoria de usuario!
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s03s02.html">3.3.2. Fichero de rastro </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s04.html">3.4. Resumen </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

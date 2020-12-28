@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>14.7. Herencia y sobrecarga de operadores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C14.html" title="14: Herencia y Composición" />
+    <link rel="prev" href="ch14s06.html" title="14.6. Protected" />
+    <link rel="next" href="ch14s08.html" title="14.8. Herencia múltiple" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s06.html">14.6. Protected</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C14.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s08.html">14.8. Herencia múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="14.7. Herencia y sobrecarga de operadores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7945648"></a>14.7. Herencia y sobrecarga de operadores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Excepto el operador de asignación, el resto de operadores son
+      heredados automáticamente en la clase derivada. Esto se puede
+      demostrar heredando de C12:Byte.h:
+    </p>
+      <div class="example">
+        <a id="idp7946576"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C14:OperatorInheritance.cpp</span>
+<span class="hl slc">// Inheriting overloaded operators</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../C12/Byte.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;ByteTest.out&quot;</span><span class="hl opt">);</span>
+
+<span class="hl kwc">class</span> Byte2 <span class="hl opt">:</span> <span class="hl kwc">public</span> Byte <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Constructors don't inherit:</span>
+  <span class="hl kwd">Byte2</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> bb <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">Byte</span><span class="hl opt">(</span>bb<span class="hl opt">) {}</span>  
+  <span class="hl slc">// operator= does not inherit, but </span>
+  <span class="hl slc">// is synthesized for memberwise assignment.</span>
+  <span class="hl slc">// However, only the SameType = SameType</span>
+  <span class="hl slc">// operator= is synthesized, so you have to</span>
+  <span class="hl slc">// make the others explicitly:</span>
+  Byte2<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">const</span> Byte<span class="hl opt">&amp;</span> right<span class="hl opt">) {</span>
+    Byte<span class="hl opt">::</span><span class="hl kwc">operator</span><span class="hl opt">=(</span>right<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Byte2<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">=(</span><span class="hl kwb">int</span> i<span class="hl opt">) {</span> 
+    Byte<span class="hl opt">::</span><span class="hl kwc">operator</span><span class="hl opt">=(</span>i<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span><span class="hl kwa">this</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Similar test function as in C12:ByteTest.cpp:</span>
+<span class="hl kwb">void</span> <span class="hl kwd">k</span><span class="hl opt">(</span>Byte2<span class="hl opt">&amp;</span> b1<span class="hl opt">,</span> Byte2<span class="hl opt">&amp;</span> b2<span class="hl opt">) {</span>
+  b1 <span class="hl opt">=</span> b1 <span class="hl opt">*</span> b2 <span class="hl opt">+</span> b2 <span class="hl opt">%</span> b1<span class="hl opt">;</span>
+
+  <span class="hl ppc">#define TRY2(OP) \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;b1 = &quot;</span><span class="hl ppc">; b1.print(out); \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;, b2 = &quot;</span><span class="hl ppc">; b2.print(out); \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;;  b1 &quot;</span><span class="hl ppc"> #OP</span> <span class="hl pps">&quot; b2 produces &quot;</span><span class="hl ppc">; \</span>
+<span class="hl ppc">    (b1 OP b2).print(out); \</span>
+<span class="hl ppc">    out &lt;&lt; endl;</span>
+
+  b1 <span class="hl opt">=</span> <span class="hl num">9</span><span class="hl opt">;</span> b2 <span class="hl opt">=</span> <span class="hl num">47</span><span class="hl opt">;</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(+)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(-)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(*)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(/)</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(%)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(</span>^<span class="hl opt">)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(&amp;)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(|)</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(&lt;&lt;)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(&gt;&gt;)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(+=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(-=)</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(*=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(/=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(%=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(</span>^<span class="hl opt">=)</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(&amp;=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(|=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(&gt;&gt;=)</span> <span class="hl kwd">TRY2</span><span class="hl opt">(&lt;&lt;=)</span>
+  <span class="hl kwd">TRY2</span><span class="hl opt">(=)</span> <span class="hl slc">// Assignment operator</span>
+
+  <span class="hl slc">// Conditionals:</span>
+  <span class="hl ppc">#define TRYC2(OP) \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;b1 = &quot;</span><span class="hl ppc">; b1.print(out); \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;, b2 = &quot;</span><span class="hl ppc">; b2.print(out); \</span>
+<span class="hl ppc">    out &lt;&lt;</span> <span class="hl pps">&quot;;  b1 &quot;</span><span class="hl ppc"> #OP</span> <span class="hl pps">&quot; b2 produces &quot;</span><span class="hl ppc">; \</span>
+<span class="hl ppc">    out &lt;&lt; (b1 OP b2); \</span>
+<span class="hl ppc">    out &lt;&lt; endl;</span>
+
+  b1 <span class="hl opt">=</span> <span class="hl num">9</span><span class="hl opt">;</span> b2 <span class="hl opt">=</span> <span class="hl num">47</span><span class="hl opt">;</span>
+  <span class="hl kwd">TRYC2</span><span class="hl opt">(&lt;)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(&gt;)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(==)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(!=)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(&lt;=)</span>
+  <span class="hl kwd">TRYC2</span><span class="hl opt">(&gt;=)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(&amp;&amp;)</span> <span class="hl kwd">TRYC2</span><span class="hl opt">(||)</span>
+
+  <span class="hl slc">// Chained assignment:</span>
+  Byte2 b3 <span class="hl opt">=</span> <span class="hl num">92</span><span class="hl opt">;</span>
+  b1 <span class="hl opt">=</span> b2 <span class="hl opt">=</span> b3<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;member functions:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  Byte2 <span class="hl kwd">b1</span><span class="hl opt">(</span><span class="hl num">47</span><span class="hl opt">),</span> <span class="hl kwd">b2</span><span class="hl opt">(</span><span class="hl num">9</span><span class="hl opt">);</span>
+  <span class="hl kwd">k</span><span class="hl opt">(</span>b1<span class="hl opt">,</span> b2<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 14.16. C14/OperatorInheritance.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El código de prueba anterior es idéntico a C12:ByteTest.cpp
+      excepto que Byte2 se usa en vez de Byte. De esta forma todos los
+      operadores son verificados para trabajar con Byte2 a través de la
+      herencia.
+    </p>
+      <p>
+      Cuando examina la clase Byte2, verá que se ha definido
+      explícitamente el constructor y que solo se ha credo el operator=
+      que asigna un Byte2 a Byte2; cualquier otro operador de asignación
+      tendrá que se realizado por usted.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s06.html">14.6. Protected</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C14.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s08.html">14.8. Herencia múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s08.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

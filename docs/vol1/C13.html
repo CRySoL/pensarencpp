@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>13: Creación dinámica de objetos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="prev" href="ch12s08.html" title="12.8. Ejercicios" />
+    <link rel="next" href="ch13s02.html" title="13.2. Rediseño de los ejemplos anteriores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s08.html">12.8. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s02.html">13.2. Rediseño de los ejemplos anteriores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="13: Creación dinámica de objetos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C13"></a>13: Creación dinámica de objetos</h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C13.html#idp7513440">13.1. Creación de objetos</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch13s02.html">13.2. Rediseño de los ejemplos anteriores</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch13s03.html">13.3. 
+      <code class="keyword">new</code> y <code class="keyword">delete</code> para vectores
+    </a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch13s04.html">13.4. Resumen</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch13s05.html">13.5. Ejercicios</a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <div class="highlights">
+        <p>
+      A veces se conoce la cantidad exacta exacta, el tipo y duración de la vida de los
+      objetos en un programa, pero no siempre es así.
+    </p>
+      </div>
+      <p>
+    ¿Cuántos aviones tendrá que supervisar un sistema de control de tráfico aéreo?
+    ¿Cuántas formas o figuras se usarán en un sistema CAD? ¿Cuántos nodos habrá en una
+    red?
+  </p>
+      <p>
+    Para resolver un problema general de programación, es esencial poder crear y destruir
+    objetos en tiempo de ejecución. Por supuesto, C proporciona las funciones de
+    asignación dinámica de memoria <code class="function">malloc()</code> y sus variantes, y
+    <code class="function">free()</code>, que permiten obtener y liberar bloques en el espacio de
+    memoria del <span class="emphasis"><em>montículo</em></span> (también llamado <span class="emphasis"><em>espacio
+    libre</em></span><sup>[<a id="idp7504768" href="#ftn.idp7504768" class="footnote">71</a>]</sup> mientras se ejecuta el programa.
+  </p>
+      <p>
+    Este método sin embargo, no funcionará en C++. El constructor no le permite manipular
+    la dirección de memoria a inicializar, y con motivo. De permitirse, sería posible:
+  </p>
+      <div class="orderedlist">
+        <ol class="orderedlist" type="1">
+          <li class="listitem">
+            <p>
+		Olvidar la llamada al constructor. Con lo cual no sería posible garantizar la
+		inicialización de los objetos en C++.
+      </p>
+          </li>
+          <li class="listitem">
+            <p>
+		Usar accidentalmente un objeto que aún no ha sido inicializado, esperando que todo
+		vaya bien.
+      </p>
+          </li>
+          <li class="listitem">
+            <p>
+		Manipular un objeto de tamaño incorrecto.
+      </p>
+          </li>
+        </ol>
+      </div>
+      <p>
+    Y por supuesto, incluso si se hizo todo correctamente, cualquiera que modifique el
+    programa estaría expuesto a cometer esos mismos errores. Una gran parte de los
+    problemas de programación tienen su origen en la inicialización incorrecta de objetos,
+    lo que hace especialmente importante garantizar la llamada a los constructores para
+    los objetos que han de ser creados en el montículo.
+  </p>
+      <p>
+    ¿Cómo se garantiza en C++ la correcta inicialización y limpieza, permitiendo la
+    creación dinámica de objetos?
+  </p>
+      <p>
+    La respuesta está en integrar en el lenguaje mismo la creación dinámica de
+    objetos. <code class="function">malloc()</code> y <code class="function"> free()</code> son funciones de
+    biblioteca y por tanto, están fuera del control del compilador. Si se dispone de un
+    <span class="emphasis"><em>operador</em></span> que lleve a cabo el acto combinado de la asignación
+    dinámica de memoria y la inicialización, y de otro operador que realice el acto
+    combinado de la limpieza y de liberación de memoria, el compilador podrá garantizar la
+    llamada a los constructores y destructores de los objetos.
+  </p>
+      <p>
+    En este capítulo verá cómo se resuelve de modo elegante este problema con los
+    operadores <code class="keyword">new</code> y <code class="keyword">delete</code> de C++.
+  </p>
+      <div class="sect1" title="13.1. Creación de objetos">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp7513440"></a>13.1. Creación de objetos</h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      La creación de un objeto en C++ tiene lugar en dos pasos:
+    </p>
+        <div class="orderedlist">
+          <ol class="orderedlist" type="1">
+            <li class="listitem">
+              <p>Asignación de memoria para el objeto.</p>
+            </li>
+            <li class="listitem">
+              <p>Llamada al constructor. </p>
+            </li>
+          </ol>
+        </div>
+        <p>
+      Aceptemos por ahora que este segundo paso ocurre <span class="emphasis"><em>siempre</em></span>. C++
+      lo fuerza, debido a que el uso de objetos no inicializados es una de las causas más
+      frecuentes de errores de programación. Siempre se invoca al constructor, sin
+      importar cómo ni dónde se crea el objeto.
+    </p>
+        <p>
+      El primero de estos pasos puede ocurrir de varios modos y en diferente momento:
+    </p>
+        <div class="orderedlist">
+          <ol class="orderedlist" type="1">
+            <li class="listitem">
+              <p>
+		  Asignación de memoria en la zona de almacenamiento estático, que tiene lugar
+		  durante la carga del programa.  El espacio de memoria asignado al objeto existe
+		  hasta que el programa termina.
+		</p>
+            </li>
+            <li class="listitem">
+              <p>
+		  Asignación de memoria en la pila, cuando se alcanza algún punto determinado
+		  durante la ejecución del programa (la llave de apertura de un bloque). La
+		  memoria asignada se vuelve a liberar de forma automática en cuanto se alcanza el
+		  punto de ejecución complementario (la llave de cierre de un bloque). Las
+		  operaciones de manipulación de la pila forman parte del conjunto de
+		  instrucciones del procesador y son muy eficientes. Por otra parte, es necesario
+		  saber cuantas variables se necesitan mientras se escribe el programa de modo que
+		  el copilador pueda generar el código correspondiente.
+		</p>
+            </li>
+            <li class="listitem">
+              <p>
+		  Asignación dinámica, en una zona de memoria libre llamada montículo
+		  (<span class="foreignphrase"><em class="foreignphrase">heap</em></span> o <span class="foreignphrase"><em class="foreignphrase">free
+		  store</em></span>). Se reserva espacio para un objeto en esta zona mediante
+		  la llamada a una función durante la ejecución del programa; esto significa que
+		  se puede decidir en cualquier momento que se necesita cierta cantidad de
+		  memoria. Esto conlleva la responsabilidad de determinar el momento en que ha de
+		  liberarse la memoria, lo que implica determinar el tiempo de vida de la misma
+		  que, por tanto, ya no está bajo control de las reglas de ámbito.
+	</p>
+            </li>
+          </ol>
+        </div>
+        <p>
+      A menudo, las tres regiones de memoria referidas se disponen en una zona contigua de
+      la memoria física: área estática, la pila, y el montículo, en un orden determinado
+      por el escritor del compilador. No hay reglas fijas. La pila puede estar en una zona
+      especial, y puede que las asignaciones en el montículo se obtengan mediante petición
+      de bloques de la memoria del sistema operativo. Estos detalles quedan normalmente
+      ocultos al programador puesto que todo lo que se necesita conocer al respecto es que
+      esa memoria estará disponible cuando se necesite.
+    </p>
+        <div class="sect2" title="13.1.1. Asignación dinámica en C">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp7522728"></a>13.1.1. Asignación dinámica en C</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+		C proporciona las funciones de su biblioteca estándar
+		<code class="function">malloc()</code> y sus variantes <code class="function">calloc()</code> y
+		<code class="function">realloc()</code> para asignar, y <code class="function">free()</code> para
+		liberar bloques de memoria dinámicamente en tiempo de ejecución. Estas funciones
+		son pragmáticas pero rudimentarias por lo que requieren comprensión y un cuidadoso
+		manejo por parte del programador. El listado que sigue es un ejemplo que ilustra
+		el modo de crear una instancia de una clase con estas funciones de C:
+      </p>
+          <div class="example">
+            <a id="idp7525560"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C13:MallocClass.cpp</span>
+<span class="hl slc">// Malloc with class objects</span>
+<span class="hl slc">// What you'd have to do if not for &quot;new&quot;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span> <span class="hl slc">// malloc() &amp; free()</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;cstring&gt;</span> <span class="hl slc">// memset()</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Obj <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">,</span> j<span class="hl opt">,</span> k<span class="hl opt">;</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> sz <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">char</span> buf<span class="hl opt">[</span>sz<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">() {</span> <span class="hl slc">// Can't use constructor</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;initializing Obj&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    i <span class="hl opt">=</span> j <span class="hl opt">=</span> k <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl kwd">memset</span><span class="hl opt">(</span>buf<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> sz<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">destroy</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl slc">// Can't use destructor</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;destroying Obj&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Obj<span class="hl opt">*</span> obj <span class="hl opt">= (</span>Obj<span class="hl opt">*)</span><span class="hl kwd">malloc</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span>Obj<span class="hl opt">));</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>obj <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  obj<span class="hl opt">-&gt;</span><span class="hl kwd">initialize</span><span class="hl opt">();</span>
+  <span class="hl slc">// ... sometime later:</span>
+  obj<span class="hl opt">-&gt;</span><span class="hl kwd">destroy</span><span class="hl opt">();</span>
+  <span class="hl kwd">free</span><span class="hl opt">(</span>obj<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 13.1. C13/MallocClass.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		Observe el uso de <code class="function">malloc()</code> para la obtención de espacio para
+		el objeto:
+      </p>
+          <pre class="programlisting">
+Obj<span class="hl opt">*</span> obj <span class="hl opt">= (</span>Obj<span class="hl opt">*)</span><span class="hl kwd">malloc</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span>Obj<span class="hl opt">));</span>
+</pre>
+          <p>
+		Se debe pasar como parámetro a <code class="function">malloc()</code> el tamaño del
+		objeto. El tipo de retorno de <code class="function">malloc()</code> es <code class="type">void*</code>,
+		pues es sólo un puntero a un bloque de memoria, no un objeto. En C++ no se permite
+		la asignación directa de un <code class="type">void*</code> a ningún otro tipo de
+		puntero, de ahí la necesidad de la conversión explícita de tipo (molde).
+      </p>
+          <p>
+		Puede ocurrir que <code class="function">malloc()</code> no encuentre un bloque adecuado,
+		en cuyo caso devolverá un puntero nulo, de ahí la necesidad de comprobar la
+		validez del puntero devuelto.
+      </p>
+          <p>
+		El principal escollo está en la línea:
+      </p>
+          <pre class="programlisting">
+obj<span class="hl opt">-&gt;</span><span class="hl kwd">initialize</span><span class="hl opt">();</span>
+</pre>
+          <p>
+		El usuario deberá asegurarse de inicializar el objeto antes de su uso. Obsérvese
+		que no se ha usado el constructor debido a que éste no puede ser llamado de modo
+		explícito <sup>[<a id="idp7532520" href="#ftn.idp7532520" class="footnote">72</a>]</sup>; es llamado por el compilador cuando se crea un
+		objeto.  El problema es que el usuario puede olvidar inicializar el objeto antes
+		de usarlo, introduciendo así una importante fuente de problemas.
+      </p>
+          <p>
+		Como consecuencia, muchos programadores encuentran muy confusas y complicadas las
+		funciones de asignación dinámica de la memoria en C. No es muy difícil encontrar
+		programadores que, usando máquinas con memoria virtual, usan vectores enormes en
+		el área de almacenamiento estático para evitar tener que tratar con la asignación
+		dinámica. Dado que C++ intenta facilitar el uso de la biblioteca a los
+		programadores ocasionales, no es aceptable la forma de abordar la asignación
+		dinámica en C.
+      </p>
+        </div>
+        <div class="sect2" title="13.1.2. El operador new">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp7534872"></a>13.1.2. El operador <code class="keyword">new</code></h3>
+              </div>
+            </div>
+          </div>
+          <p>
+		La solución que ofrece C++ consiste en combinar la serie de acciones necesarias
+		para la creación de un objeto en un único operador llamado <code class="keyword">&gt;new</code>. Cuando
+		se crea un objeto mediante el operador <code class="keyword">&gt;new</code>, éste se encarga de obtener
+		el espacio necesario para el objeto y de llamar a su constructor. Cuando se
+		ejecuta el código:
+      </p>
+          <pre class="programlisting">
+MyType <span class="hl opt">*</span>fp <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">MyType</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span><span class="hl num">2</span><span class="hl opt">);</span>
+</pre>
+          <p>
+		se asigna espacio mediante alguna llamada equivalente a
+		<code class="code">&gt;malloc(sizeof(MyType))</code> --con frecuencia es así, literalmente--, y
+		usando la dirección obtenida como puntero <code class="keyword">&gt;this</code>, y <code class="code">(1, 2)</code>
+		como argumentos, se llama al constructor de la clase
+		<code class="classname">MyType</code>.  Para cuando está disponible, el valor de retorno
+		de <code class="keyword">new</code> es ya un puntero válido a un objeto inicializado. Además es del
+		tipo correcto, lo que hace innecesaria la conversión.
+      </p>
+          <p>
+		El operador <code class="keyword">new</code> por defecto, comprueba el éxito o fracaso de la
+		asignación de memoria como paso previo a la llamada al constructor, haciendo
+		innecesaria y redundante la posterior comprobación.  Más adelante en este capítulo
+		se verá qué sucede si se produce este fallo.
+      </p>
+          <p>
+		En las expresiones con <code class="keyword">new</code> se puede usar cualquiera de los constructores
+		disponibles para una clase. Si éste no tiene argumentos, se escribe la expresión
+		sin lista de argumentos
+      </p>
+          <pre class="programlisting">
+MyType <span class="hl opt">*</span>fp <span class="hl opt">=</span> <span class="hl kwa">new</span> MyType<span class="hl opt">;</span>
+</pre>
+          <p>
+		Es notable la simpleza alcanzada en la creación dinámica de objetos: una única
+		expresión realiza todo el trabajo de cálculo de tamaño, asignación, comprobaciones
+		de seguridad y conversión de tipo. Esto hace que la creación dinámica de objetos
+		sea tan sencilla como la creación en la pila.
+      </p>
+        </div>
+        <div class="sect2" title="13.1.3. El operador delete">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp7543896"></a>13.1.3. El operador <code class="keyword">delete</code></h3>
+              </div>
+            </div>
+          </div>
+          <p>
+		El complemento a la expresión <code class="keyword">new</code> es la expresión <code class="keyword">delete</code>, que
+		primero llama al destructor y después libera la memoria (a menudo mediante una
+		llamada a <code class="function">free()</code>). El argumento para una expresión con
+		<code class="keyword">delete</code> debe ser una dirección: un puntero a objeto creado mediante
+		<code class="keyword">new</code>.
+      </p>
+          <pre class="programlisting">
+<span class="hl kwa">delete</span> fp<span class="hl opt">;</span>
+</pre>
+          <p>
+		Esta expresión destruye el objeto y después libera el espacio dinámicamente
+		asignado al objeto <code class="type">MyType</code>
+      </p>
+          <p>
+		El uso del operador <code class="keyword">delete</code> debe limitarse a los objetos que hayan sido
+		creados mediante <code class="keyword">new</code>. Las consecuencias de aplicar el operador
+		<code class="keyword">delete</code> a los objetos creados con <code class="function">malloc()</code>,
+		<code class="function">calloc()</code> o <code class="function">realloc()</code> no están
+		definidas. Dado que la mayoría de las implementaciones por defecto de <code class="keyword">new</code>
+		y <code class="keyword">delete</code> usan <code class="function">malloc()</code> y
+		<code class="function">free()</code>, el resultado será probablemente la liberación de la
+		memoria sin la llamada al destructor.
+      </p>
+          <p>
+		No ocurre nada si el puntero que se le pasa a <code class="keyword">delete</code> es nulo. Por esa
+		razón, a menudo se recomienda asignar cero al puntero inmediatamente después de
+		usar <code class="keyword">delete</code>; se evita así que pueda ser usado de nuevo como argumento
+		para <code class="keyword">delete</code>. Tratar de destruir un objeto más de una vez es un error de
+		consecuencias imprevisibles.
+      </p>
+        </div>
+        <div class="sect2" title="13.1.4. Un ejemplo sencillo">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp7555912"></a>13.1.4. Un ejemplo sencillo</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+		El siguiente ejemplo demuestra que la inicialización tiene lugar:
+      </p>
+          <div class="example">
+            <a id="idp7556608"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C13:Tree.h</span>
+<span class="hl ppc">#ifndef TREE_H</span>
+<span class="hl ppc">#define TREE_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+
+<span class="hl kwc">class</span> Tree <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> height<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Tree</span><span class="hl opt">(</span><span class="hl kwb">int</span> treeHeight<span class="hl opt">) :</span> <span class="hl kwd">height</span><span class="hl opt">(</span>treeHeight<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Tree</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;*&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Tree<span class="hl opt">*</span> t<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Tree height is: &quot;</span>
+              <span class="hl opt">&lt;&lt;</span> t<span class="hl opt">-&gt;</span>height <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span> 
+<span class="hl ppc">#endif</span> <span class="hl slc">// TREE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 13.2. C13/Tree.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		Se puede probar que el constructor es invocado imprimiendo el valor de
+		<code class="classname">Tree</code>. Aquí se hace sobrecargando el <code class="function">operator
+		&lt;&lt;</code> para usarlo con un <code class="varname">ostream</code> y un
+		<code class="type">Tree*</code>. Note, sin embargo, que aunque la función está declarada como
+		<code class="keyword">friend</code>, está definida como una <code class="keyword">inline</code>!. Esto es así por
+		conveniencia --definir una función amiga como <code class="keyword">inline</code> a una clase no
+		cambia su condición de amiga o el hecho de que es una función global y no un
+		método. También resaltar que el valor de retorno es el resultado de una expresión
+		completa (el <code class="type">ostream&amp;</code>), y así debe ser, para satisfacer el
+		tipo del valor de retorno de la función.
+      </p>
+        </div>
+        <div class="sect2" title="13.1.5. Trabajo extra para el gestor de memoria">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp7562032"></a>13.1.5. Trabajo extra para el gestor de memoria</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+		Cuando se crean objetos automáticos en la pila, el tamaño de los objetos y su
+		tiempo de vida queda fijado en el código generado, porque el compilador conoce su
+		tipo, cantidad y alcance. Crear objetos en el montículo implica una sobrecarga
+		adicional, tanto en tiempo como en espacio. Veamos el escenario típico (Puede
+		reemplazar <code class="function">malloc()</code> con <code class="function">calloc()</code> o
+		<code class="function">realloc()</code>).
+	  </p>
+          <p>
+		Se invoca <code class="function">malloc()</code>, que pide un bloque de memoria. (Este
+		código realmente puede ser parte de <code class="function">malloc()</code>).
+	  </p>
+          <p>
+		Ahora tiene lugar la búsqueda de un bloque de tamaño adecuado de entre los bloques
+		libres. Esto requiere la comprobación de un mapa o directorio de algún tipo que
+		lleve el registro de los bloques disponibles y de los que están en uso. Es un
+		proceso rápido, pero puede que necesite varias pruebas, es pues un proceso no
+		determinista. Dicho de otro modo, no se puede contar con que
+		<code class="function">malloc()</code> tarde siempre exactamente el mismo tiempo en cada
+		búsqueda.
+      </p>
+          <p>
+		Antes de entregar el puntero del bloque obtenido, hay que registrar en alguna
+		parte su tamaño y localización para que <code class="function">malloc()</code> no lo vuelva
+		a usar y para que cuando se produzca la llamada a <code class="function">free()</code>, el
+		sistema sepa cuánto espacio ha de liberar.
+      </p>
+          <p>
+		El modo en que se implementan todas estas operaciones puede variar mucho. No hay
+		nada que impida que puedan implementarse las primitivas de asignación de memoria
+		en el conjunto de instrucciones del procesador. Si es suficientemente curioso,
+		pueden escribir programas que permitan averiguar cómo está implementada
+		<code class="function">malloc()</code>. Si dispone de él, puede leer el código fuente de la
+		biblioteca de funciones de C, si no, siempre está disponible el de GNU C.
+      </p>
+        </div>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp7504768" href="#idp7504768" class="para">71</a>] </sup>
+	N.T. espacio de almacenamiento libre (<span class="foreignphrase"><em class="foreignphrase">free store</em></span>)
+      </p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp7532520" href="#idp7532520" class="para">72</a>] </sup>Existe una sintaxis especial llamada
+		<span class="foreignphrase"><em class="foreignphrase">placement-new</em></span> que permite llamar al constructor
+		para un bloque de memoria preasignando. Se verá más adelante, en este mismo
+		capítulo.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s08.html">12.8. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch13s02.html">13.2. Rediseño de los ejemplos anteriores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch13s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

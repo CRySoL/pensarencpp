@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.4.3. Control de acceso</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s04.html" title="9.4. Comparición de recursos limitados" />
+    <link rel="prev" href="ch09s04s02.html" title="9.4.2. Acceso no apropiado a recursos" />
+    <link rel="next" href="ch09s04s04.html" title="9.4.4. Código simplificado mediante guardas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s02.html">9.4.2. Acceso no apropiado a recursos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s04.html">9.4.4. Código simplificado mediante guardas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.4.3. Control de acceso">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5111784"></a>9.4.3. Control de acceso</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	En el ejemplo anterior se muestra el problema fundamental a la
+	hora de utilizar hilos: nunca sabrá cuándo un hilo puede ser
+	ejecutado. Imagínese sentado en la mesa con un tenedor, a
+	punto de coger el último pedazo de comida de un plato y tan
+	pronto como su tenedor lo alcanza, de repente, la comida se
+	desvanece (debido a que su hilo fue suspendido y otro vino y
+	se comió la comida). Ese es el problema que estamos tratando a
+	la hora de escribir programas concurrentes.
+      </p>
+      <p>
+	En ocasiones no le importará si un recurso está siendo
+	accedido a la vez que intenta usarlo. Pero en la mayoría de
+	los casos sí, y para trabajar con múltiples hilos necesitará
+	alguna forma de evitar que dos hilos accedan al mismo recurso,
+	al menos durante períodos críticos.
+      </p>
+      <p>
+	Para prevenir este tipo de colisiones existe una manera
+	sencilla que consiste en poner un bloqueo sobre un recursos
+	cuando un hilo trata de usarlo. El primer hilo que accede al
+	recursos lo bloquea y, así, otro hilo no puede acceder al
+	recurso hasta que no sea desbloqueado, momento en el que este
+	hilo lo vuelve a bloquear y lo vuelve a usar, y así
+	sucesivamente.
+      </p>
+      <p>
+	De esta forma, tenemos que ser capaces de evitar cualquier
+	tarea de acceso a memoria mientras ese almacenamiento no esté
+	en un estado adecuado. Esto es, necesitamos tener un mecanismo
+	que excluya una segunda tarea sobre el acceso a memoria cuando
+	una primera tarea ya está usándola. Esta idea es fundamental
+	para todo sistema multihilado y se conoce como exclusión
+	mutua; abreviado como mutex. La biblioteca ZThread tiene un
+	mecanismo de mutex en el fichero de cabecera Mutex.h.
+      </p>
+      <p>
+	Para solucionar el problema en el programa anterior,
+	identificaremos las secciones críticas donde debe aplicarse la
+	exclusión mutua; posteriormente, antes de entrar en la sección
+	crítica adquiriremos el mutex y lo liberaremos cuando finalice
+	la sección crítica. Únicamente un hilo podrá adquirir el mutex
+	al mismo tiempo, por lo que se logra exclusión mutua:
+      </p>
+      <div class="example">
+        <a id="idp5116864"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:MutexEvenGenerator.cpp {RunByHand}</span>
+<span class="hl slc">// Preventing thread collisions with mutexes.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;EvenChecker.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> MutexEvenGenerator <span class="hl opt">:</span> <span class="hl kwc">public</span> Generator <span class="hl opt">{</span>
+  <span class="hl kwb">unsigned int</span> currentEvenValue<span class="hl opt">;</span>
+  Mutex lock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">MutexEvenGenerator</span><span class="hl opt">() {</span> currentEvenValue <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">MutexEvenGenerator</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~MutexEvenGenerator&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">nextValue</span><span class="hl opt">() {</span>
+    lock<span class="hl opt">.</span><span class="hl kwd">acquire</span><span class="hl opt">();</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span>
+    Thread<span class="hl opt">::</span><span class="hl kwd">yield</span><span class="hl opt">();</span> <span class="hl slc">// Cause failure faster</span>
+    <span class="hl opt">++</span>currentEvenValue<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> rval <span class="hl opt">=</span> currentEvenValue<span class="hl opt">;</span>
+    lock<span class="hl opt">.</span><span class="hl kwd">release</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> rval<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  EvenChecker<span class="hl opt">::</span>test<span class="hl opt">&lt;</span>MutexEvenGenerator<span class="hl opt">&gt;();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.18. C11/MutexEvenGenerator.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	<code class="classname">MutexEvenGenerator</code> añade
+	un <code class="classname">Mutex</code> llamado lock y utiliza
+	acquire() y release() para crear una sección crítica con
+	nextValue(). Además, se ha insertado una llamada a
+	Thread::yield() entre los dos incrementos, para aumentar la
+	probabilidad de que haya un cambio de contexto mientras
+	currentEvenValue se encuentra en un estado extraño. Este hecho
+	no producirá un fallo ya que el mutex evita que más de un hilo
+	esté en la sección crítica al mismo tiempo, pero llamar a
+	yield() es una buena forma de provocar un fallo si este
+	ocurriera.
+      </p>
+      <p>
+	Note que nextValue() debe capturar el valor de retorno dentro
+	de la sección crítica porque si lo devolviera dentro de la
+	sección critica no liberaría lock y así evitar que fuera
+	adquirido. (Normalmente, esto conllevaría un interbloqueo, de
+	lo cual aprenderá sobre ello al final de este capítulo.)
+      </p>
+      <p>
+	El primer hilo que entre en nextValue() adquirirá lock y
+	cualquier otro hilo que intente adquirirlo será bloqueado
+	hasta que el primer hilo libere lock. En ese momento, el
+	mecanismo de planificación selecciona otro hilo que esté
+	esperando en lock. De esta manera, solo un hilo puede pasar a
+	través del código custodiado por el mutex al mismo tiempo.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s04s02.html">9.4.2. Acceso no apropiado a recursos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04s04.html">9.4.4. Código simplificado mediante guardas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

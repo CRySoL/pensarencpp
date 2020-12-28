@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.12. Downcasting</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s11.html" title="15.11. Sobrecarga de operadores" />
+    <link rel="next" href="ch15s13.html" title="15.13. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s11.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s11.html">15.11. Sobrecarga de operadores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s13.html">15.13. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s13.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.12. Downcasting">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8334712"></a>15.12. Downcasting</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Como se puede adivinar, desde el momento que existe algo conocido
+      como upcasting - mover en sentido ascendente por una jerarquía de
+      herencia - debe existir el
+      <span class="foreignphrase"><em class="foreignphrase">downcasting</em></span> para mover en sentido
+      descendente en una jerarquía. Pero el upcasting es sencillo porque
+      al movernos en sentido ascendente en la jerarquía de clases
+      siempre convergemos en clases más generales. Es decir, cuando se
+      hace un upcast siempre se está en una clase claramente derivada de
+      un ascendente (normalmente solo uno, excepto en el caso de
+      herencia múltiple) pero cuando se hace downcast hay normalmente
+      varias posibilidades a las que amoldarse. Mas concretamente, un
+      <code class="classname">Circulo</code> es un tipo de
+      <code class="classname">Figura</code> (que sería su
+      <span class="foreignphrase"><em class="foreignphrase">upcast</em></span>), pero si se intenta hacer
+      un <span class="foreignphrase"><em class="foreignphrase">downcast</em></span> de una
+      <code class="classname">Figura</code> podría ser un
+      <code class="classname">Circulo</code>, un
+      <code class="classname">Cuadrado</code>, un
+      <code class="classname">Triángulo</code>, etc. El problema es encontrar un
+      modo seguro de hacer <span class="foreignphrase"><em class="foreignphrase">downcast</em></span>
+      (aunque es incluso más importante preguntarse por qué se está
+      usando <span class="foreignphrase"><em class="foreignphrase">downcasting</em></span> en vez de usar
+      el polimorfismo para que adivine automáticamente el tipo
+      correcto. En el Volumen 2 de este libro se trata como evitar el
+      <span class="foreignphrase"><em class="foreignphrase">downcasting</em></span>.
+    </p>
+      <p>
+      C++ proporciona un moldeado explícito especial (introducido en el
+      capítulo 3) llamado "moldeado dinámico"
+      (<span class="foreignphrase"><em class="foreignphrase">dynamic_cast</em></span>) que es una operación
+      segura. Cuando se usa <span class="emphasis"><em>moldeado dinámico</em></span> para
+      intentar hacer un molde a un tipo en concreto, el valor de retorno
+      será un puntero al tipo deseado sólo si el molde es adecuado y
+      tiene éxito, de otra forma devuelve cero para indicar que no es
+      del tipo correcto. Aquí tenemos un ejemplo mínimo:
+    </p>
+      <div class="example">
+        <a id="idp8341280"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:DynamicCast.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span> <span class="hl kwc">public</span><span class="hl opt">:</span> <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Pet</span><span class="hl opt">(){}};</span>
+<span class="hl kwc">class</span> Dog <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{};</span>
+<span class="hl kwc">class</span> Cat <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Pet<span class="hl opt">*</span> b <span class="hl opt">=</span> <span class="hl kwa">new</span> Cat<span class="hl opt">;</span> <span class="hl slc">// Upcast</span>
+  <span class="hl slc">// Try to cast it to Dog*:</span>
+  Dog<span class="hl opt">*</span> d1 <span class="hl opt">=</span> <span class="hl kwa">dynamic_cast</span><span class="hl opt">&lt;</span>Dog<span class="hl opt">*&gt;(</span>b<span class="hl opt">);</span>
+  <span class="hl slc">// Try to cast it to Cat*:</span>
+  Cat<span class="hl opt">*</span> d2 <span class="hl opt">=</span> <span class="hl kwa">dynamic_cast</span><span class="hl opt">&lt;</span>Cat<span class="hl opt">*&gt;(</span>b<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;d1 = &quot;</span> <span class="hl opt">&lt;&lt; (</span><span class="hl kwb">long</span><span class="hl opt">)</span>d1 <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;d2 = &quot;</span> <span class="hl opt">&lt;&lt; (</span><span class="hl kwb">long</span><span class="hl opt">)</span>d2 <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.19. C15/DynamicCast.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Cuando se use <span class="emphasis"><em>moldeado dinámico</em></span>, hay que
+      trabajar con una jerarquía polimórfica real - con funciones
+      virtuales - debido a que el <span class="emphasis"><em>modeado dinámico</em></span>
+      usa información almacenada en la VTABLE para determinar el tipo
+      actual. Aquí, la clase base contiene un destructor virtual y esto
+      es suficiente. En el <code class="function">main()</code>, un puntero a
+      <code class="classname">Cat</code> es elevado a
+      <code class="classname">Pet</code>, y después se hace un downcast tanto a
+      puntero <code class="classname">Dog</code> como a puntero a
+      <code class="classname">Cat</code>. Ambos punteros son imprimidos, y se
+      puede observar que cuando se ejecuta el programa el
+      <span class="foreignphrase"><em class="foreignphrase">downcast</em></span> incorrecto produce el
+      valor cero. Por supuesto somos los responsables de comprobar que
+      el resultado del cast no es cero cada vez que se haga un
+      downcast. Además no hay que asumir que el puntero será exactamente
+      el mismo, porque a veces se realizan ajustes de punteros durante
+      el <span class="foreignphrase"><em class="foreignphrase">upcasting</em></span> y el
+      <span class="foreignphrase"><em class="foreignphrase">downcasting</em></span> (en particular, con la
+      herencia múltiple).
+    </p>
+      <p>
+      Un <span class="emphasis"><em>moldeado dinámico</em></span> requiere un poco de
+      sobrecarga extra en ejecución; no mucha, pero si se está haciendo
+      mucho <span class="emphasis"><em>moldeado dinámico</em></span> (en cuyo caso debería
+      ser cuestionado seriamente el diseño del programa) se convierte en
+      un lastre en el rendimiento. En algunos casos se puede tener
+      alguna información especial durante el downcasting que permita
+      conocer el tipo que se está manejando, con lo que la sobrecarga
+      extra del <span class="emphasis"><em>modeado dinámico</em></span> se vuelve
+      innecesario, y se puede usar de manera alternativa un
+      <span class="emphasis"><em>moldeado estático</em></span>. Aquí se muestra como
+      funciona:
+    </p>
+      <div class="example">
+        <a id="idp8349104"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:StaticHierarchyNavigation.cpp</span>
+<span class="hl slc">// Navigating class hierarchies with static_cast</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;typeinfo&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Shape <span class="hl opt">{</span> <span class="hl kwc">public</span><span class="hl opt">:</span> <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Shape</span><span class="hl opt">() {}; };</span>
+<span class="hl kwc">class</span> Circle <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{};</span>
+<span class="hl kwc">class</span> Square <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{};</span>
+<span class="hl kwc">class</span> Other <span class="hl opt">{};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Circle c<span class="hl opt">;</span>
+  Shape<span class="hl opt">*</span> s <span class="hl opt">= &amp;</span>c<span class="hl opt">;</span> <span class="hl slc">// Upcast: normal and OK</span>
+  <span class="hl slc">// More explicit but unnecessary:</span>
+  s <span class="hl opt">=</span> <span class="hl kwa">static_cast</span><span class="hl opt">&lt;</span>Shape<span class="hl opt">*&gt;(&amp;</span>c<span class="hl opt">);</span>
+  <span class="hl slc">// (Since upcasting is such a safe and common</span>
+  <span class="hl slc">// operation, the cast becomes cluttering)</span>
+  Circle<span class="hl opt">*</span> cp <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  Square<span class="hl opt">*</span> sp <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Static Navigation of class hierarchies</span>
+  <span class="hl slc">// requires extra type information:</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwc">typeid</span><span class="hl opt">(</span>s<span class="hl opt">) ==</span> <span class="hl kwc">typeid</span><span class="hl opt">(</span>cp<span class="hl opt">))</span> <span class="hl slc">// C++ RTTI</span>
+    cp <span class="hl opt">=</span> <span class="hl kwa">static_cast</span><span class="hl opt">&lt;</span>Circle<span class="hl opt">*&gt;(</span>s<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwc">typeid</span><span class="hl opt">(</span>s<span class="hl opt">) ==</span> <span class="hl kwc">typeid</span><span class="hl opt">(</span>sp<span class="hl opt">))</span>
+    sp <span class="hl opt">=</span> <span class="hl kwa">static_cast</span><span class="hl opt">&lt;</span>Square<span class="hl opt">*&gt;(</span>s<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>cp <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;It's a circle!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>sp <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;It's a square!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Static navigation is ONLY an efficiency hack;</span>
+  <span class="hl slc">// dynamic_cast is always safer. However:</span>
+  <span class="hl slc">// Other* op = static_cast&lt;Other*&gt;(s);</span>
+  <span class="hl slc">// Conveniently gives an error message, while</span>
+  Other<span class="hl opt">*</span> op2 <span class="hl opt">= (</span>Other<span class="hl opt">*)</span>s<span class="hl opt">;</span>
+  <span class="hl slc">// does not</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.20. C15/StaticHierarchyNavigation.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      En este programa, se usa una nueva característica que no será
+      completamente descrita hasta el Volumen 2 de este libro, donde hay
+      un capítulo que cubre este tema: <span class="emphasis"><em>Información de tipo en
+      tiempo de ejecución en C++</em></span> o mecanismo RTTI
+      (<span class="foreignphrase"><em class="foreignphrase">run time type information</em></span>). RTTI
+      permite descubrir información de tipo que ha sido perdida en el
+      upcasting. El <span class="emphasis"><em>moldeado dinámico</em></span> es
+      actualmente una forma de RTTI. Aquí se usa la palabra reservada
+      <code class="keyword">typeid</code> (declarada en el fichero cabecera
+      <code class="filename">typeinfo</code>) para detectar el tipo de los
+      punteros. Se puede ver que el tipo del puntero a
+      <code class="classname">Figura</code> es comparado de forma sucesiva con
+      un puntero a <code class="classname">Circulo</code> y con un
+      <code class="classname">Cuadrado</code> para ver si existe alguna
+      coincidencia. Hay más RTTI que el <code class="keyword">typeid</code>, y se
+      puede imaginar que es fácilmente implementable un sistema de
+      información de tipos usando una función virtual.
+    </p>
+      <p>
+      Se crea un objeto <code class="classname">Circulo</code> y la dirección es
+      elevada a un puntero a <code class="classname">Figura</code>; la segunda
+      versión de la expresión muestra como se puede usar
+      <span class="emphasis"><em>modeado estático</em></span> para ser más explícito con el
+      upcast. Sin embargo, desde el momento que un upcast siempre es
+      seguro y es una cosa que se hace comunmente, considero que un cast
+      explícito para hacer upcast ensucia el código y es innecesario.
+    </p>
+      <p>
+      Para determinar el tipo se usa RTTI, y se usa <span class="emphasis"><em>modelado
+	estático</em></span> para realizar el downcast. Pero hay que
+	resaltar que, efectivamente, en este diseño el proceso es el
+	mismo que usar el <span class="emphasis"><em>moldeado dinámico</em></span>, y el
+	programador cliente debe hacer algún test para descubrir si el
+	cast tuvo éxito. Normalmente se prefiere una situación más
+	determinista que la del ejemplo anterior para usar el
+	<span class="emphasis"><em>modeado estático</em></span> antes que el
+	<span class="emphasis"><em>moldeado dinámico</em></span> (y hay que examinar
+	detenidamente el diseño antes de usar
+	<span class="emphasis"><em>moldeado dinámico</em></span>).
+    </p>
+      <p>
+      Si una jerarquía de clases no tiene funciones
+      <code class="keyword">virtual</code>es (que es un diseño cuestionable) o si
+      hay otra información que permite hacer un downcast seguro, es un
+      poco más rápido hacer el downcast de forma estática que con el
+      <span class="emphasis"><em>moldeado dinámico</em></span>. Además, <span class="emphasis"><em>modeado
+      estático</em></span> no permitirá realizar un cast fuera de la
+      jerarquía, como un cast tradicional permitiría, por lo que es más
+      seguro. Sin enbargo, navegar de forma estática por la jerarquía de
+      clases es siempre arriesgado por lo que hay que usar
+      <span class="emphasis"><em>moldeado dinámico</em></span> a menos que sea una
+      situación especial.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s11.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s11.html">15.11. Sobrecarga de operadores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s13.html">15.13. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s13.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

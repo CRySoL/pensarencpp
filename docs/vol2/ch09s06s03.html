@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.6.3. Resolución de problemas de hilos mediante colas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s06.html" title="9.6. Cooperación entre hilos" />
+    <link rel="prev" href="ch09s06s02.html" title="9.6.2. Relación de productor/consumidor" />
+    <link rel="next" href="ch09s06s04.html" title="9.6.4. Broadcast" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06s02.html">9.6.2. Relación de productor/consumidor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06s04.html">9.6.4. Broadcast </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.6.3. Resolución de problemas de hilos mediante colas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5216344"></a>9.6.3. Resolución de problemas de hilos mediante colas</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp5216960"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:TQueue.h</span>
+<span class="hl ppc">#ifndef TQUEUE_H</span>
+<span class="hl ppc">#define TQUEUE_H</span>
+<span class="hl ppc">#include &lt;deque&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Condition.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> <span class="hl kwc">class</span> TQueue <span class="hl opt">{</span>
+  ZThread<span class="hl opt">::</span>Mutex lock<span class="hl opt">;</span>
+  ZThread<span class="hl opt">::</span>Condition cond<span class="hl opt">;</span>
+  std<span class="hl opt">::</span>deque<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;</span> data<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">TQueue</span><span class="hl opt">() :</span> <span class="hl kwd">cond</span><span class="hl opt">(</span>lock<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">put</span><span class="hl opt">(</span>T item<span class="hl opt">) {</span>
+    ZThread<span class="hl opt">::</span>Guard<span class="hl opt">&lt;</span>ZThread<span class="hl opt">::</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    data<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>item<span class="hl opt">);</span>
+    cond<span class="hl opt">.</span><span class="hl kwd">signal</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  T <span class="hl kwd">get</span><span class="hl opt">() {</span>
+    ZThread<span class="hl opt">::</span>Guard<span class="hl opt">&lt;</span>ZThread<span class="hl opt">::</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>data<span class="hl opt">.</span><span class="hl kwd">empty</span><span class="hl opt">())</span>
+      cond<span class="hl opt">.</span><span class="hl kwd">wait</span><span class="hl opt">();</span>
+    T returnVal <span class="hl opt">=</span> data<span class="hl opt">.</span><span class="hl kwd">front</span><span class="hl opt">();</span>
+    data<span class="hl opt">.</span><span class="hl kwd">pop_front</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> returnVal<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// TQUEUE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.31. C11/TQueue.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp5220176"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:TestTQueue.cpp {RunByHand}</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TQueue.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;LiftOff.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> LiftOffRunner <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  TQueue<span class="hl opt">&lt;</span>LiftOff<span class="hl opt">*&gt;</span> rockets<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">add</span><span class="hl opt">(</span>LiftOff<span class="hl opt">*</span> lo<span class="hl opt">) {</span> rockets<span class="hl opt">.</span><span class="hl kwd">put</span><span class="hl opt">(</span>lo<span class="hl opt">); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        LiftOff<span class="hl opt">*</span> rocket <span class="hl opt">=</span> rockets<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+        rocket<span class="hl opt">-&gt;</span><span class="hl kwd">run</span><span class="hl opt">();</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Exiting LiftOffRunner&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    LiftOffRunner<span class="hl opt">*</span> lor <span class="hl opt">=</span> <span class="hl kwa">new</span> LiftOffRunner<span class="hl opt">;</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span>lor<span class="hl opt">);</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      lor<span class="hl opt">-&gt;</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> i<span class="hl opt">));</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    lor<span class="hl opt">-&gt;</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">LiftOff</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">,</span> <span class="hl num">99</span><span class="hl opt">));</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    t<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.32. C11/TestTQueue.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp5222864"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:ToastOMaticMarkII.cpp {RunByHand}</span>
+<span class="hl slc">// Solving the problems using TQueues.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Condition.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TQueue.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Toast <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> Status <span class="hl opt">{</span> DRY<span class="hl opt">,</span> BUTTERED<span class="hl opt">,</span> JAMMED <span class="hl opt">};</span>
+  Status status<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Toast</span><span class="hl opt">(</span><span class="hl kwb">int</span> idn<span class="hl opt">) :</span> <span class="hl kwd">status</span><span class="hl opt">(</span>DRY<span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>idn<span class="hl opt">) {}</span>
+  <span class="hl ppc">#ifdef __DMC__</span> <span class="hl slc">// Incorrectly requires default</span>
+<span class="hl ppc"></span>  <span class="hl kwd">Toast</span><span class="hl opt">() {</span> <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">); }</span> <span class="hl slc">// Should never be called</span>
+  <span class="hl ppc">#endif</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">butter</span><span class="hl opt">() {</span> status <span class="hl opt">=</span> BUTTERED<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">jam</span><span class="hl opt">() {</span> status <span class="hl opt">=</span> JAMMED<span class="hl opt">; }</span>
+  string <span class="hl kwd">getStatus</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">switch</span><span class="hl opt">(</span>status<span class="hl opt">) {</span>
+      <span class="hl kwa">case</span> DRY<span class="hl opt">:</span> <span class="hl kwa">return</span> <span class="hl str">&quot;dry&quot;</span><span class="hl opt">;</span>
+      <span class="hl kwa">case</span> BUTTERED<span class="hl opt">:</span> <span class="hl kwa">return</span> <span class="hl str">&quot;buttered&quot;</span><span class="hl opt">;</span>
+      <span class="hl kwa">case</span> JAMMED<span class="hl opt">:</span> <span class="hl kwa">return</span> <span class="hl str">&quot;jammed&quot;</span><span class="hl opt">;</span>
+      <span class="hl kwa">default</span><span class="hl opt">:</span> <span class="hl kwa">return</span> <span class="hl str">&quot;error&quot;</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getId</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> id<span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Toast<span class="hl opt">&amp;</span> t<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Toast &quot;</span> <span class="hl opt">&lt;&lt;</span> t<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> t<span class="hl opt">.</span><span class="hl kwd">getStatus</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">typedef</span> CountedPtr<span class="hl opt">&lt;</span> TQueue<span class="hl opt">&lt;</span>Toast<span class="hl opt">&gt; &gt;</span> ToastQueue<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Toaster <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  ToastQueue toastQueue<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> count<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Toaster</span><span class="hl opt">(</span>ToastQueue<span class="hl opt">&amp;</span> tq<span class="hl opt">) :</span> <span class="hl kwd">toastQueue</span><span class="hl opt">(</span>tq<span class="hl opt">),</span> <span class="hl kwd">count</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl kwb">int</span> delay <span class="hl opt">=</span> <span class="hl kwd">rand</span><span class="hl opt">()/(</span>RAND_MAX<span class="hl opt">/</span><span class="hl num">5</span><span class="hl opt">)*</span><span class="hl num">100</span><span class="hl opt">;</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span>delay<span class="hl opt">);</span>
+        <span class="hl slc">// Make toast</span>
+        Toast <span class="hl kwd">t</span><span class="hl opt">(</span>count<span class="hl opt">++);</span>
+        cout <span class="hl opt">&lt;&lt;</span> t <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl slc">// Insert into queue</span>
+        toastQueue<span class="hl opt">-&gt;</span><span class="hl kwd">put</span><span class="hl opt">(</span>t<span class="hl opt">);</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Toaster off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Apply butter to toast:</span>
+<span class="hl kwc">class</span> Butterer <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  ToastQueue dryQueue<span class="hl opt">,</span> butteredQueue<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Butterer</span><span class="hl opt">(</span>ToastQueue<span class="hl opt">&amp;</span> dry<span class="hl opt">,</span> ToastQueue<span class="hl opt">&amp;</span> buttered<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">dryQueue</span><span class="hl opt">(</span>dry<span class="hl opt">),</span> <span class="hl kwd">butteredQueue</span><span class="hl opt">(</span>buttered<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until next piece of toast is available:</span>
+        Toast t <span class="hl opt">=</span> dryQueue<span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+        t<span class="hl opt">.</span><span class="hl kwd">butter</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> t <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        butteredQueue<span class="hl opt">-&gt;</span><span class="hl kwd">put</span><span class="hl opt">(</span>t<span class="hl opt">);</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Butterer off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Apply jam to buttered toast:</span>
+<span class="hl kwc">class</span> Jammer <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  ToastQueue butteredQueue<span class="hl opt">,</span> finishedQueue<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Jammer</span><span class="hl opt">(</span>ToastQueue<span class="hl opt">&amp;</span> buttered<span class="hl opt">,</span> ToastQueue<span class="hl opt">&amp;</span> finished<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">butteredQueue</span><span class="hl opt">(</span>buttered<span class="hl opt">),</span> <span class="hl kwd">finishedQueue</span><span class="hl opt">(</span>finished<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until next piece of toast is available:</span>
+        Toast t <span class="hl opt">=</span> butteredQueue<span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+        t<span class="hl opt">.</span><span class="hl kwd">jam</span><span class="hl opt">();</span>
+        cout <span class="hl opt">&lt;&lt;</span> t <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        finishedQueue<span class="hl opt">-&gt;</span><span class="hl kwd">put</span><span class="hl opt">(</span>t<span class="hl opt">);</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Jammer off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Consume the toast:</span>
+<span class="hl kwc">class</span> Eater <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  ToastQueue finishedQueue<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> counter<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Eater</span><span class="hl opt">(</span>ToastQueue<span class="hl opt">&amp;</span> finished<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">finishedQueue</span><span class="hl opt">(</span>finished<span class="hl opt">),</span> <span class="hl kwd">counter</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        <span class="hl slc">// Blocks until next piece of toast is available:</span>
+        Toast t <span class="hl opt">=</span> finishedQueue<span class="hl opt">-&gt;</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+        <span class="hl slc">// Verify that the toast is coming in order,</span>
+        <span class="hl slc">// and that all pieces are getting jammed:</span>
+        <span class="hl kwa">if</span><span class="hl opt">(</span>t<span class="hl opt">.</span><span class="hl kwd">getId</span><span class="hl opt">() !=</span> counter<span class="hl opt">++ ||</span>
+           t<span class="hl opt">.</span><span class="hl kwd">getStatus</span><span class="hl opt">() !=</span> <span class="hl str">&quot;jammed&quot;</span><span class="hl opt">) {</span>
+          cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;&gt;&gt;&gt;&gt; Error: &quot;</span> <span class="hl opt">&lt;&lt;</span> t <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+          <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+        <span class="hl opt">}</span> <span class="hl kwa">else</span>
+          cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Chomp! &quot;</span> <span class="hl opt">&lt;&lt;</span> t <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span> <span class="hl com">/* Exit */</span> <span class="hl opt">}</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Eater off&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Seed the random number generator</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ToastQueue <span class="hl kwd">dryQueue</span><span class="hl opt">(</span><span class="hl kwa">new</span> TQueue<span class="hl opt">&lt;</span>Toast<span class="hl opt">&gt;),</span>
+               <span class="hl kwd">butteredQueue</span><span class="hl opt">(</span><span class="hl kwa">new</span> TQueue<span class="hl opt">&lt;</span>Toast<span class="hl opt">&gt;),</span>
+               <span class="hl kwd">finishedQueue</span><span class="hl opt">(</span><span class="hl kwa">new</span> TQueue<span class="hl opt">&lt;</span>Toast<span class="hl opt">&gt;);</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;Return&gt; to quit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Toaster</span><span class="hl opt">(</span>dryQueue<span class="hl opt">));</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Butterer</span><span class="hl opt">(</span>dryQueue<span class="hl opt">,</span>butteredQueue<span class="hl opt">));</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>
+      <span class="hl kwa">new</span> <span class="hl kwd">Jammer</span><span class="hl opt">(</span>butteredQueue<span class="hl opt">,</span> finishedQueue<span class="hl opt">));</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Eater</span><span class="hl opt">(</span>finishedQueue<span class="hl opt">));</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    executor<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.33. C11/ToastOMaticMarkII.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s06s02.html">9.6.2. Relación de productor/consumidor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06s04.html">9.6.4. Broadcast </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

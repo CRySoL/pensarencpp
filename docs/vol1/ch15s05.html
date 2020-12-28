@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.5. Cómo implementa C++ la ligadura dinámica</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s04.html" title="15.4. Funciones virtuales" />
+    <link rel="next" href="ch15s05s02.html" title="15.5.2. Pintar funciones virtuales" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s04.html">15.4. Funciones virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s02.html">15.5.2. Pintar funciones virtuales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.5. Cómo implementa C++ la ligadura dinámica">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8085768"></a>15.5. Cómo implementa C++ la ligadura dinámica</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      ¿Cómo funciona la ligadura dinámica? Todo el trabajo se realiza
+      detrás del telón gracias al compilador, que instala los mecanismos
+      necesarios de la ligadura dinámica cuando se crean funciones
+      virtuales. Debido a que los programadores se suelen beneficiar de
+      la comprensión del mecanismo de las funciones virtuales en C++,
+      esta sección mostrará la forma en que el compilador implementa
+      este mecanismo.
+    </p>
+      <p>
+      La palabra reservada <code class="keyword">virtual</code> le dice al
+      compilador que no debe realizar ligadura estática. Al
+      contrario, debe instalar automáticamente todos los mecanismos
+      necesarios para realizar la ligadura dinámica. Esto significa
+      que si se llama a <code class="function">play()</code> para un objeto
+      <code class="classname">Brass</code> a <span class="emphasis"><em>través una dirección a la
+      clase base</em></span> <code class="classname">Instrument</code>, se usará la
+      función apropiada.
+    </p>
+      <p>
+	Para que funcione, el compilador típico
+	<sup>[<a id="idp8089592" href="#ftn.idp8089592" class="footnote">75</a>]</sup>
+	crea una única tabla (llamada VTABLE) por cada clase que
+      contenga funciones <code class="literal">virtuales</code>. El compilador
+      coloca las direcciones de las funciones virtuales de esa clase en
+      concreto en la VTABLE. En cada clase con funciones virtuales el
+      compilador coloca de forma secreta un puntero llamado
+      <code class="literal">vpointer</code> (de forma abreviada VPTR), que apunta
+      a la VTABLE de ese objeto. Cuando se hace una llamada a una
+      función virtual a través de un puntero a la clase base (es decir,
+      cuando se hace una llamada usando el polimorfismo), el compilador
+      silenciosamente añade código para buscar el VPTR y así conseguir
+      la dirección de la función en la VTABLE, con lo que se llama a la
+      función correcta y tiene lugar la ligadura dinámica.
+    </p>
+      <p>
+      Todo esto - establecer la VTABLE para cada clase, inicializar el
+      VPTR, insertar código para la llamada a la función virtual -
+      sucede automáticamente sin que haya que preocuparse por ello. Con
+      las funciones virtuales, se llama a la función apropiada de un
+      objeto, incluso aunque el compilador no sepa el tipo exacto del
+      objeto.
+    </p>
+      <div class="sect2" title="15.5.1. Almacenando información de tipo">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8093248"></a>15.5.1. Almacenando información de tipo</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Se puede ver que no hay almacenada información de tipo de forma
+	explícita en ninguna de las clases. Pero los ejemplos
+	anteriores, y la simple lógica, dicen que debe existir algún
+	tipo de información almacenada en los objetos; de otra forma el
+	tipo no podría ser establecido en tiempo de ejecución. Es
+	verdad, pero la información de tipo está oculta. Para verlo,
+	aquí está un ejemplo que muestra el tamaño de las clases que
+	usan funciones virtuales comparadas con aquellas que no las
+	usan:
+      </p>
+        <div class="example">
+          <a id="idp8094536"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C15:Sizes.cpp</span>
+<span class="hl slc">// Object sizes with/without virtual functions</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> NoVirtual <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> a<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">x</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">i</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> OneVirtual <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> a<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">x</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">i</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> TwoVirtuals <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> a<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">x</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">int</span> <span class="hl kwd">i</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;int: &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;NoVirtual: &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>NoVirtual<span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;void* : &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;OneVirtual: &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>OneVirtual<span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;TwoVirtuals: &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>TwoVirtuals<span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 15.4. C15/Sizes.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Sin funciones virtuales el tamaño del objeto es exactamente el
+	que se espera: el tamaño de un único
+	<sup>[<a id="idp8096792" href="#ftn.idp8096792" class="footnote">76</a>]</sup> <code class="type">int</code>.  Con una única función
+	virtual en <code class="classname">OneVirtual</code>, el tamaño del
+	objeto es el tamaño de <code class="classname">NoVirtual</code> más el
+	tamaño de un puntero a <code class="type">void</code>. Lo que implica
+	que el compilador añade un único puntero (el VPTR) en la
+	estructura si se tienen una <span class="emphasis"><em>o más</em></span> funciones
+	virtuales. No hay diferencia de tamaño entre
+	<code class="classname">OneVirtual</code> y
+	<code class="classname">TwoVirtuals</code>. Esto es porque el VPTR
+	apunta a una tabla con direcciones de funciones. Se necesita
+	sólo una tabla porque todas las direcciones de las funciones
+	virtuales están contenidas en esta tabla.
+      </p>
+        <p>
+	Este ejemplo requiere como mínimo un miembro de datos. Si no
+	hubiera miembros de datos, el compilador de C++ hubiera forzado
+	a los objetos a ser de tamaño no nulo porque cada objeto debe
+	tener direcciones distintas (¿se imagina cómo indexar un array
+	de objetos de tamaño nulo?). Por esto se inserta en el objeto un
+	miembro "falso" ya que de otra forma tendríá un tamaño
+	nulo. Cuando se inserta la información de tipo gracias a la
+	palabra reservada <code class="keyword">virtual</code>, ésta ocupa el
+	lugar del miembro "falso". Intente comentar el <code class="literal">int
+	a</code> en todas las clases del ejemplo anterior para
+	comprobarlo.
+      </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp8089592" href="#idp8089592" class="para">75</a>] </sup>
+	    Los compiladores pueden implementar el comportamiento
+	    virtual como quieran, pero el modo aquí descrito es una
+	    aproximación casi universal.
+	  </p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp8096792" href="#idp8096792" class="para">76</a>] </sup>
+	    Algunos compiladores pueden aumentar el tamaño pero sería
+	    raro.
+	  </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s04.html">15.4. Funciones virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s02.html">15.5.2. Pintar funciones virtuales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

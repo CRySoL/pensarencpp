@@ -1,0 +1,713 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10: Control de nombres</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="prev" href="ch09s09.html" title="9.9. Ejercicios" />
+    <link rel="next" href="ch10s02.html" title="10.2. Espacios de nombres" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s09.html">9.9. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s02.html">10.2. Espacios de nombres</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="10: Control de nombres">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C10"></a>10: Control de nombres</h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C10.html#idp6504024">10.1. Los elementos estáticos de C</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s02.html">10.2. Espacios de nombres</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s03.html">10.3. Miembros estáticos en C++</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s04.html">10.4. Dependencia en la inicialización de variables
+      estáticas</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s05.html">10.5. Especificaciones de enlazado alternativo</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s06.html">10.6. Resumen</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch10s07.html">10.7. Ejercicios</a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <div class="highlights">
+        <p>
+      La creación de nombres es una actividad fundamental en la
+      programación, y cuando un proyecto empieza a crecer, el número
+      de nombres puede llegar a ser inmanejable con facilidad.
+    </p>
+      </div>
+      <p>
+    C++ <code class="function">permite</code> gran control sobre la creación y visibilidad de
+    nombres, el lugar donde se almacenan y el enlazado de nombres. La
+    palabra clave <code class="keyword">static</code> estaba sobrecargada en C incluso
+    antes de que la mayoría de la gente supiera que significaba el
+    término «sobrecargar». C++ ha añadido además otro
+    significado. El concepto subyacente bajo todos los usos de
+    <code class="keyword">static</code> parece ser «algo que mantiene su
+    posición» (como la electricidad estática), sea manteniendo
+    un ubicación física en la memoria o su visibilidad en un fichero.
+  </p>
+      <p>
+    En este capítulo aprenderá cómo <code class="keyword">static</code> controla el
+    almacenamiento y la visibilidad, así como una forma mejorada para
+    controlar los nombres mediante el uso de la palabra clave de C++
+    <code class="keyword">namespace</code>. También descubrirá como utilizar funciones que
+    fueron escritas y compiladas en C.
+  </p>
+      <div class="sect1" title="10.1. Los elementos estáticos de C">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp6504024"></a>10.1. Los elementos estáticos de C</h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      Tanto en C como en C++ la palabra clave <code class="keyword">static</code> tiene dos
+      significados básicos que, desafortunadamente, a menudo se confunden:
+    </p>
+        <div class="itemizedlist">
+          <ul class="itemizedlist" type="disc">
+            <li class="listitem">
+              <p>
+	  Almacenado una sola vez en una dirección de memoria fija. Es
+	  decir, el objeto se crea en una área de datos estática
+	  especial en lugar de en la pila cada vez que se llama a una
+	  función. Éste es el concepto de almacenamiento estático.
+	</p>
+            </li>
+            <li class="listitem">
+              <p>
+	  Local a una unidad de traducción particular (y también local
+	  para el ámbito de una clase en C++, tal como se verá
+	  después). Aquí, <code class="keyword">static</code> controla la visibilidad de
+	  un nombre, de forma que dicho nombre no puede ser visto
+	  fuera del la unidad de traducción o la clase. Esto también
+	  corresponde al concepto de enlazado, que determina qué
+	  nombres verá el enlazador.
+	</p>
+            </li>
+          </ul>
+        </div>
+        <p>
+      En esta sección se van a analizar los significados anteriores de
+      <code class="keyword">static</code> tal y como se heredaron de C.
+    </p>
+        <div class="sect2" title="10.1.1. Variables estáticas dentro de funciones">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp6508960"></a>10.1.1. Variables estáticas dentro de funciones</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+	Cuando se crea una variable local dentro de una función, el
+	compilador reserva espacio para esa variable cada vez que se
+	llama a la función moviendo hacia abajo el puntero de pila tanto
+	como sea preciso. Si existe un inicializador para la variable,
+	la inicialización se realiza cada vez que se pasa por ese punto
+	de la secuencia.
+      </p>
+          <p>
+	No obstante, a veces es deseable retener un valor entre llamadas
+	a función. Esto se puede lograr creando una variable global,
+	pero entonces esta variable no estará únicamente bajo control de
+	la función. C y C++ permiten crear un objeto <code class="keyword">static</code> dentro de
+	una función. El almacenamiento de este objeto no se lleva a cabo
+	en la pila sino en el área de datos estáticos del
+	programa. Dicho objeto sólo se inicializa una vez, la primera
+	vez que se llama a la función, y retiene su valor entre
+	diferentes invocaciones. Por ejemplo, la siguiente función
+	devuelve el siguiente carácter del vector cada vez que se la
+	llama:
+      </p>
+          <div class="example">
+            <a id="idp6512080"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:StaticVariablesInfunctions.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">char</span> <span class="hl kwd">oneChar</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*</span> charArray <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+  <span class="hl kwb">static const char</span><span class="hl opt">*</span> s<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>charArray<span class="hl opt">) {</span>
+    s <span class="hl opt">=</span> charArray<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl opt">*</span>s<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">else</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>s<span class="hl opt">,</span> <span class="hl str">&quot;un-initialized s&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(*</span>s <span class="hl opt">==</span> <span class="hl str">'\0'</span><span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl opt">*</span>s<span class="hl opt">++;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">char</span><span class="hl opt">*</span> a <span class="hl opt">=</span> <span class="hl str">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span><span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// oneChar(); // require() fails</span>
+  <span class="hl kwd">oneChar</span><span class="hl opt">(</span>a<span class="hl opt">);</span> <span class="hl slc">// Initializes s to a</span>
+  <span class="hl kwb">char</span> c<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>c <span class="hl opt">=</span> <span class="hl kwd">oneChar</span><span class="hl opt">()) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> c <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.1. C10/StaticVariablesInfunctions.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	La variable <code class="type">static char* s</code> mantiene su valor
+	entre llamadas a <code class="function">oneChar()</code> porque no está
+	almacenada en el segmento de pila de la función, sino que está
+	en el área de almacenamiento estático del programa. Cuando se
+	llama a <code class="function">oneChar()</code> con <code class="type">char*</code>
+	como argumento, <code class="varname">s</code> se asigna a ese argumento
+	de forma que se devuelve el primer carácter del array. Cada
+	llamada posterior a <code class="function">oneChar()</code>
+	<span class="emphasis"><em>sin</em></span> argumentos devuelve el valor por
+	defecto cero para <code class="varname">charArray</code>, que indica a
+	la función que todavía se están extrayendo caracteres del
+	valor previo de <code class="varname">s</code>. La función continuará
+	devolviendo caracteres hasta que alcance el valor de final del
+	vector, momento en el que para de incrementar el puntero
+	evitando que éste sobrepase la última posición del vector.
+      </p>
+          <p>
+	Pero ¿qué pasa si se llama a <code class="function">oneChar()</code>
+	sin argumentos y sin haber inicializado previamente el valor
+	de <code class="varname">s</code>? En la definición para
+	<code class="varname">s</code>, se podía haber utilizado la
+	inicialización,
+      </p>
+          <pre class="programlisting">
+<span class="hl kwb">static char</span><span class="hl opt">*</span> s <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+</pre>
+          <p>
+	pero si no se incluye un valor inicial para una variable
+	estática de un tipo definido, el compilador garantiza que la
+	variable se inicializará a cero (convertido al tipo adecuado)
+	al comenzar el programa. Así pues, en
+	<code class="function">oneChar()</code>, la primera vez que se llama a
+	la función, <code class="varname">s</code> vale cero.  En este caso, se
+	cumplirá la condición <code class="code">if(!s)</code>.
+      </p>
+          <p>
+	La inicialización anterior para <code class="varname">s</code> es muy
+	simple, pero la inicialización para objetos estáticos (como la
+	de cualquier otro objeto) puede ser una expresión arbitraria,
+	que involucre constantes, variables o funciones previamente
+	declaradas.
+      </p>
+          <p>
+	Fíjese que la función de arriba es muy vulnerable a problemas de
+	concurrencia. Siempre que diseñe funciones que contengan
+	variables estáticas, deberá tener en mente este tipo de
+	problemas.
+      </p>
+          <div class="sect3" title="Objetos estáticos dentro de funciones">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="idp6522776"></a>Objetos estáticos dentro de funciones</h4>
+                </div>
+              </div>
+            </div>
+            <p>
+	  Las reglas son las mismas para objetos estáticos de tipos
+	  definidos por el usuario, añadiendo el hecho que el objeto
+	  requiere ser inicializado. Sin embargo, la asignación del
+	  valor cero sólo tiene sentido para tipos predefinidos. Los
+	  tipos definidos por el usuario deben ser inicializados
+	  llamando a sus respectivos constructores.  Por tanto, si no
+	  especifica argumentos en los constructores cuando defina un
+	  objeto estático, la clase deberá tener un constructor por
+	  defecto. Por ejemplo:
+	</p>
+            <div class="example">
+              <a id="idp6524080"></a>
+              <div class="example-contents">
+                <pre class="programlisting">
+<span class="hl slc">//: C10:StaticObjectsInFunctions.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span> <span class="hl slc">// Default</span>
+  <span class="hl opt">~</span><span class="hl kwd">X</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;X::~X()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> X <span class="hl kwd">x1</span><span class="hl opt">(</span><span class="hl num">47</span><span class="hl opt">);</span>
+  <span class="hl kwb">static</span> X x2<span class="hl opt">;</span> <span class="hl slc">// Default constructor required</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+              </div>
+              <p class="title">
+                <strong>Listado 10.2. C10/StaticObjectsInFunctions.cpp</strong>
+              </p>
+            </div>
+            <br class="example-break" />
+            <p>
+	  Los objetos estáticos de tipo <code class="type">X</code> dentro de
+	  <code class="function">f()</code> pueden ser inicializados tanto con
+	  la lista de argumentos del constructor como con el
+	  constructor por defecto. Esta construcción ocurre únicamente
+	  la primera vez que el control llega a la definición.
+	</p>
+          </div>
+          <div class="sect3" title="Destructores de objetos estáticos">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="idp6526736"></a>Destructores de objetos estáticos</h4>
+                </div>
+              </div>
+            </div>
+            <p>
+	  Los destructores para objetos estáticos (es decir, cualquier
+	  objeto con almacenamiento estático, no sólo objetos
+	  estáticos locales como en el ejemplo anterior) son invocados
+	  cuando <code class="function">main()</code> finaliza o cuando la
+	  función de librería estándar de C
+	  <code class="function">exit()</code> se llama explícitamente. En la
+	  mayoría de implementaciones, <code class="function">main()</code>
+	  simplemente llama a <code class="function">exit()</code> cuando
+	  termina. Esto significa que puede ser peligroso llamar a
+	  <code class="function">exit()</code> dentro de un destructor porque
+	  podría producirse una invocación recursiva infinita. Los
+	  destructores de objetos estáticos no se invocan si se sale
+	  del programa utilizando la función de librería estándar de C
+	  <code class="function">abort()</code>.
+	</p>
+            <p>
+	  Es posible especificar acciones que se lleven a cabo tras
+	  finalizar la ejecución de <code class="function">main()</code> (o
+	  llamando a <code class="function">exit()</code>) utilizando la
+	  función de librería estándar de C
+	  <code class="function">atexit()</code>. En este caso, las funciones
+	  registradas en <code class="function">atexit()</code> serán invocadas
+	  antes de los destructores para cualquier objeto construido
+	  antes de abandonar <code class="function">main()</code> (o de llamar
+	  a <code class="function">exit()</code>).
+	</p>
+            <p>
+	  Como la destrucción ordinaria, la destrucción de objetos
+	  estáticos se lleva a cabo en orden inverso al de la
+	  inicialización. Hay que tener en cuenta que sólo los objetos
+	  que han sido construidos serán destruidos.  Afortunadamente,
+	  las herramientas de desarrollo de C++ mantienen un registro
+	  del orden de inicialización y de los objetos que han sido
+	  construidos. Los objetos globales siempre se construyen
+	  antes de entrar en <code class="function">main()</code> y se
+	  destruyen una vez se sale, pero si existe una función que
+	  contiene un objeto local estático a la que nunca se llama,
+	  el constructor de dicho objeto nunca fue ejecutado y, por
+	  tanto, nunca se invocará su destructor. Por ejemplo:
+	</p>
+            <div class="example">
+              <a id="idp6535264"></a>
+              <div class="example-contents">
+                <pre class="programlisting">
+<span class="hl slc">//: C10:StaticDestructors.cpp</span>
+<span class="hl slc">// Static object destructors</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;statdest.out&quot;</span><span class="hl opt">);</span> <span class="hl slc">// Trace file</span>
+
+<span class="hl kwc">class</span> Obj <span class="hl opt">{</span>
+  <span class="hl kwb">char</span> c<span class="hl opt">;</span> <span class="hl slc">// Identifier</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Obj</span><span class="hl opt">(</span><span class="hl kwb">char</span> cc<span class="hl opt">) :</span> <span class="hl kwd">c</span><span class="hl opt">(</span>cc<span class="hl opt">) {</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Obj::Obj() for &quot;</span> <span class="hl opt">&lt;&lt;</span> c <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Obj</span><span class="hl opt">() {</span>
+    out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Obj::~Obj() for &quot;</span> <span class="hl opt">&lt;&lt;</span> c <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+Obj <span class="hl kwd">a</span><span class="hl opt">(</span><span class="hl str">'a'</span><span class="hl opt">);</span> <span class="hl slc">// Global (static storage)</span>
+<span class="hl slc">// Constructor &amp; destructor always called</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Obj <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl str">'b'</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Obj <span class="hl kwd">c</span><span class="hl opt">(</span><span class="hl str">'c'</span><span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;inside main()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">f</span><span class="hl opt">();</span> <span class="hl slc">// Calls static constructor for b</span>
+  <span class="hl slc">// g() not called</span>
+  out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;leaving main()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+              </div>
+              <p class="title">
+                <strong>Listado 10.3. C10/StaticDestructors.cpp</strong>
+              </p>
+            </div>
+            <br class="example-break" />
+            <p>
+	  En <code class="classname">Obj</code>, <code class="code">char c</code> actúa
+	  como un identificador de forma que el constructor y el
+	  destructor pueden imprimir la información acerca del objeto
+	  sobre el que actúan. <code class="code">Obj a</code> es un objeto global
+	  y por tanto su constructor siempre se llama antes de que el
+	  control pase a <code class="function">main()</code>, pero el
+	  constructor para <code class="code">static Obj b</code> dentro de
+	  <code class="function">f()</code>, y el de <code class="code">static Obj c</code>
+	  dentro de <code class="function">g()</code> sólo serán invocados si
+	  se llama a esas funciones.
+	</p>
+            <p>
+	  Para mostrar qué constructores y qué destructores serán
+	  llamados, sólo se invoca a <code class="function">f()</code>. La
+	  salida del programa será la siguiente:
+	</p>
+            <pre class="screen">
+Obj::Obj() for a
+inside main()
+Obj::Obj() for b
+leaving main()
+Obj::~Obj() for b
+Obj::~Obj() for a
+</pre>
+            <p>
+	  El constructor para <code class="varname">a</code> se invoca antes de
+	  entrar en <code class="function">main()</code> y el constructor de
+	  <code class="varname">b</code> se invoca sólo porque existe una
+	  llamada a <code class="function">f()</code>. Cuando se sale de
+	  <code class="function">main()</code>, se invoca a los destructores de
+	  los objetos que han sido construidos en orden inverso al de
+	  su construcción. Esto significa que si llama a
+	  <code class="function">g()</code>, el orden en el que los
+	  destructores para <code class="varname">b</code> y
+	  <code class="varname">c</code> son invocados depende de si se llamó
+	  primero a <code class="function">f()</code> o a
+	  <code class="function">g()</code>.
+	</p>
+            <p>
+	  Nótese que el objeto <code class="varname">out</code> de tipo
+	  <code class="varname">ofstream</code>, utilizado en la gestión de
+	  ficheros, también es un objeto estático (puesto que está
+	  definido fuera de cualquier función, reside en el área de
+	  almacenamiento estático). Es importante remarcar que su
+	  definición (a diferencia de una declaración tipo
+	  <code class="keyword">extern</code>) aparece al principio del fichero, antes de
+	  cualquier posible uso de <code class="varname">out</code>.  De lo
+	  contrario estaríamos utilizando un objeto antes de que
+	  estuviese adecuadamente inicializado.
+	</p>
+            <p>
+	  En C++, el constructor de un objeto estático global se
+	  invoca antes de entrar en <code class="function">main()</code>, de
+	  forma que ya dispone de una forma simple y portable de
+	  ejecutar código antes de entrar en
+	  <code class="function">main()</code>, así como ejecutar código
+	  después de salir de <code class="function">main()</code>. En C, eso
+	  siempre implicaba revolver el código ensamblador de arranque
+	  del compilador utilizado.
+	</p>
+          </div>
+        </div>
+        <div class="sect2" title="10.1.2. Control del enlazado">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp6549664"></a>10.1.2. Control del enlazado</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+	Generalmente, cualquier nombre dentro del ámbito del fichero
+	(es decir, no incluido dentro de una clase o de una función)
+	es visible para todas las unidades de traducción del
+	programa. Esto suele llamarse enlazado
+	externo<span class="emphasis"><em></em></span> porque durante el enlazado ese
+	nombre es visible desde cualquier sitio, desde el exterior de
+	esa unidad de traducción. Las variables globales y las
+	funciones ordinarias tienen enlazado externo.
+      </p>
+          <p>
+	Hay veces en las que conviene limitar la visibilidad de un
+	nombre. Puede que desee tener una variable con visibilidad a
+	nivel de fichero de forma que todas las funciones de ese
+	fichero puedan utilizarla, pero quizá no desee que funciones
+	externas a ese fichero tengan acceso a esa variable, o que de
+	forma inadvertida, cause solapes de nombres con
+	identificadores externos a ese fichero.
+      </p>
+          <p>
+	Un objeto o nombre de función, con visibilidad dentro del
+	fichero en que se encuentra, que es explícitamente declarado
+	como <code class="keyword">static</code> es local a su unidad de traducción (en
+	términos de este libro, el fichero <code class="filename">cpp</code>
+	donde se lleva a cabo la declaración). Este nombre tiene
+	<span class="emphasis"><em>enlace interno</em></span>. Esto significa que puede
+	usar el mismo nombre en otras unidades de traducción sin
+	confusión entre ellos.
+      </p>
+          <p>
+	Una ventaja del enlace interno es que el nombre puede situarse
+	en un fichero de cabecera sin tener que preocuparse de si
+	habrá o no un choque de nombres durante el enlazado. Los
+	nombres que aparecen usualmente en los archivos de cabecera,
+	como definiciones <code class="keyword">const</code> y funciones <code class="keyword">inline</code>,
+	tienen por defecto enlazado interno. (De todas formas,
+	<code class="keyword">const</code> tiene por defecto enlazado interno sólo en C++;
+	en C tiene enlazado externo). Nótese que el enlazado se
+	refiere sólo a elementos que tienen direcciones en tiempo de
+	enlazado / carga. Por tanto, las declaraciones de clases y de
+	variables locales no tienen enlazado.
+      </p>
+          <div class="sect3" title="Confusión">
+            <div class="titlepage">
+              <div>
+                <div>
+                  <h4 class="title"><a id="idp6557104"></a>Confusión</h4>
+                </div>
+              </div>
+            </div>
+            <p>
+	  He aquí un ejemplo de cómo los dos significados de
+	  <code class="keyword">static</code> pueden confundirse. Todos los objetos
+	  globales tienen implícitamente almacenamiento de tipo
+	  estático, o sea que si usted dice (en ámbito de fichero)
+	</p>
+            <pre class="programlisting">
+<span class="hl kwb">int</span> a <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+</pre>
+            <p>
+	  el almacenamiento para <code class="varname">a</code> se llevará a
+	  cabo en el área para datos estáticos del programa y la
+	  inicialización para <code class="varname">a</code> sólo se realizará
+	  una vez, antes de entrar en
+	  <code class="function">main()</code>. Además, la visibilidad de
+	  <code class="varname">a</code> es global para todas las unidades de
+	  traducción. En términos de visibilidad, lo opuesto a
+	  <code class="keyword">static</code> (visible tan sólo en su :unidad de
+	  traducción) es <code class="keyword">extern</code> que establece explícitamente
+	  que la visibilidad del nombre se extienda a todas las
+	  unidades de traducción.  Es decir, la definición de arriba
+	  equivale a
+	</p>
+            <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl kwb">int</span> a <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+</pre>
+            <p>
+	  Pero si utilizase
+	</p>
+            <pre class="programlisting">
+<span class="hl kwb">static int</span> a <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+</pre>
+            <p>
+	  todo lo que habría hecho es cambiar la visibilidad, de forma
+	  que <code class="varname">a</code> tiene enlace interno. El tipo de
+	  almacenamiento no se altera, el objeto reside en el área de
+	  datos estática aunque en este caso su visibilidad es
+	  <code class="keyword">static</code> y en el otro es <code class="keyword">extern</code>.
+	</p>
+            <p>
+	  Cuando pasamos a hablar de variables locales,
+	  <code class="keyword">static</code> deja de alterar la visibilidad y pasa a
+	  alterar el tipo de almacenamiento.
+	</p>
+            <p>
+	  Si declara lo que parece ser una variable local como
+	  <code class="keyword">extern</code>, significa que el almacenamiento existe en
+	  alguna otra parte (y por tanto la variable realmente es
+	  global a la función). Por ejemplo:
+	</p>
+            <div class="example">
+              <a id="idp6566840"></a>
+              <div class="example-contents">
+                <pre class="programlisting">
+<span class="hl slc">//: C10:LocalExtern.cpp</span>
+<span class="hl slc">//{L} LocalExtern2</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwc">extern</span> <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+  std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> i<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+              </div>
+              <p class="title">
+                <strong>Listado 10.4. C10/LocalExtern.cpp</strong>
+              </p>
+            </div>
+            <br class="example-break" />
+            <p>
+	  Para nombres de funciones (sin tener en cuenta las funciones
+	  miembro), <code class="keyword">static</code> y <code class="keyword">extern</code> sólo pueden
+	  alterar la visibilidad, de forma que si escribe
+	</p>
+            <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">();</span>
+</pre>
+            <p>
+	  es lo mismo que la menos adornada declaración
+	</p>
+            <pre class="programlisting">
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">();</span>
+</pre>
+            <p>
+	  y si utiliza
+	</p>
+            <pre class="programlisting">
+<span class="hl kwb">static void</span> <span class="hl kwd">f</span><span class="hl opt">();</span>
+</pre>
+            <p>
+	  significa que <code class="function">f()</code> es visible sólo para
+	  la unidad de traducción, (esto suele llamarse <span class="emphasis"><em>estático a
+	  fichero</em></span> (<span class="foreignphrase"><em class="foreignphrase">file static</em></span>).
+	</p>
+          </div>
+        </div>
+        <div class="sect2" title="10.1.3. Otros especificadores para almacenamiento de clases">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h3 class="title"><a id="idp6572368"></a>10.1.3. Otros especificadores para almacenamiento de clases</h3>
+              </div>
+            </div>
+          </div>
+          <p>
+      	El uso de <code class="keyword">static</code> y <code class="keyword">extern</code> está muy
+      	extendido. Existen otros dos especificadores de tipo de
+      	almacenamiento bastante menos conocidos. El especificador
+      	<code class="keyword">auto</code> no se utiliza prácticamente nunca porque le dice
+	  al compilador que esa es una variable local. <code class="keyword">auto</code> es
+      	la abreviatura de automático«» y se refiere a la
+      	forma en la que el compilador reserva espacio automáticamente
+      	para la variable. El compilador siempre puede determinar ese
+      	hecho por el contexto en que la variable se define por lo que
+	<code class="keyword">auto</code> es redundante.
+      </p>
+          <p>
+	El especificador <code class="keyword">register</code> aplicado a una variable
+      	indica que es una variable local (<code class="keyword">auto</code>), junto con la
+      	pista para el compilador de que esa variable en concreto va a
+      	ser ampliamente utilizada por lo que debería ser almacenada en
+      	un registro si es posible. Por tanto, es una ayuda para la
+      	optimización. Diferentes compiladores responden de diferente
+      	manera ante dicha pista; incluso tienen la opción de
+      	ignorarla. Si toma la dirección de la variable, el
+      	especificador <code class="keyword">register</code> va a ser ignorado casi con
+      	total seguridad. Se recomienda evitar el uso de
+      	<code class="keyword">register</code> porque, generalmente, el compilador suele
+      	realizar las labores de optimización mejor que el usuario.
+      </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s09.html">9.9. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s02.html">10.2. Espacios de nombres</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

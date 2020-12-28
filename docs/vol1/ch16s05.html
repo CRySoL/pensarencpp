@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>16.5. Activando y desactivando la propiedad</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C16.html" title="16: Introducción a las Plantillas" />
+    <link rel="prev" href="ch16s04.html" title="16.4. Stack y Stash como Plantillas" />
+    <link rel="next" href="ch16s06.html" title="16.6. Manejando objetos por valor" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s04.html">16.4. Stack y Stash como Plantillas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s06.html">16.6. Manejando objetos por valor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="16.5. Activando y desactivando la propiedad">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8578088"></a>16.5. Activando y desactivando la propiedad</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Volvamos al problema del propietario. Los contenedores que
+      manejan objetos por valor normalmente no se preocupan por la
+      propiedad porque claramente poseen los objetos que
+      contienen. Pero si el contenedor gestiona punteros (lo cual es
+      común en C++, especialmente con el polimorfismo), entonces es
+      bastante probable que esos punteros sean usados en algún otro
+      lado del programa, y no necesariamente se quiere borrar el
+      objeto porque los otros punteros del programa estarán
+      referenciando a un objeto destruido. Para prevenir que esto
+      ocurra, hay que considerar al propietario cuando se está
+      diseñando y usando un contenedor.
+    </p>
+      <p>
+      Muchos programas son más simples que este, y no se encuentran
+      con el problema de la propiedad: Un contenedor que maneja
+      punteros a objetos y que son usados sólo por ese contenedor. En
+      este caso el propietario es evidente: El contenedor posee sus
+      objetos.
+    </p>
+      <p>
+      La mejor aproximación para gestionar quién es el propietario es
+      dar al programador cliente una elección. Esto se puede realizar
+      con un argumento en el constructor que por defecto defina al
+      propietario (el caso más sencillo). Además habrá que poner las
+      funciones «get» y «set» para poder ver
+      y modificar al propietario del contenedor. Si el contenedor
+      tiene funciones para eliminar un objeto, el estado de propiedad
+      normalmente afecta a la función de eliminación, por lo que se
+      deberían encontrar opciones para controlar la destrucción en la
+      función de eliminación. Es concebible que se añadan datos
+      propietarios por cada elemento que contenga el contenedor, por
+      lo que cada posición debería saber cuando es necesario ser
+      destruido; esto es una variante del conteo de referencias,
+      excepto en que es el contenedor y no el objeto el que conoce el
+      número de referencias a un objeto.
+    </p>
+      <div class="example">
+        <a id="idp8582744"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:OwnerStack.h</span>
+<span class="hl slc">// Stack with runtime conrollable ownership</span>
+<span class="hl ppc">#ifndef OWNERSTACK_H</span>
+<span class="hl ppc">#define OWNERSTACK_H</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> <span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    T<span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">)</span> 
+      <span class="hl opt">:</span> <span class="hl kwd">data</span><span class="hl opt">(</span>dat<span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span>nxt<span class="hl opt">) {}</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> own<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">(</span><span class="hl kwb">bool</span> own <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">) :</span> <span class="hl kwd">head</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">own</span><span class="hl opt">(</span>own<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span>T<span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+    head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span>head<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    <span class="hl kwa">return</span> head ? head<span class="hl opt">-&gt;</span>data <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  T<span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">owns</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> own<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">owns</span><span class="hl opt">(</span><span class="hl kwb">bool</span> newownership<span class="hl opt">) {</span>
+    own <span class="hl opt">=</span> newownership<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Auto-type conversion: true if not empty:</span>
+  <span class="hl kwc">operator</span> <span class="hl kwb">bool</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> head <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> T<span class="hl opt">*</span> Stack<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;::</span><span class="hl kwd">pop</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  T<span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+  Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+  head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> T<span class="hl opt">&gt;</span> Stack<span class="hl opt">&lt;</span>T<span class="hl opt">&gt;::~</span><span class="hl kwd">Stack</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>own<span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>head<span class="hl opt">)</span>
+    <span class="hl kwa">delete</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// OWNERSTACK_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.15. C16/OwnerStack.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El comportamiento por defecto del contenedor consiste en
+      destruir sus objetos pero se puede cambiar o modificando el
+      argumento del constructor o usando las funciones miembro de
+      <code class="function">owns()</code>.
+    </p>
+      <p>
+      Como con la mayoría de las plantillas que se verán, la
+      implementación entera se encuentra en el archivo de
+      cabecera. Aquí tenemos un pequeño test que muestra las
+      capacidades de la propiedad:
+    </p>
+      <div class="example">
+        <a id="idp8586176"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:OwnerStackTest.cpp</span>
+<span class="hl slc">//{L} AutoCounter </span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;AutoCounter.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;OwnerStack.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Stack<span class="hl opt">&lt;</span>AutoCounter<span class="hl opt">&gt;</span> ac<span class="hl opt">;</span> <span class="hl slc">// Ownership on</span>
+  Stack<span class="hl opt">&lt;</span>AutoCounter<span class="hl opt">&gt;</span> <span class="hl kwd">ac2</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">);</span> <span class="hl slc">// Turn it off</span>
+  AutoCounter<span class="hl opt">*</span> ap<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    ap <span class="hl opt">=</span> AutoCounter<span class="hl opt">::</span><span class="hl kwd">create</span><span class="hl opt">();</span>
+    ac<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span>ap<span class="hl opt">);</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>i <span class="hl opt">%</span> <span class="hl num">2</span> <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+      ac2<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span>ap<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>ac2<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> ac2<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// No destruction necessary since</span>
+  <span class="hl slc">// ac &quot;owns&quot; all the objects</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.16. C16/OwnerStackTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El objeto <code class="varname">ac2 </code> no posee los objetos que
+      pusimos en él, sin embargo <code class="varname">ac </code> es un
+      contenedor «maestro» que tiene la responsabilidad
+      de ser el propietario de los objetos. Si en algún momento de la
+      vida de un contenedor se quiere cambiar el que un contenedor
+      posea a sus objetos, se puede hacer usando
+      <code class="function">owns()</code>.
+    </p>
+      <p>
+      También sería posible cambiar la granularidad de la propiedad
+      para que estuviera en la base, es decir, objeto por
+      objeto. Esto, sin embargo, probablemente haría a la solución del
+      problema del propietario más complejo que el propio problema.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s04.html">16.4. Stack y Stash como Plantillas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s06.html">16.6. Manejando objetos por valor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

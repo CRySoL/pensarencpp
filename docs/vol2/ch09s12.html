@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.12. Builder: creación de objetos complejos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s11s03.html" title="9.11.3. Constructores virtuales" />
+    <link rel="next" href="ch09s13.html" title="9.13. Observador" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s11s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s11s03.html">9.11.3. Constructores virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s13.html">9.13. Observador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s13.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.12. Builder: creación de objetos complejos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5166720"></a>9.12. Builder: creación de objetos complejos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp5167512"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Bicycle.h</span>
+<span class="hl slc">// Defines classes to build bicycles;</span>
+<span class="hl slc">// Illustrates the Builder design pattern.</span>
+<span class="hl ppc">#ifndef BICYCLE_H</span>
+<span class="hl ppc">#define BICYCLE_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span><span class="hl kwb">size_t</span><span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> BicyclePart <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">enum</span> BPart <span class="hl opt">{</span> FRAME<span class="hl opt">,</span> WHEEL<span class="hl opt">,</span> SEAT<span class="hl opt">,</span> DERAILLEUR<span class="hl opt">,</span>
+    HANDLEBAR<span class="hl opt">,</span> SPROCKET<span class="hl opt">,</span> RACK<span class="hl opt">,</span> SHOCK<span class="hl opt">,</span> NPARTS <span class="hl opt">};</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  BPart id<span class="hl opt">;</span>
+  <span class="hl kwb">static</span> std<span class="hl opt">::</span>string names<span class="hl opt">[</span>NPARTS<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BPart bp<span class="hl opt">) {</span> id <span class="hl opt">=</span> bp<span class="hl opt">; }</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> BicyclePart<span class="hl opt">&amp;</span> bp<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> bp<span class="hl opt">.</span>names<span class="hl opt">[</span>bp<span class="hl opt">.</span>id<span class="hl opt">];</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Bicycle <span class="hl opt">{</span>
+  std<span class="hl opt">::</span>vector<span class="hl opt">&lt;</span>BicyclePart<span class="hl opt">*&gt;</span> parts<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Bicycle</span><span class="hl opt">() {</span> <span class="hl kwd">purge</span><span class="hl opt">(</span>parts<span class="hl opt">); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">addPart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">*</span> bp<span class="hl opt">) {</span> parts<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>bp<span class="hl opt">); }</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Bicycle<span class="hl opt">&amp;</span> b<span class="hl opt">) {</span>
+    os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;{ &quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> b<span class="hl opt">.</span>parts<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">)</span>
+      os <span class="hl opt">&lt;&lt; *</span>b<span class="hl opt">.</span>parts<span class="hl opt">[</span>i<span class="hl opt">] &lt;&lt;</span> <span class="hl str">' '</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">'}'</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> BicycleBuilder <span class="hl opt">{</span>
+<span class="hl kwc">protected</span><span class="hl opt">:</span>
+  Bicycle<span class="hl opt">*</span> product<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">BicycleBuilder</span><span class="hl opt">() {</span> product <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">createProduct</span><span class="hl opt">() {</span> product <span class="hl opt">=</span> <span class="hl kwa">new</span> Bicycle<span class="hl opt">; }</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildFrame</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildWheel</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildSeat</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildDerailleur</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildHandlebar</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildSprocket</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildRack</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">buildShock</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> std<span class="hl opt">::</span>string <span class="hl kwd">getBikeName</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  Bicycle<span class="hl opt">*</span> <span class="hl kwd">getProduct</span><span class="hl opt">() {</span>
+    Bicycle<span class="hl opt">*</span> temp <span class="hl opt">=</span> product<span class="hl opt">;</span>
+    product <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>  <span class="hl slc">// Relinquish product</span>
+    <span class="hl kwa">return</span> temp<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> MountainBikeBuilder <span class="hl opt">:</span> <span class="hl kwc">public</span> BicycleBuilder <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildFrame</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildWheel</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSeat</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildDerailleur</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildHandlebar</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSprocket</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildRack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildShock</span><span class="hl opt">();</span>
+  std<span class="hl opt">::</span>string <span class="hl kwd">getBikeName</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;MountainBike&quot;</span><span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> TouringBikeBuilder <span class="hl opt">:</span> <span class="hl kwc">public</span> BicycleBuilder <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildFrame</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildWheel</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSeat</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildDerailleur</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildHandlebar</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSprocket</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildRack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildShock</span><span class="hl opt">();</span>
+  std<span class="hl opt">::</span>string <span class="hl kwd">getBikeName</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;TouringBike&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> RacingBikeBuilder <span class="hl opt">:</span> <span class="hl kwc">public</span> BicycleBuilder <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildFrame</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildWheel</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSeat</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildDerailleur</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildHandlebar</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildSprocket</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildRack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">buildShock</span><span class="hl opt">();</span>
+  std<span class="hl opt">::</span>string <span class="hl kwd">getBikeName</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;RacingBike&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> BicycleTechnician <span class="hl opt">{</span>
+  BicycleBuilder<span class="hl opt">*</span> builder<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">BicycleTechnician</span><span class="hl opt">() {</span> builder <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">setBuilder</span><span class="hl opt">(</span>BicycleBuilder<span class="hl opt">*</span> b<span class="hl opt">) {</span> builder <span class="hl opt">=</span> b<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">construct</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// BICYCLE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.27. C10/Bicycle.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp5174392"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Bicycle.cpp {O} {-mwcc}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Bicycle.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+std<span class="hl opt">::</span>string BicyclePart<span class="hl opt">::</span>names<span class="hl opt">[</span>NPARTS<span class="hl opt">] = {</span>
+  <span class="hl str">&quot;Frame&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Wheel&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Seat&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Derailleur&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;Handlebar&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Sprocket&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Rack&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Shock&quot;</span> <span class="hl opt">};</span>
+
+<span class="hl slc">// MountainBikeBuilder implementation</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildFrame</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>FRAME<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildWheel</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>WHEEL<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSeat</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SEAT<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildDerailleur</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span>
+    <span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>DERAILLEUR<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildHandlebar</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span>
+    <span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>HANDLEBAR<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSprocket</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SPROCKET<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildRack</span><span class="hl opt">() {}</span>
+<span class="hl kwb">void</span> MountainBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildShock</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SHOCK<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// TouringBikeBuilder implementation</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildFrame</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>FRAME<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildWheel</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>WHEEL<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSeat</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SEAT<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildDerailleur</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span>
+    <span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>DERAILLEUR<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildHandlebar</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span>
+    <span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>HANDLEBAR<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSprocket</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SPROCKET<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildRack</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>RACK<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> TouringBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildShock</span><span class="hl opt">() {}</span>
+
+<span class="hl slc">// RacingBikeBuilder implementation</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildFrame</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>FRAME<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildWheel</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>WHEEL<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSeat</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SEAT<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildDerailleur</span><span class="hl opt">() {}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildHandlebar</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span>
+    <span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>HANDLEBAR<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildSprocket</span><span class="hl opt">() {</span>
+  product<span class="hl opt">-&gt;</span><span class="hl kwd">addPart</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">BicyclePart</span><span class="hl opt">(</span>BicyclePart<span class="hl opt">::</span>SPROCKET<span class="hl opt">));</span>
+<span class="hl opt">}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildRack</span><span class="hl opt">() {}</span>
+<span class="hl kwb">void</span> RacingBikeBuilder<span class="hl opt">::</span><span class="hl kwd">buildShock</span><span class="hl opt">() {}</span>
+
+<span class="hl slc">// BicycleTechnician implementation</span>
+<span class="hl kwb">void</span> BicycleTechnician<span class="hl opt">::</span><span class="hl kwd">construct</span><span class="hl opt">() {</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>builder<span class="hl opt">);</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">createProduct</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildFrame</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildWheel</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildSeat</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildDerailleur</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildHandlebar</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildSprocket</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildRack</span><span class="hl opt">();</span>
+  builder<span class="hl opt">-&gt;</span><span class="hl kwd">buildShock</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.28. C10/Bicycle.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp5179384"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:BuildBicycles.cpp</span>
+<span class="hl slc">//{L} Bicycle</span>
+<span class="hl slc">// The Builder design pattern.</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;map&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Bicycle.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Constructs a bike via a concrete builder</span>
+Bicycle<span class="hl opt">*</span> <span class="hl kwd">buildMeABike</span><span class="hl opt">(</span>
+  BicycleTechnician<span class="hl opt">&amp;</span> t<span class="hl opt">,</span> BicycleBuilder<span class="hl opt">*</span> builder<span class="hl opt">) {</span>
+  t<span class="hl opt">.</span><span class="hl kwd">setBuilder</span><span class="hl opt">(</span>builder<span class="hl opt">);</span>
+  t<span class="hl opt">.</span><span class="hl kwd">construct</span><span class="hl opt">();</span>
+  Bicycle<span class="hl opt">*</span> b <span class="hl opt">=</span> builder<span class="hl opt">-&gt;</span><span class="hl kwd">getProduct</span><span class="hl opt">();</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Built a &quot;</span> <span class="hl opt">&lt;&lt;</span> builder<span class="hl opt">-&gt;</span><span class="hl kwd">getBikeName</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> b<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Create an order for some bicycles</span>
+  map <span class="hl opt">&lt;</span>string<span class="hl opt">,</span> <span class="hl kwb">size_t</span><span class="hl opt">&gt;</span> order<span class="hl opt">;</span>
+  order<span class="hl opt">[</span><span class="hl str">&quot;mountain&quot;</span><span class="hl opt">] =</span> <span class="hl num">2</span><span class="hl opt">;</span>
+  order<span class="hl opt">[</span><span class="hl str">&quot;touring&quot;</span><span class="hl opt">] =</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  order<span class="hl opt">[</span><span class="hl str">&quot;racing&quot;</span><span class="hl opt">] =</span> <span class="hl num">3</span><span class="hl opt">;</span>
+
+  <span class="hl slc">// Build bikes</span>
+  vector<span class="hl opt">&lt;</span>Bicycle<span class="hl opt">*&gt;</span> bikes<span class="hl opt">;</span>
+  BicycleBuilder<span class="hl opt">*</span> m <span class="hl opt">=</span> <span class="hl kwa">new</span> MountainBikeBuilder<span class="hl opt">;</span>
+  BicycleBuilder<span class="hl opt">*</span> t <span class="hl opt">=</span> <span class="hl kwa">new</span> TouringBikeBuilder<span class="hl opt">;</span>
+  BicycleBuilder<span class="hl opt">*</span> r <span class="hl opt">=</span> <span class="hl kwa">new</span> RacingBikeBuilder<span class="hl opt">;</span>
+  BicycleTechnician tech<span class="hl opt">;</span>
+  map<span class="hl opt">&lt;</span>string<span class="hl opt">,</span> <span class="hl kwb">size_t</span><span class="hl opt">&gt;::</span>iterator it <span class="hl opt">=</span> order<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> order<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">()) {</span>
+    BicycleBuilder<span class="hl opt">*</span> builder<span class="hl opt">;</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>it<span class="hl opt">-&gt;</span>first <span class="hl opt">==</span> <span class="hl str">&quot;mountain&quot;</span><span class="hl opt">)</span>
+      builder <span class="hl opt">=</span> m<span class="hl opt">;</span>
+    <span class="hl kwa">else if</span><span class="hl opt">(</span>it<span class="hl opt">-&gt;</span>first <span class="hl opt">==</span> <span class="hl str">&quot;touring&quot;</span><span class="hl opt">)</span>
+      builder <span class="hl opt">=</span> t<span class="hl opt">;</span>
+    <span class="hl kwa">else if</span><span class="hl opt">(</span>it<span class="hl opt">-&gt;</span>first <span class="hl opt">==</span> <span class="hl str">&quot;racing&quot;</span><span class="hl opt">)</span>
+      builder <span class="hl opt">=</span> r<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> it<span class="hl opt">-&gt;</span>second<span class="hl opt">; ++</span>i<span class="hl opt">)</span>
+      bikes<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwd">buildMeABike</span><span class="hl opt">(</span>tech<span class="hl opt">,</span> builder<span class="hl opt">));</span>
+    <span class="hl opt">++</span>it<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">delete</span> m<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> t<span class="hl opt">;</span>
+  <span class="hl kwa">delete</span> r<span class="hl opt">;</span>
+
+  <span class="hl slc">// Display inventory</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> bikes<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">(); ++</span>i<span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bicycle: &quot;</span> <span class="hl opt">&lt;&lt; *</span>bikes<span class="hl opt">[</span>i<span class="hl opt">] &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">purge</span><span class="hl opt">(</span>bikes<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl com">/* Output:</span>
+<span class="hl com">Built a MountainBike</span>
+<span class="hl com">Built a MountainBike</span>
+<span class="hl com">Built a RacingBike</span>
+<span class="hl com">Built a RacingBike</span>
+<span class="hl com">Built a RacingBike</span>
+<span class="hl com">Built a TouringBike</span>
+<span class="hl com">Bicycle: {</span>
+<span class="hl com">  Frame Wheel Seat Derailleur Handlebar Sprocket Shock }</span>
+<span class="hl com">Bicycle: {</span>
+<span class="hl com">  Frame Wheel Seat Derailleur Handlebar Sprocket Shock }</span>
+<span class="hl com">Bicycle: { Frame Wheel Seat Handlebar Sprocket }</span>
+<span class="hl com">Bicycle: { Frame Wheel Seat Handlebar Sprocket }</span>
+<span class="hl com">Bicycle: { Frame Wheel Seat Handlebar Sprocket }</span>
+<span class="hl com">Bicycle: {</span>
+<span class="hl com">  Frame Wheel Seat Derailleur Handlebar Sprocket Rack }</span>
+<span class="hl com">*/</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.29. C10/BuildBicycles.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s11s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s11s03.html">9.11.3. Constructores virtuales</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s13.html">9.13. Observador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s13.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

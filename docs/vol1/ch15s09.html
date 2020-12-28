@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.9. Sobrecargar y redefinir</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s08.html" title="15.8. Herencia y la VTABLE" />
+    <link rel="next" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s08.html">15.8. Herencia y la VTABLE</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10.html">15.10. funciones virtuales y constructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.9. Sobrecargar y redefinir">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8227200"></a>15.9. Sobrecargar y redefinir</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En el capítulo 14 se vio que redefinir una función sobrecargada en
+      la función base oculta todas las otras versiones de esa
+      función. Cuando se involucra a las funciones virtuales el
+      comportamiento es un poco diferente. Consideremos una versión
+      modificada del ejemplo <code class="filename">NameHiding.cpp</code> del
+      capítulo 14:
+    </p>
+      <div class="example">
+        <a id="idp8228776"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:NameHiding2.cpp</span>
+<span class="hl slc">// Virtual functions restrict overloading</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Base <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Base::f()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> 
+    <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>string<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived1 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived2 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Overriding a virtual function:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Derived2::f()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> 
+    <span class="hl kwa">return</span> <span class="hl num">2</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived3 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Cannot change return type:</span>
+  <span class="hl slc">//! void f() const{ cout &lt;&lt; &quot;Derived3::f()\n&quot;;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived4 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Change argument list:</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Derived4::f()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> 
+    <span class="hl kwa">return</span> <span class="hl num">4</span><span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  string <span class="hl kwd">s</span><span class="hl opt">(</span><span class="hl str">&quot;hello&quot;</span><span class="hl opt">);</span>
+  Derived1 d1<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> x <span class="hl opt">=</span> d1<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+  d1<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">(</span>s<span class="hl opt">);</span>
+  Derived2 d2<span class="hl opt">;</span>
+  x <span class="hl opt">=</span> d2<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl slc">//!  d2.f(s); // string version hidden</span>
+  Derived4 d4<span class="hl opt">;</span>
+  x <span class="hl opt">=</span> d4<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+<span class="hl slc">//!  x = d4.f(); // f() version hidden</span>
+<span class="hl slc">//!  d4.f(s); // string version hidden</span>
+  Base<span class="hl opt">&amp;</span> br <span class="hl opt">=</span> d4<span class="hl opt">;</span> <span class="hl slc">// Upcast</span>
+<span class="hl slc">//!  br.f(1); // Derived version unavailable</span>
+  br<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span> <span class="hl slc">// Base version available</span>
+  br<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">(</span>s<span class="hl opt">);</span> <span class="hl slc">// Base version abailable</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.10. C15/NameHiding2.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La primera cosa a resaltar es que en
+      <code class="classname">Derived3</code>, el compilador no permitirá
+      cambiar el tipo de retorno de una función sobreescrita (lo
+      permitiría si <code class="function">f()</code> no fuera virtual). ésta es
+      una restricción importante porque el compilador debe garantizar
+      que se pueda llamar de forma "polimórfica" a la función a través
+      de la clase base, y si la clase base está esperando que
+      <code class="function">f()</code> devuelva un <code class="type">int</code>,
+      entonces la versión de <code class="function">f()</code> de la clase
+      derivada debe mantener ese compromiso o si no algo fallará.
+    </p>
+      <p>
+      La regla que se enseño en el capítulo 14 todavía funciona: si se
+      sobreescribe una de las funciones miembro sobrecargadas de la
+      clase base, las otras versiones sobrecargadas estarán ocultas en
+      la clase derivada. En el <code class="function">main()</code> el código de
+      <code class="classname">Derived4</code> muestra lo que ocurre incluso si la
+      nueva versión de <code class="function">f()</code> no está actualmente
+      sobreescribiendo una función virtual existente de la interfaz -
+      ambas versiones de <code class="function">f()</code> en la clase base estan
+      ocultas por <code class="function">f(int)</code>. Sin embargo, si se hace un
+      upcast de <code class="varname">d4</code> a <code class="classname">Base</code>,
+      entonces únicamente las versiones de la clase base estarán
+      disponibles (porque es el compromiso de la clase base) y la
+      versión de la clase derivada no está disponible (debido a que no
+      está especificada en la clase base).
+    </p>
+      <div class="sect2" title="15.9.1. Tipo de retorno variante">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8237304"></a>15.9.1. Tipo de retorno variante</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	La clase <code class="classname">Derived3</code> de arriba viene a sugerir
+	que no se puede modificar el tipo de retorno de una función
+	virtual cuando es sobreescrita. En general es verdad, pero hay
+	un caso especial en el que se puede modificar ligeramente el
+	tipo de retorno. Si se está devolviendo un puntero o una
+	referencia a una clase base, entonces la versión sobreescrita de
+	la función puede devolver un puntero o una referencia a una
+	clase derivada. Por ejemplo:
+      </p>
+        <div class="example">
+          <a id="idp8238848"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C15:VariantReturn.cpp</span>
+<span class="hl slc">// Returning a pointer or reference to a derived</span>
+<span class="hl slc">// type during ovverriding</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> PetFood <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">foodType</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">type</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> PetFood<span class="hl opt">*</span> <span class="hl kwd">eats</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Bird <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  string <span class="hl kwd">type</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Bird&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwc">class</span> BirdFood <span class="hl opt">:</span> <span class="hl kwc">public</span> PetFood <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    string <span class="hl kwd">foodType</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+      <span class="hl kwa">return</span> <span class="hl str">&quot;Bird food&quot;</span><span class="hl opt">;</span> 
+    <span class="hl opt">}</span>
+  <span class="hl opt">};</span>
+  <span class="hl slc">// Upcast to base type:</span>
+  PetFood<span class="hl opt">*</span> <span class="hl kwd">eats</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl opt">&amp;</span>bf<span class="hl opt">; }</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  BirdFood bf<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Cat <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  string <span class="hl kwd">type</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Cat&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwc">class</span> CatFood <span class="hl opt">:</span> <span class="hl kwc">public</span> PetFood <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    string <span class="hl kwd">foodType</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;Birds&quot;</span><span class="hl opt">; }</span>
+  <span class="hl opt">};</span>
+  <span class="hl slc">// Return exact type instead:</span>
+  CatFood<span class="hl opt">*</span> <span class="hl kwd">eats</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl opt">&amp;</span>cf<span class="hl opt">; }</span>
+<span class="hl kwc">private</span><span class="hl opt">:</span>
+  CatFood cf<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Bird b<span class="hl opt">;</span> 
+  Cat c<span class="hl opt">;</span>
+  Pet<span class="hl opt">*</span> p<span class="hl opt">[] = { &amp;</span>b<span class="hl opt">, &amp;</span>c<span class="hl opt">, };</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl kwa">sizeof</span> p <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> <span class="hl opt">*</span>p<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> p<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">type</span><span class="hl opt">() &lt;&lt;</span> <span class="hl str">&quot; eats &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> p<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">eats</span><span class="hl opt">()-&gt;</span><span class="hl kwd">foodType</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Can return the exact type:</span>
+  Cat<span class="hl opt">::</span>CatFood<span class="hl opt">*</span> cf <span class="hl opt">=</span> c<span class="hl opt">.</span><span class="hl kwd">eats</span><span class="hl opt">();</span>
+  Bird<span class="hl opt">::</span>BirdFood<span class="hl opt">*</span> bf<span class="hl opt">;</span>
+  <span class="hl slc">// Cannot return the exact type:</span>
+<span class="hl slc">//!  bf = b.eats();</span>
+  <span class="hl slc">// Must downcast:</span>
+  bf <span class="hl opt">=</span> <span class="hl kwa">dynamic_cast</span><span class="hl opt">&lt;</span>Bird<span class="hl opt">::</span>BirdFood<span class="hl opt">*&gt;(</span>b<span class="hl opt">.</span><span class="hl kwd">eats</span><span class="hl opt">());</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 15.11. C15/VariantReturn.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	La función miembro <code class="function">Pet::eats()</code> devuelve un
+	puntero a <code class="classname">PetFood</code>. En
+	<code class="classname">Bird</code>, ésta función miembro es
+	sobreescrita exactamente como en la clase base, incluyendo el
+	tipo de retorno. Esto es, <code class="function">Bird::eats()</code> hace
+	un <span class="foreignphrase"><em class="foreignphrase">&gt;upcast</em></span> de
+	<code class="classname">BirdFood</code> a <code class="classname">PetFood</code>
+	en el retorno de la función.
+      </p>
+        <p>
+	Pero en <code class="classname">Cat</code>, el tipo devuelto por
+	<code class="function">eats()</code> es un puntero a
+	<code class="classname">CatFood</code>, que es un tipo derivado de
+	<code class="classname">PetFood</code>. El hecho de que el tipo de
+	retorno esté heredado del tipo de retorno la función de la clase
+	base es la única razón que hace que esto compile. De esta forma
+	el acuerdo se cumple totalmente: <code class="function">eats()</code>
+	siempre devuelve un puntero a <code class="classname">PetFood</code>.
+      </p>
+        <p>
+	Si se piensa de forma polimórfica lo anterior no parece
+	necesario. ¿Por qué no simplemente se hacen upcast de todos los
+	tipos retornados a <code class="type">PetFood*</code> como lo hace
+	<code class="function">Bird::eats()</code>? Normalmente esa es una buena
+	solución, pero al final del <code class="function">main()</code> se puede
+	ver la diferencia: <code class="function">Cat::eats()</code> puede
+	devolver el tipo exacto de <code class="classname">PetFood</code>,
+	mientras que al valor retornado por
+	<code class="function">Bird::eats()</code> hay que hacerle
+	un <span class="foreignphrase"><em class="foreignphrase">downcast</em></span> al
+	tipo exacto.
+      </p>
+        <p>
+	Devolver el tipo exacto es un poco más general y además no
+	pierde la información específica de tipo debida al upcast
+	automático. Sin embargo, devolver un tipo de la clase base
+	generalmente resuelve el problema por lo que esto es una
+	característica bastante específica.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s08.html">15.8. Herencia y la VTABLE</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10.html">15.10. funciones virtuales y constructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

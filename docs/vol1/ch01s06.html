@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>1.6. Objetos intercambiables gracias al polimorfismo</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C01.html" title="1: Introducción a los Objetos" />
+    <link rel="prev" href="ch01s05.html" title="1.5. Herencia: reutilización de interfaces" />
+    <link rel="next" href="ch01s07.html" title="1.7. Creación y destrucción de objetos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch01s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch01s05.html">1.5. Herencia: reutilización de interfaces</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch01s07.html">1.7. Creación y destrucción de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch01s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="1.6. Objetos intercambiables gracias al polimorfismo">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp3678520"></a>1.6. Objetos intercambiables gracias al polimorfismo</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Cuando se manejan jerarquías de tipos, se suele tratar un objeto
+      no como el tipo específico si no como su tipo base. Esto le
+      permite escribir código que no depende de los tipos
+      específicos. En el ejemplo de la figura, las funciones manipulan
+      figuras genéricas sin preocuparse de si son círculos, cuadrados,
+      triángulos, etc. Todas las figuras se pueden dibujar, borrar y
+      mover, pero estas funciones simplemente envían un mensaje a un
+      objeto figura, sin preocuparse de cómo se las arregla el objeto
+      con cada mensaje.
+    </p>
+      <p>
+      Semejante código no está afectado por la adición de nuevos
+      tipos, y añadir nuevos tipos es la forma más común de extender
+      un programa orientado a objetos para tratar nuevas
+      situaciones. Por ejemplo, puede derivar un nuevo subtipo de
+      figura llamado <code class="classname">pentágono</code> sin modificar
+      las funciones que tratan sólo con figuras genéricas. Esta
+      habilidad para extender un programa fácilmente derivando nuevos
+      subtipos es importante porque mejora enormemente los diseños al
+      mismo tiempo que reduce el coste del mantenimiento del software.
+    </p>
+      <p>
+      Hay un problema, no obstante, con intentar tratar un tipo
+      derivado como sus tipos base genéricos (círculos como figuras,
+      bicicletas como vehículos, cormoranes como pájaros, etc). Si una
+      función va a indicar a una figura genérica que se dibuje a sí
+      misma, o a un vehículo genérico que se conduzca, o a un pájaro
+      genérico que se mueva, el compilador en el momento de la
+      compilación no sabe con precisión qué pieza del código será
+      ejecutada. Este es el punto clave - cuando el mensaje se envía,
+      el programador no <span class="emphasis"><em>quiere</em></span> saber qué pieza de
+      código será ejecutada; la función <code class="function">dibujar()</code>
+      se puede aplicar a un círculo, un cuadrado, o un triángulo, y el
+      objeto ejecutará el código correcto dependiendo de tipo
+      específico. Si no sabe qué pieza del código se ejecuta, ¿qué
+      hace? Por ejemplo, en el siguiente diagrama el objeto
+      <code class="classname">ControladorDePájaro</code> trabaja con los
+      objetos genéricos <code class="classname">Pájaro</code>, y no sabe de qué
+      tipo son exactamente. Esto es conveniente desde la perspectiva
+      del <code class="classname">ControladorDePájaro</code>, porque no hay
+      que escribir código especial para determinar el tipo exacto de
+      <code class="classname">Pájaro</code> con el que está trabajando, o el
+      comportamiento del <code class="classname">Pájaro</code>. Entonces, ¿qué
+      hace que cuando se invoca <code class="methodname">mover()</code>
+      ignorando el tipo específico de <code class="classname">Pájaro</code>,
+      puede ocurrir el comportamiento correcto (un
+      <code class="classname">Ganso</code> corre, vuela, o nada, y un
+      <code class="classname">Pingüino</code> corre o nada)?
+    </p>
+      <div class="figure">
+        <a id="idp3686288"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_10.png" align="middle" alt="Polimorfismo" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 1.8. Polimorfismo</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+      La respuesta es el primer giro en programación orientada a
+      objetos: el compilador no hace una llamada a la función en el
+      sentido tradicional. La llamada a función generada por un
+      compilador no-OO provoca lo que se llama una <span class="emphasis"><em>ligadura
+      temprana</em></span> (<span class="foreignphrase"><em class="foreignphrase">early binding</em></span>),
+      un término que quizá no haya oído antes porque nunca ha pensado en
+      que hubiera ninguna otra forma. Significa que el compilador genera una
+      llamada al nombre de la función específica, y el enlazador
+      resuelve esta llamada con la dirección absoluta del código que se
+      ejecutará. En POO, el programa no puede determinar la dirección
+      del código hasta el momento de la ejecución, de modo que se
+      necesita algún otro esquema cuando se envía un mensaje a un objeto
+      genérico.
+    </p>
+      <p>
+      Para resolver el problema, los lenguajes orientados a objetos
+      usan el concepto de <span class="emphasis"><em>ligadura tardía</em></span>
+      (<span class="foreignphrase"><em class="foreignphrase">late binding</em></span>). Cuando envía un
+      mensaje a un objeto, el código invocado no está determinado
+      hasta el momento de la ejecución. El compilador se asegura de
+      que la función existe y realiza una comprobación de tipo de los
+      argumentos y el valor de retorno (el lenguaje que no realiza
+      esta comprobación se dice que es <span class="emphasis"><em>débilmente
+      tipado</em></span>), pero no sabe el código exacto a ejecutar.
+    </p>
+      <p>
+      Para llevar a cabo la ligadura tardía, el compilador de C++
+      inserta un trozo especial de código en lugar de la llamada
+      absoluta. Este código calcula la dirección del cuerpo de la
+      función, usando información almacenada en el objeto (este proceso
+      se trata con detalle en el <a class="link" href="C15.html" title="15: Polimorfismo y Funciones virtuales">Capítulo
+      15</a>). De este modo, cualquier objeto se puede comportar de
+      forma diferente de acuerdo con el contenido de este trozo especial
+      de código. Cuando envía un mensaje a un objeto, el objeto
+      comprende realmente qué hacer con el mensaje.
+    </p>
+      <p>
+      Es posible disponer de una función que tenga la flexibilidad de
+      las propiedades de la ligadura tardía usando la palabra reservada
+      <code class="keyword">virtual</code>. No necesita entender el mecanismo de
+      <code class="keyword">virtual</code> para usarla, pero sin ella no puede hacer
+      programación orientada a objetos en C++. En C++, debe recordar
+      añadir la palabra reservada <code class="keyword">virtual</code> porque, por defecto,
+      los métodos <span class="emphasis"><em>no</em></span> se enlazan dinámicamente. Los
+      métodos virtuales le permiten expresar las diferencias de
+      comportamiento en clases de la misma familia. Estas diferencias
+      son las que causan comportamientos polimórficos.
+    </p>
+      <p>
+      Considere el ejemplo de la figura. El diagrama de la familia de
+      clases (todas basadas en la misma interfaz uniforme) apareció
+      antes en este capítulo. Para demostrar el polimorfismo, queremos
+      escribir una única pieza de código que ignore los detalles
+      específicos de tipo y hable sólo con la clase base. Este código
+      está <span class="emphasis"><em>desacoplado</em></span> de la información del tipo
+      específico, y de esa manera es más simple de escribir y más fácil
+      de entender. Y, si tiene un nuevo tipo - un
+      <code class="classname">Hexágono</code>, por ejemplo - se añade a través
+      de la herencia, el código que escriba funcionará igual de bien
+      para el nuevo tipo de <code class="classname">Figura</code> como para los
+      tipos anteriores. De esta manera, el programa es
+      <span class="emphasis"><em>extensible</em></span>.
+    </p>
+      <p>
+      Si escribe una función C++ (podrá aprender dentro de poco cómo hacerlo):
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">void</span> <span class="hl kwd">hacerTarea</span><span class="hl opt">(</span>Figura<span class="hl opt">&amp;</span> f<span class="hl opt">) {</span>
+    f<span class="hl opt">.</span><span class="hl kwd">borrar</span><span class="hl opt">();</span>
+    <span class="hl slc">// ...</span>
+    f<span class="hl opt">.</span><span class="hl kwd">dibujar</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+      Esta función se puede aplicar a cualquier
+      <code class="classname">Figura</code>, de modo que es independiente del
+      tipo específico del objeto que se dibuja y borra (el
+      «&amp;» significa «toma la dirección del
+      objeto que se pasa a <code class="function">hacerTarea()</code>»,
+      pero no es importante que entienda los detalles ahora). Si en
+      alguna otra parte del programa usamos la función
+      <code class="function">hacerTarea()</code>:
+    </p>
+      <pre class="programlisting">
+Circulo c<span class="hl opt">;</span>
+Triangulo t<span class="hl opt">;</span>
+Linea l<span class="hl opt">;</span>
+<span class="hl kwd">hacerTarea</span><span class="hl opt">(</span>c<span class="hl opt">);</span>
+<span class="hl kwd">hacerTarea</span><span class="hl opt">(</span>t<span class="hl opt">);</span>
+<span class="hl kwd">hacerTarea</span><span class="hl opt">(</span>l<span class="hl opt">);</span>
+</pre>
+      <p>
+      Las llamadas a <code class="function">hacerTarea()</code> funcionan bien
+      automáticamente, a pesar del tipo concreto del objeto.
+    </p>
+      <p>
+      En efecto es un truco bonito y asombroso. Considere la línea:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwd">hacerTarea</span><span class="hl opt">(</span>c<span class="hl opt">);</span>
+</pre>
+      <p>
+      Lo que está ocurriendo aquí es que está pasando un
+      <code class="classname">Círculo</code> a una función que espera una
+      <code class="classname">Figura</code>. Como un
+      <code class="classname">Círculo</code> es una
+      <code class="classname">Figura</code> se puede tratar como tal por parte
+      de <code class="function">hacerTarea()</code>. Es decir, cualquier
+      mensaje que pueda enviar <code class="function">hacerTarea()</code> a una
+      <code class="classname">Figura</code>, un <code class="classname">Círculo</code>
+      puede aceptarlo. Por eso, es algo completamente lógico y seguro.
+    </p>
+      <p>
+      A este proceso de tratar un tipo derivado como si fuera su tipo
+      base se le llama <span class="emphasis"><em>upcasting</em></span>
+      (<span class="emphasis"><em>moldeado hacia arriba</em></span><sup>[<a id="idp3706848" href="#ftn.idp3706848" class="footnote">16</a>]</sup>).  El nombre <span class="emphasis"><em>cast</em></span> (molde) se usa
+      en el sentido de adaptar a un molde y es <span class="emphasis"><em>hacia
+      arriba</em></span> por la forma en que se dibujan los diagramas de
+      clases para indicar la herencia, con el tipo base en la parte
+      superior y las clases derivadas colgando debajo. De esta manera,
+      moldear un tipo base es moverse hacia arriba por el diagrama de
+      herencias: «upcasting»
+    </p>
+      <div class="figure">
+        <a id="idp3708520"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_11.png" align="middle" alt="Upcasting" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 1.9. Upcasting</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+      Todo programa orientado a objetos tiene algún upcasting en alguna
+      parte, porque así es como se despreocupa de tener que conocer  el tipo
+      exacto con el que está trabajando. Mire el código de
+      <code class="function">hacerTarea()</code>:
+    </p>
+      <pre class="programlisting">
+f<span class="hl opt">.</span><span class="hl kwd">borrar</span><span class="hl opt">();</span>
+<span class="hl slc">// ...</span>
+f<span class="hl opt">.</span><span class="hl kwd">dibujar</span><span class="hl opt">();</span>
+</pre>
+      <p>
+      Observe que no dice «Si es un
+      <code class="classname">Círculo</code>, haz esto, si es un
+      <code class="classname">Cuadrado</code>, haz esto otro, etc.». Si
+      escribe un tipo de código que comprueba todos los posibles tipos
+      que una <code class="classname">Figura</code> puede tener realmente,
+      resultará sucio y tendrá que cambiarlo cada vez que añada un nuevo
+      tipo de <code class="classname">Figura</code>. Aquí, sólo dice «Eres
+      una figura, sé que te puedes <code class="function">borrar()</code> y
+      <code class="function">dibujar()</code> a ti misma, hazlo, y preocúpate de
+      los detalles».
+    </p>
+      <p>
+      Lo impresionante del código en <code class="function">hacerTarea()</code>
+      es que, de alguna manera, funciona bien. Llamar a
+      <code class="function">dibujar()</code> para un
+      <code class="classname">Círculo</code> ejecuta diferente código que
+      cuando llama a <code class="function">dibujar()</code> para un
+      <code class="classname">Cuadrado</code> o una
+      <code class="classname">Línea</code>, pero cuando se envía el mensaje
+      <code class="function">dibujar()</code> a un
+      <code class="classname">Figura</code> anónima, la conducta correcta
+      sucede en base en el tipo real de
+      <code class="classname">Figura</code>. Esto es asombroso porque, como se
+      mencionó anteriormente, cuando el compilador C++ está compilando
+      el código para <code class="function">hacerTarea()</code>, no sabe
+      exactamente qué tipos está manipulando.
+
+      Por eso normalmente, es de esperar que acabe invocando la versión
+      de <code class="function">borrar()</code> y <code class="function">dibujar()</code>
+      para <code class="classname">Figura</code>, y no para el
+      <code class="classname">Círculo</code>, <code class="classname">Cuadrado</code>, o
+      <code class="classname">Línea</code> específico. Y aún así ocurre del modo
+      correcto a causa del polimorfismo. El compilador y el sistema se
+      encargan de los detalles; todo lo que necesita saber es que esto
+      ocurre y lo que es más importante, cómo utilizarlo en sus
+      diseños. Si un método es <code class="keyword">virtual</code>, entonces cuando envíe
+      el mensaje a un objeto, el objeto hará lo correcto, incluso cuando
+      esté involucrado el upcasting.
+    </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp3706848" href="#idp3706848" class="para">16</a>] </sup>
+	  N. de T: En el libro se utilizará el término original en
+	  inglés debido a su uso común, incluso en la literatura en
+	  castellano.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch01s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch01s05.html">1.5. Herencia: reutilización de interfaces</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C01.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch01s07.html">1.7. Creación y destrucción de objetos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch01s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

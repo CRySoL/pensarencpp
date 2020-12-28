@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.6. Desacoplamiento de objetos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s05.html" title="9.5. Comando: elegir la operación" />
+    <link rel="next" href="ch09s06s02.html" title="9.6.2. Estado: cambiar el comportamiento del objeto" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Comando: elegir la operación </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06s02.html">9.6.2. Estado: cambiar el comportamiento del objeto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.6. Desacoplamiento de objetos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5075936"></a>9.6. Desacoplamiento de objetos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+Tanto el Proxy como el Estado proporcionen una clase sucedánea. El
+código habla a esta clase sucedánea, y la verdadera clase que hace el
+trabajo está escondida detrás de la sucedánea. Cuando usted llama a
+una función en la clase sucedánea, simplemente da un rodeo y llama a
+la función en la clase implementadora. Estos dos patrones son tan
+familiares que, estructuralmente, Proxy es un caso especial de Estado.
+Uno está tentado de juntar ambos en un patrón llamado Sucedánea, pero
+la intención de los dos patrones es distinta. Puede ser fácil caer en
+la trampa de pensar que si la estructura es la misma, los patrones son
+el mismo. Debe mirar siempre la intención del patrón para tener claro
+lo que hace.
+    </p>
+      <p>
+La idea básica es simple: cree una clase base, la sucedánea se deriva
+junto con la clase o clases que aportan la siguiente implementación:
+    </p>
+      <p>
+Cuando se crea una clase sucedánea, se le da una implementación a la
+que envía las llamadas a función.
+    </p>
+      <p>
+Estructuralmente, la diferencia entre Proxy y Estado es simple: un
+Proxy sólo tiene una implementación, mientras que Estado tiene más de
+una. La aplicación de los patrones se considera (en el GoF) distinta:
+Proxy controla el acceso a su implementación, mientras que Estado
+cambia la implementación dinámicamente. Sin embargo, si se amplía la
+noción de "controlar el acceso a la implementación", entonces los dos
+parecen ser parte de un todo.
+    </p>
+      <div class="sect2" title="9.6.1. Proxy: FIXME: hablando en nombre de otro objeto">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5079904"></a>9.6.1. Proxy: FIXME: hablando en nombre de otro objeto</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+Si se implementa un Proxy usando el diagrama anterior, tiene esta
+pinta:
+      </p>
+        <div class="example">
+          <a id="idp5080560"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:ProxyDemo.cpp</span>
+<span class="hl slc">// Simple demonstration of the Proxy pattern.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> ProxyBase <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">h</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">ProxyBase</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Implementation <span class="hl opt">:</span> <span class="hl kwc">public</span> ProxyBase <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Implementation.f()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Implementation.g()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">h</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Implementation.h()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Proxy <span class="hl opt">:</span> <span class="hl kwc">public</span> ProxyBase <span class="hl opt">{</span>
+  ProxyBase<span class="hl opt">*</span> implementation<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Proxy</span><span class="hl opt">() {</span> implementation <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Implementation</span><span class="hl opt">(); }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Proxy</span><span class="hl opt">() {</span> <span class="hl kwa">delete</span> implementation<span class="hl opt">; }</span>
+  <span class="hl slc">// Forward calls to the implementation:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span> implementation<span class="hl opt">-&gt;</span><span class="hl kwd">f</span><span class="hl opt">(); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">g</span><span class="hl opt">() {</span> implementation<span class="hl opt">-&gt;</span><span class="hl kwd">g</span><span class="hl opt">(); }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">h</span><span class="hl opt">() {</span> implementation<span class="hl opt">-&gt;</span><span class="hl kwd">h</span><span class="hl opt">(); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">()  {</span>
+  Proxy p<span class="hl opt">;</span>
+  p<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+  p<span class="hl opt">.</span><span class="hl kwd">g</span><span class="hl opt">();</span>
+  p<span class="hl opt">.</span><span class="hl kwd">h</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.14. C10/ProxyDemo.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+En algunos casos, Implementation no necesita la misma interfaz que
+Proxy, siempre y cuando Proxy esté de alguna forma hablando en nombre
+de la clase Implementación y referenciando llamadas a función hacia
+ella, entonces la idea básica se satisface (note que esta afirmación
+está reñida con la definición de Proxy del GoF). Sin embargo, con una
+interfaz común es posible realizar un reemplazo FIXME: drop-in del
+proxy en el código del cliente -el código del cliente está escrito
+para hablar al objeto original, y no necesita ser cambiado para
+aceptar el proxy (éste es probablemente el quiz principal de
+Proxy). Además, se fuerza a que Implementation complete, a través de
+la interfaz común, todas las funciones que Proxy necesita llamar.
+      </p>
+        <p>
+La diferencia entre Proxy y Estado está en los problemas que pueden
+resolver.  Los usos más comunes para Proxy que describe el GoF son:
+      </p>
+        <p>
+1. Proxy remoto. Representan a objetos en un espacio de direcciones
+distinto. Lo implementan algunas tecnologías de objetos remotos.
+      </p>
+        <p>
+2. Proxy virtual. Proporciona inicialización FIXME: vaga para crear
+objetos costosos bajo demanda.
+      </p>
+        <p>
+3. Proxy de protección. Se usa cuando no se desea que el programador
+cliente tenga acceso completo al objecto representado.
+      </p>
+        <p>
+4. Referencia inteligente. Para añadir acciones adicionales cuando se
+acceda al objeto representado. El conteo de referencias es un buen
+ejemplo: mantiene un registro del número de referencias que se
+mantienen para un objeto en particular, para implementar el FIXME:
+copy-on-write idiom y para prevenir el FIXME: object aliasing.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Comando: elegir la operación </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s06s02.html">9.6.2. Estado: cambiar el comportamiento del objeto</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

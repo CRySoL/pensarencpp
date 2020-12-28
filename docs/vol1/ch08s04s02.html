@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.4.2. Constantes en tiempo de compilación dentro de clases</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch08s04.html" title="8.4. Clases" />
+    <link rel="prev" href="ch08s04.html" title="8.4. Clases" />
+    <link rel="next" href="ch08s04s03.html" title="8.4.3. Objetos y métodos constantes" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04.html">8.4. Clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s04s03.html">8.4.3. Objetos y métodos constantes</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="8.4.2. Constantes en tiempo de compilación dentro de clases">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6180696"></a>8.4.2. Constantes en tiempo de compilación dentro de clases</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	El uso anterior de <code class="keyword">const</code> es interesante y
+	probablemente útil en muchos casos, pero no resuelve el
+	programa original de «cómo hacer una constante en tiempo
+	de compilación dentro de una clase». La respuesta
+	requiere del uso de un especificador adicional que se
+	explicará completamente en el [FIXME:capítulo 10]:
+	<code class="keyword">static</code>. El especificador <code class="keyword">static</code>, en esta
+	situación significa «hay sólo una instancia a pesar de
+	que se creen varios objetos de la clase» que es
+	precisamente lo que se necesita: un atributo de clase que es
+	constante, y que no cambia de un objeto a otro de la misma
+	clase. Por eso, una <code class="keyword">static const</code> de un tipo básico se
+	puede tratar como una constante en tiempo de compilación.
+      </p>
+      <p>
+	Hay un característica de <code class="keyword">static const</code> cuando se usa
+	dentro de clases que es un tanto inusual: se debe indicar el
+	valor inicial en el punto en que se define. Esto sólo ocurre
+	con <code class="keyword">static const</code> y no funciona en otras situaciones
+	porque todos lo otros atributos deben inicializarse en el
+	constructor o en otros métodos.
+      </p>
+      <p>
+	A continuación aparece un ejemplo que muestra la creación y
+	uso de una <code class="keyword">static const</code> llamada
+	<code class="varname">size</code> en una clase que representa una pila
+	de punteros a cadenas<sup>[<a id="idp6187760" href="#ftn.idp6187760" class="footnote">65</a>]</sup>.
+      </p>
+      <div class="example">
+        <a id="idp6188272"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:StringStack.cpp</span>
+<span class="hl slc">// Using static const to create a </span>
+<span class="hl slc">// compile-time constant inside a class</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> StringStack <span class="hl opt">{</span>
+  <span class="hl kwb">static const int</span> size <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+  <span class="hl kwb">const</span> string<span class="hl opt">*</span> stack<span class="hl opt">[</span>size<span class="hl opt">];</span>
+  <span class="hl kwb">int</span> index<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">StringStack</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">*</span> s<span class="hl opt">);</span>
+  <span class="hl kwb">const</span> string<span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+StringStack<span class="hl opt">::</span><span class="hl kwd">StringStack</span><span class="hl opt">() :</span> <span class="hl kwd">index</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {</span>
+  <span class="hl kwd">memset</span><span class="hl opt">(</span>stack<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> size <span class="hl opt">*</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>string<span class="hl opt">*));</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> StringStack<span class="hl opt">::</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">*</span> s<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&lt;</span> size<span class="hl opt">)</span>
+    stack<span class="hl opt">[</span>index<span class="hl opt">++] =</span> s<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">const</span> string<span class="hl opt">*</span> StringStack<span class="hl opt">::</span><span class="hl kwd">pop</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    <span class="hl kwb">const</span> string<span class="hl opt">*</span> rv <span class="hl opt">=</span> stack<span class="hl opt">[--</span>index<span class="hl opt">];</span>
+    stack<span class="hl opt">[</span>index<span class="hl opt">] =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> rv<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+string iceCream<span class="hl opt">[] = {</span>
+  <span class="hl str">&quot;pralines &amp; cream&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;fudge ripple&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;jamocha almond fudge&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;wild mountain blackberry&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;raspberry sorbet&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;lemon swirl&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;rocky road&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;deep chocolate fudge&quot;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">const int</span> iCsz <span class="hl opt">=</span> 
+  <span class="hl kwa">sizeof</span> iceCream <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> <span class="hl opt">*</span>iceCream<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  StringStack ss<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> iCsz<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    ss<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(&amp;</span>iceCream<span class="hl opt">[</span>i<span class="hl opt">]);</span>
+  <span class="hl kwb">const</span> string<span class="hl opt">*</span> cp<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>cp <span class="hl opt">=</span> ss<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">()) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt; *</span>cp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.12. C08/StringStack.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Como <code class="varname">size</code> se usa para determinar el tamaño
+	del vector <code class="varname">stack</code>, es adecuado usar una
+	constante en tiempo de compilación, pero que queda oculta
+	dentro de la clase.
+      </p>
+      <p>
+	Fíjese en que <code class="function">push()</code> toma un <code class="type">const
+	string*</code> como argumento, <code class="function">pop()</code>
+	retorna un <code class="type">const string*</code> y
+	<code class="classname">StringStack</code> contiene <code class="type">const
+	string*</code>. Si no fuera así, no podría usar una
+	<code class="classname">StringStack</code> para contener los punteros
+	de <code class="varname">icecream</code>. En cualquier caso, también
+	impide hacer algo que cambie los objetos contenidos en
+	<code class="classname">StringStack</code>. Por supuesto, no todos los
+	contenedores están diseñados con esta restricción.
+      </p>
+      <div class="sect3" title="El enumerado en codigo antiguo">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6194272"></a>El enumerado en codigo antiguo</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  En versiones antiguas de C++ el tipo <code class="keyword">static const</code>
+	  no se permitía dentro de las clases. Esto hacía que
+	  <code class="keyword">const</code> no pudiese usarse para expresiones constantes
+	  dentro de clases. Pero muchos programadores lo conseguían
+	  con una solución típica (normalmente conocida como
+	  «<span class="foreignphrase"><em class="foreignphrase">enum hack</em></span>») que
+	  consiste en usar un <code class="type">enum</code> sin etiqueta y sin
+	  instancias. Una enumeración debe tener establecidos sus
+	  valores en tiempo de compilación, es local a una clase y sus
+	  valores están disponibles para expresiones constantes. Por
+	  eso, es habitual ver código como:
+	</p>
+        <div class="example">
+          <a id="idp6197336"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C08:EnumHack.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Bunch <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> size <span class="hl opt">=</span> <span class="hl num">1000</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">[</span>size<span class="hl opt">];</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;sizeof(Bunch) = &quot;</span> <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>Bunch<span class="hl opt">)</span> 
+       <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, sizeof(i[1000]) = &quot;</span> 
+       <span class="hl opt">&lt;&lt;</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">[</span><span class="hl num">1000</span><span class="hl opt">]) &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 8.13. C08/EnumHack.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Este uso de <code class="type">enum</code> garantiza que no se ocupa
+	  almacenamiento en el objeto, y que todos los símbolos
+	  definidos en la enumeración se evalúan en tiempo de
+	  compilación. Además se puede establecer explícitamente el
+	  valor de los símbolos:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwb">enum</span> <span class="hl opt">{</span> one <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">,</span> two <span class="hl opt">=</span> <span class="hl num">2</span><span class="hl opt">,</span> three <span class="hl opt">};</span>
+</pre>
+        <p>
+	  utilizando tipos <code class="type">enum</code> enteros, el compilador
+	  continuará contando a partir del último valor, así que el
+	  símbolo <code class="constant">three</code> tendrá un valor 3.
+	</p>
+        <p>
+	  En el ejemplo StringStack anterior, la línea:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwb">static const int</span> size <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+</pre>
+        <p>
+	  podriá sustituirse por:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwb">enum</span> <span class="hl opt">{</span> size <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+</pre>
+        <p>
+	  Aunque es fácil ver esta técnica en código correcto, el uso
+	  de <code class="keyword">static const</code> fue añadido al lenguaje
+	  precisamente para resolver este problema.  En todo caso, no
+	  existe ninguna razón abrumadora por la que deba usar
+	  <code class="keyword">static const</code> en lugar de <code class="type">enum</code>, y en
+	  este libro se utiliza <code class="type">enum</code> porque hay más
+	  compiladores que le dan soporte en el momento en el momento
+	  en que se escribió este libro.
+	</p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp6187760" href="#idp6187760" class="para">65</a>] </sup>Al termino de este libro,
+	no todos los compiladores permiten esta
+	característica.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04.html">8.4. Clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s04s03.html">8.4.3. Objetos y métodos constantes</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s04s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,407 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.11. Factorías: encapsular la creación de objetos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="9: Patrones de Diseño" />
+    <link rel="prev" href="ch09s10.html" title="9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias" />
+    <link rel="next" href="ch09s11s02.html" title="9.11.2. Factorías abstractas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s10.html">9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s11s02.html">9.11.2. Factorías abstractas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s11s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.11. Factorías: encapsular la creación de objetos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5126880"></a>9.11. Factorías: encapsular la creación de objetos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+Cuando se descubre que se necesitan añadir nuevos tipos a un sistema,
+el primer paso más sensato es usar polimorfismo para crear una
+interfaz común para esos nuevos tipos. Así, se separa el resto del
+código en el sistema del conocimiento de los tipos específicos que se
+están añadiendo. Los tipos nuevos pueden añadirse sin "molestar" al
+código existente, o eso parece. A primera vista, podría parecer que
+hace falta cambiar el código únicamente en los lugares donde se hereda
+un tipo nuevo, pero esto no es del todo cierto. Todavía hay que crear
+un objeto de este nuevo tipo, y en el momento de la creación hay que
+especificar qué constructor usar. Por lo tanto, si el codigo que crea
+objetos está distribuido por toda la aplicación, se obtiene el mismo
+problema que cuando se añaden tipos -hay que localizar todos los
+puntos del código donde el tipo tiene importancia. Lo que imoporta es
+la creación del tipo, más que el uso del mismo (de eso se encarga el
+polimorfismo), pero el efecto es el mismo: añadir un nuevo tipo puede
+causar problemas.
+    </p>
+      <p>
+La solución es forzar a que la creación de objetos se lleve a cabo a
+través de una factoría común, en lugar de permitir que el código
+creacional se disperse por el sistema. Si todo el código del programa
+debe ir a esta factoría cada vez que necesita crear uno de esos
+objetos, todo lo que hay que hacer para añadir un objeto es modificar
+la factoría. Este diseño es una variación del patrón conocido
+comúnmente como Factory Method. Dado que todo programa orientado a
+objetos crea objetos, y como es probable que haya que extender el
+programa añadiendo nuevos tipos, las factorías pueden ser el más útil
+de todos los patrones de diseño.
+    </p>
+      <p>
+Como ejemplo, considere el ampliamente usado ejemplo de figura
+(Shape). Una aproximación para implementar una factoría es definir una
+función miembro estática en la clase base:
+    </p>
+      <div class="example">
+        <a id="idp5131576"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:ShapeFactory1.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;stdexcept&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Shape</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">class</span> BadShapeCreation <span class="hl opt">:</span> <span class="hl kwc">public</span> logic_error <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">BadShapeCreation</span><span class="hl opt">(</span>string type<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">logic_error</span><span class="hl opt">(</span><span class="hl str">&quot;Cannot create type &quot;</span> <span class="hl opt">+</span> type<span class="hl opt">) {}</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwb">static</span> Shape<span class="hl opt">*</span> <span class="hl kwd">factory</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> type<span class="hl opt">)</span>
+    <span class="hl kwa">throw</span><span class="hl opt">(</span>BadShapeCreation<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Circle <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+  <span class="hl kwd">Circle</span><span class="hl opt">() {}</span> <span class="hl slc">// Private constructor</span>
+  <span class="hl kwc">friend class</span> Shape<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::draw&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::erase&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Circle</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::~Circle&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Square <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+  <span class="hl kwd">Square</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">friend class</span> Shape<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::draw&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::erase&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Square</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::~Square&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+Shape<span class="hl opt">*</span> Shape<span class="hl opt">::</span><span class="hl kwd">factory</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> type<span class="hl opt">)</span>
+  <span class="hl kwa">throw</span><span class="hl opt">(</span>Shape<span class="hl opt">::</span>BadShapeCreation<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>type <span class="hl opt">==</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">)</span> <span class="hl kwa">return new</span> Circle<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>type <span class="hl opt">==</span> <span class="hl str">&quot;Square&quot;</span><span class="hl opt">)</span> <span class="hl kwa">return new</span> Square<span class="hl opt">;</span>
+  <span class="hl kwa">throw</span> <span class="hl kwd">BadShapeCreation</span><span class="hl opt">(</span>type<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">char</span><span class="hl opt">*</span> sl<span class="hl opt">[] = {</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span> <span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  vector<span class="hl opt">&lt;</span>Shape<span class="hl opt">*&gt;</span> shapes<span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl kwa">sizeof</span> sl <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> sl<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">];</span> i<span class="hl opt">++)</span>
+      shapes<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>Shape<span class="hl opt">::</span><span class="hl kwd">factory</span><span class="hl opt">(</span>sl<span class="hl opt">[</span>i<span class="hl opt">]));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Shape<span class="hl opt">::</span>BadShapeCreation e<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwd">purge</span><span class="hl opt">(</span>shapes<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> EXIT_FAILURE<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> shapes<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">();</span> i<span class="hl opt">++) {</span>
+    shapes<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">draw</span><span class="hl opt">();</span>
+    shapes<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">erase</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwd">purge</span><span class="hl opt">(</span>shapes<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.23. C10/ShapeFactory1.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+La función factory() toma un argumento que le permite determinar qué
+tipo de figura crear. Aquí, el argumento es una cadena, pero podría
+ser cualquier conjunto de datos. El método factory() es el único
+código del sistema que hay que cambiar cuando se añade un nuevo tipo
+de figura. (Los datos de inicialización para los objetos vendrán
+supuestamente de algún sitio fuera del sistema y no serán un FIXME:
+hard-coded array como en el ejemplo.)
+    </p>
+      <p>
+Para asegurar que la creación sólo puede realizarse en factory(), los
+constructores de cada tipo específico de figura se hacen privados, y
+Shape se declara como <code class="keyword">friend</code> de forma que factory() tiene
+acceso a los mismos. (También se podría declarar sólamente
+Shape::factory() como
+<code class="keyword">friend</code>, pero parece razonablemente inocuo declarar la clase base
+entera.) Hay otra implicación importante de este diseño -la clase base, Shape,
+debe conocer ahora los detalles de todas las clases derivadas -una propiedad
+que el diseño orientado a objetos intenta evitar. Para <code class="keyword">frameworks</code> o
+cualquier librería de clases que deban poder extenderse, esto hace que se
+convierta rápidamente en algo difícil de manejar, ya que la clase base debe
+actualizarse en cuanto se añada un tipo nuevo a la jerarquía. Las factorías
+polimórficas, descritas en la siguiente subsección, se pueden usar para
+evitar esta dependencia circular tan poco deseada.
+    </p>
+      <div class="sect2" title="9.11.1. Factorías polimórficas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5139216"></a>9.11.1. Factorías polimórficas</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+La función estática factory() en el ejemplo anterior fuerza que las
+operaciones de creación se centren en un punto, de forma que sea el
+único sitio en el que haya que cambiar código. Esto es, sin duda, una
+solución razonable, ya que encapsula amablemente el proceso de crear
+objetos. Sin embargo, el GoF enfatiza que la razón de ser del patrón
+Factory Method es que diferentes tipos de factorías se puedan derivar
+de la factoría básica. Factory Method es, de hecho, un tipo especial
+de factoría polimórfica. Esto es ShapeFactory1.cpp modificado para que
+los Factory Methods estén en una clase aparte como funciones
+virtuales.
+      </p>
+        <div class="example">
+          <a id="idp5141104"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:ShapeFactory2.cpp</span>
+<span class="hl slc">// Polymorphic Factory Methods.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;map&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;stdexcept&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Shape</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> ShapeFactory <span class="hl opt">{</span>
+  <span class="hl kwc">virtual</span> Shape<span class="hl opt">*</span> <span class="hl kwd">create</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">static</span> map<span class="hl opt">&lt;</span>string<span class="hl opt">,</span> ShapeFactory<span class="hl opt">*&gt;</span> factories<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">ShapeFactory</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">friend class</span> ShapeFactoryInitializer<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> BadShapeCreation <span class="hl opt">:</span> <span class="hl kwc">public</span> logic_error <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">BadShapeCreation</span><span class="hl opt">(</span>string type<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">logic_error</span><span class="hl opt">(</span><span class="hl str">&quot;Cannot create type &quot;</span> <span class="hl opt">+</span> type<span class="hl opt">) {}</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwb">static</span> Shape<span class="hl opt">*</span>
+  <span class="hl kwd">createShape</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> id<span class="hl opt">)</span> <span class="hl kwa">throw</span><span class="hl opt">(</span>BadShapeCreation<span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>factories<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span>id<span class="hl opt">) !=</span> factories<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+      <span class="hl kwa">return</span> factories<span class="hl opt">[</span>id<span class="hl opt">]-&gt;</span><span class="hl kwd">create</span><span class="hl opt">();</span>
+    <span class="hl kwa">else</span>
+      <span class="hl kwa">throw</span> <span class="hl kwd">BadShapeCreation</span><span class="hl opt">(</span>id<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Define the static object:</span>
+map<span class="hl opt">&lt;</span>string<span class="hl opt">,</span> ShapeFactory<span class="hl opt">*&gt;</span> ShapeFactory<span class="hl opt">::</span>factories<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Circle <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+  <span class="hl kwd">Circle</span><span class="hl opt">() {}</span> <span class="hl slc">// Private constructor</span>
+  <span class="hl kwc">friend class</span> ShapeFactoryInitializer<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Factory<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Factory<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Factory <span class="hl opt">:</span> <span class="hl kwc">public</span> ShapeFactory <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    Shape<span class="hl opt">*</span> <span class="hl kwd">create</span><span class="hl opt">() {</span> <span class="hl kwa">return new</span> Circle<span class="hl opt">; }</span>
+    <span class="hl kwc">friend class</span> ShapeFactoryInitializer<span class="hl opt">;</span>
+  <span class="hl opt">};</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::draw&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::erase&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Circle</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::~Circle&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Square <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+  <span class="hl kwd">Square</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">friend class</span> ShapeFactoryInitializer<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Factory<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Factory<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Factory <span class="hl opt">:</span> <span class="hl kwc">public</span> ShapeFactory <span class="hl opt">{</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    Shape<span class="hl opt">*</span> <span class="hl kwd">create</span><span class="hl opt">() {</span> <span class="hl kwa">return new</span> Square<span class="hl opt">; }</span>
+    <span class="hl kwc">friend class</span> ShapeFactoryInitializer<span class="hl opt">;</span>
+  <span class="hl opt">};</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::draw&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::erase&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+  <span class="hl opt">~</span><span class="hl kwd">Square</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::~Square&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Singleton to initialize the ShapeFactory:</span>
+<span class="hl kwc">class</span> ShapeFactoryInitializer <span class="hl opt">{</span>
+  <span class="hl kwb">static</span> ShapeFactoryInitializer si<span class="hl opt">;</span>
+  <span class="hl kwd">ShapeFactoryInitializer</span><span class="hl opt">() {</span>
+    ShapeFactory<span class="hl opt">::</span>factories<span class="hl opt">[</span><span class="hl str">&quot;Circle&quot;</span><span class="hl opt">]=</span> <span class="hl kwa">new</span> Circle<span class="hl opt">::</span>Factory<span class="hl opt">;</span>
+    ShapeFactory<span class="hl opt">::</span>factories<span class="hl opt">[</span><span class="hl str">&quot;Square&quot;</span><span class="hl opt">]=</span> <span class="hl kwa">new</span> Square<span class="hl opt">::</span>Factory<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">ShapeFactoryInitializer</span><span class="hl opt">() {</span>
+    map<span class="hl opt">&lt;</span>string<span class="hl opt">,</span> ShapeFactory<span class="hl opt">*&gt;::</span>iterator it <span class="hl opt">=</span>
+      ShapeFactory<span class="hl opt">::</span>factories<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> ShapeFactory<span class="hl opt">::</span>factories<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">())</span>
+      <span class="hl kwa">delete</span> it<span class="hl opt">++-&gt;</span>second<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Static member definition:</span>
+ShapeFactoryInitializer ShapeFactoryInitializer<span class="hl opt">::</span>si<span class="hl opt">;</span>
+
+<span class="hl kwb">char</span><span class="hl opt">*</span> sl<span class="hl opt">[] = {</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span><span class="hl opt">,</span>
+  <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Circle&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;Square&quot;</span> <span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  vector<span class="hl opt">&lt;</span>Shape<span class="hl opt">*&gt;</span> shapes<span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl kwa">sizeof</span> sl <span class="hl opt">/</span> <span class="hl kwa">sizeof</span> sl<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">];</span> i<span class="hl opt">++)</span>
+      shapes<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>ShapeFactory<span class="hl opt">::</span><span class="hl kwd">createShape</span><span class="hl opt">(</span>sl<span class="hl opt">[</span>i<span class="hl opt">]));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>ShapeFactory<span class="hl opt">::</span>BadShapeCreation e<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> EXIT_FAILURE<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> shapes<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">();</span> i<span class="hl opt">++) {</span>
+    shapes<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">draw</span><span class="hl opt">();</span>
+    shapes<span class="hl opt">[</span>i<span class="hl opt">]-&gt;</span><span class="hl kwd">erase</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwd">purge</span><span class="hl opt">(</span>shapes<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.24. C10/ShapeFactory2.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+Ahora, Factory Method aparece en su propia clase, ShapeFactory,
+como <code class="keyword"> virtual create()</code>. Es una función miembro privada, lo
+que significa que no puede ser llamada directametne, pero puede ser
+sobreescrita. Las subclases de Shape deben crear cada una su propias
+subclases de ShapeFactory y sobreescribir el método create para crear
+un objeto de su propio tipe. Estas factorías son privadas, de forma
+que sólo pueden ser accedidas desde el Factory Method principal. De
+esta forma, todo el código cliente debe pasar a través del Factory
+Method para crear objetos.
+      </p>
+        <p>
+La verdadera creación de figuras se realiza llamando a
+ShapeFactory::createShape( ), que es una función estática que usa el
+mapa en ShapeFactory para encontrar la objeto factoría apropiado
+basándose en el identificador que se le pasa. La factoría crea el
+objeto figura directamente, pero podría imaginarse un problema más
+complejo en el que el objeto factoría apropiado se devuelve y luego lo
+usa quien lo ha llamado para crear un objeto de una manera más
+sofisticada. Sin embargo, parece que la mayoría del tiempo no hacen
+falta las complejidades del Factory Method polimórfico, y bastará con
+una única función estática en la clase base (como se muestra en
+ShapeFactory1.cpp).
+      </p>
+        <p>
+		Observe que el ShapeFactory debe ser inicializado cargando su
+mapa con objetos factory, lo que tiene lugar en el Singleton
+ShapeFactoryInitializer. Así que para añadir un nuevo tipo a este
+diseño debe definir el tipo, crear una factoría, y modificar
+ShapeFactoryInitializer para que se inserte una instancia de su
+factoría en el mapa. Esta complejidad extra, sugiere de nuevo el uso
+de un Factory Method estático si no necesita crear objetos factoría
+individuales.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s10.html">9.10. Cadena de Responsabilidad: intentar una secuencia de estrategias</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s11s02.html">9.11.2. Factorías abstractas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s11s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

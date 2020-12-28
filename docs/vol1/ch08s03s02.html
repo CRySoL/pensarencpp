@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.3.2. Retorno por valor constante</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch08s03.html" title="8.3. Argumentos de funciones y valores de retorno" />
+    <link rel="prev" href="ch08s03.html" title="8.3. Argumentos de funciones y valores de retorno" />
+    <link rel="next" href="ch08s03s03.html" title="8.3.3. Paso y retorno de direcciones" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s03.html">8.3. Argumentos de funciones y valores de retorno</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s03s03.html">8.3.3. Paso y retorno de direcciones</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="8.3.2. Retorno por valor constante">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6109488"></a>8.3.2. Retorno por valor constante</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Algo similar ocurre con los valores de retorno. Si dice que el
+	valor de retorno de una función es constante:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">const int</span> <span class="hl kwd">g</span><span class="hl opt">();</span>
+</pre>
+      <p>
+	está diciendo que el valor de la variable original (en el ámbito de
+	la función) no se modificará. Y de nuevo, como lo está devolviendo
+	por valor, es la copia lo que se retorna, de modo que el valor
+	original nunca se podrá modificar.
+      </p>
+      <p>
+	En principio, esto puede hacer suponer que el especificador
+	<code class="keyword">const</code> tiene poco significado. Puede ver la aparente
+	falta de sentido de devolver constantes por valor en este
+	ejemplo:
+      </p>
+      <div class="example">
+        <a id="idp6112264"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:Constval.cpp</span>
+<span class="hl slc">// Returning consts by value</span>
+<span class="hl slc">// has no meaning for built-in types</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">f3</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+<span class="hl kwb">const int</span> <span class="hl kwd">f4</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const int</span> j <span class="hl opt">=</span> <span class="hl kwd">f3</span><span class="hl opt">();</span> <span class="hl slc">// Works fine</span>
+  <span class="hl kwb">int</span> k <span class="hl opt">=</span> <span class="hl kwd">f4</span><span class="hl opt">();</span> <span class="hl slc">// But this works fine too!</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.5. C08/Constval.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Para los tipos básicos, no importa si el retorno es
+	constante, así que debería evitar la confusión para el
+	programador cliente y no utilizar <code class="keyword">const</code>
+	cuando se devuelven variables de tipos básicos por valor.
+      </p>
+      <p>
+	Devolver por valor como constante se vuelve importante cuando
+	se trata con tipos definidos por el programador. Si una
+	función devuelve un objeto por valor como constante, el valor
+	de retorno de la función no puede ser un recipiente
+	<sup>[<a id="idp6115136" href="#ftn.idp6115136" class="footnote">62</a>]</sup>
+      </p>
+      <p>
+	Por ejemplo:
+      </p>
+      <div class="example">
+        <a id="idp6116288"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:ConstReturnValues.cpp</span>
+<span class="hl slc">// Constant return by value</span>
+<span class="hl slc">// Result cannot be used as an lvalue</span>
+
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">modify</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+X<span class="hl opt">::</span><span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) {</span> i <span class="hl opt">=</span> ii<span class="hl opt">; }</span>
+
+<span class="hl kwb">void</span> X<span class="hl opt">::</span><span class="hl kwd">modify</span><span class="hl opt">() {</span> i<span class="hl opt">++; }</span>
+
+X <span class="hl kwd">f5</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> <span class="hl kwd">X</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">const</span> X <span class="hl kwd">f6</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> <span class="hl kwd">X</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f7</span><span class="hl opt">(</span>X<span class="hl opt">&amp;</span> x<span class="hl opt">) {</span> <span class="hl slc">// Pass by non-const reference</span>
+  x<span class="hl opt">.</span><span class="hl kwd">modify</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">f5</span><span class="hl opt">() =</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// OK -- non-const return value</span>
+  <span class="hl kwd">f5</span><span class="hl opt">().</span><span class="hl kwd">modify</span><span class="hl opt">();</span> <span class="hl slc">// OK</span>
+<span class="hl slc">//!  f7(f5()); // Causes warning or error</span>
+<span class="hl slc">// Causes compile-time errors:</span>
+<span class="hl slc">//!  f6() = X(1);</span>
+<span class="hl slc">//!  f6().modify();</span>
+<span class="hl slc">//!  f7(f6());</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.6. C08/ConstReturnValues.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	<code class="function">f5()</code> devuelve un objeto de clase
+	<code class="classname">X</code> no constante, mientras que
+	<code class="function">f6()</code> devuelve un objeto de clase
+	<code class="classname">X</code> pero constante. Solo el valor de
+	retorno por valor no constante se puede usar como recipiente.
+      </p>
+      <p>
+	Por eso, es importante usar <code class="keyword">const</code> cuando se devuelve
+	un objeto por valor si quiere impedir que se use como
+	recipiente.
+      </p>
+      <p>
+	La razón por la que <code class="keyword">const</code> no tiene sentido cuando se
+	usa para devolver por valor variables de tipos del lenguaje es
+	que el compilador impide automáticamente el uso de dichos
+	tipos como recipiente, ya que devuelve un valor, no una
+	variable. Solo cuando se devuelven objetos por valor de tipos
+	definidos por el programador esta funcionalidad toma
+	sentido.
+      </p>
+      <p>
+	La función <code class="function">f7()</code> toma como argumento una
+	referencia no constante (la referencia es una forma adicional
+	para manejar direcciones en C++ y se trata en el
+	[FIXME:XREF:capitulo 11]). Es parecido a tomar un puntero no
+	constante, aunque la sintaxis es diferente. La razón por la
+	que no compila es por la creación de un temporario.
+      </p>
+      <div class="sect3" title="Temporarios">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6122728"></a>Temporarios</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  A veces, durante la evaluación de una expresión, el compilador
+	  debe crear objetos temporales (temporarios). Son objetos como
+	  cualquier otro: requieren espacio de almacenamiento y se deben
+	  construir y destruir. La diferencia es que nunca se ven, el
+	  compilador es el responsable de decidir si se necesitan y los
+	  detalles de su existencia. Una particularidad importante de los
+	  temporarios es que siempre son constantes. Como normalmente no
+	  manejará objetos temporarios, hacer algo que cambie un temporario
+	  es casi seguro un error porque no será capaz de usar esa
+	  información. Para evitar esto, el compilador crea todos los
+	  temporarios como objetos constantes, de modo que le avisará si
+	  intenta modificarlos.
+	</p>
+        <p>
+	  En el ejemplo anterior, <code class="function">f5()</code> devuelve
+	  un objeto no constante. Pero en la expresión:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwd">f7</span><span class="hl opt">(</span><span class="hl kwd">f5</span><span class="hl opt">());</span>
+</pre>
+        <p>
+	  el compilador debe crear un temporario para albergar el
+	  valor de retorno de <code class="function">f5()</code> para que pueda
+	  ser pasado a <code class="function">f7()</code>. Esto funcionaría
+	  bien si <code class="function">f7()</code> tomara su argumento por
+	  valor; entonces el temporario se copiaría en
+	  <code class="function">f7()</code> y no importaría lo que se pase al
+	  temporario X.
+	</p>
+        <p>
+	  Sin embargo, <code class="function">f7()</code> toma su argumento por
+	  referencia, lo que significa que toma la dirección del
+	  temporario X. Como <code class="function">f7()</code> no toma su
+	  argumento por referencia constante, tiene permiso para
+	  modificar el objeto temporario. Pero el compilador sabe que
+	  el temporario desaparecerá en cuanto se complete la
+	  evaluación de la expresión, y por eso cualquier modificación
+	  hecha en el temporario se perderá.  Haciendo que los objetos
+	  temporarios sean constantes automáticamente, la situación
+	  causa un error de compilación de modo que evitará cometer un
+	  error muy difícil de localizar.
+	</p>
+        <p>
+	  En cualquier caso, tenga presente que las expresiones
+	  siguientes son correctas:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwd">f5</span><span class="hl opt">() =</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+<span class="hl kwd">f5</span><span class="hl opt">().</span><span class="hl kwd">modify</span><span class="hl opt">();</span>
+</pre>
+        <p>
+	  Aunque son aceptables para el compilador, en realidad son
+	  problemáticas.  <code class="function">f5()</code> devuelve un
+	  objeto de clase <code class="classname">X</code>, y para que el
+	  compilador pueda satisfacer las expresiones anteriores
+	  debe crear un temporario para albergar el valor de
+	  retorno. De modo que en ambas expresiones el objeto
+	  temporario se modifica y tan pronto como la expresión es
+	  evaluada el temporario se elimina. Como resultado, las
+	  modificaciones se pierden, así que probablemente este
+	  código es erróneo, aunque el compilador no diga nada al
+	  respecto. Las expresiones como éstas son suficientemente
+	  simples como para detectar el problema, pero cuando las
+	  cosas son más complejas los errores son más difíciles de
+	  localizar.
+	</p>
+        <p>
+	  La forma de preservar la constancia de los objetos se
+	  muestra más adelante en este capítulo.
+	</p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp6115136" href="#idp6115136" class="para">62</a>] </sup>N. del T.: «recipiente»
+	corresponde con el término
+	<span class="foreignphrase"><em class="foreignphrase">lvalue</em></span> que se refiere a una
+	variable que puede ser modificada o a la que se le puede
+	asignar un valor.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s03.html">8.3. Argumentos de funciones y valores de retorno</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s03s03.html">8.3.3. Paso y retorno de direcciones</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

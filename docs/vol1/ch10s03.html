@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.3. Miembros estáticos en C++</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C10.html" title="10: Control de nombres" />
+    <link rel="prev" href="ch10s02s03.html" title="10.2.3. El uso de los espacios de nombres" />
+    <link rel="next" href="ch10s03s02.html" title="10.3.2. Clases anidadas y locales" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s02s03.html">10.2.3. El uso de los espacios de nombres</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">10.3.2. Clases anidadas y locales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.3. Miembros estáticos en C++">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6651152"></a>10.3. Miembros estáticos en C++</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      A veces se necesita un único espacio de almacenamiento para
+      utilizado por todos los objetos de una clase. En C, podría usar
+      una variable global pero eso no es muy seguro. Los datos
+      globales pueden ser modificados por todo el mundo y su nombre
+      puede chocar con otros idénticos si es un proyecto grande. Sería
+      ideal si los datos pudiesen almacenarse como si fuesen
+      globales pero ocultos dentro de una clase y claramente asociados
+      con esa clase.
+    </p>
+      <p>
+      Esto es posible usando atributos <code class="keyword">static</code>. Existe una
+      única porción de espacio para los atributos <code class="keyword">static</code>,
+      independientemente del número de objetos de dicha clase que se
+      hayan creado. Todos los objetos comparten el mismo espacio de
+      almacenamiento <code class="keyword">static</code> para ese atributo, constituyendo
+      una forma de «comunicarse» entre ellos. Pero los
+      datos <code class="keyword">static</code> pertenecen a la clase; su nombre está
+      restringido al interior de la clase y puede ser <code class="keyword">public</code>,
+      <code class="keyword">private</code> o <code class="keyword">protected</code>.
+    </p>
+      <div class="sect2" title="10.3.1. Definición del almacenamiento para atributos estáticos">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6657008"></a>10.3.1. Definición del almacenamiento para atributos estáticos</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Puesto que los datos <code class="keyword">static</code> tienen una única porción
+	de memoria donde almacenarse, independientemente del número de
+	objetos creados, esa porción debe ser definida en un único
+	sitio.  El compilador no reservará espacio de almacenamiento
+	por usted. El enlazador reportará un error si un atributo
+	miembro es declarado pero no definido.
+      </p>
+        <p>
+	La definición debe realizarse fuera de la clase (no se permite
+	el uso de la sentencia <code class="keyword">inline</code>), y sólo está permitida
+	una definición. Es por ello que habitualmente se incluye en el
+	fichero de implementación de la clase. La sintaxis suele traer
+	problemas, pero en realidad es bastante lógica. Por ejemplo,
+	si crea un atributo estático dentro de una clase de la
+	siguiente forma:
+      </p>
+        <pre class="programlisting">
+<span class="hl kwc">class</span> A <span class="hl opt">{</span>
+  <span class="hl kwb">static int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">//...</span>
+<span class="hl opt">};</span>
+</pre>
+        <p>
+	Deberá definir el almacenamiento para ese atributo estático en
+	el fichero de definición de la siguiente manera:
+      </p>
+        <pre class="programlisting">
+<span class="hl kwb">int</span> A<span class="hl opt">::</span>i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+</pre>
+        <p>
+	Si quisiera definir una variable global ordinaria, debería
+	utilizar
+      </p>
+        <pre class="programlisting">
+<span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+</pre>
+        <p>
+	pero aquí, el operador de resolución de ámbito y el nombre de
+	la clase se utilizan para especificar <code class="code">A::i</code>.
+      </p>
+        <p>
+	Algunas personas tienen problemas con la idea que
+	<code class="code">A::i</code> es <code class="keyword">private</code>, y pese a ello parece
+	haber algo que lo está manipulando abiertamente. ¿No rompe
+	esto el mecanismo de protección? Ésta es una práctica
+	completamente segura por dos razones. Primera, el único sitio
+	donde esta inicialización es legal es en la
+	definición. Efectivamente, si el dato <code class="keyword">static</code> fuese un
+	objeto con un constructor, habría llamado al constructor en
+	lugar de utilizar el operador <code class="literal">=</code>. Segundo,
+	una vez se ha realizado la definición, el usuario final no
+	puede hacer una segunda definición puesto que el enlazador
+	indicaría un error. Y el creador de la clase está forzado a
+	crear la definición o el código no enlazaría en las
+	pruebas. Esto asegura que la definición sólo sucede una vez y
+	que es el creador de la clase quien la lleva a cabo.
+      </p>
+        <p>
+	La expresión completa de inicialización para un atributo
+	estático se realiza en el ámbito de la clase.  Por ejemplo,
+      </p>
+        <div class="example">
+          <a id="idp6666760"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:Statinit.cpp</span>
+<span class="hl slc">// Scope of static initializer</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> x <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> WithStatic <span class="hl opt">{</span>
+  <span class="hl kwb">static int</span> x<span class="hl opt">;</span>
+  <span class="hl kwb">static int</span> y<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;WithStatic::x = &quot;</span> <span class="hl opt">&lt;&lt;</span> x <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;WithStatic::y = &quot;</span> <span class="hl opt">&lt;&lt;</span> y <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> WithStatic<span class="hl opt">::</span>x <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<span class="hl kwb">int</span> WithStatic<span class="hl opt">::</span>y <span class="hl opt">=</span> x <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<span class="hl slc">// WithStatic::x NOT ::x</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  WithStatic ws<span class="hl opt">;</span>
+  ws<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.18. C10/Statinit.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Aquí el calificador <code class="code">WithStatic::</code> extiende el
+	ámbito de <code class="classname">WithStatic</code> a la definición
+	completa.
+      </p>
+        <div class="sect3" title="Inicialización de vectores estáticos">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6669000"></a>Inicialización de vectores estáticos</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  El <a class="link" href="C08.html" title="8: Constantes">capítulo 8</a> introdujo una
+	  variable <code class="code">static const</code> que le permite definir un
+	  valor constante dentro del cuerpo de una clase. También es
+	  posible crear arrays de objetos estáticos, ya sean
+	  constantes o no constantes. La sintaxis es razonablemente
+	  consistente:
+	</p>
+          <div class="example">
+            <a id="idp6670736"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:StaticArray.cpp</span>
+<span class="hl slc">// Initializing static arrays in classes</span>
+<span class="hl kwc">class</span> Values <span class="hl opt">{</span>
+  <span class="hl slc">// static consts are initialized in-place:</span>
+  <span class="hl kwb">static const int</span> scSize <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+  <span class="hl kwb">static const long</span> scLong <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+  <span class="hl slc">// Automatic counting works with static arrays.</span>
+  <span class="hl slc">// Arrays, Non-integral and non-const statics </span>
+  <span class="hl slc">// must be initialized externally:</span>
+  <span class="hl kwb">static const int</span> scInts<span class="hl opt">[];</span>
+  <span class="hl kwb">static const long</span> scLongs<span class="hl opt">[];</span>
+  <span class="hl kwb">static const float</span> scTable<span class="hl opt">[];</span>
+  <span class="hl kwb">static const char</span> scLetters<span class="hl opt">[];</span>
+  <span class="hl kwb">static int</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">static const float</span> scFloat<span class="hl opt">;</span>
+  <span class="hl kwb">static float</span> table<span class="hl opt">[];</span>
+  <span class="hl kwb">static char</span> letters<span class="hl opt">[];</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> Values<span class="hl opt">::</span>size <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+<span class="hl kwb">const float</span> Values<span class="hl opt">::</span>scFloat <span class="hl opt">=</span> <span class="hl num">1.1</span><span class="hl opt">;</span>
+
+<span class="hl kwb">const int</span> Values<span class="hl opt">::</span>scInts<span class="hl opt">[] = {</span>
+  <span class="hl num">99</span><span class="hl opt">,</span> <span class="hl num">47</span><span class="hl opt">,</span> <span class="hl num">33</span><span class="hl opt">,</span> <span class="hl num">11</span><span class="hl opt">,</span> <span class="hl num">7</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">const long</span> Values<span class="hl opt">::</span>scLongs<span class="hl opt">[] = {</span>
+  <span class="hl num">99</span><span class="hl opt">,</span> <span class="hl num">47</span><span class="hl opt">,</span> <span class="hl num">33</span><span class="hl opt">,</span> <span class="hl num">11</span><span class="hl opt">,</span> <span class="hl num">7</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">const float</span> Values<span class="hl opt">::</span>scTable<span class="hl opt">[] = {</span>
+  <span class="hl num">1.1</span><span class="hl opt">,</span> <span class="hl num">2.2</span><span class="hl opt">,</span> <span class="hl num">3.3</span><span class="hl opt">,</span> <span class="hl num">4.4</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">const char</span> Values<span class="hl opt">::</span>scLetters<span class="hl opt">[] = {</span>
+  <span class="hl str">'a'</span><span class="hl opt">,</span> <span class="hl str">'b'</span><span class="hl opt">,</span> <span class="hl str">'c'</span><span class="hl opt">,</span> <span class="hl str">'d'</span><span class="hl opt">,</span> <span class="hl str">'e'</span><span class="hl opt">,</span>
+  <span class="hl str">'f'</span><span class="hl opt">,</span> <span class="hl str">'g'</span><span class="hl opt">,</span> <span class="hl str">'h'</span><span class="hl opt">,</span> <span class="hl str">'i'</span><span class="hl opt">,</span> <span class="hl str">'j'</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">float</span> Values<span class="hl opt">::</span>table<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">] = {</span>
+  <span class="hl num">1.1</span><span class="hl opt">,</span> <span class="hl num">2.2</span><span class="hl opt">,</span> <span class="hl num">3.3</span><span class="hl opt">,</span> <span class="hl num">4.4</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">char</span> Values<span class="hl opt">::</span>letters<span class="hl opt">[</span><span class="hl num">10</span><span class="hl opt">] = {</span>
+  <span class="hl str">'a'</span><span class="hl opt">,</span> <span class="hl str">'b'</span><span class="hl opt">,</span> <span class="hl str">'c'</span><span class="hl opt">,</span> <span class="hl str">'d'</span><span class="hl opt">,</span> <span class="hl str">'e'</span><span class="hl opt">,</span>
+  <span class="hl str">'f'</span><span class="hl opt">,</span> <span class="hl str">'g'</span><span class="hl opt">,</span> <span class="hl str">'h'</span><span class="hl opt">,</span> <span class="hl str">'i'</span><span class="hl opt">,</span> <span class="hl str">'j'</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span> Values v<span class="hl opt">; }</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.19. C10/StaticArray.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  Usando <code class="code">static const</code> de tipos enteros puede
+	  realizar las definiciones dentro de la clase, pero para
+	  cualquier otro tipo (incluyendo listas de enteros, incluso
+	  si estos son <code class="code">static const</code>) debe realizar una
+	  única definición externa para el atributo. Estas
+	  definiciones tienen enlazado interno, por lo que pueden
+	  incluirse en ficheros de cabecera. La sintaxis para
+	  inicializar listas estáticas es la misma que para cualquier
+	  agregado, incluyendo el conteo automático<code class="literal">automatic counting</code>.
+	</p>
+          <p>
+	  También puede crear objetos <code class="code">static const</code> de
+	  tipos de clase y listas de dichos objetos. De todas formas,
+	  no puede inicializarlos utilizando la sintaxis tipo
+	  «inline» permitida para <code class="code">static
+	  const</code> de tipos enteros básicos:
+	</p>
+          <div class="example">
+            <a id="idp6676760"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:StaticObjectArrays.cpp</span>
+<span class="hl slc">// Static arrays of class objects</span>
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Stat <span class="hl opt">{</span>
+  <span class="hl slc">// This doesn't work, although </span>
+  <span class="hl slc">// you might want it to:</span>
+<span class="hl slc">//!  static const X x(100);</span>
+  <span class="hl slc">// Both const and non-const static class </span>
+  <span class="hl slc">// objects must be initialized externally:</span>
+  <span class="hl kwb">static</span> X x2<span class="hl opt">;</span>
+  <span class="hl kwb">static</span> X xTable2<span class="hl opt">[];</span>
+  <span class="hl kwb">static const</span> X x3<span class="hl opt">;</span>
+  <span class="hl kwb">static const</span> X xTable3<span class="hl opt">[];</span>
+<span class="hl opt">};</span>
+
+X Stat<span class="hl opt">::</span><span class="hl kwd">x2</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+
+X Stat<span class="hl opt">::</span>xTable2<span class="hl opt">[] = {</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">3</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">4</span><span class="hl opt">)</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">const</span> X Stat<span class="hl opt">::</span><span class="hl kwd">x3</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+
+<span class="hl kwb">const</span> X Stat<span class="hl opt">::</span>xTable3<span class="hl opt">[] = {</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">3</span><span class="hl opt">),</span> <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl num">4</span><span class="hl opt">)</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span> Stat v<span class="hl opt">; }</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.20. C10/StaticObjectArrays.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  La inicialización de listas estáticas de objetos tanto
+	  constantes como no constantes debe realizarse de la misma
+	  manera, siguiendo la típica sintaxis de definición estática.
+	</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s02s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s02s03.html">10.2.3. El uso de los espacios de nombres</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">10.3.2. Clases anidadas y locales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

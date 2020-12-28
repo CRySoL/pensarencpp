@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>4.7. Conveciones para los ficheros de cabecera</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C04.html" title="4: Abstracción de Datos" />
+    <link rel="prev" href="ch04s06.html" title="4.6. Detalles del objeto" />
+    <link rel="next" href="ch04s07s02.html" title="4.7.2. El problema de la declaración múltiple" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s06.html">4.6. Detalles del objeto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s07s02.html">4.7.2. El problema de la declaración múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s07s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="4.7. Conveciones para los ficheros de cabecera">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5385192"></a>4.7. Conveciones para los ficheros de cabecera</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Cuando se crea una <code class="keyword">struct</code> que contiene
+      funciones miembro, se está creando un nuevo tipo de dato. En
+      general, se intenta que ese tipo sea fácilmente accesible. En
+      resumen, se quiere que la interfaz (la declaración) esté separada
+      de la implmentación (la definición de los métodos) de
+      modo que la implementación pueda cambiar sin obligar a recompilar
+      el sistema completo. Eso se consigue poniendo la declaración
+      del nuevo tipo en un fichero de cabecera.
+    </p>
+      <p>
+      Cuando yo aprendí a programar en C, el fichero de cabecera era
+      un misterio para mi. Muchos libros de C no hacen hincapié, y el
+      compilador no obliga a hacer la declaración de las funciones,
+      así que parecía algo opcional la mayor parte de las veces,
+      excepto cuando se declaraban estrucutras. En C++ el uso de los
+      ficheros de cabecera se vuelve claro como el cristal. Son
+      prácticamente obligatorios para el desarrollo de programas
+      sencillos, y en ellos podrá información muy específica:
+      declaraciones. El fichero de cabecera informa al compilador de
+      lo que hay disponible en la librería. Puede usar la librería
+      incluso si sólo se dispone del fichero de cabecera y el fichero
+      objeto o el fichero de librería; no necesita disponer del código
+      fuente del fichero <code class="filename">cpp</code>. En el fichero de
+      cabecera es donde se guarda la especificación de la interfaz.
+    </p>
+      <p>
+      Aunque el compilador no lo obliga, el mejor modo de construir
+      grandes proyectos en C es usar librerías; colecciones de
+      funciones asociadas en un mismo módulo objeto o librería, y usar
+      un fichero de cabecera para colocar todas las declaraciones de
+      las funciones. Es <span class="emphasis"><em>de rigor</em></span> en C++, Podría
+      meter cualquier función en una librería C, pero el tipo
+      abstracto de dato C++ determina las funciones que están
+      asociadas por medio del acceso común a los datos de una
+      <code class="keyword">struct</code>. Cualquier función miembro debe ser declarada en
+      la declaración de la <code class="keyword">struct</code>; no puede ponerse en otro
+      lugar. El uso de librerías de funciones fue fomentado en C y
+      institucionalizado en C++.
+    </p>
+      <div class="sect2" title="4.7.1. Importancia de los ficheros de cabecera">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5392264"></a>4.7.1. Importancia de los ficheros de cabecera</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Cuando se usa función de una librería, C le permite la
+	posibilidad de ignorar el fichero de cabecera y simplemente
+	declarar la función a mano. En el pasado, la gente hacía eso a
+	veces para acelerar un poquito la compilación evitando la
+	tarea de abrir e incluir el fichero (eso no supone ventaja
+	alguna con los compiladores modernos). Por ejemplo, la
+	siguiente es una declaración extremadamente vaga de la función
+	<code class="function">printf()</code> (de
+	<code class="filename">&lt;stdio.h&gt;</code>):
+      </p>
+        <pre class="programlisting">
+<span class="hl kwd">printf</span><span class="hl opt">(...);</span>
+</pre>
+        <p>
+	Estos puntos suspensivos <sup>[<a id="idp5394744" href="#ftn.idp5394744" class="footnote">49</a>]</sup> especifican una <span class="emphasis"><em>lista de argumentos
+	variable</em></span>
+	<sup>[<a id="idp5395576" href="#ftn.idp5395576" class="footnote">50</a>]</sup>,
+
+	que dice: la <code class="function">printf()</code> tiene algunos
+	argumentos, cada uno con su tipo, pero no se sabe
+	cuales. Simplemente, coge los argumentos que veas y
+	aceptalos. Usando este tipo de declaración, se suspenden todas
+	las comprobaciones de errores en los argumentos.
+      </p>
+        <p>
+	Esta práctica puede causar problemas sutiles. Si declara
+	funciones «a mano», en un fichero puede cometer
+	un error. Dado que el compilador sólo verá las declaraciones
+	hechas a mano en ese fichero, se adaptará al error. El
+	programa enlazará correctamente, pero el uso de la función en
+	ese fichero será defectuoso. Se trata de un error difícil de
+	encontrar, y que se puede evitar fácilmente usando el fichero
+	de cabecera correspondiente.
+      </p>
+        <p>
+	Si se colocan todas las declaraciones de funciones en un fichero
+	de cabecera, y se incluye ese fichero allí donde se use la
+	función se asegurará una declaración consistente a través del
+	sistema completo. También se asegurará de que la declaración y
+	la definición corresponden incluyendo el fichero de cabecera en
+	el fichero de definición.
+      </p>
+        <p>
+	Si declara una <code class="keyword">struct</code> en un fichero de cabecera en
+	C++, <span class="emphasis"><em>debe</em></span> incluir ese fichero allí donde
+	se use una <code class="keyword">struct</code> y también donde se definan los
+	métodos de la <code class="keyword">struct</code>. El compilador de C++ devolverá
+	un mensaje de error si intenta llamar a una función, o llamar
+	o definir un método, sin declararla primero. Imponiendo el uso
+	apropiado de los ficheros de cabecera, el lenguaje asegura la
+	consistencia de las librerías, y reduce el número de error
+	forzando que se use la misma interface en todas partes.
+      </p>
+        <p>
+	El fichero de cabecera es un contrato entre el programador de
+	la librería y el que la usa. El contrato describe las
+	estructuras de datos, expone los argumentos y valores de
+	retorno para las funciones. Dice, «Esto es lo que hace
+	mi librería». El usuario necesita parte de esta
+	información para desarrollar la aplicación, y el compilador
+	necesita toda ella para generar el código correcto. El usuario
+	de la <code class="keyword">struct</code> simplemente incluye el fichero de
+	cabecera, crea objetos (instancias) de esa <code class="keyword">struct</code>, y
+	enlaza con el módulo objeto o librería (es decir, el código
+	compilado)
+      </p>
+        <p>
+	El compilador impone el contrato obligando a declarar todas
+	las estruturas y funciones antes que puedan ser usadas y, en
+	el caso de métodos, antes de ser definidos. De ese modo, se le
+	obliga a poner las declaraciones en el fichero de cabecera e
+	incluirlo en el fichero en el que se definen los métodos y en
+	los ficheros en los que se usen. Como se incluye un único
+	fichero que describe la librería para todo el sistema, el
+	compilador puede asegurar la consistencia y evitar errores.
+      </p>
+        <p>
+	Hay ciertos asuntos a los que debe prestar atención para
+	organizar su código apropiadamente y escribir ficheros de
+	cabecera eficaces. La regla básica es «únicamente
+	declaraciones», es decir, sólo información para el
+	compiladore pero nada que requiera alojamiento en memoria ya
+	sea generando código o creando variables. Esto es así porque
+	el fichero de cabecera normalmente se incluye en varias
+	unidades de traducción en un mismo proyecto, y si el
+	almacenamiento para un identificador se pide en más de un
+	sitio, el enlazador indicará un error de definición múltiple
+	(ésta es la <span class="emphasis"><em>regla de definición única</em></span> de
+	C++: Se puede declarar tantas veces como se quiera, pero sólo
+	puede haber una definición real para cada cosa).
+      </p>
+        <p>
+	Esta norma no es completamente estricta. Si se define una
+	variable que es «file static» (que tiene
+	visibilidad sólo en un fichero) dentro de un fichero de
+	cabecera, habrá múltiples instancias de ese dato a lo largo
+	del proyecto, pero no causará un colisión en el enlazador
+	<sup>[<a id="idp5409040" href="#ftn.idp5409040" class="footnote">51</a>]</sup>. Básicamente, debe evitar cualquier cosa en los
+	ficheros de cabecera que pueda causar una ambigüedad en tiempo
+	de enlazado.
+      </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5394744" href="#idp5394744" class="para">49</a>] </sup>(N. de
+	T. <span class="emphasis"><em>ellipsis</em></span>) en inglés)</p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5395576" href="#idp5395576" class="para">50</a>] </sup>
+	    Para escribir una definición de función que toma una lista
+	    de argumentos realmente variable, debe usar
+	    <span class="emphasis"><em>varargs</em></span>, aunque se debería evitar en
+	    C++. Puede encontar información detallada sobre el uso de
+	    <span class="emphasis"><em>varargs</em></span> en un manual de C.
+	  </p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5409040" href="#idp5409040" class="para">51</a>] </sup>
+	    Sin embargo, en C++ estándar «file static» es
+	    una característica obsoleta.
+	  </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s06.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s06.html">4.6. Detalles del objeto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s07s02.html">4.7.2. El problema de la declaración múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s07s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

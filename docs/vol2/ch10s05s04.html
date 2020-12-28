@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.5.4. Interrupción</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch10s05.html" title="10.5. Finalización de tareas" />
+    <link rel="prev" href="ch10s05s03.html" title="10.5.3. FIXME:Teminación al bloquear" />
+    <link rel="next" href="ch10s06.html" title="10.6. Cooperación entre hilos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s03.html">10.5.3. FIXME:Teminación al bloquear</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06.html">10.6. Cooperación entre hilos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="10.5.4. Interrupción">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5446728"></a>10.5.4. Interrupción</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Tal y como podría imaginar, es mucho más FIXMEmessier salir de
+	forma brusca en mitad de la función Runnable::run() que si
+	espera a que esa función llegue al test de isCanceled() (o a
+	algún otro lugar donde el programador esté preparado para
+	salir de la función). Cuando sale de una tarea bloqueada,
+	podría necesitar destruir objetos y liberar recursos. Debido a
+	esto, salir en mitad de un run() de una tarea, más que otra
+	cosa, consiste en lanzar una excepción, por lo que en
+	ZThreads, las excepciones se utilizan para este tipo de
+	terminación. (Esto roza el límite de un uso inapropiado de las
+	excepciones, porque significa que las utiliza para el control
+	de flujo.)[154] Para volver de esta manera a un buen estado
+	conocido a la hora de terminar una tarea, tenga en cuenta
+	cuidadosamente los caminos de ejecución de su código y libere
+	todo correctamente dentro de los bloques catch. Veremos esta
+	técnica en la presente sección.
+      </p>
+      <p>
+	Para finalizar un hilo bloqueado, la librería ZThread
+	proporciona la función Thread::interrupted(). Esta configura
+	el estado de interrupción para ese hilo. Un hilo con su estado
+	de interrupción configurado lanzará una Interrupted_Exception
+	si está bloqueado o si espera una operación bloqueante. El
+	estado de interrupción será restaurado cuando se haya lanzado
+	la excepción o si la tarea llama a Thread::interrupted(). Como
+	puede ver, Thread::interrupted() proporciona otra forma de
+	salir de su bucle run(), sin lanzar una excepción.
+      </p>
+      <p>
+	A continuación, un ejemplo que ilustra las bases de interrupt():
+      </p>
+      <div class="example">
+        <a id="idp5450360"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:Interrupting.cpp</span>
+<span class="hl slc">// Interrupting a blocked thread.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Blocked <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1000</span><span class="hl opt">);</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Waiting for get() in run():&quot;</span><span class="hl opt">;</span>
+      cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Caught Interrupted_Exception&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl slc">// Exit the task</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl kwa">new</span> Blocked<span class="hl opt">);</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>argc <span class="hl opt">&gt;</span> <span class="hl num">1</span><span class="hl opt">)</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1100</span><span class="hl opt">);</span>
+    t<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.26. C11/Interrupting.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Puede ver que, además de la inserción de cout, run() tiene dos
+	puntos donde puede ocurrir el bloqueo: la llamada a
+	Thread::sleep(1000) y la llamada a cin.get(). Dando cualquier
+	argumento por línea de comandos al programa, dirá a main()
+	que se duerma lo suficiente para que la tarea finalice su
+	sleep() y llame a cin.get().[155] Si no le da un argumento, el
+	sleep() de main() se ignora. Ahora, la llamada a interrupt()
+	ocurrirá mientras la tarea está dormida, y verá que esto
+	provoca que una Interrupted_Exception se lance. Si le da un
+	argumento por línea de comandos al programa, descubrirá que la
+	tarea no puede ser interrumpida si está bloqueada en la
+	entrada/salida. Esto es, puede interrumpir cualquier operación
+	bloqueante a excepción de una entrada/salida.[156]
+      </p>
+      <p>
+	Esto es un poco desconcertante si está creando un hilo que
+	ejecuta entrada/salida porque quiere decir que la
+	entrada/salida tiene posibilidades de bloquear su programa
+	multihilado. El problema es que, de nuevo, C++ no fue
+	diseñado con el sistema de hilos en mente; muy al contrario,
+	FIXMEpresupone que el hilado no existe. Por ello, la librería
+	iostream no ses thread-friendly. Si el nuevo estándar de C++
+	decide añadir soporte a hilos, la librería iostream podría
+	necesitar ser reconsiderada en el proceso. Bloqueo debido a un
+	mutex.
+
+      </p>
+      <p>
+	Si intenta llamar a una función cuyo mutes ha sido adquirido,
+	la tarea que llama será suspendida hasta que el mutex esté
+	accesible. El siguiente ejemplo comprueba si este tipo de
+	bloqueo es interrumpible:
+      </p>
+      <div class="example">
+        <a id="idp5455304"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:Interrupting2.cpp</span>
+<span class="hl slc">// Interrupting a thread blocked</span>
+<span class="hl slc">// with a synchronization guard.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Mutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> BlockedMutex <span class="hl opt">{</span>
+  Mutex lock<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">BlockedMutex</span><span class="hl opt">() {</span>
+    lock<span class="hl opt">.</span><span class="hl kwd">acquire</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>Mutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl slc">// This will never be available</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Blocked2 <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  BlockedMutex blocked<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Waiting for f() in BlockedMutex&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      blocked<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+      cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl slc">// Exit the task</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl kwa">new</span> Blocked2<span class="hl opt">);</span>
+    t<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.27. C11/Interrupting2.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La clase <code class="classname">BlockedMutex</code> tiene un
+	constructor que adquiere su propio
+	objeto <code class="classname">Mutex</code> y nunca lo libera. Por esa
+	razón, si intenta llamara a f(), siempre será bloqueado porque
+	el <code class="classname">Mutex</code> no puede ser
+	adquirido. En <code class="classname">Blocked2</code>, la función
+	run() se parará en la llamada blocked.f(). Cuando ejecute el
+	programa verá que, a diferencia de la llamada a iostream,
+	interrupt() puede salir de una llamada que está bloqueada por
+	un mutex.[157] Comprobación de una una interrupción.
+      </p>
+      <p>
+	Note que cuando llama a interrupt() sobre un hilo, la única
+	vez que ocurre la interrupción es cuando la tarea entra, o ya
+	está dentro, de una operación bloqueante (a excepción, como ya
+	ha visto, del caso de la entrada/salida, donde simplemente
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp5460032"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:Interrupting3.cpp {RunByHand}</span>
+<span class="hl slc">// General idiom for interrupting a task.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">const double</span> PI <span class="hl opt">=</span> <span class="hl num">3.14159265358979323846</span><span class="hl opt">;</span>
+<span class="hl kwb">const double</span> E <span class="hl opt">=</span> <span class="hl num">2.7182818284590452354</span><span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> NeedsCleanup <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">NeedsCleanup</span><span class="hl opt">(</span><span class="hl kwb">int</span> ident<span class="hl opt">) :</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;NeedsCleanup &quot;</span> <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">NeedsCleanup</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~NeedsCleanup &quot;</span> <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Blocked3 <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  <span class="hl kwc">volatile</span> <span class="hl kwb">double</span> d<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Blocked3</span><span class="hl opt">() :</span> <span class="hl kwd">d</span><span class="hl opt">(</span><span class="hl num">0.0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">try</span> <span class="hl opt">{</span>
+      <span class="hl kwa">while</span><span class="hl opt">(!</span>Thread<span class="hl opt">::</span><span class="hl kwd">interrupted</span><span class="hl opt">()) {</span>
+        point1<span class="hl opt">:</span>
+        NeedsCleanup <span class="hl kwd">n1</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Sleeping&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1000</span><span class="hl opt">);</span>
+        point2<span class="hl opt">:</span>
+        NeedsCleanup <span class="hl kwd">n2</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">);</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Calculating&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl slc">// A time-consuming, non-blocking operation:</span>
+        <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100000</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+          d <span class="hl opt">=</span> d <span class="hl opt">+ (</span>PI <span class="hl opt">+</span> E<span class="hl opt">) / (</span><span class="hl kwb">double</span><span class="hl opt">)</span>i<span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Exiting via while() test&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Interrupted_Exception<span class="hl opt">&amp;) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Exiting via Interrupted_Exception&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>argc <span class="hl opt">!=</span> <span class="hl num">2</span><span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;usage: &quot;</span> <span class="hl opt">&lt;&lt;</span> argv<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]</span>
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; delay-in-milliseconds&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwd">exit</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> delay <span class="hl opt">=</span> <span class="hl kwd">atoi</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl kwa">new</span> Blocked3<span class="hl opt">);</span>
+    Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span>delay<span class="hl opt">);</span>
+    t<span class="hl opt">.</span><span class="hl kwd">interrupt</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.28. C11/Interrupting3.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s05s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s05s03.html">10.5.3. FIXME:Teminación al bloquear</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch10s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s06.html">10.6. Cooperación entre hilos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.8. Herencia y la VTABLE</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s07.html" title="15.7. Clases base abstractas y funciones virtuales puras" />
+    <link rel="next" href="ch15s09.html" title="15.9. Sobrecargar y redefinir" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s07.html">15.7. Clases base abstractas y funciones virtuales puras</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s09.html">15.9. Sobrecargar y redefinir</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s09.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.8. Herencia y la VTABLE">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8184264"></a>15.8. Herencia y la VTABLE</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Es fácil imaginar lo que sucede cuando hay herencia y se
+      sobreescriben algunas de las funciones virtuales. El compilador
+      crea una nueva VTABLE para la nueva clase, e inserta las nuevas
+      direcciones de las funciones usando además las direcciones de las
+      funciones de la clase base para aquellas funciones virtuales que
+      no se hayan sobreescrito. De un modo u otro, para todos los
+      objetos que se puedan crear (es decir, aquellos que no tengan
+      funciones virtuales puras) existe un conjunto completo de
+      direcciones de funciones en la VTABLE, por lo que será imposible
+      hacer llamadas a una dirección que no esté en la VTABLE (lo cual
+      sería desastroso).
+    </p>
+      <p>
+      Pero ¿qué ocurre cuando se hereda y añade una nueva función
+      virtual en la clase derivada? Aquí hay un sencillo ejemplo:
+    </p>
+      <div class="example">
+        <a id="idp8186776"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:AddingVirtuals.cpp</span>
+<span class="hl slc">// Adding virtuals in derivation</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+  string pname<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Pet</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> petName<span class="hl opt">) :</span> <span class="hl kwd">pname</span><span class="hl opt">(</span>petName<span class="hl opt">) {}</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">name</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> pname<span class="hl opt">; }</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> petName<span class="hl opt">) :</span> <span class="hl kwd">Pet</span><span class="hl opt">(</span>petName<span class="hl opt">) {}</span>
+  <span class="hl slc">// New virtual function in the Dog class:</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">sit</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> Pet<span class="hl opt">::</span><span class="hl kwd">name</span><span class="hl opt">() +</span> <span class="hl str">&quot; sits&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  string <span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl slc">// Override</span>
+    <span class="hl kwa">return</span> Pet<span class="hl opt">::</span><span class="hl kwd">name</span><span class="hl opt">() +</span> <span class="hl str">&quot; says 'Bark!'&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Pet<span class="hl opt">*</span> p<span class="hl opt">[] = {</span><span class="hl kwa">new</span> <span class="hl kwd">Pet</span><span class="hl opt">(</span><span class="hl str">&quot;generic&quot;</span><span class="hl opt">),</span><span class="hl kwa">new</span> <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl str">&quot;bob&quot;</span><span class="hl opt">)};</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;p[0]-&gt;speak() = &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> p<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">]-&gt;</span><span class="hl kwd">speak</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;p[1]-&gt;speak() = &quot;</span>
+       <span class="hl opt">&lt;&lt;</span> p<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]-&gt;</span><span class="hl kwd">speak</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl slc">//! cout &lt;&lt; &quot;p[1]-&gt;sit() = &quot;</span>
+<span class="hl slc">//!      &lt;&lt; p[1]-&gt;sit() &lt;&lt; endl; // Illegal</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.8. C15/AddingVirtuals.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La clase <code class="classname">Pet</code> tiene dos funciones
+      virtuales: <code class="function">speak()</code> y
+      <code class="function">name()</code>. <code class="classname">Dog</code> añade una
+      tercera función virtual llamada <code class="function">sit()</code>, y
+      sobreescribe el significado de <code class="function">speak()</code>. Un
+      diagrama ayuda a visualizar qué está ocurriendo. Se muestran las
+      VTABLEs creadas por el compilador para <code class="classname">Pet</code>
+      y <code class="classname">Dog</code>:
+    </p>
+      <div class="figure">
+        <a id="idp8192104"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_19.png" align="middle" alt="Una nueva función virtual" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 15.4. Una nueva función virtual</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+      Hay que hacer notar, que el compilador mapea la dirección de
+      <code class="function">speak()</code> en exactamente el mismo lugar tanto
+      en la VTABLE de <code class="classname">Dog</code> como en la de
+      <code class="classname">Pet</code>. De igual forma, si una clase
+      <code class="classname">Pug</code> heredara de <code class="classname">Dog</code>,
+      su versión de <code class="function">sit()</code> ocuparía su lugar en la
+      VTABLE en la misma posición que en
+      <code class="classname">Dog</code>. Esto es debido a que el compilador
+      genera un código que usa un simple desplazamiento numérico en la
+      VTABLE para seleccionar una función virtual, como se vio con el
+      ejemplo en lenguaje ensamblador. Sin importar el subtipo en
+      concreto del objeto, su VTABLE está colocada de la misma forma por
+      lo que llamar a una función virtual se hará siempre del mismo
+      modo.
+    </p>
+      <p>
+      En este caso, sin embargo, el compilador está trabajando sólo con
+      un puntero a un objeto de la clase base. La clase base tiene
+      únicamente las funciones <code class="function">speak()</code> y
+      <code class="function">name()</code>, por lo que son a las únicas funciones
+      a las que el compilador permitirá acceder. ¿Cómo es posible saber
+      que se está trabajando con un objeto <code class="classname">Dog</code> si
+      sólo hay un puntero a un objeto de la clase base? El puntero
+      podría apuntar a algún otro tipo, que no tenga una función
+      <code class="function">sit()</code>. En este punto, puede o no tener otra
+      dirección a función en la VTABLE, pero en cualquiera de los casos,
+      hacer una llamada a una función virtual de esa VTABLE no es lo que
+      se desea hacer. De modo que el compilador hace su trabajo
+      impidiendo hacer llamadas virtuales a funciones que sólo existen
+      en las clases derivadas.
+    </p>
+      <p>
+      Hay algunos poco comunes casos en los cuales se sabe que el
+      puntero actualmente apunta al objeto de una subclase
+      específica. Si se quiere hacer una llamada a una función que sólo
+      exista en esa subclase, entonces hay que hacer un molde
+      (<span class="foreignphrase"><em class="foreignphrase">cast</em></span>) del puntero. Se puede quitar
+      el mensaje de error producido por el anterior programa con:
+    </p>
+      <pre class="programlisting">
+<span class="hl opt">((</span>Dog <span class="hl opt">*)</span> p<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">])-&gt;</span><span class="hl kwd">sit</span><span class="hl opt">()</span>
+</pre>
+      <p>
+      Aquí, parece saberse que <code class="literal">p[1]</code> apunta a un
+      objeto <code class="classname">Dog</code>, pero en general no se sabe. Si
+      el problema consiste en averiguar el tipo exacto de todos los
+      objetos, hay que volver a pensar porque posiblemente no se estén
+      usando las funciones virtuales de forma apropiada. Sin embargo,
+      hay algunas situaciones en las cuales el diseño funciona mejor (o
+      no hay otra elección) si se conoce el tipo exacto de todos los
+      objetos, por ejemplo aquellos incluidos en un contenedor
+      genérico. Este es el problema de la <span class="foreignphrase"><em class="foreignphrase">run time type
+      identification</em></span> o RTTI (identificación de tipos en
+      tiempo de ejecución).
+    </p>
+      <p>
+      RTTI sirve para moldear un puntero de una clase base y "bajarlo" a
+      un puntero de una clase derivada ("arriba" y "abajo", en inglés
+      "up" y "down" respectivamente, se refieren al típico diagrama de
+      clases, con la clase base arriba). Hacer el molde hacia arriba
+      (<span class="foreignphrase"><em class="foreignphrase">upcast</em></span>) funciona de forma
+      automática, sin coacciones, debido a que es completamente
+      seguro. Hacer el molde en sentido descendente
+      (<span class="foreignphrase"><em class="foreignphrase">downcast</em></span>) es inseguro porque no
+      hay información en tiempo de compilación sobre los tipos actuales,
+      por lo que hay que saber exactamente el tipo al que pertenece. Si
+      se hace un molde al tipo equivocado habrá problemas.
+    </p>
+      <p>
+      RTTI se describe posteriormente en este capítulo, y el Volumen 2
+      de este libro tiene un capítulo dedicado al tema.
+    </p>
+      <div class="sect2" title="15.8.1. FIXME: Object slicing">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8206912"></a>15.8.1. FIXME: Object slicing</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Existe una gran diferencia entre pasar una dirección de un
+	objeto a pasar el objeto por valor cuando se usa el
+	polimorfismo. Todos los ejemplos que se han visto, y
+	prácticamente todos los ejemplos que se verán, se pasan por
+	referencia y no por valor. Esto se debe a que todas las
+	direcciones tienen el mismo tamaño<sup>[<a id="idp8208048" href="#ftn.idp8208048" class="footnote">79</a>]</sup>, por lo que pasar
+	la dirección de un tipo derivado (que normalmente será un objeto
+	más grande) es lo mismo que pasar la dirección de un objeto del
+	tipo base (que es normalmente más pequeño). Como se explicó
+	anteriormente, éste es el objetivo cuando se usa el polimorfismo
+	- el código que maneja un tipo base puede, también manejar
+	objetos derivados de forma transparente
+      </p>
+        <p>
+	Si se hace un <span class="foreignphrase"><em class="foreignphrase">upcast</em></span> de un objeto
+	en vez de usar un puntero o una referencia, pasará algo que
+	puede resultar sorprendente: el objeto es "truncado", recortado,
+	hasta que lo que quede sea un subobjeto que corresponda al tipo
+	destino del molde. En el siguiente ejemplo se puede ver que
+	ocurre cuando un objeto es truncado (<span class="foreignphrase"><em class="foreignphrase">object
+	slicing</em></span>):
+      </p>
+        <div class="example">
+          <a id="idp8210816"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C15:ObjectSlicing.cpp</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+  string pname<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Pet</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">) :</span> <span class="hl kwd">pname</span><span class="hl opt">(</span>name<span class="hl opt">) {}</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">name</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> pname<span class="hl opt">; }</span>
+  <span class="hl kwc">virtual</span> string <span class="hl kwd">description</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> <span class="hl str">&quot;This is &quot;</span> <span class="hl opt">+</span> pname<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Dog <span class="hl opt">:</span> <span class="hl kwc">public</span> Pet <span class="hl opt">{</span>
+  string favoriteActivity<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Dog</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> name<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> activity<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">Pet</span><span class="hl opt">(</span>name<span class="hl opt">),</span> <span class="hl kwd">favoriteActivity</span><span class="hl opt">(</span>activity<span class="hl opt">) {}</span>
+  string <span class="hl kwd">description</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> Pet<span class="hl opt">::</span><span class="hl kwd">name</span><span class="hl opt">() +</span> <span class="hl str">&quot; likes to &quot;</span> <span class="hl opt">+</span>
+      favoriteActivity<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">describe</span><span class="hl opt">(</span>Pet p<span class="hl opt">) {</span> <span class="hl slc">// Slices the object</span>
+  cout <span class="hl opt">&lt;&lt;</span> p<span class="hl opt">.</span><span class="hl kwd">description</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Pet <span class="hl kwd">p</span><span class="hl opt">(</span><span class="hl str">&quot;Alfred&quot;</span><span class="hl opt">);</span>
+  Dog <span class="hl kwd">d</span><span class="hl opt">(</span><span class="hl str">&quot;Fluffy&quot;</span><span class="hl opt">,</span> <span class="hl str">&quot;sleep&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">describe</span><span class="hl opt">(</span>p<span class="hl opt">);</span>
+  <span class="hl kwd">describe</span><span class="hl opt">(</span>d<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 15.9. C15/ObjectSlicing.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	La función <code class="function">describe()</code> recibe un objeto de
+	tipo <code class="classname">Pet</code> <span class="emphasis"><em>por valor</em></span>.
+	Después llama a la función virtual
+	<code class="function">description()</code> del objeto
+	<code class="classname">Pet</code>. En el <code class="function">main()</code>,
+	se puede esperar que la primera llamada produzca "This is
+	Alfred", y que la segunda produzca "Fluffy likes to
+	sleep". De hecho, ambas usan la versión
+	<code class="function">description()</code> de la clase base.
+      </p>
+        <p>
+	En este programa están sucediendo dos cosas. Primero, debido a
+	que <code class="function">describe()</code> acepta un objeto
+	<code class="classname">Pet</code> (en vez de un puntero o una
+	referencia), cualquier llamada a <code class="function">describe()</code>
+	creará un objeto del tamaño de <code class="classname">Pet</code> que
+	será puesto en la pila y posteriormente limpiado cuando acabe la
+	llamada. Esto significa que si se pasa a
+	<code class="function">describe()</code>un objeto de una clase heredada
+	de <code class="classname">Pet</code>, el compilador lo acepta, pero
+	copia únicamente el fragmento del objeto que corresponda a una
+	<code class="classname">Pet</code>. Se deshecha el fragmento derivado
+	del objeto:
+      </p>
+        <div class="figure">
+          <a id="idp8218464"></a>
+          <div class="figure-contents">
+            <div class="mediaobject" align="center">
+              <img src="./images/V1_20.png" align="middle" alt="Object slicing" />
+            </div>
+          </div>
+          <p class="title">
+            <strong>Figura 15.5. Object slicing</strong>
+          </p>
+        </div>
+        <br class="figure-break" />
+        <p>
+	Ahora queda la cuestión de la llamada a la función
+	virtual. <code class="function">Dog::description()</code> hace uso de
+	trozos de <code class="classname">Pet</code> (que todavía existe) y de
+	<code class="classname">Dog</code>, ¡el cual no existe porque fue
+	truncado!. Entonces, ¿Qué ocurre cuando se llama a la función
+	virtual?
+      </p>
+        <p>
+	El desastre es evitado porque el objeto es pasado por
+	valor. Debido a esto, el compilador conoce el tipo exacto del
+	objeto porque el objeto derivado ha sido forzado a transformarse
+	en un objeto de la clase base. Cuando se pasa por valor, se usa
+	el constructor de copia del objeto <code class="classname">Pet</code>,
+	que se encarga de inicializar el VPTR a la VTABLE de
+	<code class="classname">Pet</code> y copia sólo las partes del objeto
+	que correspondan a <code class="classname">Pet</code>. En el ejemplo no
+	hay un constructor de copia explícito por lo que el compilador
+	genera uno. Quitando interpretaciones, el objeto se convierte
+	realmente en una <code class="classname">Pet</code> durante el
+	truncado.
+      </p>
+        <p>
+	El <span class="foreignphrase"><em class="foreignphrase">Object Slicing</em></span> quita parte del
+	objeto existente y se copia en un nuevo objeto, en vez de
+	simplemente cambiar el significado de una dirección cuando se
+	usa un puntero o una referencia. Debido a esto, el
+	<span class="foreignphrase"><em class="foreignphrase">upcasting</em></span> a un objeto no se usa a
+	menudo; de hecho, normalmente, es algo a controlar y
+	prevenir. Hay que resaltar que en este ejemplo, si
+	<code class="function">description()</code> fuera una función virtual
+	pura en la clase base (lo cual es bastante razonable debido a
+	que realmente no hace nada en la clase base), entonces el
+	compilador impedirá el <span class="foreignphrase"><em class="foreignphrase">object
+	slicing</em></span> debido a que no se puede "crear" un
+	objeto de la clase base (que al fin y al cabo es lo que sucede
+	cuando se hace un upcast por valor). ésto podría ser el valor
+	más importante de las funciones virtuales puras: prevenir el
+	<span class="foreignphrase"><em class="foreignphrase">object slicing</em></span> generando un error
+	en tiempo de compilación si alguien lo intenta hacer.
+      </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp8208048" href="#idp8208048" class="para">79</a>] </sup>
+	    Actualmente, no todos los punteros tienen el mismo tamaño en
+	    todos las máquinas. Sin embargo, en el contexto de esta
+	    discusión se pueden considerar iguales.
+	  </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s07.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s07.html">15.7. Clases base abstractas y funciones virtuales puras</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s09.html">15.9. Sobrecargar y redefinir</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s09.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

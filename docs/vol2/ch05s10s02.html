@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.10.2.</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch05s10.html" title="5.10." />
+    <link rel="prev" href="ch05s10.html" title="5.10." />
+    <link rel="next" href="ch05s10s03.html" title="5.10.3." />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s10.html">5.10.  </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s10s03.html">5.10.3.  </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s10s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="5.10.2.">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp4329776"></a>5.10.2.  </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+
+      </p>
+      <div class="example">
+        <a id="idp4330288"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:Showerr.cpp {RunByHand}</span>
+<span class="hl slc">// Un-comment error generators.</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;cstdio&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;sstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">const</span> string USAGE <span class="hl opt">=</span>
+  <span class="hl str">&quot;usage: showerr filename chapnum</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;where filename is a C++ source file</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;and chapnum is the chapter name it's in.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;Finds lines commented with //! and removes</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;the comment, appending //(#) where # is unique</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;across all files, so you can determine</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;if your compiler finds the error.</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;showerr /r</span><span class="hl esc">\n</span><span class="hl str">&quot;</span>
+  <span class="hl str">&quot;resets the unique counter.&quot;</span><span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Showerr <span class="hl opt">{</span>
+  <span class="hl kwb">const int</span> CHAP<span class="hl opt">;</span>
+  <span class="hl kwb">const</span> string MARKER<span class="hl opt">,</span> FNAME<span class="hl opt">;</span>
+  <span class="hl slc">// File containing error number counter:</span>
+  <span class="hl kwb">const</span> string ERRNUM<span class="hl opt">;</span>
+  <span class="hl slc">// File containing error lines:</span>
+  <span class="hl kwb">const</span> string ERRFILE<span class="hl opt">;</span>
+  stringstream edited<span class="hl opt">;</span> <span class="hl slc">// Edited file</span>
+  <span class="hl kwb">int</span> counter<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Showerr</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> f<span class="hl opt">,</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> en<span class="hl opt">,</span>
+    <span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> ef<span class="hl opt">,</span> <span class="hl kwb">int</span> c<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">CHAP</span><span class="hl opt">(</span>c<span class="hl opt">),</span> <span class="hl kwd">MARKER</span><span class="hl opt">(</span><span class="hl str">&quot;//!&quot;</span><span class="hl opt">),</span> <span class="hl kwd">FNAME</span><span class="hl opt">(</span>f<span class="hl opt">),</span> <span class="hl kwd">ERRNUM</span><span class="hl opt">(</span>en<span class="hl opt">),</span>
+    <span class="hl kwd">ERRFILE</span><span class="hl opt">(</span>ef<span class="hl opt">),</span> <span class="hl kwd">counter</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">replaceErrors</span><span class="hl opt">() {</span>
+    ifstream <span class="hl kwd">infile</span><span class="hl opt">(</span>FNAME<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>infile<span class="hl opt">,</span> FNAME<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    ifstream <span class="hl kwd">count</span><span class="hl opt">(</span>ERRNUM<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>count<span class="hl opt">)</span> count <span class="hl opt">&gt;&gt;</span> counter<span class="hl opt">;</span>
+    <span class="hl kwb">int</span> linecount <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+    string buf<span class="hl opt">;</span>
+    ofstream <span class="hl kwd">errlines</span><span class="hl opt">(</span>ERRFILE<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> ios<span class="hl opt">::</span>app<span class="hl opt">);</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>errlines<span class="hl opt">,</span> ERRFILE<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>infile<span class="hl opt">,</span> buf<span class="hl opt">)) {</span>
+      <span class="hl slc">// Find marker at start of line:</span>
+      <span class="hl kwb">size_t</span> pos <span class="hl opt">=</span> buf<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span>MARKER<span class="hl opt">);</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>pos <span class="hl opt">!=</span> string<span class="hl opt">::</span>npos<span class="hl opt">) {</span>
+        <span class="hl slc">// Erase marker:</span>
+        buf<span class="hl opt">.</span><span class="hl kwd">erase</span><span class="hl opt">(</span>pos<span class="hl opt">,</span> MARKER<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() +</span> <span class="hl num">1</span><span class="hl opt">);</span>
+        <span class="hl slc">// Append counter &amp; error info:</span>
+        ostringstream out<span class="hl opt">;</span>
+        out <span class="hl opt">&lt;&lt;</span> buf <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; // (&quot;</span> <span class="hl opt">&lt;&lt; ++</span>counter <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) &quot;</span>
+            <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Chapter &quot;</span> <span class="hl opt">&lt;&lt;</span> CHAP
+            <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; File: &quot;</span> <span class="hl opt">&lt;&lt;</span> FNAME
+            <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; Line &quot;</span> <span class="hl opt">&lt;&lt;</span> linecount <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        edited <span class="hl opt">&lt;&lt;</span> out<span class="hl opt">.</span><span class="hl kwd">str</span><span class="hl opt">();</span>
+        errlines <span class="hl opt">&lt;&lt;</span> out<span class="hl opt">.</span><span class="hl kwd">str</span><span class="hl opt">();</span> <span class="hl slc">// Append error file</span>
+      <span class="hl opt">}</span>
+      <span class="hl kwa">else</span>
+        edited <span class="hl opt">&lt;&lt;</span> buf <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;</span> <span class="hl slc">// Just copy</span>
+      <span class="hl opt">++</span>linecount<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">saveFiles</span><span class="hl opt">() {</span>
+    ofstream <span class="hl kwd">outfile</span><span class="hl opt">(</span>FNAME<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span> <span class="hl slc">// Overwrites</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>outfile<span class="hl opt">,</span> FNAME<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    outfile <span class="hl opt">&lt;&lt;</span> edited<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span>
+    ofstream <span class="hl kwd">count</span><span class="hl opt">(</span>ERRNUM<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span> <span class="hl slc">// Overwrites</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>count<span class="hl opt">,</span> ERRNUM<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+    count <span class="hl opt">&lt;&lt;</span> counter<span class="hl opt">;</span> <span class="hl slc">// Save new counter</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwb">const</span> string <span class="hl kwd">ERRCOUNT</span><span class="hl opt">(</span><span class="hl str">&quot;../errnum.txt&quot;</span><span class="hl opt">),</span>
+    <span class="hl kwd">ERRFILE</span><span class="hl opt">(</span><span class="hl str">&quot;../errlines.txt&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">requireMinArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">,</span> USAGE<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">][</span><span class="hl num">0</span><span class="hl opt">] ==</span> <span class="hl str">'/'</span> <span class="hl opt">||</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">][</span><span class="hl num">0</span><span class="hl opt">] ==</span> <span class="hl str">'-'</span><span class="hl opt">) {</span>
+    <span class="hl slc">// Allow for other switches:</span>
+    <span class="hl kwa">switch</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">][</span><span class="hl num">1</span><span class="hl opt">]) {</span>
+      <span class="hl kwa">case</span> <span class="hl str">'r'</span><span class="hl opt">:</span> <span class="hl kwa">case</span> <span class="hl str">'R'</span><span class="hl opt">:</span>
+        cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;reset counter&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl kwd">remove</span><span class="hl opt">(</span>ERRCOUNT<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span> <span class="hl slc">// Delete files</span>
+        <span class="hl kwd">remove</span><span class="hl opt">(</span>ERRFILE<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+        <span class="hl kwa">return</span> EXIT_SUCCESS<span class="hl opt">;</span>
+      <span class="hl kwa">default</span><span class="hl opt">:</span>
+        cerr <span class="hl opt">&lt;&lt;</span> USAGE <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+        <span class="hl kwa">return</span> EXIT_FAILURE<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>argc <span class="hl opt">==</span> <span class="hl num">3</span><span class="hl opt">) {</span>
+    Showerr <span class="hl kwd">s</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">],</span> ERRCOUNT<span class="hl opt">,</span> ERRFILE<span class="hl opt">,</span> <span class="hl kwd">atoi</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">2</span><span class="hl opt">]));</span>
+    s<span class="hl opt">.</span><span class="hl kwd">replaceErrors</span><span class="hl opt">();</span>
+    s<span class="hl opt">.</span><span class="hl kwd">saveFiles</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.22. C04/Showerr.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+      </p>
+      <p>
+
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s10.html">5.10.  </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s10s03.html">5.10.3.  </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s10s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

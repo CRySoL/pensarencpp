@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.5.2. El jardín ornamental</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s05.html" title="9.5. Finalización de tareas" />
+    <link rel="prev" href="ch09s05.html" title="9.5. Finalización de tareas" />
+    <link rel="next" href="ch09s05s03.html" title="9.5.3. FIXME:Teminación al bloquear" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Finalización de tareas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s05s03.html">9.5.3. FIXME:Teminación al bloquear</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s05s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.5.2. El jardín ornamental">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5155008"></a>9.5.2. El jardín ornamental</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	En esta simulación, al comité del jardín le gustaría saber
+	cuanta gente entra en el jardín cada día a través de distintas
+	puertas. Cada puerta tiene un FIXMEturnstile o algún otro tipo
+	de contador, y después de que el contador FIXMEturnstile se
+	incrementa, aumenta una cuenta compartida que representa el
+	número total de gente en el jardín.
+      </p>
+      <div class="example">
+        <a id="idp5156216"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:OrnamentalGarden.cpp {RunByHand}</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Display.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/FastMutex.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Guard.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/CountedPtr.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Count <span class="hl opt">:</span> <span class="hl kwc">public</span> Cancelable <span class="hl opt">{</span>
+  FastMutex lock<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> count<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> paused<span class="hl opt">,</span> canceled<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Count</span><span class="hl opt">() :</span> <span class="hl kwd">count</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">paused</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span> <span class="hl kwd">canceled</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">increment</span><span class="hl opt">() {</span>
+    <span class="hl slc">// Comment the following line to see counting fail:</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwb">int</span> temp <span class="hl opt">=</span> count <span class="hl opt">;</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwd">rand</span><span class="hl opt">() %</span> <span class="hl num">2</span> <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl slc">// Yield half the time</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">yield</span><span class="hl opt">();</span>
+    <span class="hl kwa">return</span> <span class="hl opt">(</span>count  <span class="hl opt">= ++</span>temp<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">value</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> count<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">cancel</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    canceled <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">isCanceled</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> canceled<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">pause</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    paused <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">bool</span> <span class="hl kwd">isPaused</span><span class="hl opt">() {</span>
+    Guard<span class="hl opt">&lt;</span>FastMutex<span class="hl opt">&gt;</span> <span class="hl kwd">g</span><span class="hl opt">(</span>lock<span class="hl opt">);</span>
+    <span class="hl kwa">return</span> paused<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Entrance <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;</span> count<span class="hl opt">;</span>
+  CountedPtr<span class="hl opt">&lt;</span>Display<span class="hl opt">&gt;</span> display<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> number<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> waitingForCancel<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Entrance</span><span class="hl opt">(</span>CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;&amp;</span> cnt<span class="hl opt">,</span>
+    CountedPtr<span class="hl opt">&lt;</span>Display<span class="hl opt">&gt;&amp;</span> disp<span class="hl opt">,</span> <span class="hl kwb">int</span> idn<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">count</span><span class="hl opt">(</span>cnt<span class="hl opt">),</span> <span class="hl kwd">display</span><span class="hl opt">(</span>disp<span class="hl opt">),</span> <span class="hl kwd">number</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>idn<span class="hl opt">),</span>
+    <span class="hl kwd">waitingForCancel</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(!</span>count<span class="hl opt">-&gt;</span><span class="hl kwd">isPaused</span><span class="hl opt">()) {</span>
+      <span class="hl opt">++</span>number<span class="hl opt">;</span>
+      <span class="hl opt">{</span>
+        ostringstream os<span class="hl opt">;</span>
+        os <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; Total: &quot;</span>
+           <span class="hl opt">&lt;&lt;</span> count<span class="hl opt">-&gt;</span><span class="hl kwd">increment</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+        display<span class="hl opt">-&gt;</span><span class="hl kwd">output</span><span class="hl opt">(</span>os<span class="hl opt">);</span>
+      <span class="hl opt">}</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    waitingForCancel <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+    <span class="hl kwa">while</span><span class="hl opt">(!</span>count<span class="hl opt">-&gt;</span><span class="hl kwd">isCanceled</span><span class="hl opt">())</span> <span class="hl slc">// Hold here...</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+    ostringstream os<span class="hl opt">;</span>
+    os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Terminating &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    display<span class="hl opt">-&gt;</span><span class="hl kwd">output</span><span class="hl opt">(</span>os<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">getValue</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>count<span class="hl opt">-&gt;</span><span class="hl kwd">isPaused</span><span class="hl opt">() &amp;&amp; !</span>waitingForCancel<span class="hl opt">)</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">100</span><span class="hl opt">);</span>
+    <span class="hl kwa">return</span> number<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Entrance<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Entrance &quot;</span> <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;: &quot;</span> <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span>number<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Seed the random number generator</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Press &lt;ENTER&gt; to quit&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;</span> <span class="hl kwd">count</span><span class="hl opt">(</span><span class="hl kwa">new</span> Count<span class="hl opt">);</span>
+  vector<span class="hl opt">&lt;</span>Entrance<span class="hl opt">*&gt;</span> v<span class="hl opt">;</span>
+  CountedPtr<span class="hl opt">&lt;</span>Display<span class="hl opt">&gt;</span> <span class="hl kwd">display</span><span class="hl opt">(</span><span class="hl kwa">new</span> Display<span class="hl opt">);</span>
+  <span class="hl kwb">const int</span> SZ <span class="hl opt">=</span> <span class="hl num">5</span><span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    ThreadedExecutor executor<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> SZ<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+      Entrance<span class="hl opt">*</span> task <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Entrance</span><span class="hl opt">(</span>count<span class="hl opt">,</span> display<span class="hl opt">,</span> i<span class="hl opt">);</span>
+      executor<span class="hl opt">.</span><span class="hl kwd">execute</span><span class="hl opt">(</span>task<span class="hl opt">);</span>
+      <span class="hl slc">// Save the pointer to the task:</span>
+      v<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span>task<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+    cin<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">();</span> <span class="hl slc">// Wait for user to press &lt;Enter&gt;</span>
+    count<span class="hl opt">-&gt;</span><span class="hl kwd">pause</span><span class="hl opt">();</span> <span class="hl slc">// Causes tasks to stop counting</span>
+    <span class="hl kwb">int</span> sum <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    vector<span class="hl opt">&lt;</span>Entrance<span class="hl opt">*&gt;::</span>iterator it <span class="hl opt">=</span> v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>it <span class="hl opt">!=</span> v<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">()) {</span>
+      sum <span class="hl opt">+= (*</span>it<span class="hl opt">)-&gt;</span><span class="hl kwd">getValue</span><span class="hl opt">();</span>
+      <span class="hl opt">++</span>it<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+    ostringstream os<span class="hl opt">;</span>
+    os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Total: &quot;</span> <span class="hl opt">&lt;&lt;</span> count<span class="hl opt">-&gt;</span><span class="hl kwd">value</span><span class="hl opt">() &lt;&lt;</span> endl
+       <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Sum of Entrances: &quot;</span> <span class="hl opt">&lt;&lt;</span> sum <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    display<span class="hl opt">-&gt;</span><span class="hl kwd">output</span><span class="hl opt">(</span>os<span class="hl opt">);</span>
+    count<span class="hl opt">-&gt;</span><span class="hl kwd">cancel</span><span class="hl opt">();</span> <span class="hl slc">// Causes threads to quit</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.25. C11/OrnamentalGarden.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	<code class="classname">Count</code> es la clase que conserva el
+	contador principal de los visitantes del jardín. El objeto
+	único <code class="classname">Count</code> definido en main() como
+	contador FIXME is held como
+	un <code class="classname">CountedPtr</code>
+	en <code class="classname">Entrance</code> y, así, se comparte entre
+	todos los objetos <code class="classname">Entrance</code>. En este
+	ejemplo, se utiliza un <code class="classname">FastMutex</code>
+	llamado lock en vez de un <code class="classname">Mutex</code>
+	ordinario ya que un <code class="classname">FastMutex</code> usa el
+	mutex nativo del sistema operativo y, por ello, aportará
+	resultados más interesantes.
+      </p>
+      <p>
+	Se utiliza un <code class="classname">Guard</code> con bloqueo en
+	increment() para sincronizar el acceso a count. Esta función
+	usa rand() para realizar una carga de trabajo alta (mediante
+	yield()) FIXME  la mitad del tiempo, ....
+      </p>
+      <p>
+	La clase <code class="classname">Entrance</code> también mantiene una
+	variable local numbre con el número de visitantes que han
+	pasado a través de una entrada concreta. Esto proporciona un
+	chequeo doble contra el objeto count para asegurar que el
+	verdadero número de visitantes es el que se está
+	almacenando. Entrance::run() simplemente incrementa number y
+	el objeto count y se duerme durante 100 milisegundos.
+
+      </p>
+      <p>
+	En main, se carga
+	un <code class="type">vector&lt;Entrance*&gt;</code> con
+	cada <code class="classname">Entrance</code> que se crean. Después de
+	que el usuario pulse Enter, el vector se utiliza para iterar
+	sobre el valor de cada <code class="classname">Entrance</code> y
+	calcular el total.
+      </p>
+      <p>
+	FIXMEThis program goes to quite a bit of extra trouble to shut
+      everything down in a stable fashion.
+      </p>
+      <p>
+	Toda la comunicación entre los objetos
+	<code class="classname">Entrance</code> ocurre a través de un único
+	objeto <code class="classname">Count</code>. Cuando el usuario pulsa
+	Enter, main() manda el mensaje pause() a count. Como cada
+	Entrance::run() está vigilando a que el objeto count esté
+	pausado, esto hace que cada <code class="classname">Entrance</code> se
+	mueva al estado waitingForCancel, donde no se cuenta más, pero
+	aún sigue vivo. Esto es esencial porque main() debe poder
+	seguir iterando de forma segura sobre los objetos del
+	vector&lt;Entrace*&gt;. Note que debido a que existe una
+	FIXMEpequeña posibilidad que la iteración pueda ocurrir antes
+	de que un <code class="classname">Entrance</code> haya terminado de
+	contar y haya ido al estado de waitingForCancel, la función
+	getValue() itera a lo largo de las llamadas a sleep() hasta
+	que el objeto vaya al estado de waitingForCancel. (Esta es una
+	forma, que se conoce como espera activa, y es indeseable. Verá
+	un enfoque más apropiado utilizando wait(), más adelante en el
+	capítulo). Una vez que main() completa una iteración a lo
+	largo del vector&lt;Entrance*&gt;, se manda el mensaje de cancel()
+	al objeto count, y de nuevo todos los objetos
+	<code class="classname">Entrance</code> esperan a este cambio de
+	estado. En ese instante, imprimen un mensaje de finalización y
+	salen de run(), por lo que el mecanismo de hilado destruye
+	cada tarea.
+      </p>
+      <p>
+	Tal y como este programa se ejecuta, verá que la cuenta total
+	y la de cada una de las entradas se muestran a la vez que la
+	gente pasa a través de un FIXMEturnstile. Si comenta el
+	objeto <code class="classname">Guard</code> en Count::increment(), se
+	dará cuenta que el número total de personas no es el que
+	espera que sea. El número de personas contadas por cada
+	FIXMEturnstile será diferente del valor de count. Tan pronto
+	como haya un <code class="classname">Mutex</code> para sincronizar el
+	acceso al <code class="classname">Counter</code>, las cosas
+	funcionarán correctamente. Tenga en cuenta que
+	Count::increment() exagera la situación potencial de fallo que
+	supone utilizar temp y yield(). En problemas reales de hilado,
+	la probabilidad de fallo puede ser estadísticamente menor, por
+	lo que puede caer fácilmente en la trampa de creer que las
+	cosas funcionan correctamente. Tal y como muestra el problema
+	anterior, existen FIXMElikely problemas ocultos que no le han
+	ocurrido, por lo que debe ser excepcionalmente diligente
+	cuando revise código concurrente.
+      </p>
+      <div class="sect3" title="Operaciones atómicas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp5173608"></a>Operaciones atómicas</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	Note que Count::value() devuelve el valor de count utilizando
+	un objeto <code class="classname">Guard</code> para la
+	sincronización. Esto ofrece un aspecto interesante porque este
+	código probablemente funcionará bien con la mayoría de los
+	compiladores y sistemas sin sincronización. El motivo es que,
+	en general, una operación simple como devolver un int será una
+	operación atómica, que quiere decir que probablemente se
+	llevará a cabo con una única instrucción de microprocesador y
+	no será interrumpida. (El mecanismo de multihilado no puede
+	parar un hilo en mitad de una instrucción de microprocesador.)
+	Esto es, las operaciones atómicas no son interrumpibles por el
+	mecanismo de hilado y, así, no necesitan ser protegidas.[152]
+	De hecho, si elimináramos la asignación de count en temp y
+	quitáramos yield(), y en su lugar simplemente incrementáramos
+	count directamente, probablemente no necesitaríamos un lock ya
+	que la operación de incremento es, normalmente, atómica. [153]
+      </p>
+        <p>
+	El problema es que el estándar de C++ no garantiza la
+	atomicidad para ninguna de esas operaciones. Sin embargo, pese
+	a que operaciones como devolver un int e incrementar un int
+	son atómicas en la mayoría de las máquinas no hay garantías. Y
+	puesto que no hay garantía, debe asumir lo peor. En algunas
+	ocasiones podría investigar el funcionamiento de la atomicidad
+	para una máquina en particular (normalmente mirando el
+	lenguaje ensamblador) y escribir código basado en esas
+	asunciones. Esto es siempre peligroso y FIXMEill-advised. Es
+	muy fácil que esta información se pierda o esté oculta, y la
+	siguiente persona que venga podría asumir que el código puede
+	ser portado a otra máquina y, por ello, volverse loco
+	siguiendo la pista al FIXMEoccsional glitch provocado por la
+	colisión de hilos.
+      </p>
+        <p>
+	Por ello, aunque quitar el guarda en Count::value() parezca
+	que funciona no es FIXMEairtight y, así, en algunas máquinas
+	puede ver un comportamiento aberrante.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s05.html">9.5. Finalización de tareas</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s05s03.html">9.5.3. FIXME:Teminación al bloquear</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s05s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

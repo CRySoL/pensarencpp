@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>14.5.2. Composición vs. herencia</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch14s05.html" title="14.5. Funciones que no heredan automáticamente" />
+    <link rel="prev" href="ch14s05.html" title="14.5. Funciones que no heredan automáticamente" />
+    <link rel="next" href="ch14s06.html" title="14.6. Protected" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s05.html">14.5. Funciones que no heredan automáticamente</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch14s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s06.html">14.6. Protected</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="14.5.2. Composición vs. herencia">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp7915744"></a>14.5.2. Composición vs. herencia</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	La composición y la herencia colocan subobjetos dentro de la
+	clase. Ambos usan la lista de inicialización del constructor
+	para construir esos subobjetos. Pero se preguntará cuál es la
+	diferencia entre los dos, y cuando escoger una y no la otra.
+      </p>
+      <p>
+	La composición generalmente se usa cuando se quieren las
+	características de una clase existente dentro se su clase, pero
+	no en su interfaz. Esto es, aloja un objeto para implementar
+	características en su clase, pero el usuario de su clase ve el
+	interfaz que se ha definido, en vez del interfaz de la clase
+	original. Para hacer esto, se sigue el típico patrón de alojar
+	objetos privados de clases existentes en su nueva clase.
+      </p>
+      <p>
+	En ocasiones, sin embargo, tiene sentido permitir que el usuario
+	de la clase acceda a la composición de su clase, esto es, hacer
+	públicos los miembros objeto. Los miembros objeto usan su
+	control de accesos, entonces es seguro y cuando el usuario
+	conoce que esta formando un conjunto de piezas, hace que la
+	interfaz sea más fácil de entender. Un buen ejemplo es la clase
+	Car:
+      </p>
+      <div class="example">
+        <a id="idp7918656"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C14:Car.cpp</span>
+<span class="hl slc">// Public composition</span>
+
+<span class="hl kwc">class</span> Engine <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">start</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">rev</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">stop</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Wheel <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> psi<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Window <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">rollup</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">rolldown</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Door <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Window window<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">open</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">close</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Car <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Engine engine<span class="hl opt">;</span>
+  Wheel wheel<span class="hl opt">[</span><span class="hl num">4</span><span class="hl opt">];</span>
+  Door left<span class="hl opt">,</span> right<span class="hl opt">;</span> <span class="hl slc">// 2-door</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Car car<span class="hl opt">;</span>
+  car<span class="hl opt">.</span>left<span class="hl opt">.</span>window<span class="hl opt">.</span><span class="hl kwd">rollup</span><span class="hl opt">();</span>
+  car<span class="hl opt">.</span>wheel<span class="hl opt">[</span><span class="hl num">0</span><span class="hl opt">].</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl num">72</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 14.11. C14/Car.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Como la composición de Car es parte del análisis del problema (y
+	no una simple capa del diseño), hace públicos los miembros y
+	ayudan al programador a entender como se utiliza la clase y
+	requiere menos complejidad de código para el creador de la
+	clase.
+      </p>
+      <p>
+	Si piensa un poco, observará que no tiene sentido componer un
+	Car usando un objeto "vehículo" - un coche no contiene un
+	vehículo, es un vehículo. La relación "es-un" es expresado con
+	la herencia y la relación "tiene un" es expresado con la
+	composición.
+      </p>
+      <div class="sect3" title="Subtipado">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7921560"></a>Subtipado</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Ahora suponga que desea crear un objeto del tipo ifstream que
+	  no solo abre un fichero sino que también guarde el nombre del
+	  fichero. Puede usar la composición e alojar un objeto ifstream
+	  y un string en la nueva clase:
+	</p>
+        <div class="example">
+          <a id="idp7922568"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C14:FName1.cpp</span>
+<span class="hl slc">// An fstream with a file name</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> FName1 <span class="hl opt">{</span>
+  ifstream file<span class="hl opt">;</span>
+  string fileName<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> named<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">FName1</span><span class="hl opt">() :</span> <span class="hl kwd">named</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">FName1</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> fname<span class="hl opt">)</span> 
+    <span class="hl opt">:</span> <span class="hl kwd">fileName</span><span class="hl opt">(</span>fname<span class="hl opt">),</span> <span class="hl kwd">file</span><span class="hl opt">(</span>fname<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">()) {</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(</span>file<span class="hl opt">,</span> fileName<span class="hl opt">);</span>
+    named <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  string <span class="hl kwd">name</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> fileName<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">name</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>named<span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span> <span class="hl slc">// Don't overwrite</span>
+    fileName <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+    named <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">operator</span> ifstream<span class="hl opt">&amp;() {</span> <span class="hl kwa">return</span> file<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  FName1 <span class="hl kwd">file</span><span class="hl opt">(</span><span class="hl str">&quot;FName1.cpp&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> file<span class="hl opt">.</span><span class="hl kwd">name</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Error: close() not a member:</span>
+<span class="hl slc">//!  file.close();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 14.12. C14/FName1.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Sin embargo, existe un problema. Se intenta permitir el uso de
+	  un objeto FName1 en cualquier lugar dónde se utilice un objeto
+	  ifstream, incluyendo una conversión automática del tipo desde
+	  FName1 a ifstream&amp;. Pero en main, la línea
+	</p>
+        <pre class="programlisting">
+file<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+</pre>
+        <p>
+	  no compilará porque la conversión automática de tipo sólo
+	  ocurre cuando se llama a la función, no durante la selección
+	  del miembro. Por ello, esta manera no funcionará.
+	</p>
+        <p>
+	  Una segunda manera es añadir la definición Close() a FName1:
+	</p>
+        <pre class="programlisting">
+<span class="hl kwb">void</span> <span class="hl kwd">close</span><span class="hl opt">() {</span> file<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">(); }</span>
+</pre>
+        <p>
+	  Esto funcionará si sólo existen unas cuantas funciones a las
+	  que se desea hacer funcionar como una clase ifstream. En este
+	  caso, solo una parte de la clase y la composición apropiada.
+	</p>
+        <p>
+	  Pero ¿qué ocurre si se quiere que todo funcione cómo la clase
+	  deseada? A eso se le llama subtipos porque esta creando un
+	  nuevo tipo desde uno ya existente y lo que se quiere es que el
+	  nuevo tipo tenga la misma interfaz que el tipo existente
+	  (además de otras funciones que se deseen añadir) para que se
+	  pueda utilizar en cualquier lugar donde se utilizaba el tipo
+	  existente. Aquí es dónde la herencia es esencial. Puede ver
+	  que el subtipo resuelve perfectamente el problema anterior:
+	</p>
+        <div class="example">
+          <a id="idp7928712"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C14:FName2.cpp</span>
+<span class="hl slc">// Subtyping solves the problem</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> FName2 <span class="hl opt">:</span> <span class="hl kwc">public</span> ifstream <span class="hl opt">{</span>
+  string fileName<span class="hl opt">;</span>
+  <span class="hl kwb">bool</span> named<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">FName2</span><span class="hl opt">() :</span> <span class="hl kwd">named</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">FName2</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> fname<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">ifstream</span><span class="hl opt">(</span>fname<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">()),</span> <span class="hl kwd">fileName</span><span class="hl opt">(</span>fname<span class="hl opt">) {</span>
+    <span class="hl kwd">assure</span><span class="hl opt">(*</span><span class="hl kwa">this</span><span class="hl opt">,</span> fileName<span class="hl opt">);</span>
+    named <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  string <span class="hl kwd">name</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> fileName<span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">name</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> newName<span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>named<span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span> <span class="hl slc">// Don't overwrite</span>
+    fileName <span class="hl opt">=</span> newName<span class="hl opt">;</span>
+    named <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  FName2 <span class="hl kwd">file</span><span class="hl opt">(</span><span class="hl str">&quot;FName2.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>file<span class="hl opt">,</span> <span class="hl str">&quot;FName2.cpp&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;name: &quot;</span> <span class="hl opt">&lt;&lt;</span> file<span class="hl opt">.</span><span class="hl kwd">name</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  string s<span class="hl opt">;</span>
+  <span class="hl kwd">getline</span><span class="hl opt">(</span>file<span class="hl opt">,</span> s<span class="hl opt">);</span> <span class="hl slc">// These work too!</span>
+  file<span class="hl opt">.</span><span class="hl kwd">seekg</span><span class="hl opt">(-</span><span class="hl num">200</span><span class="hl opt">,</span> ios<span class="hl opt">::</span>end<span class="hl opt">);</span>
+  file<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 14.13. C14/FName2.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Ahora cualquier función que este disponible para el objeto
+	  sfstream también esta disponible para el objeto
+	  FName2. Asimismo se observan funciones no miembro como
+	  getline() que esperan un objeto ifstream y que pueden
+	  funcionar con un objeto FName2. Esto es porque FName2 es un
+	  tipo de ifstream; esto no significa simplemente que lo
+	  contiene. Esto es un tema muy importante que será explorado al
+	  final de este capitulo y el siguiente.
+	</p>
+      </div>
+      <div class="sect3" title="Herencia privada">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7932120"></a>Herencia privada</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Puede heredar utilizando una clase base de forma privada
+	  borrando public en la lista de la clase base o explícitamente
+	  utilizando private (definitivamente la mejor política a tomar
+	  pues indica al usuario lo que desea hacer). Cuando se hereda
+	  de forma privada, esta "implementado en términos de", esto es,
+	  se esta creando una nueva clase que tiene todos los datos y
+	  funcionalidad de la clase base, pero la funcionalidad esta
+	  oculta, solo una parte de capa de implementación. La clase
+	  derivada no tiene acceso a la capa de funcionalidad y un
+	  objeto no puede ser creado como instancia de la clase base
+	  (como ocurrió en FName2.cpp).
+	</p>
+        <p>
+	  Se sorprenderá del propósito de la herencia privada, porque la
+	  alternativa, usar la composición para crear un objeto privado
+	  en la nueva clase parece más apropiada. La herencia privada
+	  esta incluida para completar el lenguaje pero para reducir
+	  confusión, normalmente se usará la composición en vez de la
+	  herencia privada. Sin embargo, existen ocasiones donde se
+	  desea el mismo interfaz como la clase base y anular
+	  tratamiento del objeto. La herencia privada proporciona esta
+	  habilidad.
+	</p>
+        <div class="sect4" title="Publicar los miembros heredados de forma privada">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h5 class="title"><a id="idp7934328"></a>Publicar los miembros heredados de forma privada</h5>
+              </div>
+            </div>
+          </div>
+          <p>
+	    Cuando se hereda de forma privada, todos los miembros
+	    públicos de la clase base llegan como privados. Si desea que
+	    cualquiera de ellos sea visible, solo use sus nombres (sin
+	    argumentos o valores de retorno) junto con la palabra clave
+	    using en una sección pública de la clase derivada:
+	  </p>
+          <div class="example">
+            <a id="idp7935536"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C14:PrivateInheritance.cpp</span>
+<span class="hl kwc">class</span> Pet <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">char</span> <span class="hl kwd">eat</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl str">'a'</span><span class="hl opt">; }</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">speak</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">2</span><span class="hl opt">; }</span>
+  <span class="hl kwb">float</span> <span class="hl kwd">sleep</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">3.0</span><span class="hl opt">; }</span>
+  <span class="hl kwb">float</span> <span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl num">4.0</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Goldfish <span class="hl opt">:</span> Pet <span class="hl opt">{</span> <span class="hl slc">// Private inheritance</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwa">using</span> Pet<span class="hl opt">::</span>eat<span class="hl opt">;</span> <span class="hl slc">// Name publicizes member</span>
+  <span class="hl kwa">using</span> Pet<span class="hl opt">::</span>sleep<span class="hl opt">;</span> <span class="hl slc">// Both members exposed</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Goldfish bob<span class="hl opt">;</span>
+  bob<span class="hl opt">.</span><span class="hl kwd">eat</span><span class="hl opt">();</span>
+  bob<span class="hl opt">.</span><span class="hl kwd">sleep</span><span class="hl opt">();</span>
+  bob<span class="hl opt">.</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">);</span>
+<span class="hl slc">//! bob.speak();// Error: private member function</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 14.14. C14/PrivateInheritance.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	    Así, la herencia privada es útil si desea esconder parte de
+	    la funcionalidad de la clase base.
+	  </p>
+          <p>
+	    Fíjese que si expone el nombre de una función sobrecargada,
+	    expone todas las versiones sobrecargadas de la función en la
+	    clase base.
+	  </p>
+          <p>
+	    Debe pensar detenidamente antes de utilizar la herencia
+	    privada en vez de la composición; la herencia privada tiene
+	    complicaciones particulares cuando son combinadas con la
+	    identificación de tipos en tiempo de ejecución (es un tema
+	    de un capítulo en el volumen 2, disponible en
+	    www.BruceEckel.com)
+	  </p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch14s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch14s05.html">14.5. Funciones que no heredan automáticamente</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch14s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch14s06.html">14.6. Protected</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch14s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

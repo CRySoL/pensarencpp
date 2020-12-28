@@ -1,0 +1,389 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.14. Despachado múltiple</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="8: Patrones de Diseño" />
+    <link rel="prev" href="ch08s13.html" title="8.13. Observador" />
+    <link rel="next" href="ch08s15.html" title="8.15. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s13.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s13.html">8.13. Observador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s15.html">8.15. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s15.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="8.14. Despachado múltiple">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4943560"></a>8.14. Despachado múltiple</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp4944504"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:PaperScissorsRock.cpp</span>
+<span class="hl slc">// Demonstration of multiple dispatching.</span>
+<span class="hl ppc">#include &lt;algorithm&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;iterator&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Paper<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Scissors<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Rock<span class="hl opt">;</span>
+
+<span class="hl kwb">enum</span> Outcome <span class="hl opt">{</span> WIN<span class="hl opt">,</span> LOSE<span class="hl opt">,</span> DRAW <span class="hl opt">};</span>
+
+ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Outcome out<span class="hl opt">) {</span>
+  <span class="hl kwa">switch</span><span class="hl opt">(</span>out<span class="hl opt">) {</span>
+    <span class="hl kwa">default</span><span class="hl opt">:</span>
+    <span class="hl kwa">case</span> WIN<span class="hl opt">:</span> <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;win&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">case</span> LOSE<span class="hl opt">:</span> <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;lose&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">case</span> DRAW<span class="hl opt">:</span> <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;draw&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> Item <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> Outcome <span class="hl kwd">compete</span><span class="hl opt">(</span><span class="hl kwb">const</span> Item<span class="hl opt">*) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Paper<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Scissors<span class="hl opt">*)</span> <span class="hl kwb">const</span><span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Rock<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> ostream<span class="hl opt">&amp;</span> <span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Item</span><span class="hl opt">() {}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> Item<span class="hl opt">*</span> it<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> it<span class="hl opt">-&gt;</span><span class="hl kwd">print</span><span class="hl opt">(</span>os<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Paper <span class="hl opt">:</span> <span class="hl kwc">public</span> Item <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Outcome <span class="hl kwd">compete</span><span class="hl opt">(</span><span class="hl kwb">const</span> Item<span class="hl opt">*</span> it<span class="hl opt">) {</span> <span class="hl kwa">return</span> it<span class="hl opt">-&gt;</span><span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);}</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Paper<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> DRAW<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Scissors<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> WIN<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Rock<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> LOSE<span class="hl opt">; }</span>
+  ostream<span class="hl opt">&amp;</span> <span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Paper   &quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Scissors <span class="hl opt">:</span> <span class="hl kwc">public</span> Item <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Outcome <span class="hl kwd">compete</span><span class="hl opt">(</span><span class="hl kwb">const</span> Item<span class="hl opt">*</span> it<span class="hl opt">) {</span> <span class="hl kwa">return</span> it<span class="hl opt">-&gt;</span><span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);}</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Paper<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> LOSE<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Scissors<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> DRAW<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Rock<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> WIN<span class="hl opt">; }</span>
+  ostream<span class="hl opt">&amp;</span> <span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Scissors&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Rock <span class="hl opt">:</span> <span class="hl kwc">public</span> Item <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  Outcome <span class="hl kwd">compete</span><span class="hl opt">(</span><span class="hl kwb">const</span> Item<span class="hl opt">*</span> it<span class="hl opt">) {</span> <span class="hl kwa">return</span> it<span class="hl opt">-&gt;</span><span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);}</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Paper<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> WIN<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Scissors<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> LOSE<span class="hl opt">; }</span>
+  Outcome <span class="hl kwd">eval</span><span class="hl opt">(</span><span class="hl kwb">const</span> Rock<span class="hl opt">*)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> DRAW<span class="hl opt">; }</span>
+  ostream<span class="hl opt">&amp;</span> <span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Rock    &quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">struct</span> ItemGen <span class="hl opt">{</span>
+  Item<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">()() {</span>
+    <span class="hl kwa">switch</span><span class="hl opt">(</span><span class="hl kwd">rand</span><span class="hl opt">() %</span> <span class="hl num">3</span><span class="hl opt">) {</span>
+      <span class="hl kwa">default</span><span class="hl opt">:</span>
+      <span class="hl kwa">case</span> <span class="hl num">0</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Scissors<span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl num">1</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Paper<span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl num">2</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Rock<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">struct</span> Compete <span class="hl opt">{</span>
+  Outcome <span class="hl kwc">operator</span><span class="hl opt">()(</span>Item<span class="hl opt">*</span> a<span class="hl opt">,</span> Item<span class="hl opt">*</span> b<span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> a <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">&quot;</span> <span class="hl opt">&lt;&lt;</span> b <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;</span><span class="hl esc">\t</span><span class="hl str">&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span> a<span class="hl opt">-&gt;</span><span class="hl kwd">compete</span><span class="hl opt">(</span>b<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Seed the random number generator</span>
+  <span class="hl kwb">const int</span> sz <span class="hl opt">=</span> <span class="hl num">20</span><span class="hl opt">;</span>
+  vector<span class="hl opt">&lt;</span>Item<span class="hl opt">*&gt;</span> <span class="hl kwd">v</span><span class="hl opt">(</span>sz<span class="hl opt">*</span><span class="hl num">2</span><span class="hl opt">);</span>
+  <span class="hl kwd">generate</span><span class="hl opt">(</span>v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> v<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> <span class="hl kwd">ItemGen</span><span class="hl opt">());</span>
+  <span class="hl kwd">transform</span><span class="hl opt">(</span>v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">() +</span> sz<span class="hl opt">,</span>
+    v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">() +</span> sz<span class="hl opt">,</span>
+    ostream_iterator<span class="hl opt">&lt;</span>Outcome<span class="hl opt">&gt;(</span>cout<span class="hl opt">,</span> <span class="hl str">&quot;</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">),</span>
+    <span class="hl kwd">Compete</span><span class="hl opt">());</span>
+  <span class="hl kwd">purge</span><span class="hl opt">(</span>v<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.34. C10/PaperScissorsRock.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="sect2" title="8.14.1. Despachado múltiple con Visitor">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp4951064"></a>8.14.1. Despachado múltiple con Visitor</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <div class="example">
+          <a id="idp4952608"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:BeeAndFlowers.cpp</span>
+<span class="hl slc">// Demonstration of &quot;visitor&quot; pattern.</span>
+<span class="hl ppc">#include &lt;algorithm&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include &lt;ctime&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../purge.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Gladiolus<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Renuculus<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Chrysanthemum<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Visitor <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Gladiolus<span class="hl opt">*</span> f<span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Renuculus<span class="hl opt">*</span> f<span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Chrysanthemum<span class="hl opt">*</span> f<span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Visitor</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Flower <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">accept</span><span class="hl opt">(</span>Visitor<span class="hl opt">&amp;) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Flower</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Gladiolus <span class="hl opt">:</span> <span class="hl kwc">public</span> Flower <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">accept</span><span class="hl opt">(</span>Visitor<span class="hl opt">&amp;</span> v<span class="hl opt">) {</span>
+    v<span class="hl opt">.</span><span class="hl kwd">visit</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Renuculus <span class="hl opt">:</span> <span class="hl kwc">public</span> Flower <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">accept</span><span class="hl opt">(</span>Visitor<span class="hl opt">&amp;</span> v<span class="hl opt">) {</span>
+    v<span class="hl opt">.</span><span class="hl kwd">visit</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Chrysanthemum <span class="hl opt">:</span> <span class="hl kwc">public</span> Flower <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">accept</span><span class="hl opt">(</span>Visitor<span class="hl opt">&amp;</span> v<span class="hl opt">) {</span>
+    v<span class="hl opt">.</span><span class="hl kwd">visit</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Add the ability to produce a string:</span>
+<span class="hl kwc">class</span> StringVal <span class="hl opt">:</span> <span class="hl kwc">public</span> Visitor <span class="hl opt">{</span>
+  string s<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">operator</span> <span class="hl kwb">const</span> string<span class="hl opt">&amp;() {</span> <span class="hl kwa">return</span> s<span class="hl opt">; }</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Gladiolus<span class="hl opt">*) {</span>
+    s <span class="hl opt">=</span> <span class="hl str">&quot;Gladiolus&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Renuculus<span class="hl opt">*) {</span>
+    s <span class="hl opt">=</span> <span class="hl str">&quot;Renuculus&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Chrysanthemum<span class="hl opt">*) {</span>
+    s <span class="hl opt">=</span> <span class="hl str">&quot;Chrysanthemum&quot;</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Add the ability to do &quot;Bee&quot; activities:</span>
+<span class="hl kwc">class</span> Bee <span class="hl opt">:</span> <span class="hl kwc">public</span> Visitor <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Gladiolus<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bee and Gladiolus&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Renuculus<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bee and Renuculus&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">visit</span><span class="hl opt">(</span>Chrysanthemum<span class="hl opt">*) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bee and Chrysanthemum&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">struct</span> FlowerGen <span class="hl opt">{</span>
+  Flower<span class="hl opt">*</span> <span class="hl kwc">operator</span><span class="hl opt">()() {</span>
+    <span class="hl kwa">switch</span><span class="hl opt">(</span><span class="hl kwd">rand</span><span class="hl opt">() %</span> <span class="hl num">3</span><span class="hl opt">) {</span>
+      <span class="hl kwa">default</span><span class="hl opt">:</span>
+      <span class="hl kwa">case</span> <span class="hl num">0</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Gladiolus<span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl num">1</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Renuculus<span class="hl opt">;</span>
+      <span class="hl kwa">case</span> <span class="hl num">2</span><span class="hl opt">:</span> <span class="hl kwa">return new</span> Chrysanthemum<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Seed the random number generator</span>
+  vector<span class="hl opt">&lt;</span>Flower<span class="hl opt">*&gt;</span> <span class="hl kwd">v</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">);</span>
+  <span class="hl kwd">generate</span><span class="hl opt">(</span>v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> v<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">(),</span> <span class="hl kwd">FlowerGen</span><span class="hl opt">());</span>
+  vector<span class="hl opt">&lt;</span>Flower<span class="hl opt">*&gt;::</span>iterator it<span class="hl opt">;</span>
+  <span class="hl slc">// It's almost as if I added a virtual function</span>
+  <span class="hl slc">// to produce a Flower string representation:</span>
+  StringVal sval<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span>it <span class="hl opt">=</span> v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span> it <span class="hl opt">!=</span> v<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span> it<span class="hl opt">++) {</span>
+    <span class="hl opt">(*</span>it<span class="hl opt">)-&gt;</span><span class="hl kwd">accept</span><span class="hl opt">(</span>sval<span class="hl opt">);</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">string</span><span class="hl opt">(</span>sval<span class="hl opt">) &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Perform &quot;Bee&quot; operation on all Flowers:</span>
+  Bee bee<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span>it <span class="hl opt">=</span> v<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span> it <span class="hl opt">!=</span> v<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span> it<span class="hl opt">++)</span>
+    <span class="hl opt">(*</span>it<span class="hl opt">)-&gt;</span><span class="hl kwd">accept</span><span class="hl opt">(</span>bee<span class="hl opt">);</span>
+  <span class="hl kwd">purge</span><span class="hl opt">(</span>v<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 8.35. C10/BeeAndFlowers.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s13.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s13.html">8.13. Observador</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s15.html">8.15. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s15.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

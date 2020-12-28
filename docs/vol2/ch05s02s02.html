@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.2.2. Uso común</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch05s02.html" title="5.2. Iostreams al rescate" />
+    <link rel="prev" href="ch05s02.html" title="5.2. Iostreams al rescate" />
+    <link rel="next" href="ch05s02s03.html" title="5.2.3. Entrada orientada a líneas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02.html">5.2. <code class="classname">Iostreams</code> al rescate</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s02s03.html">5.2.3. Entrada orientada a líneas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="5.2.2. Uso común">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp4037904"></a>5.2.2. Uso común</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Como se ilustraba en el extractor de
+	<code class="classname">Date</code>, debe estar alerta por las entradas erróneas.
+	Si la entrada produce un valor inesperado, el proceso se tuerce y es
+	difícil de recuperar. Además, por defecto, la entrada formateada está
+	delimitada por espacios en blanco. Considere que ocurre cuando recogemos
+	los fragmentos de código anteriores en un solo programa:
+      </p>
+      <pre class="programlisting">
+<span class="hl slc">//: V2C04:Iosexamp.cpp {RunByHand}</span>
+</pre>
+      <p>
+	y le proporcionamos la siguiente entrada:
+      </p>
+      <pre class="programlisting">
+<span class="hl num">12 1.4</span> c <span class="hl kwa">this</span> is a test
+</pre>
+      <p>
+	esperamos la misma salida que si le hubieramos proporcionado esto:
+      </p>
+      <pre class="programlisting">
+<span class="hl num">12</span>
+<span class="hl num">1.4</span>
+c
+<span class="hl kwa">this</span> is a test
+</pre>
+      <p>
+	pero la salida es algo inesperado
+      </p>
+      <pre class="programlisting">
+i <span class="hl opt">=</span> <span class="hl num">12</span>
+f <span class="hl opt">=</span> <span class="hl num">1.4</span>
+c <span class="hl opt">=</span> c
+buf <span class="hl opt">=</span> <span class="hl kwa">this</span> <span class="hl num">0xc</span>
+</pre>
+      <p>
+	Nótese que <code class="varname">buf</code> solo tiene la primera
+	palabra porque la rutina de entrada busca un espacio que delimite la
+	entrada, que es el que se encuentra después de 'tihs.' Además, si la
+	entrada continua de datos es mayor que el espacio reservado por
+	<code class="varname">buf</code>, sobrepasamos los limites del buffer.
+      </p>
+      <p>
+	En la práctica, usualmente deseará obtener la entrada desde
+	programas interactivos, una linea cada vez como secuencia de carácteres,
+	leerla, y después hacer las conversiones necesarias hasta que estén
+	seguras en un buffer. De esta manera no deberá preocuparse por la rutina
+	de entrada fallando por datos inesperados.
+      </p>
+      <p>
+	Otra consideración es todo el concepto de interfaz de línea de
+	comandos. Esto tenia sentido en el pasado cuando la consola era la única
+	interfaz con la máquina, pero el mundo está cambiando rápidamente hacia
+	otro donde la interfaz gráfica de usuario (GUI) domina. ¿Cual es el
+	sentido de la E/S por consola en este mundo? Esto le da mucho más sentido
+	a ignorar <code class="classname">cin </code>en general, salvo para ejemplos
+	simples y tests, y hacer los siguientes acercamientos:
+      </p>
+      <div class="orderedlist">
+        <ol class="orderedlist" type="1">
+          <li class="listitem">
+            <p>
+	  Si su programa requiere entrada, ¿leer esta entrada desde
+	  un fichero? Pronto verá que es remarcablemente fácil usar ficheros con
+	  <code class="classname">iostream</code>. <code class="classname">Iostream</code> para
+	  ficheros todavia funciona perfectamente con una GUI.
+	</p>
+          </li>
+          <li class="listitem">
+            <p>
+	  Leer la entrada sin intentar convertirla, como hemos
+	  sugerido. Cuando la entrada es algun sitio donde no podemos arriesgarnos
+	  durante la conversión, podemos escanearla de manera segura.
+	</p>
+          </li>
+          <li class="listitem">
+            <p>
+	  La salida es diferente. Si está usando una interfaz
+	  gráfica, <code class="classname">cout</code> no necesariamente funciona, y usted
+	  debe mandarlo a un fichero (que es indéntico a mandarlo a un
+	  <code class="classname">cout</code>) o usar los componentes del GUI para mostrar
+	  los datos. En cualquier otra situacion, a menudo tiene sentido mandarlo a
+	  <code class="classname">cout</code>. En ambos casos, la funciones de formateo de
+	  la salida de <code class="classname">iostream</code> son muy útiles.
+	</p>
+          </li>
+        </ol>
+      </div>
+      <p>
+	Otra práctica común ahorra tiempo en compilaciones largas. Consideres, por
+	ejemplo, cómo quiere declarar los operadores del stream Date introducidos
+	antes en el capítulo en un fichero de cabecera. Usted solo necesita incluir los
+	prototipos para las funciones, luego no es necesario incluir la cabecera entera
+	de &lt;iostream&gt; en Date.h. La práctica estándar es declarar solo las clases,
+	algo como esto:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwc">class</span> ostream<span class="hl opt">;</span>
+</pre>
+      <p>
+	Esta es una vieja tecnica para separar la interfaz de la implementación y
+	a menudo la llaman declaración avanzada( y <code class="classname">ostream</code> en este punto debe ser
+	considerada un tipo incompleto, ya que la definición de la clase no ha sido vista
+	todavia por el compilador).
+      </p>
+      <p>
+	Esto con funcionará asi, igualmente, por dos razones:
+      </p>
+      <p>
+	Las clases stream estan definidas en el espacio de nombres <code class="varname">std</code>.
+      </p>
+      <p>
+	Son plantillas.
+      </p>
+      <p>
+	La declaración correcta debería ser:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwa">namespace</span> std <span class="hl opt">{</span>
+  <span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> charT<span class="hl opt">,</span> <span class="hl kwc">class</span> traits <span class="hl opt">=</span> char_traits<span class="hl opt">&lt;</span>charT<span class="hl opt">&gt; &gt;</span>
+    <span class="hl kwc">class</span> basic_ostream<span class="hl opt">;</span>
+  <span class="hl kwc">typedef</span> basic_ostream<span class="hl opt">&lt;</span><span class="hl kwb">char</span><span class="hl opt">&gt;</span> ostream<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+	(Como puede ver, como las clase string, las clases stream usan las clases
+	de rasgos de caracter mencionadas en el Capítulo 3). Como  puede ser terriblemente
+	tedioso darle un tipo a todas las clases stream a las que quiere referenciar, el
+	estándar provee una cabecera que lo hace por usted:
+      </p>
+      <pre class="programlisting">
+<span class="hl slc">// Date.h</span>
+<span class="hl ppc">#include &lt;iosfwd&gt;</span>
+
+<span class="hl kwc">class</span> Date <span class="hl opt">{</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>std<span class="hl opt">::</span>ostream<span class="hl opt">&amp;,</span>
+                                  <span class="hl kwb">const</span> Date<span class="hl opt">&amp;);</span>
+  <span class="hl kwc">friend</span> std<span class="hl opt">::</span>istream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&gt;&gt;(</span>std<span class="hl opt">::</span>istream<span class="hl opt">&amp;,</span> Date<span class="hl opt">&amp;);</span>
+  <span class="hl slc">// Etc.</span>
+</pre>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s02.html">5.2. <code class="classname">Iostreams</code> al rescate</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch05s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s02s03.html">5.2.3. Entrada orientada a líneas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

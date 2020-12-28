@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>4.3. El objeto básico</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C04.html" title="4: Abstracción de Datos" />
+    <link rel="prev" href="ch04s02.html" title="4.2. ¿Qué tiene de malo?" />
+    <link rel="next" href="ch04s04.html" title="4.4. ¿Qué es un objeto?" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s02.html">4.2. ¿Qué tiene de malo?</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s04.html">4.4. ¿Qué es un objeto?</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="4.3. El objeto básico">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5296064"></a>4.3. El objeto básico</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Nuestro primer paso será exactamente ese.  Meter las funciones C++
+      dentro de las estructuras como «funciones
+      miembro». Éste es el aspecto que tiene la estructura una
+      vez realizados estos cambios de la versión C de la <code class="type">CStash</code>
+      a la versión en C++, a la que llamaremos <code class="type">Stash</code>:
+    </p>
+      <div class="example">
+        <a id="idp5297832"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:CppLib.h</span>
+<span class="hl slc">// C-like library converted to C++</span>
+
+<span class="hl kwb">struct</span> Stash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> size<span class="hl opt">;</span>      <span class="hl slc">// Size of each space</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span>  <span class="hl slc">// Number of storage spaces</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span>      <span class="hl slc">// Next empty space</span>
+   <span class="hl slc">// Dynamically allocated array of bytes:</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> storage<span class="hl opt">;</span>
+  <span class="hl slc">// Functions!</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">initialize</span><span class="hl opt">(</span><span class="hl kwb">int</span> size<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">cleanup</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">const void</span><span class="hl opt">*</span> element<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">fetch</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">);</span>
+<span class="hl opt">};</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.4. C04/CppLib.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La primera diferencia que puede notarse es que no se usa
+      <code class="keyword">typedef</code>. A diferencia de C que requiere el uso de
+      <code class="keyword">typedef</code> para crear nuevos tipos de datos, el compilador
+      de C++ hará que el nombre de la estructura sea un nuevo tipo de
+      dato automáticamente en el programa (tal como los nombres de
+      tipos de datos <code class="type">int</code>, <code class="type">char</code>,
+      <code class="type">float</code> y <code class="type">double</code>).
+    </p>
+      <p>
+      Todos los datos miembros de la estructura están declarados igual
+      que antes; sin embargo, ahora las funciones están declaradas
+      dentro del cuerpo de la <code class="keyword">struct</code>. Más aún, fíjese que el primer
+      argumento de todas las funciones ha sido eliminado. En C++,
+      en lugar de forzar al usuario a que pase la dirección de la
+      estructura sobre la que trabaja una función como primer argumento,
+      el compilador hará este trabajo, secretamente. Ahora sólo
+      debe preocuparse por los argumentos que le dan sentido a lo
+      que la función <span class="emphasis"><em>hace</em></span> y no de los mecanismos
+      internos de la función.
+    </p>
+      <p>
+      Es importante darse cuenta de que el código generado por estas
+      funciones es el mismo que el de las funciones de la librería al
+      estilo C. El número de argumentos es el mismo (aunque no se le
+      pase la dirección de la estructura como primer argumento, en
+      realidad sí se hace) y sigue existiendo un único cuerpo
+      (definición) de cada función. Esto último quiere decir que, aunque
+      declare múltiples variables
+    </p>
+      <pre class="programlisting">
+Stash A<span class="hl opt">,</span> B<span class="hl opt">,</span> C<span class="hl opt">;</span>
+</pre>
+      <p>
+      no existirán múltiples definiciones de, por ejemplo, la
+      función <code class="function">add()</code>, una para cada variable.
+    </p>
+      <p>
+      De modo que el código generado es casi idéntico al que hubiese
+      escrito para una versión en C de la librería, incluyendo la
+      «decoración de nombres» ya mencionada para evitar los
+      conflictos de nombres, nombrando a las funciones
+      <code class="function">Stash_initialize()</code>,
+      <code class="function">Stash_cleanup()</code> y demás. Cuando una función
+      está dentro de una estructura, el compilador C++ hace lo mismo y
+      por eso, una función llamada <code class="function">initialize()</code>
+      dentro de una estructura no estará en conflicto con otra función
+      <code class="function">initialize()</code> dentro de otra estructura o con
+      una función <code class="function">initialize()</code> global. De este
+      modo, en general no tendrá que preocuparse por los conflictos de
+      nombres de funciones - use el nombre sin decoración. Sin embargo,
+      habrá situaciones en las que deseará especificar, por ejemplo,
+      esta <code class="function">initialize()</code> pertenece a la estructura
+      <code class="type">Stash</code> y no a ninguna otra. En particular, cuando
+      defina la función, necesita especificar a qué estructura pertenece
+      para lo cual, en C++ cuenta con el operador <code class="literal">::</code>
+      llamado operador de resolución de ámbito (ya que ahora un nombre
+      puede estar en diferentes ámbitos: el del ámbito global o dentro
+      del ámbito de una estructura. Por ejemplo, si quiere referirse
+      a una función <code class="function">initialize()</code> que se encuentra
+      dentro de la estructura <code class="type">Stash</code> lo podrá hacer con
+      la expresión <code class="function">Stash::initialize(int size)</code>. A
+      continuación podrá ver cómo se usa el operador de resolución de
+      ámbito para definir funciones:
+    </p>
+      <div class="example">
+        <a id="idp5312632"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:CppLib.cpp {O}</span>
+<span class="hl slc">// C library converted to C++</span>
+<span class="hl slc">// Declare structure and functions:</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;CppLib.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl slc">// Quantity of elements to add</span>
+<span class="hl slc">// when increasing storage:</span>
+<span class="hl kwb">const int</span> increment <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+
+<span class="hl kwb">void</span> Stash<span class="hl opt">::</span><span class="hl kwd">initialize</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">) {</span>
+  size <span class="hl opt">=</span> sz<span class="hl opt">;</span>
+  quantity <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  storage <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  next <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Stash<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">const void</span><span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span> <span class="hl slc">// Enough space left?</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>increment<span class="hl opt">);</span>
+  <span class="hl slc">// Copy element into storage,</span>
+  <span class="hl slc">// starting at next empty space:</span>
+  <span class="hl kwb">int</span> startBytes <span class="hl opt">=</span> next <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> e <span class="hl opt">= (</span><span class="hl kwb">unsigned char</span><span class="hl opt">*)</span>element<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> size<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    storage<span class="hl opt">[</span>startBytes <span class="hl opt">+</span> i<span class="hl opt">] =</span> e<span class="hl opt">[</span>i<span class="hl opt">];</span>
+  next<span class="hl opt">++;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span><span class="hl opt">*</span> Stash<span class="hl opt">::</span><span class="hl kwd">fetch</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">) {</span>
+  <span class="hl slc">// Check index boundaries:</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl num">0</span> <span class="hl opt">&lt;=</span> index<span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+  <span class="hl slc">// Produce pointer to desired element:</span>
+  <span class="hl kwa">return</span> <span class="hl opt">&amp;(</span>storage<span class="hl opt">[</span>index <span class="hl opt">*</span> size<span class="hl opt">]);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Stash<span class="hl opt">::</span><span class="hl kwd">count</span><span class="hl opt">() {</span>
+  <span class="hl kwa">return</span> next<span class="hl opt">;</span> <span class="hl slc">// Number of elements in CStash</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Stash<span class="hl opt">::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>increase <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwb">int</span> newQuantity <span class="hl opt">=</span> quantity <span class="hl opt">+</span> increase<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> newBytes <span class="hl opt">=</span> newQuantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> oldBytes <span class="hl opt">=</span> quantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> b <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">unsigned char</span><span class="hl opt">[</span>newBytes<span class="hl opt">];</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> oldBytes<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    b<span class="hl opt">[</span>i<span class="hl opt">] =</span> storage<span class="hl opt">[</span>i<span class="hl opt">];</span> <span class="hl slc">// Copy old to new</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span> <span class="hl slc">// Old storage</span>
+  storage <span class="hl opt">=</span> b<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+  quantity <span class="hl opt">=</span> newQuantity<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Stash<span class="hl opt">::</span><span class="hl kwd">cleanup</span><span class="hl opt">() {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>storage <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;freeing storage&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.5. C04/CppLib.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Hay muchas otras cosas que difieres entre C y C++. Para empezar,
+      el compilador <span class="emphasis"><em>requiere</em></span> que declare las
+      funciones en los archivos de cabecera: en C++ no podrá llamar a
+      una función sin haberla declarado antes y si no se cumple esta
+      regla el compilador dará un error. Esta es una forma importante de
+      asegurar que las llamadas a una función son consistentes entre el
+      punto en que se llama y el punto en que se define. Al forzar a
+      declarar una función antes de usarla, el compilador de C++
+      prácticamente se asegura de que realizará esa declaración por
+      medio de la inclusión de un fichero de cabecera. Además, si
+      también incluye el mismo fichero de cabecera en el mismo lugar
+      donde se defines las funciones, el compilador verificará que las
+      declaraciones del archivo cabecera y las definiciones
+      coinciden. Puede decirse entonces que, de algún modo, los
+      ficheros de cabecera se vuelven un repositorio de validación de
+      funciones y permiten asegurar que las funciones se usan
+      de modo consistente en todas las unidades de traducción del
+      proyecto.
+    </p>
+      <p>
+      Obviamente, las funciones globales se pueden seguir declarando a
+      mano en aquellos lugares en las que se definen y usan (Sin
+      embargo, esta práctica es tan tediosa que está en desuso.)  De
+      cualquier modo, las estructuras siempre se deben declarar antes de
+      ser usadas y el mejor lugar para esto es un fichero de cabecera,
+      exceptuando aquellas que queremos esconder intencionalmente en
+      otro fichero.
+    </p>
+      <p>
+      Se puede ver que todas las funciones miembro (métodos) tienen casi
+      la misma forma que sus versiones respectivas en C. Las únicas
+      diferencias son su ámbito de resolución y el hecho de que el
+      primer argumento ya no aparece explícito en el prototipo de la
+      función. Por supuesto que sigue ahí ya que la función debe ser
+      capaz de trabajar sobre una variable <code class="keyword">struct</code> en
+      particular. Sin embargo, fíjese también que, dentro del método, la
+      selección de esta estructura en particular también ha
+      desaparecido! Así, en lugar de decir <code class="code">s-&gt;size = sz;</code>
+      ahora dice <code class="code">size = sz;</code> eliminando el tedioso
+      <code class="code">s-&gt;</code> que en realidad no aportaba nada al significado
+      semántico de lo que estaba escribiendo. Aparentemente, el
+      compilador de C++ está realizando estas tareas por el
+      programador. De hecho, está tomando el primer argumento
+      «secreto» (la dirección de la estructura que antes
+      tenía que pasar a mano) y aplicándole el selector de miembro (-&gt;)
+      siempre que escribe el nombre de uno de los datos miembro. Eso
+      significa que, siempre y cuando esté dentro de la definición de
+      una método de una estructura puede hacer referencia a cualquier
+      otro miembro (incluyendo otro método) simplemente dando su
+      nombre. El compilador buscará primero en los nombres locales de la
+      estructura antes de buscar en versiones más globales de dichos
+      nombres. El lector podrá descubrir que esta característica no sólo
+      agiliza la escritura del código, sino que también hace la lectura
+      del mismo mucho más sencilla.
+    </p>
+      <p>
+      Pero qué pasaría si, por alguna razón,
+      <span class="emphasis"><em>quisiera</em></span> hacer referencia a la dirección de
+      memoria de la estructura. En la versión en C de la librería ésta
+      se podía obtener fácilmente del primer argumento de cualquier
+      función. En C++ la cosa es más consistente: existe la palabra
+      reservada <code class="literal">this</code> que produce la dirección de la
+      variable <code class="keyword">struct</code> actual. Es el equivalente a la expresión
+      <code class="varname">s</code> de la versión en C de la librería. De modo
+      que, podremos volver al estilo de C escribiendo
+    </p>
+      <pre class="programlisting">
+<span class="hl kwa">this</span><span class="hl opt">-&gt;</span>size <span class="hl opt">=</span> Size<span class="hl opt">;</span>
+</pre>
+      <p>
+      El código generado por el compilador será exactamente el mismo por
+      lo que no es necesario usar <code class="literal">this</code> en estos
+      casos. Ocasionalmente, podrá ver por ahí código dónde la gente usa
+      <code class="literal">this</code> en todos sitios sin agregar nada al
+      significado del código (esta práctica es indicio de programadores
+      inexpertos). Por lo general, <code class="literal">this</code> no se usa muy
+      a menudo pero, cuando se necesite siempre estará allí (en
+      ejemplos posteriores del libro verá más sobre su uso).
+    </p>
+      <p>
+      Queda aún un último tema que tocar. En C, se puede asignar un
+      <code class="type">void *</code> a cualquier otro puntero, algo como esto:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">10</span><span class="hl opt">;</span>
+<span class="hl kwb">void</span><span class="hl opt">*</span> vp <span class="hl opt">= &amp;</span>i<span class="hl opt">;</span> <span class="hl slc">// OK tanto en C como en C++</span>
+<span class="hl kwb">int</span><span class="hl opt">*</span> ip <span class="hl opt">=</span> vp<span class="hl opt">;</span> <span class="hl slc">// Sólo aceptable en C</span>
+</pre>
+      <p>
+      y no habrá ningún tipo de queja por parte de compilador. Sin
+      embargo, en C++, lo anterior no está permitido. ¿Por qué? Porque C
+      no es tan estricto con los tipos de datos y permite asignar un
+      puntero sin un tipo específico a un puntero de un tipo bien
+      determinado. No así C++, en el cual la verificación de tipos es
+      crítica y el compilador se detendrá quejándose en cualquier
+      conflicto de tipos. Esto siempre ha sido importante, pero es
+      especialmente importante en C++ ya que dentro de las estructuras
+      puede hacer métodos. Si en C++ estuviera permitido pasar punteros
+      a estructuras con impunidad en cuanto a conflicto de tipos,
+      ¡podría terminar llamando a un método de una estructura en la cual
+      no existiera dicha función miembro! Una verdadera fórmula para el
+      desastre. Así, mientras C++ sí deja asignar cualquier puntero a un
+      <code class="type">void *</code> (en realidad este es el propósito original del
+      puntero a <code class="type">void</code>: que sea suficientemente largo como
+      para apuntar a cualquier tipo) no permite asignar un <code class="type">void
+      *</code> a cualquier otro tipo de puntero. Para ello se requiere
+      un molde que le indique tanto al lector como al compilador que
+      realmente quiere tratarlo como el puntero destino.
+    </p>
+      <p>
+      Y esto nos lleva a discutir un asunto interesante. Uno de los
+      objetivos importantes de C++ es poder compilar la mayor cantidad
+      posible de código C para así, permitir una fácil transición al
+      nuevo lenguaje. Sin embargo, eso no significa, como se ha visto
+      que cualquier segmento de código que sea válido en C, será
+      permitido automáticamente en C++. Hay varias cosas que un
+      compilador de C permite hacer que son potencialmente peligrosas y
+      propensas a generar errores (verá ejemplos de a lo largo de
+      libro). El compilador de C++ genera errores y avisos en este tipo
+      de situaciones y como verá eso es más una ventaja que un obstáculo
+      a pesar de su naturaleza restrictiva. ¡De hecho, existen muchas
+      situaciones en las cuales tratará de detectar sin éxito un error
+      en C y cuando recompiles el programa con un compilador de C++ éste
+      avisa exactamente de la causa del problema!. En C, muy a menudo
+      ocurre que para que un programa funcione correctamente, además de
+      compilarlo, luego debe <span class="emphasis"><em>hacer que ande</em></span>. ¡En
+      C++, por el contrario, verá que muchas veces si un programa
+      compila correctamente es probable que funcione bien!  Esto
+      se debe a que este último lenguaje es mucho más estricto respecto
+      a la comprobación de tipos.
+    </p>
+      <p>
+      En el siguiente programa de prueba podrá apreciar cosas nuevas con
+      respecto a cómo se utiliza la nueva versión de la
+      <code class="type">Stash</code>:
+    </p>
+      <div class="example">
+        <a id="idp5337496"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:CppLibTest.cpp</span>
+<span class="hl slc">//{L} CppLib</span>
+<span class="hl slc">// Test of C++ library</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;CppLib.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Stash intStash<span class="hl opt">;</span>
+  intStash<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">));</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    intStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(&amp;</span>i<span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> intStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> j<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;intStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt; *(</span><span class="hl kwb">int</span><span class="hl opt">*)</span>intStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>j<span class="hl opt">)</span>
+         <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Holds 80-character strings:</span>
+  Stash stringStash<span class="hl opt">;</span>
+  <span class="hl kwb">const int</span> bufsize <span class="hl opt">=</span> <span class="hl num">80</span><span class="hl opt">;</span>
+  stringStash<span class="hl opt">.</span><span class="hl kwd">initialize</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">) *</span> bufsize<span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;CppLibTest.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;CppLibTest.cpp&quot;</span><span class="hl opt">);</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    stringStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span>line<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+  <span class="hl kwb">int</span> k <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> cp<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>cp <span class="hl opt">=(</span><span class="hl kwb">char</span><span class="hl opt">*)</span>stringStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>k<span class="hl opt">++)) !=</span> <span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;stringStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> k <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> cp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  intStash<span class="hl opt">.</span><span class="hl kwd">cleanup</span><span class="hl opt">();</span>
+  stringStash<span class="hl opt">.</span><span class="hl kwd">cleanup</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.6. C04/CppLibTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Una de las cosas que el lector habrá podido observar en el código
+      anterior es que las variables se definen «al vuelo»,
+      o sea (como se introdujo en el capítulo anterior) en cualquier
+      parte de un bloque y no necesariamente -como en C- al comienzo
+      de los mismos.
+    </p>
+      <p>
+      El código es bastante similar al visto en
+      <code class="filename">CLibTest.cpp</code> con la diferencia de que, cuando
+      se llama a un método, se utiliza el operador de selección de
+      miembro '<code class="literal">.</code>' precedido por el nombre de la
+      variable. Esta es una síntaxis conveniente ya que imita a la
+      selección o acceso de un dato miembro de una estructura. La única
+      diferencia es que, al ser un método, su llamada implica una lista
+      de argumentos.
+    </p>
+      <p>
+      Tal y cómo se dijo antes, la llamada que el compilador hace genera
+      <span class="emphasis"><em>realmente</em></span> es mucho más parecida a la llamada
+      a la función de la librería en C. Considere la decoración de
+      nombres y el paso del puntero <code class="varname">this</code>: la llamada
+      en C++ de <code class="function">intStash.initialize(sizeof(int),
+      100)</code> se transformará en algo parecido a
+      <code class="function">Stash_initialize(&amp;intStash, sizeof(int),
+      100)</code>. Si el lector se pregunta qué es lo que sucede
+      realmente debajo del envoltorio, debería recordar que el
+      compilador original de C++ <span class="application">cfront</span> de
+      AT&amp;T producía código C como salida que luego debía ser
+      compilada con un compilador de C para generar el ejecutable. Este
+      método permitía a <span class="application">cfront</span> ser
+      rápidamente portable a cualquier máquina que soportara un
+      compilador estándar de C y ayudó a la rápida difusión de C++. Dado
+      que los compiladores antiguos de C++ tenían que generar código C,
+      sabemos que existe una manera de representar síntaxis C++ en C
+      (algunos compiladores de hoy en día aún permiten generar código
+      C).
+    </p>
+      <p>
+      Comparando con <code class="filename">CLibTest.cpp</code> observará un
+      cambio: la introducción del fichero de cabecera
+      <code class="filename">require.h</code>. He creado este fichero de cabecera
+      para realizar una comprobación de errores más sofisticada que la
+      que proporciona <code class="function">assert()</code>. Contiene varias
+      funciones incluyendo la llamada en este último ejemplo,
+      <code class="function">assure()</code> que se usa sobre ficheros. Esta
+      función verifica que un fichero se ha abierto exitosamente y en
+      caso contrario reporta un aviso a la salida de error estándar (por
+      lo que también necesita el nombre del fichero como segundo
+      argumento) y sale del programa. Las funciones de
+      <code class="filename">require.h</code> se usan a lo largo de este libro
+      especialmente para asegurar que se ha indicado la cantidad
+      correcta de argumentos en la línea de comandos y para verificar
+      que los ficheros se abren correctamente. Las funciones de
+      <code class="filename">require.h</code> reemplazan el código de detección
+      de errores repetitivo y que muchas veces es causa de distracciones
+      y más aún, proporcionan mensajes útiles para la detección de
+      posibles errores. Estas funciones se explican detalladamente más
+      adelante.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s02.html">4.2. ¿Qué tiene de malo?</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s04.html">4.4. ¿Qué es un objeto?</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

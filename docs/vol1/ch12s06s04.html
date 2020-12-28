@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>12.6.4. Las trampas de la conversión automática de tipos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch12s06.html" title="12.6. Conversión automática de tipos" />
+    <link rel="prev" href="ch12s06s03.html" title="12.6.3. Ejemplo de conversión de tipos" />
+    <link rel="next" href="ch12s07.html" title="12.7. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s06s03.html">12.6.3. Ejemplo de conversión de tipos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch12s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s07.html">12.7. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="12.6.4. Las trampas de la conversión automática de tipos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp7417560"></a>12.6.4. Las trampas de la  conversión automática de tipos</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+		Dado que el compilador debe decidir cómo realizar una conversión de tipos, puede
+		meterse en problemas si el programador no diseña las conversiones
+		correctamente. Una situación obvia y simple sucede cuando una clase
+		<code class="classname">X</code> que puede convertirse a sí misma en una clase
+		<code class="classname">Y</code> con un <code class="literal">operator Y()</code>. Si la clase
+		<code class="classname">Y</code> tiene un constructor que toma un argumento simple de tipo
+		<code class="classname">X</code>, esto representa la conversión de tipos idéntica. El
+		compilador ahora tiene dos formas de ir de <code class="classname">X</code> a
+		<code class="classname">Y</code>, así que se generará una error de ambigüedad:
+      </p>
+      <div class="example">
+        <a id="idp7420856"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C12:TypeConversionAmbiguity.cpp</span>
+<span class="hl kwc">class</span> Orange<span class="hl opt">;</span> <span class="hl slc">// Class declaration</span>
+
+<span class="hl kwc">class</span> Apple <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">operator</span> <span class="hl kwd">Orange</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span> <span class="hl slc">// Convert Apple to Orange</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Orange <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Orange</span><span class="hl opt">(</span>Apple<span class="hl opt">);</span> <span class="hl slc">// Convert Apple to Orange</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Orange<span class="hl opt">) {}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Apple a<span class="hl opt">;</span>
+<span class="hl slc">//! f(a); // Error: ambiguous conversion</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 12.24. C12/TypeConversionAmbiguity.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+		La solución obvia a este problema es no hacerla. Simplemente proporcione una ruta
+		única para la conversión automática de un tipo a otro.
+      </p>
+      <p>
+		Un problema más difícil de eliminar sucede cuando proporciona conversiones
+		automáticas a más de un tipo. Esto se llama a veces
+		<span class="emphasis"><em>acomodamiento</em></span> (FIXME):
+      </p>
+      <div class="example">
+        <a id="idp7423304"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C12:TypeConversionFanout.cpp</span>
+<span class="hl kwc">class</span> Orange <span class="hl opt">{};</span>
+<span class="hl kwc">class</span> Pear <span class="hl opt">{};</span>
+
+<span class="hl kwc">class</span> Apple <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">operator</span> <span class="hl kwd">Orange</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwc">operator</span> <span class="hl kwd">Pear</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Overloaded eat():</span>
+<span class="hl kwb">void</span> <span class="hl kwd">eat</span><span class="hl opt">(</span>Orange<span class="hl opt">);</span>
+<span class="hl kwb">void</span> <span class="hl kwd">eat</span><span class="hl opt">(</span>Pear<span class="hl opt">);</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Apple c<span class="hl opt">;</span>
+<span class="hl slc">//! eat(c);</span>
+  <span class="hl slc">// Error: Apple -&gt; Orange or Apple -&gt; Pear ???</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 12.25. C12/TypeConversionFanout.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+		La clase <code class="classname">Apple</code> tiene conversiones automáticas a
+		<code class="classname">Orange</code> y a <code class="classname">Pear</code>. El elemento
+		capcioso aquí es que no hay problema hasta que alguien inocentemente crea dos
+		versiones sobrecargadas de <code class="function">eat()</code>. (Con una única versión el
+		codigo en <code class="function">main()</code> funciona correctamente).
+      </p>
+      <p>
+		De nuevo la solución -- y el lema general de la conversión automática de tipos --
+		es proporcionar solo una conversión automática de un tipo a otro. Puede tener
+		conversiones a otros tipos, sólo que no deberían ser
+		<span class="emphasis"><em>automáticas</em></span>. Puede crear llamadas a funciones explícitas con
+		nombres como <code class="function">makeA()</code> y <code class="function">makeB()</code>.
+      </p>
+      <div class="sect3" title="Actividades ocultas">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp7428472"></a>Actividades ocultas</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+		  La conversión automática de tipos puede producir mas actividad subyacente de la
+		  que se podría esperar. Mire esta modificación de
+		  <code class="filename">CopyingVsInitialization.cpp</code> como un pequeño rompecabezas:
+		</p>
+        <div class="example">
+          <a id="idp7429752"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C12:CopyingVsInitialization2.cpp</span>
+<span class="hl kwc">class</span> Fi <span class="hl opt">{};</span>
+
+<span class="hl kwc">class</span> Fee <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Fee</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">Fee</span><span class="hl opt">(</span><span class="hl kwb">const</span> Fi<span class="hl opt">&amp;) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Fo <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Fo</span><span class="hl opt">(</span><span class="hl kwb">int</span> x <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>x<span class="hl opt">) {}</span>
+  <span class="hl kwc">operator</span> <span class="hl kwd">Fee</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> <span class="hl kwd">Fee</span><span class="hl opt">(</span>i<span class="hl opt">); }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Fo fo<span class="hl opt">;</span>
+  Fee fee <span class="hl opt">=</span> fo<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 12.26. C12/CopyingVsInitialization2.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		  No hay un constructor para crear <code class="varname">Fee fee</code> de un objeto
+		  <code class="classname">Fo</code>. Sin embargo, <code class="classname">Fo</code> tiene una
+		  conversión automática de tipos a <code class="classname">Fee</code>. No hay un
+		  constructor de copia para crear un <code class="classname">Fee</code> a partir de un
+		  <code class="classname">Fee</code>, pero ésa es una de las funciones especiales que el
+		  compilador puede crear. (El constructor por defecto, el constructor de
+		  copia y <code class="literal">operator=</code>) y el destructor pueden sintetizarse
+		  automáticamente por el compilador. Así que, para la relativamente inocua
+		  expresión:
+		</p>
+        <pre class="programlisting">
+Fee fee <span class="hl opt">=</span> fo<span class="hl opt">;</span>
+</pre>
+        <p>
+		  se invoca el operador de conversión automático de tipo, y se crea un constructor
+		  de copia.
+		</p>
+        <p>
+		  Use la conversión automática de tipos con precaución. Como con toda la
+		  sobrecarga de operadores, es excelente cuando reduce la tarea de codificación
+		  significativamente, pero no vale la pena usarla de forma gratuita.
+		</p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s06s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s06s03.html">12.6.3. Ejemplo de conversión de tipos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch12s06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s07.html">12.7. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

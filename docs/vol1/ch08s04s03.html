@@ -1,0 +1,437 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.4.3. Objetos y métodos constantes</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch08s04.html" title="8.4. Clases" />
+    <link rel="prev" href="ch08s04s02.html" title="8.4.2. Constantes en tiempo de compilación dentro de clases" />
+    <link rel="next" href="ch08s05.html" title="8.5. Volatile" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04s02.html">8.4.2. Constantes en tiempo de compilación dentro de clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s05.html">8.5. Volatile</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="8.4.3. Objetos y métodos constantes">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp6204624"></a>8.4.3. Objetos y métodos constantes</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Las funciones miembro (métodos) se pueden hacer
+	constantes. ¿Qué significa eso? Para entenderlo, primero debe
+	comprender el concepto de objeto constante.
+      </p>
+      <p>
+	Un objeto constante se define del mismo modo para un tipo
+	definido por el usuario que para un tipo del lenguaje. Por
+	ejemplo:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">const int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<span class="hl kwb">const</span> blob <span class="hl kwd">b</span><span class="hl opt">(</span><span class="hl num">2</span><span class="hl opt">);</span>
+</pre>
+      <p>
+        Aquí, <code class="varname">b</code> es un objeto constante de tipo
+        <code class="type">blob</code>, su constructor se llama con un
+        <code class="literal">2</code> como argumento. Para que el compilador
+        imponga que el objeto sea constante, debe asegurar que el
+        objeto no tiene atributos que vayan a cambiar durante el
+        tiempo de vida del objeto. Puede asegurar fácilmente que los
+        atributos no públicos no sean modificables, pero. ¿Cómo puede
+        saber que métodos cambiarán los atributos y cuáles son seguros
+        para un objeto constante?
+      </p>
+      <p>
+        Si declara un método como constante, le está diciendo que la
+        función puede ser invocada por un objeto constante. Un método
+        que no se declara constante se trata como uno que puede
+        modificar los atributos del objeto, y el compilador no permitirá
+        que un objeto constante lo utilice.
+      </p>
+      <p>
+        Pero la cosa no acaba ahí. Sólo porque un método afirme ser
+        <code class="keyword">const</code> no garantiza que actuará del modo correcto, de
+        modo que el compilador fuerza que en la definición del método
+        se reitere el especificador <code class="keyword">const</code> (la palabra
+        <code class="keyword">const</code> se convierte en parte del nombre de la función,
+        así que tanto el compilador como el enlazador comprobarán que
+        no se viole la constancia). De este modo, si durante la
+        definición de la función se modifica algún miembro o se llama
+        algún método no constante, el compilador emitirá un mensaje de
+        error. Por eso, está garantizado que los miembros que declare
+        <code class="keyword">const</code> se comportarán del modo esperado.
+      </p>
+      <p>
+	Para comprender la sintaxis para declarar métodos constantes,
+	primero debe recordar que colocar <code class="keyword">const</code> delante de la
+	declaración del método indica que el valor de retorno es
+	constante, así que no produce el efecto deseado. Lo que hay
+	que hacer es colocar el especificador <code class="keyword">const</code>
+	<span class="emphasis"><em>después</em></span> de la lista de argumentos. Por
+	ejemplo:
+      </p>
+      <div class="example">
+        <a id="idp6214464"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:ConstMember.cpp</span>
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">);</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+X<span class="hl opt">::</span><span class="hl kwd">X</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) :</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">) {}</span>
+<span class="hl kwb">int</span> X<span class="hl opt">::</span><span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> i<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  X <span class="hl kwd">x1</span><span class="hl opt">(</span><span class="hl num">10</span><span class="hl opt">);</span>
+  <span class="hl kwb">const</span> X <span class="hl kwd">x2</span><span class="hl opt">(</span><span class="hl num">20</span><span class="hl opt">);</span>
+  x1<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+  x2<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.14. C08/ConstMember.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La palabra <code class="keyword">const</code> debe incluirse tanto en la
+	declaración como en la definición del método o de otro modo el
+	compilador asumirá que es un método diferente. Como
+	<code class="function">f()</code> es un método constante, si intenta
+	modificar <code class="varname">i</code> de alguna forma o llamar a otro
+	método que no sea constante, el compilador informará de un
+	error.
+      </p>
+      <p>
+	Puede ver que un miembro constante puede llamarse tanto desde
+	objetos constantes como desde no constantes de forma
+	segura. Por ello, debe saber que esa es la forma más general
+	para un método (a causa de esto, el hecho de que los métodos
+	no sean <code class="keyword">const</code> por defecto resulta desafortunado). Un
+	método que no modifica ningún atributo se debería escribir
+	como constante y así se podría usar desde objetos constantes.
+      </p>
+      <p>
+	Aquí se muestra un ejemplo que compara métodos const y
+	métodos ordinarios:
+      </p>
+      <div class="example">
+        <a id="idp6219352"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C08:Quoter.cpp</span>
+<span class="hl slc">// Random quote selection</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cstdlib&gt;</span> <span class="hl slc">// Random number generator</span>
+<span class="hl ppc"></span><span class="hl ppc">#include &lt;ctime&gt;</span> <span class="hl slc">// To seed random generator</span>
+<span class="hl ppc"></span><span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Quoter <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> lastquote<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Quoter</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">lastQuote</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+  <span class="hl kwb">const char</span><span class="hl opt">*</span> <span class="hl kwd">quote</span><span class="hl opt">();</span>
+<span class="hl opt">};</span>
+
+Quoter<span class="hl opt">::</span><span class="hl kwd">Quoter</span><span class="hl opt">(){</span>
+  lastquote <span class="hl opt">= -</span><span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl kwd">srand</span><span class="hl opt">(</span><span class="hl kwd">time</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">));</span> <span class="hl slc">// Seed random number generator</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> Quoter<span class="hl opt">::</span><span class="hl kwd">lastQuote</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+  <span class="hl kwa">return</span> lastquote<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">const char</span><span class="hl opt">*</span> Quoter<span class="hl opt">::</span><span class="hl kwd">quote</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static const char</span><span class="hl opt">*</span> quotes<span class="hl opt">[] = {</span>
+    <span class="hl str">&quot;Are we having fun yet?&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Doctors always know best&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Is it ... Atomic?&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Fear is obscene&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;There is no scientific evidence &quot;</span>
+    <span class="hl str">&quot;to support the idea &quot;</span>
+    <span class="hl str">&quot;that life is serious&quot;</span><span class="hl opt">,</span>
+    <span class="hl str">&quot;Things that make us happy, make us wise&quot;</span><span class="hl opt">,</span>
+  <span class="hl opt">};</span>
+  <span class="hl kwb">const int</span> qsize <span class="hl opt">=</span> <span class="hl kwa">sizeof</span> quotes<span class="hl opt">/</span><span class="hl kwa">sizeof</span> <span class="hl opt">*</span>quotes<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> qnum <span class="hl opt">=</span> <span class="hl kwd">rand</span><span class="hl opt">() %</span> qsize<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>lastquote <span class="hl opt">&gt;=</span> <span class="hl num">0</span> <span class="hl opt">&amp;&amp;</span> qnum <span class="hl opt">==</span> lastquote<span class="hl opt">)</span>
+    qnum <span class="hl opt">=</span> <span class="hl kwd">rand</span><span class="hl opt">() %</span> qsize<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> quotes<span class="hl opt">[</span>lastquote <span class="hl opt">=</span> qnum<span class="hl opt">];</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Quoter q<span class="hl opt">;</span>
+  <span class="hl kwb">const</span> Quoter cq<span class="hl opt">;</span>
+  cq<span class="hl opt">.</span><span class="hl kwd">lastQuote</span><span class="hl opt">();</span> <span class="hl slc">// OK</span>
+<span class="hl slc">//!  cq.quote(); // Not OK; non const function</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">20</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> q<span class="hl opt">.</span><span class="hl kwd">quote</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.15. C08/Quoter.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Ni los constructores ni los destructores pueden ser métodos
+	constantes porque prácticamente siempre realizan alguna
+	modificación en el objeto durante la inicialización o la
+	terminación. El miembro <code class="function">quote()</code> tampoco
+	puede ser constante porque modifica el atributo
+	<code class="varname">lastquote</code> (ver la sentencia de retorno).  Por
+	otra parte <code class="function">lastQuote()</code> no hace
+	modificaciones y por eso puede ser <code class="keyword">const</code> y
+	puede ser llamado de forma segura por el objeto constante
+	<code class="varname">cq</code>.
+      </p>
+      <div class="sect3" title="mutable: constancia binaria vs. lógica">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6224672"></a>mutable: constancia binaria vs. lógica</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  ¿Qué ocurre si quiere crear un método constante, pero
+	  necesita cambiar algún atributo del objeto? Esto se aplica a
+	  veces a la diferencia entre constante binaria
+	  (<span class="foreignphrase"><em class="foreignphrase">bitwise</em></span>) y constante lógica
+	  (llamado también constante
+	  <span class="foreignphrase"><em class="foreignphrase">memberwise</em></span>). Constante
+	  binaria significa que todos los bits del objeto son
+	  permanentes, así que la imagen binaria del objeto nunca
+	  cambia.  Constante lógica significa que, aunque el objeto
+	  completo es conceptualmente constante puede haber cambios a
+	  nivel de miembro.  Si se informa al compilador que un objeto
+	  es constante, cuidará celosamente el objeto para asegurar
+	  constancia binaria. Para conseguir constancia lógica, hay
+	  dos formas de cambiar los atributos con un método constante.
+	</p>
+        <p>
+	  La primera solución es la tradicional y se llama constancia
+	  <span class="foreignphrase"><em class="foreignphrase">casting away</em></span>.  Esto se hace
+	  de un modo bastante raro. Se toma <code class="varname">this</code>
+	  (la palabra que inidica la dirección del objeto actual) y se
+	  moldea el puntero a un puntero a objeto de la clase
+	  actual. Parece que <code class="varname">this</code> ya es un puntero
+	  válido. Sin embargo, dentro de un método constante,
+	  <code class="varname">this</code> es en realidad un puntero constante,
+	  así que moldeándolo a un puntero ordinario se elimina la
+	  constancia del objeto para esta operación. Aquí hay un
+	  ejemplo:
+	</p>
+        <div class="example">
+          <a id="idp6229016"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C08:Castaway.cpp</span>
+<span class="hl slc">// &quot;Casting away&quot; constness</span>
+
+<span class="hl kwc">class</span> Y <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Y</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+Y<span class="hl opt">::</span><span class="hl kwd">Y</span><span class="hl opt">() {</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+
+<span class="hl kwb">void</span> Y<span class="hl opt">::</span><span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+<span class="hl slc">//!  i++; // Error -- const member function</span>
+  <span class="hl opt">((</span>Y<span class="hl opt">*)</span><span class="hl kwa">this</span><span class="hl opt">)-&gt;</span>i<span class="hl opt">++;</span> <span class="hl slc">// OK: cast away const-ness</span>
+  <span class="hl slc">// Better: use C++ explicit cast syntax:</span>
+  <span class="hl opt">(</span><span class="hl kwa">const_cast</span><span class="hl opt">&lt;</span>Y<span class="hl opt">*&gt;(</span><span class="hl kwa">this</span><span class="hl opt">))-&gt;</span>i<span class="hl opt">++;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const</span> Y yy<span class="hl opt">;</span>
+  yy<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span> <span class="hl slc">// Actually changes it!</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 8.16. C08/Castaway.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  Esta aproximación funciona y puede verse en código
+	  correcto, pero no es la técnica ideal. El problema es que
+	  esta falta de constancia está oculta en la definición de
+	  un método y no hay ningún indicio en la interfaz de la
+	  clase que haga sospechar que ese dato se modifica a menos
+	  que puede accederse al código fuente (buscando el
+	  molde). Para poner todo al descubierto se debe usar la
+	  palabra <code class="keyword">mutable</code> en la declaración de la
+	  clase para indicar que un atributo determinado se puede
+	  cambiar aún perteneciendo a un objeto constante.
+	</p>
+        <div class="example">
+          <a id="idp6231928"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C08:Mutable.cpp</span>
+<span class="hl slc">// The &quot;mutable&quot; keyword</span>
+
+<span class="hl kwc">class</span> Z <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+  <span class="hl kwc">mutable</span> <span class="hl kwb">int</span> j<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Z</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+Z<span class="hl opt">::</span><span class="hl kwd">Z</span><span class="hl opt">() :</span> <span class="hl kwd">i</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">j</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+
+<span class="hl kwb">void</span> Z<span class="hl opt">::</span><span class="hl kwd">f</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+<span class="hl slc">//! i++; // Error -- const member function</span>
+    j<span class="hl opt">++;</span> <span class="hl slc">// OK: mutable</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">const</span> Z zz<span class="hl opt">;</span>
+  zz<span class="hl opt">.</span><span class="hl kwd">f</span><span class="hl opt">();</span> <span class="hl slc">// Actually changes it!</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 8.17. C08/Mutable.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	  De este modo el usuario de la clase puede ver en la declaración
+	  qué miembros tienen posibilidad de ser modificados por un método.
+	</p>
+      </div>
+      <div class="sect3" title="ROMability">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h4 class="title"><a id="idp6233672"></a>ROMability</h4>
+            </div>
+          </div>
+        </div>
+        <p>
+	  Si un objeto se define como constante es un candidato para
+	  ser almacenado en memoria de sólo lectura (ROM), que a
+	  menudo es una consideración importante en programación de
+	  sistemas empotrados. Para conseguirlo no es suficiente con
+	  que el objeto sea constante, los requisitos son mucha más
+	  estrictos. Por supuesto, el objeto debe ser una constante
+	  binaria. Eso es fácil de comprobar si la constancia lógica
+	  se implementa mediante el uso de <code class="keyword">mutable</code>, pero
+	  probablemente el compilador no podrá detectarlo si se
+	  utiliza la técnica del moldeado dentro de un método
+	  constante. Además:
+	</p>
+        <div class="itemizedlist">
+          <ul class="itemizedlist" type="disc">
+            <li class="listitem">
+              <p>
+	      La clase o estructura no puede tener constructores o destructor
+	      definidos por el usuario.
+	    </p>
+            </li>
+            <li class="listitem">
+              <p>
+	      No pueden ser clases base (capitulo 14) u objetos
+	      miembro con constructores o destructor definidos por el
+	      usuario.
+	    </p>
+            </li>
+          </ul>
+        </div>
+        <p>
+	  El efecto de una operación de escritura en una parte del
+	  objeto constante de un tipo <code class="type">ROMable</code> no está
+	  definido. Aunque un objeto pueda ser colocado en ROM de
+	  forma conveniente, no todos lo requieren.
+	</p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s04s02.html">8.4.2. Constantes en tiempo de compilación dentro de clases</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch08s04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s05.html">8.5. Volatile</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

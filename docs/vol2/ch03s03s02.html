@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.3.2. Fichero de rastro</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch03s03.html" title="3.3. Técnicas de depuración" />
+    <link rel="prev" href="ch03s03.html" title="3.3. Técnicas de depuración" />
+    <link rel="next" href="ch03s03s03.html" title="3.3.3. Encontrar agujeros en memoria" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s03.html">3.3. Técnicas de depuración </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s03s03.html">3.3.3. Encontrar agujeros en memoria </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="3.3.2. Fichero de rastro">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3639432"></a>3.3.2. Fichero de rastro </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	ADVERTENCIA: Esta sección y la siguiente contienen código que
+	está oficialmente sin aprobación por el Estándar C++. En
+	particular, redefinimos cout y new mediante macros, que puede
+	provocar resultados sorprendentes si no tiene
+	cuidado. Nuestros ejemplos funcionan en todos los compiladores
+	que usamos, comoquiera, y proporcionan información útil. Este
+	es el único lugar en este libro donde nos desviaremos de la
+	inviolabilidad de la práctica de codificar cumpliendo el
+	estándar. ¡Úsalo bajo tu propio riesgo! Dese cuenta que para
+	este trabajo, usar delcaraciones debe ser realizado, para que
+	cout no esté prefijado por su nombre de espacio,
+	p.e. std::cout no funcionará.
+      </p>
+      <p>
+	El siguiente código crea fácilmente un fichero de seguimiento
+	y envía todas las salidas que irían normalmente a cout a ese
+	fichero. Todo lo que debe hacer es #define TRACEON e incluir
+	el fichero de cabecera (por supuesto, es bastante fácil sólo
+	escribir las dos líneas claves correctamente en su fichero):
+      </p>
+      <div class="example">
+        <a id="idp3642248"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Trace.h</span>
+<span class="hl slc">// Creating a trace file.</span>
+<span class="hl ppc">#ifndef TRACE_H</span>
+<span class="hl ppc">#define TRACE_H</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+
+<span class="hl ppc">#ifdef TRACEON</span>
+std<span class="hl opt">::</span>ofstream <span class="hl kwd">TRACEFILE__</span><span class="hl opt">(</span><span class="hl str">&quot;TRACE.OUT&quot;</span><span class="hl opt">);</span>
+<span class="hl ppc">#define cout TRACEFILE__</span>
+<span class="hl ppc">#endif</span>
+
+<span class="hl ppc">#endif</span> <span class="hl slc">// TRACE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.12. C03/Trace.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Aquí esta una prueba sencilla del fichero anterior:
+      </p>
+      <div class="example">
+        <a id="idp3644032"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Tracetst.cpp {-bor}</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl ppc">#define TRACEON</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Trace.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ifstream <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl str">&quot;Tracetst.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>f<span class="hl opt">,</span> <span class="hl str">&quot;Tracetst.cpp&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> f<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span> <span class="hl slc">// Dumps file contents to file</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.13. C03/Tracetst.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Porque cout ha sido textualmente convertido en algo más por
+	Trace.h, todas las sentencias cout en su programa ahora envían
+	información al fichero de seguimiento. Esto es una forma
+	conveniente de capturar su salida en un fichero, en caso de
+	que su sistema operativo no haga una fácil redirección de la salida.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s03.html">3.3. Técnicas de depuración </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s03s03.html">3.3.3. Encontrar agujeros en memoria </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s03s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

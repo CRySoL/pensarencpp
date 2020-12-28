@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.3.5. Prioridad</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch09s03.html" title="9.3. Utilización de los hilos" />
+    <link rel="prev" href="ch09s03s04.html" title="9.3.4. Dormido" />
+    <link rel="next" href="ch09s04.html" title="9.4. Comparición de recursos limitados" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03s04.html">9.3.4. Dormido</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04.html">9.4. Comparición de recursos limitados</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="9.3.5. Prioridad">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp5058904"></a>9.3.5. Prioridad</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	La prioridad de un hilo representa la importancia de ese hilo
+	para el planificador. Pese a que el orden en que la CPU
+	ejecuta un conjunto de hilos es indeterminado, el planificador
+	tenderá a ejecutar el hilo con mayor prioridad de los que
+	estén esperando. Sin embargo, no quiere decir que hilos con
+	menos prioridad no se ejecutarán (es decir, no tendrá bloqueo
+	de un hilo a causa de las prioridades). Simplemente, los hilos
+	con menos prioridad tenderán a ejecutarse menos frecuentemente.
+      </p>
+      <p>
+	Se ha modificado MoreBasicThreads.cpp para mostrar los niveles
+	de prioridad. Las prioridades se ajustan utilizando la función
+	setPriority() de <code class="classname">Thread</code>.
+      </p>
+      <div class="example">
+        <a id="idp5061096"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C11:SimplePriorities.cpp</span>
+<span class="hl slc">// Shows the use of thread priorities.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">const double</span> pi <span class="hl opt">=</span> <span class="hl num">3.14159265358979323846</span><span class="hl opt">;</span>
+<span class="hl kwb">const double</span> e <span class="hl opt">=</span> <span class="hl num">2.7182818284590452354</span><span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> SimplePriorities <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> countDown<span class="hl opt">;</span>
+  <span class="hl kwc">volatile</span> <span class="hl kwb">double</span> d<span class="hl opt">;</span> <span class="hl slc">// No optimization</span>
+  <span class="hl kwb">int</span> id<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">SimplePriorities</span><span class="hl opt">(</span><span class="hl kwb">int</span> ident<span class="hl opt">=</span><span class="hl num">0</span><span class="hl opt">):</span> <span class="hl kwd">countDown</span><span class="hl opt">(</span><span class="hl num">5</span><span class="hl opt">),</span> <span class="hl kwd">id</span><span class="hl opt">(</span>ident<span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">SimplePriorities</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; completed&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">friend</span> ostream<span class="hl opt">&amp;</span>
+  <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> SimplePriorities<span class="hl opt">&amp;</span> sp<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;#&quot;</span> <span class="hl opt">&lt;&lt;</span> sp<span class="hl opt">.</span>id <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; priority: &quot;</span>
+      <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">Thread</span><span class="hl opt">().</span><span class="hl kwd">getPriority</span><span class="hl opt">()</span>
+      <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot; count: &quot;</span><span class="hl opt">&lt;&lt;</span> sp<span class="hl opt">.</span>countDown<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwa">true</span><span class="hl opt">) {</span>
+      <span class="hl slc">// An expensive, interruptable operation:</span>
+      <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100000</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+        d <span class="hl opt">=</span> d <span class="hl opt">+ (</span>pi <span class="hl opt">+</span> e<span class="hl opt">) /</span> <span class="hl kwb">double</span><span class="hl opt">(</span>i<span class="hl opt">);</span>
+      cout <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl kwa">if</span><span class="hl opt">(--</span>countDown <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">high</span><span class="hl opt">(</span><span class="hl kwa">new</span> SimplePriorities<span class="hl opt">);</span>
+    high<span class="hl opt">.</span><span class="hl kwd">setPriority</span><span class="hl opt">(</span>High<span class="hl opt">);</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">5</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+      Thread <span class="hl kwd">low</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">SimplePriorities</span><span class="hl opt">(</span>i<span class="hl opt">));</span>
+      low<span class="hl opt">.</span><span class="hl kwd">setPriority</span><span class="hl opt">(</span>Low<span class="hl opt">);</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.13. C11/SimplePriorities.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	En este ejemplo, el operador &lt;&lt;() se sobreescribe para mostrar
+	el identificador, la prioridad y el valor de countDown de la
+	tarea.
+      </p>
+      <p>
+	Puede ver que el nivel de prioridad del hilo es el más alto, y
+	que el resto de hilos tienen el nivel más bajo. No
+	utilizamos <code class="classname">Executor</code> en este ejemplo
+	porque necesitamos acceder directamente al hilo para
+	configurar sus propiedades.
+      </p>
+      <p>
+	Dentro de SimplePriorities::run() se ejecutan 100,000 veces un
+	costoso conjunto de cálculos en punto flotante. La variable d
+	es volátil para intentar garantizar que ningún compilador hace
+	optimizaciones. Sin este cálculo, no comprobará el efecto de
+	la configuración de los niveles de prioridad. (Pruébelo:
+	comente el bucle for que contiene los cálculos en doble
+	precisión.) Con el cálculo puede ver que el planificador de
+	hilos al hilo high se le da más preferencia. (Al menos, este
+	fue el comportamiento sobre una máquina Windows). El cálculo
+	tarda lo suficiente para que el mecanismo de planificación de
+	hilos lo salte, cambie hilos y tome en cuenta las prioridades
+	para que el hilo high tenga preferencia.
+      </p>
+      <p>
+	También, puede leer la prioridad de un hilo existente con
+	getPriority() y cambiarla en cualquier momento (no sólo antes
+	de que el hilo se ejecute, como en SimplePriorities.cpp) con
+	setPriority().
+      </p>
+      <p>
+	La correspondencia de las prioridades con el sistema operativo
+	es un problema. Por ejemplo, Windows 2000 tiene siete niveles
+	de prioridades, mientras que Solaris de Sun tiene 231. El
+	único enfoque portable es ceñirse a los niveles discretos de
+	prioridad, como Low, Medium y High utilizados en la librería
+	ZThread.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s03s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s03s04.html">9.3.4. Dormido</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch09s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04.html">9.4. Comparición de recursos limitados</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

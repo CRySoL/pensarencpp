@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.3. Stash y Stack con inlines</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C09.html" title="9: Funciones inline" />
+    <link rel="prev" href="ch09s02s02.html" title="9.2.2. Funciones de acceso" />
+    <link rel="next" href="ch09s04.html" title="9.4. Funciones inline y el compilador" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s02s02.html">9.2.2. Funciones de acceso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04.html">9.4. Funciones inline y el compilador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.3. Stash y Stack con inlines">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6377824"></a>9.3. Stash y Stack con inlines</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Disponiendo de inlines, podemos modificar las clases
+      <code class="classname">Stash</code> y <code class="classname">Stack</code> para
+      hacerlas más eficientes.
+    </p>
+      <div class="example">
+        <a id="idp6378952"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Stash4.h</span>
+<span class="hl slc">// Inline functions</span>
+<span class="hl ppc">#ifndef STASH4_H</span>
+<span class="hl ppc">#define STASH4_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Stash <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> size<span class="hl opt">;</span>      <span class="hl slc">// Size of each space</span>
+  <span class="hl kwb">int</span> quantity<span class="hl opt">;</span>  <span class="hl slc">// Number of storage spaces</span>
+  <span class="hl kwb">int</span> next<span class="hl opt">;</span>      <span class="hl slc">// Next empty space</span>
+  <span class="hl slc">// Dynamically allocated array of bytes:</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> storage<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stash</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">) :</span> <span class="hl kwd">size</span><span class="hl opt">(</span>sz<span class="hl opt">),</span> <span class="hl kwd">quantity</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span>
+    <span class="hl kwd">next</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">storage</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">Stash</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">,</span> <span class="hl kwb">int</span> initQuantity<span class="hl opt">) :</span> <span class="hl kwd">size</span><span class="hl opt">(</span>sz<span class="hl opt">),</span> 
+    <span class="hl kwd">quantity</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">storage</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {</span> 
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>initQuantity<span class="hl opt">);</span> 
+  <span class="hl opt">}</span>
+  Stash<span class="hl opt">::~</span><span class="hl kwd">Stash</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>storage <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">)</span> 
+      <span class="hl kwa">delete</span> <span class="hl opt">[]</span>storage<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">);</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">fetch</span><span class="hl opt">(</span><span class="hl kwb">int</span> index<span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span><span class="hl num">0</span> <span class="hl opt">&lt;=</span> index<span class="hl opt">,</span> <span class="hl str">&quot;Stash::fetch (-)index&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>index <span class="hl opt">&gt;=</span> next<span class="hl opt">)</span>
+      <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span> <span class="hl slc">// To indicate the end</span>
+    <span class="hl slc">// Produce pointer to desired element:</span>
+    <span class="hl kwa">return</span> <span class="hl opt">&amp;(</span>storage<span class="hl opt">[</span>index <span class="hl opt">*</span> size<span class="hl opt">]);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">count</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> <span class="hl kwa">return</span> next<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// STASH4_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.8. C09/Stash4.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Obviamente las funciones pequeñas funcionan bien como inlines,
+      pero note que las dos funciones más largas siguen siendo
+      no-inline, dado que convertirlas a inline no representaría ninguna
+      mejora de rendimiento.
+    </p>
+      <div class="example">
+        <a id="idp6381880"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Stash4.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stash4.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+<span class="hl kwb">const int</span> increment <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> Stash<span class="hl opt">::</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> element<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>next <span class="hl opt">&gt;=</span> quantity<span class="hl opt">)</span> <span class="hl slc">// Enough space left?</span>
+    <span class="hl kwd">inflate</span><span class="hl opt">(</span>increment<span class="hl opt">);</span>
+  <span class="hl slc">// Copy element into storage,</span>
+  <span class="hl slc">// starting at next empty space:</span>
+  <span class="hl kwb">int</span> startBytes <span class="hl opt">=</span> next <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> e <span class="hl opt">= (</span><span class="hl kwb">unsigned char</span><span class="hl opt">*)</span>element<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> size<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    storage<span class="hl opt">[</span>startBytes <span class="hl opt">+</span> i<span class="hl opt">] =</span> e<span class="hl opt">[</span>i<span class="hl opt">];</span>
+  next<span class="hl opt">++;</span>
+  <span class="hl kwa">return</span><span class="hl opt">(</span>next <span class="hl opt">-</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// Index number</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> Stash<span class="hl opt">::</span><span class="hl kwd">inflate</span><span class="hl opt">(</span><span class="hl kwb">int</span> increase<span class="hl opt">) {</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>increase <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>increase <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+  <span class="hl kwb">int</span> newQuantity <span class="hl opt">=</span> quantity <span class="hl opt">+</span> increase<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> newBytes <span class="hl opt">=</span> newQuantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> oldBytes <span class="hl opt">=</span> quantity <span class="hl opt">*</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span><span class="hl opt">*</span> b <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwb">unsigned char</span><span class="hl opt">[</span>newBytes<span class="hl opt">];</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> oldBytes<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    b<span class="hl opt">[</span>i<span class="hl opt">] =</span> storage<span class="hl opt">[</span>i<span class="hl opt">];</span> <span class="hl slc">// Copy old to new</span>
+  <span class="hl kwa">delete</span> <span class="hl opt">[](</span>storage<span class="hl opt">);</span> <span class="hl slc">// Release old storage</span>
+  storage <span class="hl opt">=</span> b<span class="hl opt">;</span> <span class="hl slc">// Point to new memory</span>
+  quantity <span class="hl opt">=</span> newQuantity<span class="hl opt">;</span> <span class="hl slc">// Adjust the size</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.9. C09/Stash4.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Una vez más, el programa de prueba que verifica que todo
+      funciona correctamente.
+    </p>
+      <div class="example">
+        <a id="idp6384360"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Stash4Test.cpp</span>
+<span class="hl slc">//{L} Stash4</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stash4.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Stash <span class="hl kwd">intStash</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">int</span><span class="hl opt">));</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    intStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(&amp;</span>i<span class="hl opt">);</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> intStash<span class="hl opt">.</span><span class="hl kwd">count</span><span class="hl opt">();</span> j<span class="hl opt">++)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;intStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt; *(</span><span class="hl kwb">int</span><span class="hl opt">*)</span>intStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>j<span class="hl opt">)</span>
+         <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwb">const int</span> bufsize <span class="hl opt">=</span> <span class="hl num">80</span><span class="hl opt">;</span>
+  Stash <span class="hl kwd">stringStash</span><span class="hl opt">(</span><span class="hl kwa">sizeof</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">) *</span> bufsize<span class="hl opt">,</span> <span class="hl num">100</span><span class="hl opt">);</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Stash4Test.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Stash4Test.cpp&quot;</span><span class="hl opt">);</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    stringStash<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">((</span><span class="hl kwb">char</span><span class="hl opt">*)</span>line<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">());</span>
+  <span class="hl kwb">int</span> k <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwb">char</span><span class="hl opt">*</span> cp<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>cp <span class="hl opt">= (</span><span class="hl kwb">char</span><span class="hl opt">*)</span>stringStash<span class="hl opt">.</span><span class="hl kwd">fetch</span><span class="hl opt">(</span>k<span class="hl opt">++))!=</span><span class="hl num">0</span><span class="hl opt">)</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;stringStash.fetch(&quot;</span> <span class="hl opt">&lt;&lt;</span> k <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;) = &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> cp <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.10. C09/Stash4Test.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Este es el mismo programa de prueba que se usó antes, de modo que
+      la salida debería ser básicamente la misma.
+    </p>
+      <p>
+      La clase <code class="classname">Stack</code> incluso hace mejor uso de inline's.
+    </p>
+      <div class="example">
+        <a id="idp6387976"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Stack4.h</span>
+<span class="hl slc">// With inlines</span>
+<span class="hl ppc">#ifndef STACK4_H</span>
+<span class="hl ppc">#define STACK4_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    <span class="hl kwb">void</span><span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">):</span> 
+      <span class="hl kwd">data</span><span class="hl opt">(</span>dat<span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span>nxt<span class="hl opt">) {}</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">() :</span> <span class="hl kwd">head</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">() {</span>
+    <span class="hl kwd">require</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">,</span> <span class="hl str">&quot;Stack not empty&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwb">void</span><span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+    head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span> head<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    <span class="hl kwa">return</span> head ? head<span class="hl opt">-&gt;</span>data <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span><span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl kwb">void</span><span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+    head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// STACK4_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.11. C09/Stack4.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Note que el destructor <code class="classname">Link</code>, que se
+      presentó (vacío) en la versión anterior de
+      <code class="classname">Stack</code>, ha sido eliminado. En
+      <code class="function">pop()</code>, la expresión <code class="code">delete
+      oldHead</code> simplemente libera la memoria usada por
+      <code class="classname">Link</code> (no destruye el objeto
+      <code class="varname">data</code> apuntado por el
+      <code class="classname">Link</code>).
+    </p>
+      <p>
+      La mayoría de las funciones inline quedan bastante bien
+      obviamente, en especial para
+      <code class="classname">Link</code>. Incluso
+      <code class="methodname">pop()</code> parece justificado, aunque
+      siempre que haya sentencias condicionales o variables locales no
+      está claro que las inlines sean beneficiosas. Aquí, la función
+      es lo suficientemente pequeña así que es probable que no haga
+      ningún daño.
+    </p>
+      <p>
+      Si todas sus funciones son inline, usar la librería se convierte
+      en algo bastante simple porque el enlazado es innecesario, como
+      puede ver en el ejemplo de prueba (fíjese en que no hay
+      <code class="filename">Stack4.cpp</code>).
+    </p>
+      <div class="example">
+        <a id="idp6394312"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C09:Stack4Test.cpp</span>
+<span class="hl slc">//{T} Stack4Test.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Stack4.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// File name is argument</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  Stack textlines<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl slc">// Read file and store lines in the stack:</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    textlines<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">string</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Pop the lines from the stack and print them:</span>
+  string<span class="hl opt">*</span> s<span class="hl opt">;</span>
+  <span class="hl kwa">while</span><span class="hl opt">((</span>s <span class="hl opt">= (</span>string<span class="hl opt">*)</span>textlines<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">()) !=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    cout <span class="hl opt">&lt;&lt; *</span>s <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> s<span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 9.12. C09/Stack4Test.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La gente escribe a veces clases con todas sus funciones inline,
+      así que la clase completa está en el fichero de cabecera (verá
+      en este libro que yo mismo lo hago). Durante el desarrollo de un
+      programa probablemente esto es inofensivo, aunque a veces puede
+      hacer que las compilaciones sean más lentas. Cuando el programa
+      se estabiliza un poco, probablemente querrá volver a hacer las
+      funciones no-inline donde sea conveniente.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch09s02s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch09s02s02.html">9.2.2. Funciones de acceso</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s04.html">9.4. Funciones inline y el compilador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

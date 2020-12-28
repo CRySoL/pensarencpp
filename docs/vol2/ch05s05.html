@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>5.5. Almacenamiento de iostream</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C04.html" title="5: Iostreams" />
+    <link rel="prev" href="ch05s04s02.html" title="5.4.2. Modos de apertura" />
+    <link rel="next" href="ch05s06.html" title="5.6. Buscar en iostreams" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s04s02.html">5.4.2. Modos de apertura</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s06.html">5.6. Buscar en iostreams</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="5.5. Almacenamiento de iostream">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4139088"></a>5.5. Almacenamiento de <code class="classname">iostream</code></h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Las buenas prácticas de diseño dictan que, cuando cree una nueva clase, debe esforzarse
+      en ocultar los detalles de la implementación subyacente tanto como sea posible al usuario
+      de la clase. Usted le muestra solo aquello que necesita conocer y el resto se hace privado
+      para evitar confusiones. Cuando usamos insertadores y extractores, normalmente usted no conoce
+      o tiene cuidado con los bytes que se consumen o se producen, ya que usted está tratando con
+      E/S estándar, ficheros, memoria, o alguna nueva clase o dispositivo creado.
+    </p>
+      <p>
+      Llega un momento, no obstante, en el que es importante comunicar
+      con la parte del <code class="classname">iostream</code> que produce o
+      consume bytes. Para proveer esta parte con una interfaz común y
+      esconder todavía su implementación subyacente, la librería
+      estándar la abstrae dentro de su clase, llamada
+      <code class="classname">streambuf</code>. Cada objeto
+      <code class="classname">iostream</code> contiene un puntero a alguna
+      clase de <code class="classname">streambuf</code>. (El tipo depende de
+      que se esté tratando con E/S estándar, ficheros, memoria,
+      etc.). Puede acceder al <code class="classname">streambuf</code>
+      directamente; por ejemplo, puede mover bytes sin formatear
+      dentro y fuera del <code class="classname">streambuf</code> sin
+      formatearlos a través de la encapsulación del
+      <code class="classname">iostream</code>.  Esto es posible llamando a las
+      funciones miembro del objeto <code class="classname">streambuf</code>.
+    </p>
+      <p>
+      Actualmente, la cosa más importante que debe conocer es que cada
+      objeto <code class="classname">iostream</code> contiene un puntero a un
+      objeto <code class="classname">streambuf</code>, y el objeto
+      <code class="classname">streambuf</code> tiene algunas funciones miembro
+      que puede llamar si es necesario. Para ficheros y
+      <code class="classname">streams</code> de string, hay tipos
+      especializados de buffers de <code class="classname">stream</code>, como
+      ilustra la figura siguiente:
+    </p>
+      <p>
+      Para permitirle el acceso al <code class="classname">streambuf</code>, cada objeto <code class="classname">iostream</code> tiene una
+      función miembro llamada <code class="function">rdbuf()</code> que retorna el puntero a un objeto <code class="classname">streambuf</code>.
+      De esta manera usted puede llamar cualquier función miembro del <code class="classname">streambuf</code> subyacente. No obstante,
+      una de las cosas más interesantes que usted puede hacer con el puntero al <code class="classname">streambuf</code> es conectarlo
+      con otro objeto <code class="classname">iostream</code> usando el operador &lt;&lt;. Esto inserta todos los carácteres del objeto
+      dentro del que está al lado izquierdo del &lt;&lt;. Si quiere mover todos los carácteres de un <code class="classname">iostream</code>
+      a otro, no necesita ponerse con el tedioso (y potencialmente inclinado a errores de código) proceso de leer de carácter
+      por carácter o línea por línea. Este es un acercamiento mucho más elegante.
+    </p>
+      <p>
+      Aqui está un programa muy simple que abre un fichero y manda el contenido a la salida estándar (similar al ejemplo previo):
+    </p>
+      <div class="example">
+        <a id="idp4148616"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:Stype.cpp</span>
+<span class="hl slc">// Type a file to standard output.</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Stype.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> <span class="hl str">&quot;Stype.cpp&quot;</span><span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> in<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span> <span class="hl slc">// Outputs entire file</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.6. C04/Stype.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Un ifstream se crea usando el fichero de código fuente  para este programa como argumento. La función
+      <code class="function">assure()</code> reporta un fallo si el fichero no puede ser abierto. Todo el trabajo pasa
+      realmente en la sentencia
+    </p>
+      <pre class="programlisting">
+cout <span class="hl opt">&lt;&lt;</span> in<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span>
+</pre>
+      <p>
+      que manda todo el contenido del fichero a <code class="classname">cout</code>. No solo es un código más sucinto,
+      a menudo es más eficiente que mover los byte de uno en uno.
+    </p>
+      <p>
+      Una forma de <code class="function">get()</code> escribe directamente dentro del <code class="classname">streambuf</code>
+      de otro objeto. El primer argumento es una referencia al <code class="classname">streambuf</code> de destino, y el
+      segundo es el carácter de terminación ('\n' por defecto), que detiene la función <code class="function">get()</code>.
+      Así que existe todavía otra manera de imprimir el resultado de un fichero en la salida estándar:
+    </p>
+      <div class="example">
+        <a id="idp4153736"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C04:Sbufget.cpp</span>
+<span class="hl slc">// Copies a file to standard output.</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span><span class="hl str">&quot;Sbufget.cpp&quot;</span><span class="hl opt">);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">);</span>
+  streambuf<span class="hl opt">&amp;</span> sb <span class="hl opt">= *</span>cout<span class="hl opt">.</span><span class="hl kwd">rdbuf</span><span class="hl opt">();</span>
+  <span class="hl kwa">while</span><span class="hl opt">(!</span>in<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">(</span>sb<span class="hl opt">).</span><span class="hl kwd">eof</span><span class="hl opt">()) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>in<span class="hl opt">.</span><span class="hl kwd">fail</span><span class="hl opt">())</span>          <span class="hl slc">// Found blank line</span>
+      in<span class="hl opt">.</span><span class="hl kwd">clear</span><span class="hl opt">();</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl kwb">char</span><span class="hl opt">(</span>in<span class="hl opt">.</span><span class="hl kwd">get</span><span class="hl opt">());</span> <span class="hl slc">// Process '\n'</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 5.7. C04/Sbufget.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      La función <code class="function">rdbuf()</code> retorna un puntero, que tiene que ser desreferenciado para satisfacer las
+      necesidades de la función para ver el objeto. Los buffers de <code class="classname">stream</code> no estan pensados para
+      ser copiados (no tienen contructor de copia), por lo que definimos <code class="varname">sb</code> como una referencia al buffer
+      de <code class="classname">stream</code> de <code class="classname">cout</code>. Necesitamos las llamadas a <code class="function">fail()</code>
+      y <code class="function">clear()</code> en caso de que el fichero de entrada tenga una línea en blanco (este la tiene). Cuando
+      esta particular versión sobrecargada de <code class="function">get()</code> vee dos carácteres de nueva línea en una fila (una
+      evidencia de una línea en blanco), activa el bit de error del <code class="classname">stream</code> de entrada, asi que se debe
+      llamar a <code class="function">clear()</code> para resetearlo y que así el <code class="classname">stream</code> pueda continuar siendo
+      leído. La segunda llamada a <code class="function">get()</code> extrae y hace eco de cualquier delimitador de nueva línea. (Recuerde,
+      la función <code class="function">get()</code> no extrae este delimitador como sí lo hace <code class="function">getline()</code>).
+    </p>
+      <p>
+      Probablemente no necesitará usar una técnica como esta a menudo, pero es bueno saber que existe.<sup>[<a id="idp4160912" href="#ftn.idp4160912" class="footnote">15</a>]</sup>
+    </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp4160912" href="#idp4160912" class="para">15</a>] </sup>Un tratado mucho más en profundidad de buffers de stream y streams en general puede ser encontrado en[<span class="citation"> Langer &amp; Kreft's, Standar C++ iostreams and Locales, Addison-Wesley, 1999.</span>]</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s04s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s04s02.html">5.4.2. Modos de apertura</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C04.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch05s06.html">5.6. Buscar en iostreams</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch05s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>4.3.5. Cadenas y rasgos de caracteres</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch04s03.html" title="4.3. Buscar en cadenas" />
+    <link rel="prev" href="ch04s03s04.html" title="4.3.4. Comparar cadenas" />
+    <link rel="next" href="ch04s04.html" title="4.4. Una aplicación con cadenas" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s03s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s03s04.html">4.3.4. Comparar cadenas </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch04s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s04.html">4.4. Una aplicación con cadenas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="4.3.5. Cadenas y rasgos de caracteres">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3876192"></a>4.3.5. Cadenas y rasgos de caracteres</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	El programa <span class="emphasis"><em>Find.cpp</em></span> anterior en este
+	capítulo nos lleva a hacernos la pregunta obvia: ¿por que la
+	comparación sensible a mayúsculas/minúsculas no es parte de la
+	clase estándar <code class="classname">string</code>? La respuesta nos
+	brinda un interesante transfondo sobre la verdadera naturaleza
+	de los objetos <code class="classname">string</code> en C++.
+      </p>
+      <p>
+	Considere qué significa para un carácter tener
+	"mayúscula/minúscula". El Hebreo escrito, el Farsi, y el Kanji
+	no usan el concepto de "mayúscula/minúscula", con lo que para
+	esas lenguas esta idea carece de significado. Esto daria a
+	entender que si existiera una manera de designar algunos
+	lenguages como "todo mayúsculas" o "todo minúsculas",
+	podriamos diseñar una solución generalizada. Sin embargo,
+	algunos leguajes que emplean el concepto de
+	"mayúscula/minúscula", tambien cambian el significado de
+	caracteres particulares con acentos diacríticos, por ejemplo
+	la cedilla del Español, el circumflexo en Francés y la
+	diéresis en Alemán. Por esta razón, cualquier codificación
+	sensible a mayúsculas que intenta ser comprensiva acaba siendo
+	una pesadilla en su uso.
+      </p>
+      <p>
+	Aunque tratamos habitualmente el <code class="classname">string</code>
+	de C++ como una clase, esto no es del todo cierto. El tipo
+	<code class="classname">string</code> es una especialización de algo
+	más general, la plantilla <code class="classname">basic_string&lt;
+	&gt;</code>. Observe como está declarada
+	<code class="classname">string</code> en el fichero de cabecera de C++
+	estándar.
+      </p>
+      <p>
+	<code class="code">typedef basic_string&lt;char&gt; string;</code>
+      </p>
+      <p>
+	Para comprender la naturaleza de la clase
+	<code class="classname">string</code>, mire la plantilla
+	<code class="classname">basic_string&lt; &gt;</code>
+
+      </p>
+      <p>
+	<code class="code">
+	  template&lt;class charT, class traits = char_traits&lt;charT&gt;,
+	  class allocator = allocator&lt;charT&gt; &gt; class basic_string;
+	</code>
+      </p>
+      <p>
+	En el Capítulo 5, examinamos las plantillas con gran detalle
+	(mucho más que en el Capítulo 16 del volúmen  1). Por ahora
+	nótese que el tipo <code class="classname">string</code> es creada
+	cuando instanciamos la plantilla
+	<code class="classname">basic_string</code> con
+	<code class="type">char</code>. Dentro de la declaración plantilla
+	<code class="classname">basic_string&lt; &gt;</code> la línea:
+      </p>
+      <p>
+			<code class="code">class traits = char_traits&lt;charT&lt;</code>,
+      </p>
+      <p>
+	nos dice que el comportamiento de la clase hecha a partir de
+	<code class="classname">basic_string&lt; &gt;</code> es defineida por
+	una clase basada en la plantilla <code class="classname">char_traits&lt;
+	&gt;</code>. Así, la plantilla
+	<code class="classname">basic_string&lt; &gt;</code> produce clases
+	orientadas a <code class="classname">string</code> que manipulan otros
+	tipos que <code class="type">char</code> (caracteres anchos, por
+	ejemplo). Para hacer esto, la plantilla
+	<code class="classname">char_traits&lt; &gt;</code> controla el
+	contenido y el comportamiento de la ordenación de una variedad
+	de conjuntos de caracteres usando las funciones de comparación
+	<code class="function">eq()</code>
+	(<span class="foreignphrase"><em class="foreignphrase">equal</em></span>),
+	<code class="function">ne()</code> (<span class="foreignphrase"><em class="foreignphrase">not
+	equal</em></span>), y <code class="function">lt()</code>
+	(<span class="foreignphrase"><em class="foreignphrase">less than</em></span>). Las funciones de
+	comparación de <code class="classname">basic_string&lt; &gt;</code>
+	confian en esto.
+      </p>
+      <p>
+	Es por esto por lo que la clase string no incluye funciones
+	miembro sensibles a mayúsculas/minúsculas: eso no esta en la
+	descripción de su trabajo. Para cambiar la forma en que la
+	clase string trata la comparación de caracteres, tiene que
+	suministrar una plantilla <code class="classname">char_traits&lt;
+	&gt;</code> diferente ya que define el comportamiento
+	individual de las funciones miembro de comparación carácteres.
+      </p>
+      <p>
+	Puede usar esta información para hacer un nuevo tipo de
+	<code class="classname">string</code> que ignora las
+	mayúsculas/minúsculas. Primero, definiremos una nueva
+	plantilla no sensible a mayúsculas/minúsculas de
+	<code class="classname">char_traits&lt; &gt;</code> que hereda de una
+	plantilla existente. Luego, sobrescribiremos sólo los miembros
+	que necesitamos cambiar para hacer la comparación carácter por
+	carácter. (Además de los tres miembros de comparación léxica
+	mencionados antes, daremos una nueva implementación para
+	laspara las funciones de <code class="classname">char_traits</code>
+	<code class="classname">find()</code> y
+	<code class="classname">compare()</code>). Finalmente, haremos un
+	<code class="code">typedef</code> de una nueva clase basada en
+	<code class="classname">basic_string</code>, pero usando nuestra
+	plantilla insensible a mayúsculas/minúsculas,
+	<code class="classname">ichar_traits</code>, como segundo argumento:
+      </p>
+      <div class="example">
+        <a id="idp3892400"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:ichar_traits.h</span>
+<span class="hl slc">// Creating your own character traits.</span>
+<span class="hl ppc">#ifndef ICHAR_TRAITS_H</span>
+<span class="hl ppc">#define ICHAR_TRAITS_H</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cctype&gt;</span>
+<span class="hl ppc">#include &lt;cmath&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;ostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>allocator<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>basic_string<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>char_traits<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>ostream<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span><span class="hl kwb">size_t</span><span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>string<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>toupper<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>tolower<span class="hl opt">;</span>
+
+<span class="hl kwb">struct</span> ichar_traits <span class="hl opt">:</span> char_traits<span class="hl opt">&lt;</span><span class="hl kwb">char</span><span class="hl opt">&gt; {</span>
+  <span class="hl slc">// We'll only change character-by-</span>
+  <span class="hl slc">// character comparison functions</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">eq</span><span class="hl opt">(</span><span class="hl kwb">char</span> c1st<span class="hl opt">,</span> <span class="hl kwb">char</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">toupper</span><span class="hl opt">(</span>c1st<span class="hl opt">) ==</span> <span class="hl kwd">toupper</span><span class="hl opt">(</span>c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">ne</span><span class="hl opt">(</span><span class="hl kwb">char</span> c1st<span class="hl opt">,</span> <span class="hl kwb">char</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl opt">!</span><span class="hl kwd">eq</span><span class="hl opt">(</span>c1st<span class="hl opt">,</span> c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">lt</span><span class="hl opt">(</span><span class="hl kwb">char</span> c1st<span class="hl opt">,</span> <span class="hl kwb">char</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">toupper</span><span class="hl opt">(</span>c1st<span class="hl opt">) &lt;</span> <span class="hl kwd">toupper</span><span class="hl opt">(</span>c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static int</span>
+  <span class="hl kwd">compare</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*</span> str1<span class="hl opt">,</span> <span class="hl kwb">const char</span><span class="hl opt">*</span> str2<span class="hl opt">,</span> <span class="hl kwb">size_t</span> n<span class="hl opt">) {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> n<span class="hl opt">; ++</span>i<span class="hl opt">) {</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>str1 <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span>str2 <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span><span class="hl kwd">tolower</span><span class="hl opt">(*</span>str1<span class="hl opt">) &lt;</span> <span class="hl kwd">tolower</span><span class="hl opt">(*</span>str2<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span><span class="hl kwd">tolower</span><span class="hl opt">(*</span>str1<span class="hl opt">) &gt;</span> <span class="hl kwd">tolower</span><span class="hl opt">(*</span>str2<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">tolower</span><span class="hl opt">(*</span>str1<span class="hl opt">) ==</span> <span class="hl kwd">tolower</span><span class="hl opt">(*</span>str2<span class="hl opt">));</span>
+      <span class="hl opt">++</span>str1<span class="hl opt">; ++</span>str2<span class="hl opt">;</span> <span class="hl slc">// Compare the other chars</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static const char</span><span class="hl opt">*</span>
+  <span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl kwb">const char</span><span class="hl opt">*</span> s1<span class="hl opt">,</span> <span class="hl kwb">size_t</span> n<span class="hl opt">,</span> <span class="hl kwb">char</span> c<span class="hl opt">) {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>n<span class="hl opt">-- &gt;</span> <span class="hl num">0</span><span class="hl opt">)</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwd">toupper</span><span class="hl opt">(*</span>s1<span class="hl opt">) ==</span> <span class="hl kwd">toupper</span><span class="hl opt">(</span>c<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> s1<span class="hl opt">;</span>
+      <span class="hl kwa">else</span>
+        <span class="hl opt">++</span>s1<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">typedef</span> basic_string<span class="hl opt">&lt;</span><span class="hl kwb">char</span><span class="hl opt">,</span> ichar_traits<span class="hl opt">&gt;</span> istring<span class="hl opt">;</span>
+
+<span class="hl kwc">inline</span> ostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span> <span class="hl kwb">const</span> istring<span class="hl opt">&amp;</span> s<span class="hl opt">) {</span>
+  <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">string</span><span class="hl opt">(</span>s<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> s<span class="hl opt">.</span><span class="hl kwd">length</span><span class="hl opt">());</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// ICHAR_TRAITS_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.29. C03/ichar_traits.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Proporcionamos un <code class="code">typedef</code> llamado
+	<code class="classname">istring</code> ya que nuestra clase actuará
+	como un <code class="classname">string</code> ordinario en todas sus
+	formas, excepto que realizará todas las comparaciones sin
+	respetar las mayúsculas/minúsculas. Por conveniencia, damos un
+	operador sobrecargado <code class="function">operator&lt;&lt;()</code>
+	para que pueda imprimir los
+	<code class="classname">istring</code>. Aque hay un ejemplo:
+      </p>
+      <div class="example">
+        <a id="idp3897128"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:ICompare.cpp</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;ichar_traits.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// The same letters except for case:</span>
+  istring first <span class="hl opt">=</span> <span class="hl str">&quot;tHis&quot;</span><span class="hl opt">;</span>
+  istring second <span class="hl opt">=</span> <span class="hl str">&quot;ThIS&quot;</span><span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> first <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> second <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>second<span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'h'</span><span class="hl opt">) ==</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'I'</span><span class="hl opt">) ==</span> <span class="hl num">2</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>first<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'x'</span><span class="hl opt">) ==</span> string<span class="hl opt">::</span>npos<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.30. C03/ICompare.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Este es solo un ejemplo de prueba. Para hacer
+	<code class="classname">istring</code> completamente equivalente a un
+	<code class="classname">string</code>, deberiamos haber creado las
+	otras funciones necesarias para soportar el nuevo tipo
+	<code class="classname">istring</code>.
+      </p>
+      <p>
+	La cabecera <span class="emphasis"><em>&lt;string&gt;</em></span> provee de un
+	<code class="classname">string</code> ancho <sup>[<a id="idp3899928" href="#ftn.idp3899928" class="footnote">8</a>]</sup> gracias
+	al siguiente <code class="code">typedef</code>:
+      </p>
+      <p>
+	<code class="code">typedef basic_string&lt;wchar_t&gt; wstring;</code>
+      </p>
+      <p>
+	El soporte para <code class="classname">string</code> ancho se revela
+	tambien en los <code class="classname">streams</code> anchos
+	(<code class="classname">wostream</code> en lugar de
+	<code class="classname">ostream</code>, tambien definido en
+	<code class="code">&lt;iostream&gt;</code>) y en la especialización de
+	<code class="type">wchar_t</code> de los <code class="classname">char_traits</code>
+	en la libreria estándar le da la posibilidad de hacer una
+	version de carácter ancho de
+	<code class="classname">ichar_traits</code>
+      </p>
+      <div class="example">
+        <a id="idp3904080"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:iwchar_traits.h {-g++}</span>
+<span class="hl slc">// Creating your own wide-character traits.</span>
+<span class="hl ppc">#ifndef IWCHAR_TRAITS_H</span>
+<span class="hl ppc">#define IWCHAR_TRAITS_H</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;cmath&gt;</span>
+<span class="hl ppc">#include &lt;cstddef&gt;</span>
+<span class="hl ppc">#include &lt;cwctype&gt;</span>
+<span class="hl ppc">#include &lt;ostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>allocator<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>basic_string<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>char_traits<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span><span class="hl kwb">size_t</span><span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>towlower<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>towupper<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>wostream<span class="hl opt">;</span>
+<span class="hl kwa">using</span> std<span class="hl opt">::</span>wstring<span class="hl opt">;</span>
+
+<span class="hl kwb">struct</span> iwchar_traits <span class="hl opt">:</span> char_traits<span class="hl opt">&lt;</span><span class="hl kwb">wchar_t</span><span class="hl opt">&gt; {</span>
+  <span class="hl slc">// We'll only change character-by-</span>
+  <span class="hl slc">// character comparison functions</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">eq</span><span class="hl opt">(</span><span class="hl kwb">wchar_t</span> c1st<span class="hl opt">,</span> <span class="hl kwb">wchar_t</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c1st<span class="hl opt">) ==</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">ne</span><span class="hl opt">(</span><span class="hl kwb">wchar_t</span> c1st<span class="hl opt">,</span> <span class="hl kwb">wchar_t</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c1st<span class="hl opt">) !=</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static bool</span> <span class="hl kwd">lt</span><span class="hl opt">(</span><span class="hl kwb">wchar_t</span> c1st<span class="hl opt">,</span> <span class="hl kwb">wchar_t</span> c2nd<span class="hl opt">) {</span>
+    <span class="hl kwa">return</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c1st<span class="hl opt">) &lt;</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c2nd<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static int</span> <span class="hl kwd">compare</span><span class="hl opt">(</span>
+    <span class="hl kwb">const wchar_t</span><span class="hl opt">*</span> str1<span class="hl opt">,</span> <span class="hl kwb">const wchar_t</span><span class="hl opt">*</span> str2<span class="hl opt">,</span> <span class="hl kwb">size_t</span> n<span class="hl opt">) {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">size_t</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> n<span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>str1 <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span>str2 <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span>
+        <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span><span class="hl kwd">towlower</span><span class="hl opt">(*</span>str1<span class="hl opt">) &lt;</span> <span class="hl kwd">towlower</span><span class="hl opt">(*</span>str2<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> <span class="hl opt">-</span><span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">else if</span><span class="hl opt">(</span><span class="hl kwd">towlower</span><span class="hl opt">(*</span>str1<span class="hl opt">) &gt;</span> <span class="hl kwd">towlower</span><span class="hl opt">(*</span>str2<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span>
+      <span class="hl kwa">assert</span><span class="hl opt">(</span><span class="hl kwd">towlower</span><span class="hl opt">(*</span>str1<span class="hl opt">) ==</span> <span class="hl kwd">towlower</span><span class="hl opt">(*</span>str2<span class="hl opt">));</span>
+      <span class="hl opt">++</span>str1<span class="hl opt">; ++</span>str2<span class="hl opt">;</span> <span class="hl slc">// Compare the other wchar_ts</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">static const wchar_t</span><span class="hl opt">*</span>
+  <span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl kwb">const wchar_t</span><span class="hl opt">*</span> s1<span class="hl opt">,</span> <span class="hl kwb">size_t</span> n<span class="hl opt">,</span> <span class="hl kwb">wchar_t</span> c<span class="hl opt">) {</span>
+    <span class="hl kwa">while</span><span class="hl opt">(</span>n<span class="hl opt">-- &gt;</span> <span class="hl num">0</span><span class="hl opt">)</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span><span class="hl kwd">towupper</span><span class="hl opt">(*</span>s1<span class="hl opt">) ==</span> <span class="hl kwd">towupper</span><span class="hl opt">(</span>c<span class="hl opt">))</span>
+        <span class="hl kwa">return</span> s1<span class="hl opt">;</span>
+      <span class="hl kwa">else</span>
+        <span class="hl opt">++</span>s1<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">typedef</span> basic_string<span class="hl opt">&lt;</span><span class="hl kwb">wchar_t</span><span class="hl opt">,</span> iwchar_traits<span class="hl opt">&gt;</span> iwstring<span class="hl opt">;</span>
+
+<span class="hl kwc">inline</span> wostream<span class="hl opt">&amp;</span> <span class="hl kwc">operator</span><span class="hl opt">&lt;&lt;(</span>wostream<span class="hl opt">&amp;</span> os<span class="hl opt">,</span>
+  <span class="hl kwb">const</span> iwstring<span class="hl opt">&amp;</span> s<span class="hl opt">) {</span>
+  <span class="hl kwa">return</span> os <span class="hl opt">&lt;&lt;</span> <span class="hl kwd">wstring</span><span class="hl opt">(</span>s<span class="hl opt">.</span><span class="hl kwd">c_str</span><span class="hl opt">(),</span> s<span class="hl opt">.</span><span class="hl kwd">length</span><span class="hl opt">());</span>
+<span class="hl opt">}</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// IWCHAR_TRAITS_H  ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.31. C03/iwchar_traits.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Como puede ver, esto es principalmente un ejercicio de poner
+	<span class="emphasis"><em>'w'</em></span> en el lugar adecuado del código
+	fuente. El programa de prueba podria ser asi:
+      </p>
+      <div class="example">
+        <a id="idp3907808"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:IWCompare.cpp {-g++}</span>
+<span class="hl ppc">#include &lt;cassert&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;iwchar_traits.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// The same letters except for case:</span>
+  iwstring wfirst <span class="hl opt">=</span> L<span class="hl str">&quot;tHis&quot;</span><span class="hl opt">;</span>
+  iwstring wsecond <span class="hl opt">=</span> L<span class="hl str">&quot;ThIS&quot;</span><span class="hl opt">;</span>
+  wcout <span class="hl opt">&lt;&lt;</span> wfirst <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  wcout <span class="hl opt">&lt;&lt;</span> wsecond <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>wfirst<span class="hl opt">.</span><span class="hl kwd">compare</span><span class="hl opt">(</span>wsecond<span class="hl opt">) ==</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>wfirst<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'h'</span><span class="hl opt">) ==</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>wfirst<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'I'</span><span class="hl opt">) ==</span> <span class="hl num">2</span><span class="hl opt">);</span>
+  <span class="hl kwa">assert</span><span class="hl opt">(</span>wfirst<span class="hl opt">.</span><span class="hl kwd">find</span><span class="hl opt">(</span><span class="hl str">'x'</span><span class="hl opt">) ==</span> wstring<span class="hl opt">::</span>npos<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 4.32. C03/IWCompare.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Desgraciadamente, todavia algunos compiladores siguen sin
+	ofrecer un soporte robusto para caracteres anchos.
+      </p>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp3899928" href="#idp3899928" class="para">8</a>] </sup>(N.del
+	T.) Se refiere a <code class="classname">string</code> amplio puesto
+	que esta formado por caracteres anchos <code class="type">wchar_t</code>
+	que deben soportar la codificación mas grande que soporte el
+	compilador. Casi siempre esta codificación es
+	<span class="emphasis"><em>Unicode</em></span>, por lo que casi siempre el ancho
+	de <code class="type">wchar_t</code> es 2 bytes</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch04s03s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch04s03s04.html">4.3.4. Comparar cadenas </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch04s03.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch04s04.html">4.4. Una aplicación con cadenas</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch04s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

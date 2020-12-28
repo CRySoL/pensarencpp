@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.7.6. Operadores de desplazamiento</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch03s07.html" title="3.7. Los operadores y su uso" />
+    <link rel="prev" href="ch03s07s05.html" title="3.7.5. Operadores para bits" />
+    <link rel="next" href="ch03s07s07.html" title="3.7.7. Operadores unarios" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s07s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s07s05.html">3.7.5. Operadores para bits</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s07s07.html">3.7.7. Operadores unarios</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s07s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="3.7.6. Operadores de desplazamiento">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp4667592"></a>3.7.6. Operadores de desplazamiento</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Los operadores de desplazamiento también manipulan bits. El
+	operador de desplazamiento a izquierda (<code class="literal">&lt;&lt;</code>)
+	produce el desplazamiento del operando que aparece a la
+	izquierda del operador tantos bits a la izquierda como indique
+	el número a la derecha del operador. El operador de
+	desplazamiento a derecha (<code class="literal">&gt;&gt;</code>) produce el
+	desplazamiento del operando de la izquierda hacia la derecha
+	tantos bits como indique el número a la derecha del operador. Si
+	el valor que sigue al operador de desplazamiento es mayor que el
+	número de bits del lado izquierdo, el resultado es
+	indefinido. Si el operando de la izquierda no tiene signo, el
+	desplazamiento a derecha es un desplazamiento lógico de modo que
+	los bits del principio se rellenan con ceros. Si el operando de
+	la izquierda tiene signo, el desplazamiento derecho puede ser un
+	desplazamiento lógico (es decir, significa que el comportamiento
+	es indeterminado).
+      </p>
+      <p>
+	Los desplazamientos pueden combinarse con el signo igual
+	(<code class="literal">&lt;&lt;=</code> y <code class="literal">&gt;&gt;=</code>). El
+	<span class="emphasis"><em>lvalue</em></span> se reemplaza por
+	<span class="emphasis"><em>lvalue</em></span> desplazado por el
+	<span class="emphasis"><em>rvalue</em></span>.
+      </p>
+      <p>
+	Lo que sigue a continuación es un ejemplo que demuestra el uso
+	de todos los operadores que involucran bits. Primero, una
+	función de propósito general que imprime un byte en formato
+	binario, creada para que se pueda reutilizar fácilmente. El
+	fichero de cabecera declara la función:
+      </p>
+      <div class="example">
+        <a id="idp4672960"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:printBinary.h</span>
+<span class="hl slc">// Display a byte in binary</span>
+<span class="hl kwb">void</span> <span class="hl kwd">printBinary</span><span class="hl opt">(</span><span class="hl kwb">const unsigned char</span> val<span class="hl opt">);</span>
+<span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.31. C03/printBinary.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	A continuación la implementación de la función:
+      </p>
+      <div class="example">
+        <a id="idp4674224"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:printBinary.cpp {O}</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwb">void</span> <span class="hl kwd">printBinary</span><span class="hl opt">(</span><span class="hl kwb">const unsigned char</span> val<span class="hl opt">) {</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">7</span><span class="hl opt">;</span> i <span class="hl opt">&gt;=</span> <span class="hl num">0</span><span class="hl opt">;</span> i<span class="hl opt">--)</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>val <span class="hl opt">&amp; (</span><span class="hl num">1</span> <span class="hl opt">&lt;&lt;</span> i<span class="hl opt">))</span>
+      std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;1&quot;</span><span class="hl opt">;</span>
+    <span class="hl kwa">else</span>
+      std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;0&quot;</span><span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.32. C03/printBinary.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La función <code class="function">printBinary()</code> toma un único
+	byte y lo muestra bit a bit. La expresión:
+      </p>
+      <pre class="programlisting">
+<span class="hl opt">(</span><span class="hl num">1</span> <span class="hl opt">&lt;&lt;</span> i<span class="hl opt">)</span>
+</pre>
+      <p>
+	produce un uno en cada posición sucesiva de bit; en binario:
+	<code class="constant">00000001</code>, <code class="constant">00000010</code>,
+	etc. Si se hace <span class="emphasis"><em>and</em></span> a este bit con
+	<code class="varname">val</code> y el resultado es diferente de cero,
+	significa que había un uno en esa posición de
+	<code class="varname">val</code>.
+      </p>
+      <p>
+	Finalmente, se utiliza la función en el ejemplo que muestra los
+	operadores de manipulación de bits:
+      </p>
+      <div class="example">
+        <a id="idp4678320"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Bitwise.cpp</span>
+<span class="hl slc">//{L} printBinary</span>
+<span class="hl slc">// Demonstration of bit manipulation</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;printBinary.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// A macro to save typing:</span>
+<span class="hl ppc">#define PR(STR, EXPR) \</span>
+<span class="hl ppc">  cout &lt;&lt; STR; printBinary(EXPR); cout &lt;&lt; endl;  </span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl kwb">unsigned int</span> getval<span class="hl opt">;</span>
+  <span class="hl kwb">unsigned char</span> a<span class="hl opt">,</span> b<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Enter a number between 0 and 255: &quot;</span><span class="hl opt">;</span>
+  cin <span class="hl opt">&gt;&gt;</span> getval<span class="hl opt">;</span> a <span class="hl opt">=</span> getval<span class="hl opt">;</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;a in binary: &quot;</span><span class="hl opt">,</span> a<span class="hl opt">);</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Enter a number between 0 and 255: &quot;</span><span class="hl opt">;</span>
+  cin <span class="hl opt">&gt;&gt;</span> getval<span class="hl opt">;</span> b <span class="hl opt">=</span> getval<span class="hl opt">;</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;b in binary: &quot;</span><span class="hl opt">,</span> b<span class="hl opt">);</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;a | b = &quot;</span><span class="hl opt">,</span> a <span class="hl opt">|</span> b<span class="hl opt">);</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;a &amp; b = &quot;</span><span class="hl opt">,</span> a <span class="hl opt">&amp;</span> b<span class="hl opt">);</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;a ^ b = &quot;</span><span class="hl opt">,</span> a ^ b<span class="hl opt">);</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;~a = &quot;</span><span class="hl opt">, ~</span>a<span class="hl opt">);</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;~b = &quot;</span><span class="hl opt">, ~</span>b<span class="hl opt">);</span>
+  <span class="hl slc">// An interesting bit pattern:</span>
+  <span class="hl kwb">unsigned char</span> c <span class="hl opt">=</span> <span class="hl num">0x5A</span><span class="hl opt">;</span> 
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;c in binary: &quot;</span><span class="hl opt">,</span> c<span class="hl opt">);</span>
+  a <span class="hl opt">|=</span> c<span class="hl opt">;</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;a |= c; a = &quot;</span><span class="hl opt">,</span> a<span class="hl opt">);</span>
+  b <span class="hl opt">&amp;=</span> c<span class="hl opt">;</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;b &amp;= c; b = &quot;</span><span class="hl opt">,</span> b<span class="hl opt">);</span>
+  b ^<span class="hl opt">=</span> a<span class="hl opt">;</span>
+  <span class="hl kwd">PR</span><span class="hl opt">(</span><span class="hl str">&quot;b ^= a; b = &quot;</span><span class="hl opt">,</span> b<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.33. C03/Bitwise.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Una vez más, se usa una macro de preprocesador para ahorrar
+	líneas. Imprime la cadena elegida, luego la representación
+	binaria de una expresión, y luego un salto de línea.
+      </p>
+      <p>
+	En <code class="function">main()</code>, las variables son
+	<code class="type">unsigned</code>. Esto es porque, en general, no se desean
+	signos cuando se trabaja con bytes. Se debe utilizar un
+	<code class="type">int</code> en lugar de un <code class="type">char</code> para
+	<code class="varname">getval</code> porque de otro modo la sentencia
+	<code class="code">cin &gt;&gt;</code> trataría el primer dígito como un
+	carácter. Asignando <code class="varname">getval</code> a
+	<code class="varname">a</code> y <code class="varname">b</code>, se convierte el
+	valor a un solo byte (truncándolo).
+      </p>
+      <p>
+	Los operadores <code class="literal">&lt;&lt;</code> y <code class="literal">&gt;&gt;</code>
+	proporcionan un comportamiento de desplazamiento de bits, pero
+	cuando desplazan bits que están al final del número, estos bits
+	se pierden (comúnmente se dice que se caen en el mítico
+	<span class="emphasis"><em>cubo de bits</em></span>, el lugar donde acaban los
+	bits descartados, presumiblemente para que puedan ser
+	utilizados...). Cuando se manipulan bits también se pueden
+	realizar <span class="emphasis"><em>rotaciones</em></span>; es decir, que los bits
+	que salen de uno de los extremos se pueden insertar por el otro
+	extremo, como si estuviesen rotando en un bucle. Aunque la
+	mayoría de los procesadores de ordenadores ofrecen un comando de
+	rotación a nivel máquina (se puede ver en el lenguaje
+	ensamblador de ese procesador), no hay un soporte directo para
+	<span class="emphasis"><em>rotate</em></span> en C o C++. Se supone que a los
+	diseñadores de C les pareció justificado el hecho de prescindir
+	de <span class="emphasis"><em>rotate</em></span> (en pro, como dijeron, de un
+	lenguaje minimalista) ya que el programador se puede construir
+	su propio comando <span class="emphasis"><em>rotate</em></span>. Por ejemplo, a
+	continuación hay funciones para realizar rotaciones a izquierda
+	y derecha:
+      </p>
+      <div class="example">
+        <a id="idp4687816"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C03:Rotation.cpp {O}</span>
+<span class="hl slc">// Perform left and right rotations</span>
+
+<span class="hl kwb">unsigned char</span> <span class="hl kwd">rol</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> val<span class="hl opt">) {</span>
+  <span class="hl kwb">int</span> highbit<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>val <span class="hl opt">&amp;</span> <span class="hl num">0x80</span><span class="hl opt">)</span> <span class="hl slc">// 0x80 is the high bit only</span>
+    highbit <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl kwa">else</span>
+    highbit <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl slc">// Left shift (bottom bit becomes 0):</span>
+  val <span class="hl opt">&lt;&lt;=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl slc">// Rotate the high bit onto the bottom:</span>
+  val <span class="hl opt">|=</span> highbit<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> val<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">unsigned char</span> <span class="hl kwd">ror</span><span class="hl opt">(</span><span class="hl kwb">unsigned char</span> val<span class="hl opt">) {</span>
+  <span class="hl kwb">int</span> lowbit<span class="hl opt">;</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>val <span class="hl opt">&amp;</span> <span class="hl num">1</span><span class="hl opt">)</span> <span class="hl slc">// Check the low bit</span>
+    lowbit <span class="hl opt">=</span> <span class="hl num">1</span><span class="hl opt">;</span>
+  <span class="hl kwa">else</span>
+    lowbit <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  val <span class="hl opt">&gt;&gt;=</span> <span class="hl num">1</span><span class="hl opt">;</span> <span class="hl slc">// Right shift by one position</span>
+  <span class="hl slc">// Rotate the low bit onto the top:</span>
+  val <span class="hl opt">|= (</span>lowbit <span class="hl opt">&lt;&lt;</span> <span class="hl num">7</span><span class="hl opt">);</span>
+  <span class="hl kwa">return</span> val<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.34. C03/Rotation.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Al intentar utilizar estas funciones en
+	<code class="filename">Bitwise.cpp</code>, advierta que las definiciones
+	(o cuando menos las declaraciones) de <code class="function">rol()</code>
+	y <code class="function">ror()</code> deben ser vistas por el compilador
+	en <code class="filename">Bitwise.cpp</code> antes de que se puedan
+	utilizar.
+      </p>
+      <p>
+	Las funciones de tratamiento de bits son por lo general
+	extremadamente eficientes ya que traducen directamente las
+	sentencias a lenguaje ensamblador. A veces una sentencia de C o
+	C++ generará una única línea de código ensamblador.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s07s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s07s05.html">3.7.5. Operadores para bits</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s07s07.html">3.7.7. Operadores unarios</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s07s07.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

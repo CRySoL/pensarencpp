@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.10. funciones virtuales y constructores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C15.html" title="15: Polimorfismo y Funciones virtuales" />
+    <link rel="prev" href="ch15s09.html" title="15.9. Sobrecargar y redefinir" />
+    <link rel="next" href="ch15s10s02.html" title="15.10.2. Comportamiento de las funciones virtuales dentro de los constructores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s09.html">15.9. Sobrecargar y redefinir</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s02.html">15.10.2. Comportamiento de las funciones virtuales dentro de los
+      constructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="15.10. funciones virtuales y constructores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8249520"></a>15.10. funciones virtuales y constructores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Cuando se crea un objeto que contiene funciones virtuales, su VPTR
+      debe ser inicializado para apuntar a la correcta VTABLE. Esto debe
+      ser hecho antes de que exista la oportunidad de llamar a una
+      función virtual. Como se puede adivinar, debido a que el
+      constructor tiene el trabajo de traer a la existencia al objeto,
+      también será trabajo del constructor inicializar el VPTR. El
+      compilador de forma secreta añade código al principio del
+      constructor para inicializar el VPTR. Y como se describe en el
+      capítulo 14, si no se crea un constructor de una clase de forma
+      explícita, el compilador genera uno de forma automática. Si la
+      clase tiene funciones virtuales, el constructor incluirá el código
+      apropidado para la inicialización del VPTR. Esto tiene varias
+      consecuencias.
+    </p>
+      <p>
+      La primera concierne a la eficiencia. La razón de que existan
+      funciones <code class="keyword">inline</code> es reducir la sobrecarga que
+      produce llamar a funciones pequeñas. Si C++ no proporciona
+      funciones <code class="keyword">inline</code>, el preprocesador debe ser
+      usado para crear estas "macros". Sin embargo, el preprocesador no
+      tiene los conceptos de accesos o clases, y además no puede ser
+      usado para crear macros con funciones miembro. Además, con los
+      constructores que deben tener código oculto insertado por el
+      compilador, una macro del preprocesador no funcionaría del todo.
+    </p>
+      <p>
+      Hay que estar precavidos cuando se estén buscando agujeros de
+      eficiencia porque el compilador está insertando código oculto en
+      los constructores. No sólo hay que inicializar el VPTR, también
+      hay que comprobar el valor de <code class="literal">this</code> (en caso de
+      que el operador <code class="keyword">new</code> devuelva cero), y llamar
+      al constructor de la clase base. Todo junto, éste código puede
+      tener cierto impacto cuando se pensaba que era una simple función
+      <code class="keyword">inline</code>. En particular, el tamaño del
+      constructor puede aplastar al ahorro que se consigue al reducir la
+      sobrecarga en las llamadas. Si se hacen un monton de llamadas a
+      constructores inline, el tamaño del código puede crecer sin ningún
+      beneficio en la velocidad.
+    </p>
+      <p>
+      Cuando esté afinando el código recuerde considerar el quitar los
+      constructores en línea.
+    </p>
+      <div class="sect2" title="15.10.1. Orden de las llamadas a los constructores">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8256864"></a>15.10.1. Orden de las llamadas a los constructores</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	La segunda faceta interesante de los constructores y las
+	funciones virtuales tiene que ver con el orden de las llamadas a
+	los constructores y el modo en que las llamadas virtuales se
+	hacen dentro de los constructores.
+      </p>
+        <p>
+	Todos los constructores de la clase base son siempre llamados en
+	el constructor de una clase heredada. Esto tiene sentido porque
+	el constructor tiene un trabajo especial: ver que el objeto está
+	construido de forma apropiada. Una clase derivada sólo tiene
+	acceso a sus propios miembros, y no a los de la clase
+	base. únicamente el constructor de la clase base puede
+	inicializar de forma adecuada a sus propios elementos. Por lo
+	tanto es esencial que se llame a todos los constructores; de
+	otra forma el objeto no estará construido de forma
+	adecuada. Esto es por lo que el compilador obliga a hacer una
+	llamada por cada trozo en una clase derivada. Se llamará al
+	constructor por defecto si no se hace una llamada explícita a un
+	constructor de la clase base. Si no existe constructor por
+	defecto, el compilador lo creará.
+      </p>
+        <p>
+	El orden de las llamadas al constructor es importante. Cuando se
+	hereda, se sabe todo sobre la clase base y se puede acceder a
+	todos los miembros públicos y protegidos
+	(<code class="keyword">public</code> y <code class="keyword">protected</code>) de la
+	clase base. ésto significa que se puede asumir que todos los
+	miembros de la clase base son válidos cuando se está en la clase
+	derivada. En una función miembro normal, la construcción ya ha
+	ocurrido, por lo que todos los miembros de todas las partes del
+	objeto ya han sido construidos. Dentro del constructor, sin
+	embargo, hay que asumir que todos los miembros que se usen han
+	sido construidos. La única manera de garantizarlo es llamando
+	primero al constructor de la clase base. Entonces cuando se esté
+	en el constructor de la clase derivada, todos los miembros a los
+	que se pueda acceder en la clase base han sido
+	inicializados. "Saber que todos los miembros son válidos" dentro
+	del constructor es también la razón por la que, dentro de lo
+	posible, se debe inicializar todos los objetos miembros (es
+	decir, los objetos puestos en la clase mediante composición). Si
+	se sigue ésta práctica, se puede asumir que todos los miembros
+	de la clase base y los miembros objetos del objeto actual han
+	sido inicializados.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s09.html">15.9. Sobrecargar y redefinir</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C15.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s02.html">15.10.2. Comportamiento de las funciones virtuales dentro de los
+      constructores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

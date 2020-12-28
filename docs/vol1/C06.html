@@ -1,0 +1,326 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6: Inicialización y limpieza</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="prev" href="ch05s08.html" title="5.8. Ejercicios" />
+    <link rel="next" href="ch06s02.html" title="6.2. Limpieza garantizada por el destructor" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s08.html">5.8. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s02.html">6.2. Limpieza garantizada por el destructor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="chapter" title="6: Inicialización y limpieza">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title"><a id="C06"></a>6: Inicialización y limpieza</h2>
+          </div>
+        </div>
+      </div>
+      <div class="toc">
+        <p>
+          <strong>Tabla de contenidos</strong>
+        </p>
+        <dl>
+          <dt>
+            <span class="sect1">
+              <a href="C06.html#idp5717800">6.1. Inicialización garantizada por el constructor</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s02.html">6.2. Limpieza garantizada por el destructor</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s03.html">6.3. Eliminación del bloque de definiciones</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s04.html">6.4. Stash con constructores y destructores</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s05.html">6.5. Stack con constructores y destructores</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s06.html">6.6. Inicialización de tipos agregados</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s07.html">6.7. Constructores por defecto</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s08.html">6.8. Resumen</a>
+            </span>
+          </dt>
+          <dt>
+            <span class="sect1">
+              <a href="ch06s09.html">6.9. Ejercicios</a>
+            </span>
+          </dt>
+        </dl>
+      </div>
+      <div class="highlights">
+        <p>
+      El capitulo 4 constituye una mejora significativa en el uso de
+      librerías tomando los diversos componentes de una librería C
+      típica y encapsulándolos en una estructura (un tipo abstracto de
+      dato, llamado <span class="emphasis"><em>clase</em></span> a partir de ahora).
+    </p>
+      </div>
+      <p>
+    Esto no sólo permite disponer de un único punto de entrada en un
+    componente de librería, también oculta los nombres de las
+    funciones con el nombre de la clase. Esto le da al diseñador de la
+    clase la posibilidad de establecer límites claros que determinan
+    qué cosas puede hacer el programador cliente y qué queda fuera de
+    sus límites. Eso significa que los mecanismos internos de las
+    operaciones sobre los tipos de datos están bajo el control y la
+    discreción del diseñador de la clase, y deja claro a qué miembros
+    puede y debe prestar atención el programador cliente.
+  </p>
+      <p>
+    Juntos, la encapsulación y el control de acceso representan un
+    paso significativo para aumentar la sencillez de uso de las
+    librerías. El concepto de «nuevo tipo de dato» que
+    ofrecen es mejor en algunos sentidos que los tipos de datos que
+    incorpora C. El compilador C++ ahora puede ofrecer garantías de
+    comprobación de tipos para esos tipos de datos y así asegura un
+    nivel de seguridad cuando se usan esos tipos de datos.
+  </p>
+      <p>
+    A parte de la seguridad, el compilador puede hacer mucho más por
+    nosotros de lo que ofrece C. En éste y en próximos capítulos verá
+    posibilidades adicionales que se han incluido en C++ y que hacen
+    que los errores en sus programas casi salten del programa y le
+    agarren, a veces antes incluso de compilar el programa, pero
+    normalmente en forma de advertencias y errores en el proceso de
+    compilación. Por este motivo, pronto se acostumbrará a la extraña
+    situación en que un programa C++ que compila, funciona a la
+    primera.
+  </p>
+      <p>
+    Dos de esas cuestiones de seguridad son la inicialización y la
+    limpieza. Gran parte de los errores de C se deben a que el
+    programador olvida inicializar o liberar una variable. Esto sucede
+    especialmente con las librerías C, cuando el programador cliente
+    no sabe como inicializar una estructura, o incluso si debe
+    hacerlo. (A menudo las librerías no incluyen una función de
+    inicialización, de modo que el programador cliente se ve forzado a
+    inicializar la estructura a mano). La limpieza es un problema
+    especial porque los programadores C se olvidan de las variables una
+    vez que han terminado, de modo que omiten cualquier limpieza que
+    pudiera ser necesaria en alguna estructura de la librería.
+  </p>
+      <p>
+    En C++. el concepto de inicialización y limpieza es esencial para
+    facilitar el uso de las librerías y eliminar muchos de los errores
+    sutiles que ocurren cuando el programador cliente olvida cumplir con
+    sus actividades. Este capítulo examina las posibilidades de C++ que
+    ayudan a garantizar una inicialización y limpieza apropiadas.
+  </p>
+      <div class="sect1" title="6.1. Inicialización garantizada por el constructor">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h2 class="title" style="clear: both"><a id="idp5717800"></a>6.1. Inicialización garantizada por el constructor</h2>
+            </div>
+          </div>
+        </div>
+        <p>
+      Tanto la clase <code class="classname">Stash</code> como la
+      <code class="classname">Stack</code> definidas previamente tienen una
+      función llamada <code class="function">initialize()</code>. que como
+      indica su nombre se debería llamar antes de usar el
+      objeto. Desafortunadamente, esto significa que el programador
+      cliente debe asegurar una inicialización apropiada. Los
+      programadores cliente son propensos a olvidar detalles como la
+      inicialización cuando tienen prisa por hacer que la librería
+      resuelva sus problemas. En C++, la inicialización en demasiado
+      importante como para dejársela al programador cliente. El
+      diseñador de la clase puede garantizar la inicialización de cada
+      objeto facilitando una función especial llamada
+      <span class="emphasis"><em>constructor</em></span>. Si una clase tiene un constructor,
+      el compilador hará que se llame automáticamente al constructor
+      en el momento de la creación del objeto, antes de que el
+      programador cliente pueda llegar a tocar el objeto. La
+      invocación del constructor no es una opción para el programador
+      cliente; es realizada por el compilador en el punto en el que se
+      define el objeto.
+    </p>
+        <p>
+      El siguiente reto es cómo llamar a esta función. Hay dos
+      cuestiones. La primera es que no debería ser ningún nombre que
+      pueda querer usar para un miembro de la clase. La segunda es que
+      dado que el compilador es el responsable de la invocación del
+      constructor, siempre debe saber qué función llamar. La solución
+      elegida por Stroustrup parece ser la más sencilla y lógica: el
+      nombre del constructor es el mismo que el de la clase. Eso hace
+      que tenga sentido que esa función sea invocada automáticamente en
+      la inicialización.
+    </p>
+        <p>
+      Aquí se muestra un clase sencilla con un constructor:
+    </p>
+        <pre class="programlisting">
+<span class="hl kwc">class</span> X <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">X</span><span class="hl opt">();</span>  <span class="hl slc">// Constructor</span>
+<span class="hl opt">};</span>
+</pre>
+        <p>
+      Ahora, se define un objeto,
+    </p>
+        <pre class="programlisting">
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">() {</span>
+  X a<span class="hl opt">;</span>
+  <span class="hl slc">// ...</span>
+<span class="hl opt">}</span>
+</pre>
+        <p>
+      Lo mismo pasa si <code class="varname">a</code> fuese un entero: se pide
+      alojamiento para el objeto. Pero cuando el programa llega al
+      punto de ejecución en el que se define <code class="varname">a</code>, se
+      invoca el constructor automáticamente. Es decir, el compilador
+      inserta la llamada a <code class="methodname">X::X()</code> para el
+      objeto <code class="varname">a</code> en el punto de la definición. Como
+      cualquier método, el primer argumento (secreto) para el
+      constructor es el puntero <code class="varname">this</code> - la dirección
+      del objeto al que corresponde ese método. En el caso del
+      constructor, sin embargo, <code class="varname">this</code> apunta a un
+      bloque de memoria no inicializado, y el trabajo del constructor
+      es inicializar esa memoria de forma adecuada.
+    </p>
+        <p>
+      Como cualquier función, el constructor puede tomar argumentos que
+      permitan especificar cómo ha de crearse el objeto, dados unos
+      valores de inicialización. Los argumentos del constructor son
+      una especie de garantía de que todas las partes del objeto se
+      inicializan con valores apropiados. Por ejemplo, si una clase
+      <code class="classname">Tree</code><sup>[<a id="idp5726792" href="#ftn.idp5726792" class="footnote">54</a>]</sup> tiene un constructor que toma como argumento un único
+      entero que indica la altura del árbol, entonces debe crear un
+      objeto árbol como éste:
+    </p>
+        <pre class="programlisting">
+Tree <span class="hl kwd">t</span><span class="hl opt">(</span><span class="hl num">12</span><span class="hl opt">)</span>   <span class="hl slc">// árbol de 12 metros</span>
+</pre>
+        <p>
+      Si <code class="function">Tree(int)</code> es el único constructor, el
+      compilador no le permitirá crear un objeto de otro modo. (En el
+      próximo capítulo veremos cómo crear múltiples constructores y
+      diferentes maneras para invocarlos.)
+    </p>
+        <p>
+      Y realmente un constructor no es más que eso; es una función
+      con un nombre especial que se invoca automáticamente por el
+      compilador para cada objeto en el momento de su creación. A pesar
+      de su simplicidad, tiene un valor excepcional porque evita una
+      gran cantidad de problemas y hace que el código sea más fácil de
+      escribir y leer. En el fragmento de código anterior, por ejemplo,
+      no hay una llamada explícita a ninguna función
+      <code class="function">initilize()</code> que, conceptualmente es una
+      función separada de la definición. En C++, la definición e
+      inicialización son conceptos unificados - no se puede tener el uno
+      si el otro.
+    </p>
+        <p>
+      Constructor y destructor son tipos de funciones muy inusuales:
+      no tienen valor de retorno. Esto es distinto de tener valor de
+      retorno <code class="type">void</code>, que indicaría que la función no
+      retorna nada pero teniendo la posibilidad de hacer otra
+      cosa. Constructores y destructores no retornan nada y no hay
+      otra posibilidad. El acto de traer un objeto al programa, o
+      sacarlo de él es algo especial, como el nacimiento o la muerte,
+      y el compilador siempre hace que la función se llame a si misma,
+      para asegurarse de que ocurre realmente. Si hubiera un valor de
+      retorno, y usted pudiera elegir uno propio, el compilador no
+      tendría forma de saber qué hacer con el valor retornado, o el
+      programador cliente tendría que disponer de una invocación
+      explícita del constructor o destructor, lo que eliminaría la
+      seguridad.
+    </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5726792" href="#idp5726792" class="para">54</a>] </sup>árbol</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch05s08.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch05s08.html">5.8. Ejercicios</a>
+          </td>
+          <td width="10%" align="center"> </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s02.html">6.2. Limpieza garantizada por el destructor</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

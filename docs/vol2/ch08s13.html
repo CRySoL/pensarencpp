@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>8.13. Observador</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C10.html" title="8: Patrones de Diseño" />
+    <link rel="prev" href="ch08s12.html" title="8.12. Builder: creación de objetos complejos" />
+    <link rel="next" href="ch08s14.html" title="8.14. Despachado múltiple" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s12.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s12.html">8.12. Builder: creación de objetos complejos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s14.html">8.14. Despachado múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s14.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="8.13. Observador">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp4925544"></a>8.13. Observador</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp4926632"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Observer.h</span>
+<span class="hl slc">// The Observer interface.</span>
+<span class="hl ppc">#ifndef OBSERVER_H</span>
+<span class="hl ppc">#define OBSERVER_H</span>
+
+<span class="hl kwc">class</span> Observable<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Argument <span class="hl opt">{};</span>
+
+<span class="hl kwc">class</span> Observer <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl slc">// Called by the observed object, whenever</span>
+  <span class="hl slc">// the observed object is changed:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">update</span><span class="hl opt">(</span>Observable<span class="hl opt">*</span> o<span class="hl opt">,</span> Argument<span class="hl opt">*</span> arg<span class="hl opt">) =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Observer</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// OBSERVER_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.30. C10/Observer.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp4928400"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Observable.h</span>
+<span class="hl slc">// The Observable class.</span>
+<span class="hl ppc">#ifndef OBSERVABLE_H</span>
+<span class="hl ppc">#define OBSERVABLE_H</span>
+<span class="hl ppc">#include &lt;set&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Observer.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Observable <span class="hl opt">{</span>
+  <span class="hl kwb">bool</span> changed<span class="hl opt">;</span>
+  std<span class="hl opt">::</span>set<span class="hl opt">&lt;</span>Observer<span class="hl opt">*&gt;</span> observers<span class="hl opt">;</span>
+<span class="hl kwc">protected</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">setChanged</span><span class="hl opt">() {</span> changed <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">; }</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">clearChanged</span><span class="hl opt">() {</span> changed <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">; }</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">addObserver</span><span class="hl opt">(</span>Observer<span class="hl opt">&amp;</span> o<span class="hl opt">) {</span>
+    observers<span class="hl opt">.</span><span class="hl kwd">insert</span><span class="hl opt">(&amp;</span>o<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">deleteObserver</span><span class="hl opt">(</span>Observer<span class="hl opt">&amp;</span> o<span class="hl opt">) {</span>
+    observers<span class="hl opt">.</span><span class="hl kwd">erase</span><span class="hl opt">(&amp;</span>o<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">deleteObservers</span><span class="hl opt">() {</span>
+    observers<span class="hl opt">.</span><span class="hl kwd">clear</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">int</span> <span class="hl kwd">countObservers</span><span class="hl opt">() {</span>
+    <span class="hl kwa">return</span> observers<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">bool</span> <span class="hl kwd">hasChanged</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> changed<span class="hl opt">; }</span>
+  <span class="hl slc">// If this object has changed, notify all</span>
+  <span class="hl slc">// of its observers:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">notifyObservers</span><span class="hl opt">(</span>Argument<span class="hl opt">*</span> arg <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(!</span><span class="hl kwd">hasChanged</span><span class="hl opt">())</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+    <span class="hl kwd">clearChanged</span><span class="hl opt">();</span> <span class="hl slc">// Not &quot;changed&quot; anymore</span>
+    std<span class="hl opt">::</span>set<span class="hl opt">&lt;</span>Observer<span class="hl opt">*&gt;::</span>iterator it<span class="hl opt">;</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span>it <span class="hl opt">=</span> observers<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">();</span>it <span class="hl opt">!=</span> observers<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">();</span> it<span class="hl opt">++)</span>
+      <span class="hl opt">(*</span>it<span class="hl opt">)-&gt;</span><span class="hl kwd">update</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">,</span> arg<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Observable</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// OBSERVABLE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.31. C10/Observable.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="example">
+        <a id="idp4933288"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:InnerClassIdiom.cpp</span>
+<span class="hl slc">// Example of the &quot;inner class&quot; idiom.</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Poingable <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">poing</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">callPoing</span><span class="hl opt">(</span>Poingable<span class="hl opt">&amp;</span> p<span class="hl opt">) {</span>
+  p<span class="hl opt">.</span><span class="hl kwd">poing</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> Bingable <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">bing</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">callBing</span><span class="hl opt">(</span>Bingable<span class="hl opt">&amp;</span> b<span class="hl opt">) {</span>
+  b<span class="hl opt">.</span><span class="hl kwd">bing</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwc">class</span> Outer <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span>
+  <span class="hl slc">// Define one inner class:</span>
+  <span class="hl kwc">class</span> Inner1<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Outer<span class="hl opt">::</span>Inner1<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Inner1 <span class="hl opt">:</span> <span class="hl kwc">public</span> Poingable <span class="hl opt">{</span>
+    Outer<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">Inner1</span><span class="hl opt">(</span>Outer<span class="hl opt">*</span> p<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>p<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">poing</span><span class="hl opt">() {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;poing called for &quot;</span>
+        <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+      <span class="hl slc">// Accesses data in the outer class object</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> inner1<span class="hl opt">;</span>
+  <span class="hl slc">// Define a second inner class:</span>
+  <span class="hl kwc">class</span> Inner2<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Outer<span class="hl opt">::</span>Inner2<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> Inner2 <span class="hl opt">:</span> <span class="hl kwc">public</span> Bingable <span class="hl opt">{</span>
+    Outer<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">Inner2</span><span class="hl opt">(</span>Outer<span class="hl opt">*</span> p<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>p<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">bing</span><span class="hl opt">() {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;bing called for &quot;</span>
+        <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> inner2<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Outer</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> nm<span class="hl opt">)</span>
+  <span class="hl opt">:</span> <span class="hl kwd">name</span><span class="hl opt">(</span>nm<span class="hl opt">),</span> <span class="hl kwd">inner1</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">),</span> <span class="hl kwd">inner2</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">) {}</span>
+  <span class="hl slc">// Return reference to interfaces</span>
+  <span class="hl slc">// implemented by the inner classes:</span>
+  <span class="hl kwc">operator</span> Poingable<span class="hl opt">&amp;() {</span> <span class="hl kwa">return</span> inner1<span class="hl opt">; }</span>
+  <span class="hl kwc">operator</span> Bingable<span class="hl opt">&amp;() {</span> <span class="hl kwa">return</span> inner2<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Outer <span class="hl kwd">x</span><span class="hl opt">(</span><span class="hl str">&quot;Ping Pong&quot;</span><span class="hl opt">);</span>
+  <span class="hl slc">// Like upcasting to multiple base types!:</span>
+  <span class="hl kwd">callPoing</span><span class="hl opt">(</span>x<span class="hl opt">);</span>
+  <span class="hl kwd">callBing</span><span class="hl opt">(</span>x<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 8.32. C10/InnerClassIdiom.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <p>
+
+    </p>
+      <div class="sect2" title="8.13.1. El ejemplo de observador">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp4936536"></a>8.13.1. El ejemplo de observador</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+
+      </p>
+        <div class="example">
+          <a id="idp4937048"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C10:ObservedFlower.cpp</span>
+<span class="hl slc">// Demonstration of &quot;observer&quot; pattern.</span>
+<span class="hl ppc">#include &lt;algorithm&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl ppc">#include &lt;vector&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Observable.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Flower <span class="hl opt">{</span>
+  <span class="hl kwb">bool</span> isOpen<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Flower</span><span class="hl opt">() :</span> <span class="hl kwd">isOpen</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">),</span>
+    <span class="hl kwd">openNotifier</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">),</span> <span class="hl kwd">closeNotifier</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">open</span><span class="hl opt">() {</span> <span class="hl slc">// Opens its petals</span>
+    isOpen <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+    openNotifier<span class="hl opt">.</span><span class="hl kwd">notifyObservers</span><span class="hl opt">();</span>
+    closeNotifier<span class="hl opt">.</span><span class="hl kwd">open</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">close</span><span class="hl opt">() {</span> <span class="hl slc">// Closes its petals</span>
+    isOpen <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">;</span>
+    closeNotifier<span class="hl opt">.</span><span class="hl kwd">notifyObservers</span><span class="hl opt">();</span>
+    openNotifier<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl slc">// Using the &quot;inner class&quot; idiom:</span>
+  <span class="hl kwc">class</span> OpenNotifier<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Flower<span class="hl opt">::</span>OpenNotifier<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> OpenNotifier <span class="hl opt">:</span> <span class="hl kwc">public</span> Observable <span class="hl opt">{</span>
+    Flower<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+    <span class="hl kwb">bool</span> alreadyOpen<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">OpenNotifier</span><span class="hl opt">(</span>Flower<span class="hl opt">*</span> f<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>f<span class="hl opt">),</span>
+      <span class="hl kwd">alreadyOpen</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">notifyObservers</span><span class="hl opt">(</span>Argument<span class="hl opt">*</span> arg <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+      <span class="hl kwa">if</span><span class="hl opt">(</span>parent<span class="hl opt">-&gt;</span>isOpen <span class="hl opt">&amp;&amp; !</span>alreadyOpen<span class="hl opt">) {</span>
+        <span class="hl kwd">setChanged</span><span class="hl opt">();</span>
+        Observable<span class="hl opt">::</span><span class="hl kwd">notifyObservers</span><span class="hl opt">();</span>
+        alreadyOpen <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">close</span><span class="hl opt">() {</span> alreadyOpen <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">; }</span>
+  <span class="hl opt">}</span> openNotifier<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CloseNotifier<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Flower<span class="hl opt">::</span>CloseNotifier<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CloseNotifier <span class="hl opt">:</span> <span class="hl kwc">public</span> Observable <span class="hl opt">{</span>
+    Flower<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+    <span class="hl kwb">bool</span> alreadyClosed<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">CloseNotifier</span><span class="hl opt">(</span>Flower<span class="hl opt">*</span> f<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>f<span class="hl opt">),</span>
+      <span class="hl kwd">alreadyClosed</span><span class="hl opt">(</span><span class="hl kwa">false</span><span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">notifyObservers</span><span class="hl opt">(</span>Argument<span class="hl opt">*</span> arg <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+      <span class="hl kwa">if</span><span class="hl opt">(!</span>parent<span class="hl opt">-&gt;</span>isOpen <span class="hl opt">&amp;&amp; !</span>alreadyClosed<span class="hl opt">) {</span>
+        <span class="hl kwd">setChanged</span><span class="hl opt">();</span>
+        Observable<span class="hl opt">::</span><span class="hl kwd">notifyObservers</span><span class="hl opt">();</span>
+        alreadyClosed <span class="hl opt">=</span> <span class="hl kwa">true</span><span class="hl opt">;</span>
+      <span class="hl opt">}</span>
+    <span class="hl opt">}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">open</span><span class="hl opt">() {</span> alreadyClosed <span class="hl opt">=</span> <span class="hl kwa">false</span><span class="hl opt">; }</span>
+  <span class="hl opt">}</span> closeNotifier<span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Bee <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span>
+  <span class="hl slc">// An &quot;inner class&quot; for observing openings:</span>
+  <span class="hl kwc">class</span> OpenObserver<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Bee<span class="hl opt">::</span>OpenObserver<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> OpenObserver <span class="hl opt">:</span> <span class="hl kwc">public</span> Observer <span class="hl opt">{</span>
+    Bee<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">OpenObserver</span><span class="hl opt">(</span>Bee<span class="hl opt">*</span> b<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>b<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">update</span><span class="hl opt">(</span>Observable<span class="hl opt">*,</span> Argument <span class="hl opt">*) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bee &quot;</span> <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;'s breakfast time!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> openObsrv<span class="hl opt">;</span>
+  <span class="hl slc">// Another &quot;inner class&quot; for closings:</span>
+  <span class="hl kwc">class</span> CloseObserver<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Bee<span class="hl opt">::</span>CloseObserver<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CloseObserver <span class="hl opt">:</span> <span class="hl kwc">public</span> Observer <span class="hl opt">{</span>
+    Bee<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">CloseObserver</span><span class="hl opt">(</span>Bee<span class="hl opt">*</span> b<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>b<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">update</span><span class="hl opt">(</span>Observable<span class="hl opt">*,</span> Argument <span class="hl opt">*) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Bee &quot;</span> <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;'s bed time!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> closeObsrv<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Bee</span><span class="hl opt">(</span>string nm<span class="hl opt">) :</span> <span class="hl kwd">name</span><span class="hl opt">(</span>nm<span class="hl opt">),</span>
+    <span class="hl kwd">openObsrv</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">),</span> <span class="hl kwd">closeObsrv</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">) {}</span>
+  Observer<span class="hl opt">&amp;</span> <span class="hl kwd">openObserver</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> openObsrv<span class="hl opt">; }</span>
+  Observer<span class="hl opt">&amp;</span> <span class="hl kwd">closeObserver</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> closeObsrv<span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Hummingbird <span class="hl opt">{</span>
+  string name<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> OpenObserver<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Hummingbird<span class="hl opt">::</span>OpenObserver<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> OpenObserver <span class="hl opt">:</span> <span class="hl kwc">public</span> Observer <span class="hl opt">{</span>
+    Hummingbird<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">OpenObserver</span><span class="hl opt">(</span>Hummingbird<span class="hl opt">*</span> h<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>h<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">update</span><span class="hl opt">(</span>Observable<span class="hl opt">*,</span> Argument <span class="hl opt">*) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Hummingbird &quot;</span> <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;'s breakfast time!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> openObsrv<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CloseObserver<span class="hl opt">;</span>
+  <span class="hl kwc">friend class</span> Hummingbird<span class="hl opt">::</span>CloseObserver<span class="hl opt">;</span>
+  <span class="hl kwc">class</span> CloseObserver <span class="hl opt">:</span> <span class="hl kwc">public</span> Observer <span class="hl opt">{</span>
+    Hummingbird<span class="hl opt">*</span> parent<span class="hl opt">;</span>
+  <span class="hl kwc">public</span><span class="hl opt">:</span>
+    <span class="hl kwd">CloseObserver</span><span class="hl opt">(</span>Hummingbird<span class="hl opt">*</span> h<span class="hl opt">) :</span> <span class="hl kwd">parent</span><span class="hl opt">(</span>h<span class="hl opt">) {}</span>
+    <span class="hl kwb">void</span> <span class="hl kwd">update</span><span class="hl opt">(</span>Observable<span class="hl opt">*,</span> Argument <span class="hl opt">*) {</span>
+      cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Hummingbird &quot;</span> <span class="hl opt">&lt;&lt;</span> parent<span class="hl opt">-&gt;</span>name
+        <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;'s bed time!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span> closeObsrv<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Hummingbird</span><span class="hl opt">(</span>string nm<span class="hl opt">) :</span> <span class="hl kwd">name</span><span class="hl opt">(</span>nm<span class="hl opt">),</span>
+    <span class="hl kwd">openObsrv</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">),</span> <span class="hl kwd">closeObsrv</span><span class="hl opt">(</span><span class="hl kwa">this</span><span class="hl opt">) {}</span>
+  Observer<span class="hl opt">&amp;</span> <span class="hl kwd">openObserver</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> openObsrv<span class="hl opt">; }</span>
+  Observer<span class="hl opt">&amp;</span> <span class="hl kwd">closeObserver</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> closeObsrv<span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Flower f<span class="hl opt">;</span>
+  Bee <span class="hl kwd">ba</span><span class="hl opt">(</span><span class="hl str">&quot;A&quot;</span><span class="hl opt">),</span> <span class="hl kwd">bb</span><span class="hl opt">(</span><span class="hl str">&quot;B&quot;</span><span class="hl opt">);</span>
+  Hummingbird <span class="hl kwd">ha</span><span class="hl opt">(</span><span class="hl str">&quot;A&quot;</span><span class="hl opt">),</span> <span class="hl kwd">hb</span><span class="hl opt">(</span><span class="hl str">&quot;B&quot;</span><span class="hl opt">);</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>ha<span class="hl opt">.</span><span class="hl kwd">openObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>hb<span class="hl opt">.</span><span class="hl kwd">openObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>ba<span class="hl opt">.</span><span class="hl kwd">openObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>bb<span class="hl opt">.</span><span class="hl kwd">openObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>closeNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>ha<span class="hl opt">.</span><span class="hl kwd">closeObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>closeNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>hb<span class="hl opt">.</span><span class="hl kwd">closeObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>closeNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>ba<span class="hl opt">.</span><span class="hl kwd">closeObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span>closeNotifier<span class="hl opt">.</span><span class="hl kwd">addObserver</span><span class="hl opt">(</span>bb<span class="hl opt">.</span><span class="hl kwd">closeObserver</span><span class="hl opt">());</span>
+  <span class="hl slc">// Hummingbird B decides to sleep in:</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">deleteObserver</span><span class="hl opt">(</span>hb<span class="hl opt">.</span><span class="hl kwd">openObserver</span><span class="hl opt">());</span>
+  <span class="hl slc">// Something changes that interests observers:</span>
+  f<span class="hl opt">.</span><span class="hl kwd">open</span><span class="hl opt">();</span>
+  f<span class="hl opt">.</span><span class="hl kwd">open</span><span class="hl opt">();</span> <span class="hl slc">// It's already open, no change.</span>
+  <span class="hl slc">// Bee A doesn't want to go to bed:</span>
+  f<span class="hl opt">.</span>closeNotifier<span class="hl opt">.</span><span class="hl kwd">deleteObserver</span><span class="hl opt">(</span>
+    ba<span class="hl opt">.</span><span class="hl kwd">closeObserver</span><span class="hl opt">());</span>
+  f<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+  f<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span> <span class="hl slc">// It's already closed; no change</span>
+  f<span class="hl opt">.</span>openNotifier<span class="hl opt">.</span><span class="hl kwd">deleteObservers</span><span class="hl opt">();</span>
+  f<span class="hl opt">.</span><span class="hl kwd">open</span><span class="hl opt">();</span>
+  f<span class="hl opt">.</span><span class="hl kwd">close</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 8.33. C10/ObservedFlower.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+        <p>
+
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch08s12.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch08s12.html">8.12. Builder: creación de objetos complejos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch08s14.html">8.14. Despachado múltiple</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch08s14.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.10.3. Destructores y destructores virtuales</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+    <link rel="prev" href="ch15s10s02.html" title="15.10.2. Comportamiento de las funciones virtuales dentro de los constructores" />
+    <link rel="next" href="ch15s10s04.html" title="15.10.4. Destructores virtuales puros" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s02.html">15.10.2. Comportamiento de las funciones virtuales dentro de los
+      constructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s04.html">15.10.4. Destructores virtuales puros</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.10.3. Destructores y destructores virtuales">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8269096"></a>15.10.3. Destructores y destructores virtuales</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	No se puede usar la palabra reservada
+	<code class="keyword">virtual</code> con los constructores, pero los
+	destructores pueden, y a menudo deben, ser virtuales.
+      </p>
+      <p>
+	El constructor tiene el trabajo especial de iniciar un objeto
+	poco a poco, primero llamando al constructor base y después a
+	los constructores derivados en el orden de la herencia. De
+	manera similar, el destructor tiene otro trabajo especial:
+	desmontar un objeto, el cual puede pertenecer a una jerarquía de
+	clases. Para hacerlo, el compilador genera código que llama a
+	todos los destructores, pero en el orden
+	<span class="emphasis"><em>inverso</em></span> al que son llamados en los
+	constructores. Es decir, el constructor empieza en la clase más
+	derivada y termina en la clase base. ésta es la opción deseable
+	y segura debido a que el destructor siempre sabe que los
+	miembros de la clase base están vivos y activos. Si se necesita
+	llamar a una función miembro de la clase base dentro del
+	destructor, será seguro hacerlo. De esta forma, el destructor
+	puede realizar su propio limpiado, y entonces llamar al
+	siguiente destructor, el cual hará <span class="emphasis"><em>su</em></span> propio
+	limpiado, etc. Cada destructor sabe de que clase deriva, pero no
+	cuales derivan de él.
+      </p>
+      <p>
+	Hay que tener en cuenta que los constructores y los destructores
+	son los únicos lugares donde tiene que funcionar ésta jerarquía
+	de llamadas (que es automáticamente generada por el
+	compilador). En el resto de las funciones, sólo esa función, sea
+	o no virtual, será llamada (y no las versiones de la clase
+	base). La única forma para acceder a las versiones de la clase
+	base de una función consiste en llamar de forma
+	<span class="emphasis"><em>explicita</em></span> a esa funciones.
+      </p>
+      <p>
+	Normalmente, la acción del destructor es adecuada. Pero ¿qué
+	ocurre si se quiere manipular un objeto a través de un puntero a
+	su clase base (es decir, manipular al objeto a través de su
+	interfaz genérica)? Este tipo de actividades es uno de los
+	objetivos de la programación orientada a objetos. El problema
+	viene cuando se quiere hacer un <code class="keyword">delete</code>
+	(eliminar) de un puntero a un objeto que ha sido creado en el
+	<span class="emphasis"><em>montón</em></span>
+	(<span class="foreignphrase"><em class="foreignphrase">&gt;heap</em></span>) con
+	<code class="keyword">new</code>. Si el puntero apunta a la clase base, el
+	compilador sólo puede conocer la versión del destructor que se
+	encuentre en la clase base durante el
+	<code class="keyword">delete</code>. ¿Suena familiar? Al fin y al cabo, es
+	el mismo problema por las que fueron creadas las funciones
+	virtuales en el caso general. Afortunadamente, las funciones
+	virtuales funcionan con los destructores como lo hacen para las
+	otras funciones excepto los constructores.
+      </p>
+      <div class="example">
+        <a id="idp8277592"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:VirtualDestructors.cpp</span>
+<span class="hl slc">// Behavior of virtual vs. non-virtual destructor</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Base1 <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Base1</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Base1()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived1 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base1 <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Derived1</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Derived1()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Base2 <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Base2</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Base2()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Derived2 <span class="hl opt">:</span> <span class="hl kwc">public</span> Base2 <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Derived2</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Derived2()</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Base1<span class="hl opt">*</span> bp <span class="hl opt">=</span> <span class="hl kwa">new</span> Derived1<span class="hl opt">;</span> <span class="hl slc">// Upcast</span>
+  <span class="hl kwa">delete</span> bp<span class="hl opt">;</span>
+  Base2<span class="hl opt">*</span> b2p <span class="hl opt">=</span> <span class="hl kwa">new</span> Derived2<span class="hl opt">;</span> <span class="hl slc">// Upcast</span>
+  <span class="hl kwa">delete</span> b2p<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.12. C15/VirtualDestructors.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Cuando se ejecuta el programa, se ve que <code class="literal">delete
+	bp</code> sólo llama al destructor de la clase base, mientras
+	que <code class="literal">delete b2p</code> llama al destructor de la
+	clase derivada seguido por el destructor de la clase base, que
+	es el comportamiento que deseamos. Olvidar hacer
+	<code class="keyword">virtual</code> a un destructor es un error
+	peligroso porque a menudo no afecta directamente al
+	comportamiento del programa, pero puede introducir de forma
+	oculta agujeros de memoria. Además, el hecho de que
+	<span class="emphasis"><em>alguna</em></span> destrucción está teniendo lugar puede
+	enmascarar el problema.
+      </p>
+      <p>
+	Es posible que el destructor sea virtual porque el objeto sabe
+	de que tipo es (lo que no ocurre durante la construcción del
+	objeto). Una vez que el objeto ha sido construido, su VPTR es
+	inicializado y se pueden usar las funciones virtuales.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s02.html">15.10.2. Comportamiento de las funciones virtuales dentro de los
+      constructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s04.html">15.10.4. Destructores virtuales puros</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s04.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>9.2. Funciones inline</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C09.html" title="9: Funciones inline" />
+    <link rel="prev" href="C09.html" title="9: Funciones inline" />
+    <link rel="next" href="ch09s02s02.html" title="9.2.2. Funciones de acceso" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C09.html">9: Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s02s02.html">9.2.2. Funciones de acceso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="9.2. Funciones inline">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6329432"></a>9.2. Funciones <code class="keyword">inline</code></h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Al resolver el problema que había en C++ con las macros cuando
+      acceden a miembros de clases privada, todos los problemas
+      asociados con las macros de preprocesador fueron
+      eliminados. Esto se ha hecho aplicando el concepto de macros
+      bajo el control del compilador al cual pertenecen. C++
+      implementa la macro como una función inline, lo que es una
+      función real en todo sentido. Todo comportamiento esperado de
+      una función ordinaria se obtiene con una función inline. La
+      única diferencia es que una función inline se expande en el
+      mismo sitio, como una macro de preprocesador, de modo que la
+      cabecera de una llamada a función es eliminada. Por ello no
+      debería usar macros (casi) nunca, solo funciones inline.
+    </p>
+      <p>
+      Cualquier función definida en el cuerpo de una clase es
+      automáticamente inline, pero también puede hacer una función
+      inline que no esté dentro del cuerpo de una clase, precediéndola
+      con la palabra clave inline. De todos modos, para que esto tenga
+      algún efecto, debe incluir el cuerpo de la función con la
+      declaración, de otro modo el compilador tratará esa función como
+      una declaración de una función ordinaria. Así:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">inline</span> <span class="hl kwb">int</span> <span class="hl kwd">plusOne</span><span class="hl opt">(</span><span class="hl kwb">int</span> x<span class="hl opt">);</span>
+</pre>
+      <p>
+      no tiene ningún otro efecto que declarar la función (que puede o
+      no obtener una definición inline después).  La aproximación
+      correcta proporciona el cuerpo de la función:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">inline</span> <span class="hl kwb">int</span> <span class="hl kwd">plusOne</span><span class="hl opt">(</span><span class="hl kwb">int</span> x<span class="hl opt">) {</span> <span class="hl kwa">return</span> <span class="hl opt">++</span>x<span class="hl opt">; }</span>
+</pre>
+      <p>
+      Observe que el compilador revisará (como siempre lo hace), el
+      uso apropiado de la lista de argumentos de la función y del
+      valor de retorno (haciendo cualquier conversión necesaria), algo
+      que el preprocesador es incapaz de hacer. Además, si intenta
+      escribir lo anterior como una macro de preprocesador, obtendrá
+      un efecto no deseado.
+    </p>
+      <p>
+      Casi siempre querrá poner las funciones inline en un fichero de
+      cabecera. Cuando el compilador ve una definición como esa pone el
+      tipo de la función (la firma combinada con el valor de retorno) y
+      el cuerpo de la función en su tabla de símbolos. Cuando use la
+      función, el compilador se asegura de que la llamada es correcta y
+      el valor de retorno se está usando correctamente, y entonces
+      sustituye el cuerpo de la función por la llamada a la función, y
+      de ese modo elimina la sobrecarga. El código inline ocupa espacio,
+      pero si la función es pequeña, realmente ocupará menos espacio que
+      el código generado para una llamada a función ordinaria
+      (colocando los argumentos en la pila y ejecutando el CALL).
+    </p>
+      <p>
+      Una función inline en un fichero de cabecera tiene un estado
+      especial, dado que debe incluir el fichero de cabecera que
+      contiene la función y su definición en cada fichero en donde se
+      use la función, pero eso no provoca un error de definición
+      múltiple (sin embargo, la definición debe ser idéntica en todos
+      los sitios en los que se incluya la función inline).
+    </p>
+      <div class="sect2" title="9.2.1. inline dentro de clases">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6337832"></a>9.2.1. inline dentro de clases</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+       Para definir una función inline, debe anteponer la palabra clave
+       <code class="keyword">inline</code> al nombre de la función en el momento
+       de definirla. Sin embargo, eso no es necesario cuando se
+       define dentro de una clase. Cualquier función que defina dentro
+       de una clase es inline automáticamente. Por ejemplo:
+      </p>
+        <div class="example">
+          <a id="idp6339520"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C09:Inline.cpp</span>
+<span class="hl slc">// Inlines inside classes</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Point <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">,</span> j<span class="hl opt">,</span> k<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Point</span><span class="hl opt">():</span> <span class="hl kwd">i</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">j</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">),</span> <span class="hl kwd">k</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl kwd">Point</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">,</span> <span class="hl kwb">int</span> jj<span class="hl opt">,</span> <span class="hl kwb">int</span> kk<span class="hl opt">)</span>
+    <span class="hl opt">:</span> <span class="hl kwd">i</span><span class="hl opt">(</span>ii<span class="hl opt">),</span> <span class="hl kwd">j</span><span class="hl opt">(</span>jj<span class="hl opt">),</span> <span class="hl kwd">k</span><span class="hl opt">(</span>kk<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl kwb">const</span> string<span class="hl opt">&amp;</span> msg <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">)</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>msg<span class="hl opt">.</span><span class="hl kwd">size</span><span class="hl opt">() !=</span> <span class="hl num">0</span><span class="hl opt">)</span> cout <span class="hl opt">&lt;&lt;</span> msg <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;i = &quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;j = &quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;, &quot;</span>
+         <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;k = &quot;</span> <span class="hl opt">&lt;&lt;</span> k <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Point p<span class="hl opt">,</span> <span class="hl kwd">q</span><span class="hl opt">(</span><span class="hl num">1</span><span class="hl opt">,</span><span class="hl num">2</span><span class="hl opt">,</span><span class="hl num">3</span><span class="hl opt">);</span>
+  p<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;value of p&quot;</span><span class="hl opt">);</span>
+  q<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span><span class="hl str">&quot;value of q&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 9.2. C09/Inline.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Aquí, los dos constructores y la función
+	<code class="function">print()</code> son inline por defecto. Dese
+	cuenta de que usar funciones inline es transparente en
+	<code class="function">main()</code>, y así debe ser. El comportamiento
+	lógico de una función debe ser idéntico aunque sea inline (de
+	otro modo su compilador no funcionaría). La única diferencia
+	visible es el rendimiento.
+      </p>
+        <p>
+	Por supuesto, la tentación es usar declaraciones
+	<code class="keyword">inline</code> en cualquier parte dentro de la case porque
+	ahorran el paso extra de hacer una definición de método
+	externa. Sin embargo, debe tener presente, que la idea de una
+	inline es dar al compilador mejores oportunidades de
+	optimización. Pero, si declara inline una función grande
+	provocará que el código se duplique allí donde se llame,
+	produciendo código [FIXME:bloat] que anulará el beneficio de
+	velocidad obtenido (la única manera de descubrir los efectos
+	del uso de inline en su programa con su compilador es
+	experimentar).
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="C09.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="C09.html">9: Funciones <code class="keyword">inline</code></a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C09.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch09s02s02.html">9.2.2. Funciones de acceso</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch09s02s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.5.2. Pintar funciones virtuales</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s05.html" title="15.5. Cómo implementa C++ la ligadura dinámica" />
+    <link rel="prev" href="ch15s05.html" title="15.5. Cómo implementa C++ la ligadura dinámica" />
+    <link rel="next" href="ch15s05s03.html" title="15.5.3. Detrás del telón" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s05.html">15.5. Cómo implementa C++ la ligadura dinámica</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s03.html">15.5.3. Detrás del telón</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.5.2. Pintar funciones virtuales">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8101856"></a>15.5.2. Pintar funciones virtuales</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Para entender exactamente qué está pasando cuando se usan
+	funciones virtuales, es útil ver la actividad que hay detrás del
+	telón. Aquí se muestra el array de punteros
+	<code class="literal">A[]</code> in <code class="filename">Instrument4.cpp</code>:
+      </p>
+      <div class="figure">
+        <a id="idp8103480"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_16.png" align="middle" alt="Funciones virtuales" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 15.1. Funciones virtuales</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+	El array de punteros a <code class="classname">Instrument</code>s no
+	tiene información específica de tipo; cada uno de ellos apunta a
+	un objeto de tipo
+	<code class="classname">Instrument</code>. <code class="classname">Wind</code>,
+	<code class="classname">Percussion</code>,
+	<code class="classname">Stringed</code>, y <code class="classname">Brass</code>
+	encajan en esta categoría porque derivan de
+	<code class="classname">Instrument</code> (esto hace que tengan la misma
+	interfaz de <code class="classname">Instrument</code>, y puedan
+	responder a los mismos mensajes), lo que implica que sus
+	direcciones pueden ser metidas en el array. Sin embargo, el
+	compilador no sabe que sean otra cosa que objetos de tipo
+	<code class="classname">Instrument</code>, por lo que normalmente
+	llamará a las versiones de las funciones que estén en la clase
+	base. Pero en este caso, todas las funciones han sido declaradas
+	con la palabra reservada <code class="keyword">virtual</code>, por lo que
+	ocurre algo diferente. Cada vez que se crea una clase que
+	contiene funciones virtuales, o se deriva de una clase que
+	contiene funciones virtuales, el compilador crea para cada clase
+	una única VTABLE, que se puede ver a la derecha en el
+	diagrama. En ésta tabla se colocan las direcciones de todas las
+	funciones que son declaradas virtuales en la clase o en la clase
+	base. Si no se sobreescribe una función que ha sido declarada
+	como virtual, el compilador usa la dirección de la versión que
+	se encuentra en la clase base (esto se puede ver en la entrada
+	<code class="literal">adjusta</code> de la VTABLE de
+	<code class="classname">Brass</code>). Además, se coloca el VPTR
+	(descubierto en <code class="filename">Sizes.cpp</code>) en la clase. Hay
+	un único VPTR por cada objeto cuando se usa herencia simple como
+	es el caso. El VPTR debe estar inicializado para que apunte a la
+	dirección inicial de la VTABLE apropiada (esto sucede en el
+	constructor que se verá más tarde con mayor detalle).
+      </p>
+      <p>
+	Una vez que el VPTR ha sido inicializado a la VTABLE apropiada,
+	el objeto "sabe" de que tipo es. Pero este autoconocimiento no
+	tiene valor a menos que sea usado en el momento en que se llama
+	a la función virtual.
+      </p>
+      <p>
+	Cuando se llama a una función virtual a través de la clase base
+	(la situación que se da cuando el compilador no tiene toda la
+	información necesaria para realizar la ligadura estática),
+	ocurre algo especial. En vez de realizarse la típica llamada a
+	función, que en lenguaje ensamblador es simplemente un
+	<code class="literal">CALL</code> a una dirección en concreto, el
+	compilador genera código diferente para ejecutar la llamada a la
+	función. Aquí se muestra a lo que se parece una llamada a
+	<code class="function">adjust()</code> para un objeto
+	<code class="function">Brass</code>, si se hace a través de un puntero a
+	<code class="classname">Instrument</code> (una referencia a
+	<code class="classname">Instrument</code> produce el mismo efecto):
+      </p>
+      <div class="figure">
+        <a id="idp8115480"></a>
+        <div class="figure-contents">
+          <div class="mediaobject" align="center">
+            <img src="./images/V1_17.png" align="middle" alt="Tabla de punteros virtuales" />
+          </div>
+        </div>
+        <p class="title">
+          <strong>Figura 15.2. Tabla de punteros virtuales</strong>
+        </p>
+      </div>
+      <br class="figure-break" />
+      <p>
+	El compilador empieza con el puntero a
+	<code class="classname">Instrument</code>, que apunta a la dirección
+	inicial del objeto. Todos los objetos
+	<code class="classname">Instrument</code> o los objetos derivados de
+	<code class="classname">Instrument</code> tienen su VPTR en el mismo
+	lugar (a menudo al principio del objeto), de tal forma que el
+	compilador puede conseguir el VPTR del objeto. El VPTR apunta a
+	la la dirección inicial de VTABLE. Todas las direcciones de
+	funciones de las VTABLE están dispuestas en el mismo orden, a
+	pesar del tipo específico del
+	objeto. <code class="function">play()</code> es el primero,
+	<code class="function">what()</code> es el segundo y
+	<code class="function">adjust()</code> es el tercero. El compilador sabe
+	que a pesar del tipo específico del objeto, la función
+	<code class="function">adjust()</code> se encuentra localizada en
+	VPTR+2. Debido a esto, en vez de decir, "Llama a la función en
+	la dirección absoluta <code class="function">Instrument::adjust()</code>
+	(ligadura estática y acción equivocada), se genera código que
+	dice "Llama a la función que se encuentre en VPTR+2". Como la
+	búsqueda del VPTR y la determinación de la dirección de la
+	función actual ocurre en tiempo de ejecución, se consigue la
+	deseada ligadura dinámica. Se envía un mensaje al objeto, y el
+	objeto se figura que debe hacer con él.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s05.html">15.5. Cómo implementa C++ la ligadura dinámica</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s05.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s05s03.html">15.5.3. Detrás del telón</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s05s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

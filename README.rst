@@ -1,14 +1,10 @@
-
 ==============================================
 Pensar en C++: «Thinking in C++» en castellano
 ==============================================
 
 Proyecto de traducción del libro «Thinking in C++».
 
-Web:
-  https://github.com/CRySoL/pensarencpp
-
-Repositorio:
+Web/Repositorio:
   https://github.com/CRySoL/pensarencpp
 
 Lista de correo:
@@ -49,8 +45,8 @@ Proyecto
 Información y ficheros para tradutores, revisores o interesados en colaborar con el
 proyecto. Incluye plantillas HTML, LaTeX y scripts de compilación del documento.
 
-- `Fuentes DocBook <https://bitbucket.org/crysol_org/pensarenc/src>`_.
-- `Estado de la traducción <https://bitbucket.org/crysol_org/pensarenc/raw/39661eb4ce27/STATUS>`_
+- `Fuentes DocBook <https://github.com/CRySoL/pensarencpp>`_.
+- `Estado de la traducción <https://raw.githubusercontent.com/CRySoL/pensarencpp/master/STATUS>`_
 
 Volumen 1
 ---------
@@ -64,10 +60,10 @@ estado actual, y por supuesto lo puedes consultar y descargar:
 - HTML1_bz2_ -  formato bzip2.
 - PDF1_
 
-.. _HTML1_1:   http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/vol1.html
-.. _HTML1_sec: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol1/index.html
-.. _HTML1_bz2: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.tar.bz2
-.. _PDF1:      http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol1.pdf
+.. _HTML1_1:   http://crysol.org/pensarencpp/vol1/vol1.html
+.. _HTML1_sec: http://crysol.org/pensarencpp/vol1/index.html
+.. _HTML1_bz2: http://crysol.org/pensarencpp/pensar_en_cpp-vol1.tar.bz2
+.. _PDF1:      http://crysol.org/pensarencpp/pensar_en_cpp-vol1.pdf
 
 
 Volumen 2
@@ -83,10 +79,10 @@ formatos HTML y PDF.
 - HTML2_bz2_ -  formato bzip2.
 - PDF2_
 
-.. _HTML2_1:   http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/vol2.html
-.. _HTML2_sec: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/vol2/index.html
-.. _HTML2_bz2: http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.tar.bz2
-.. _PDF2:      http://arco.esi.uclm.es/~david.villa/pensar_en_C++/pensar_en_cpp-vol2.pdf
+.. _HTML2_1:   http://crysol.org/pensarencpp/vol2/vol2.html
+.. _HTML2_sec: http://crysol.org/pensarencpp/vol2/index.html
+.. _HTML2_bz2: http://crysol.org/pensarencpp/pensar_en_cpp-vol2.tar.bz2
+.. _PDF2:      http://crysol.org/pensarencpp/pensar_en_cpp-vol2.pdf
 
 
 Original (en inglés)
@@ -153,7 +149,7 @@ Uso del repositorio
 
 Puedes colaborar con el proyecto revisando o traduciendo. En ambos casos, debes
 solicitar al coordinador un capítulo sobre el que trabajar. Utiliza para ello el
-«issue tracker» del proyecto bitbucket: https://bitbucket.org/crysol_org/pensarenc/issues/new
+«issue tracker» del proyecto bitbucket: https://github.com/CRySoL/pensarencpp/issues/new
 
 Cada capítulo está contenido en un fichero individual. No debes crear
 ficheros nuevos. Incluso aunque traduzcas, los ficheros debe crearlos el
@@ -173,10 +169,10 @@ Respeta el encoding y la indentación de los ficheros. Se recomienda `Emacs con 
 Todo el trabajo de traducción se hace directamente sobre el repositorio. Para
 trabajar con bitbucket debes seguir los siguientes pasos:
 
-1. Crea una cuenta en https://bitbucket.org (es gratis).
-2. Ve a https://bitbucket.org/crysol_org/pensarenc
+1. Crea una cuenta en https://github.com.
+2. Ve a https://github.com/CRySoL/pensarencpp.
 3. Pincha en "fork". Mantén el mismo nombre. No necesitas wiki ni issue tracker.
-4. Descarga tu repo a tu ordenador. Bitbucket tiene ayuda y documentación para esto.
+4. Descarga tu repo a tu ordenador. Github tiene ayuda y documentación para esto.
 5. Edita el capítulo que tengas asignado.
 6. Sube los cambios a tu repositorio.
 7. Cuando hayas terminado el capítulo, pulsa en «create pull request» para que

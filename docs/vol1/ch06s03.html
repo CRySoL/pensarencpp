@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>6.3. Eliminación del bloque de definiciones</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C06.html" title="6: Inicialización y limpieza" />
+    <link rel="prev" href="ch06s02.html" title="6.2. Limpieza garantizada por el destructor" />
+    <link rel="next" href="ch06s03s02.html" title="6.3.2. Alojamiento de memoria" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s02.html">6.2. Limpieza garantizada por el destructor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s03s02.html">6.3.2. Alojamiento de memoria</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="6.3. Eliminación del bloque de definiciones">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5744992"></a>6.3. Eliminación del bloque de definiciones</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En C, siempre se definen todas las variables al principio de cada
+      bloque, justo después de la llave de apertura. Ése es un requisito
+      habitual en los lenguajes de programación, y la razón que se da a
+      menudo es que se considera «buenas prácticas de
+      programación». En este tema, yo tengo mis sospechas. Eso
+      siempre me pareció un inconveniente, como programador, volver al
+      principio del bloque cada vez que necesitaba definir una nueva
+      variable. También encuentro más legible el código cuando la
+      definición de la variable está certa del punto donde se usa.
+    </p>
+      <p>
+      Quizá esos argumentos son estilísticos. En C++, sin embargo,
+      existe un problema significativo si se fuerza a definir todos
+      los objetos al comienzo un ámbito. Si existe un constructor,
+      debe invocarse cuando el objeto se crea. Sin embargo, si el
+      constructor toma uno o más argumentos, ¿cómo saber que se
+      dispone de la información de inicialización al comienzo del
+      ámbito? Generalmente no se dispone de esa información. Dado que
+      C no tiene el concepto de privado, la separación entre
+      definición e inicialización no es un problema. Además, C++
+      garantiza que cuando se crea un objeto, es inicializado
+      simultáneamente. Esto asegura que no se tendrán objetos no
+      inicializados ejecutándose en el sistema. C no tiene cuidado, de
+      hecho, C promueve esta práctica ya que obliga a que se definan
+      las variables al comienzo de un bloque, antes de disponer de la
+      información de inicialización necesaria <sup>[<a id="idp5749064" href="#ftn.idp5749064" class="footnote">55</a>]</sup>.
+    </p>
+      <p>
+      En general, C++ no permite crear un objeto antes de tener la
+      información de inicialización para el constructor. Por eso, el
+      lenguaje no sería factible si tuviera que definir variables al
+      comienzo de un bloque. De hecho, el estilo del lenguaje parece
+      promover la definición de un objeto tan cerca como sea posible
+      del punto en el que se usa. En C++, cualquier regla que se
+      aplica a un
+      «objeto» automáticamente también se refiere a un
+      objeto de un tipo básico. Esto significa que cualquier clase de
+      objeto o variable de un tipo básico también se puede definir en
+      cualquier punto del bloque. Eso también significa que puede
+      esperar hasta disponer de la información para una variable antes
+      de definirla, de modo que siempre puede definir e inicializar al
+      mismo tiempo:
+    </p>
+      <div class="example">
+        <a id="idp5751568"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C06:DefineInitialize.cpp</span>
+<span class="hl slc">// Defining variables anywhere</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> G <span class="hl opt">{</span>
+  <span class="hl kwb">int</span> i<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">G</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+G<span class="hl opt">::</span><span class="hl kwd">G</span><span class="hl opt">(</span><span class="hl kwb">int</span> ii<span class="hl opt">) {</span> i <span class="hl opt">=</span> ii<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;initialization value? &quot;</span><span class="hl opt">;</span>
+  <span class="hl kwb">int</span> retval <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  cin <span class="hl opt">&gt;&gt;</span> retval<span class="hl opt">;</span>
+  <span class="hl kwd">require</span><span class="hl opt">(</span>retval <span class="hl opt">!=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl kwb">int</span> y <span class="hl opt">=</span> retval <span class="hl opt">+</span> <span class="hl num">3</span><span class="hl opt">;</span>
+  G <span class="hl kwd">g</span><span class="hl opt">(</span>y<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 6.2. C06/DefineInitialize.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Puede ver que se ejecuta parte del código, entonces se define
+      <code class="varname">&gt;retval</code>, que se usa para capturar datos de la
+      consola, y entonces se definen <code class="varname">y</code> y
+      <code class="varname">g</code>. C, al contrario, no permite definir una
+      variable en ningún sitio que no sea el comienzo de un bloque.
+    </p>
+      <p>
+      En general, debería definir las variables tan cerca como sea
+      posible del punto en que se usa, e inicializarlas siempre cuando
+      se definen. (Ésta es una sugerencia de estilo para tipos básicos,
+      en los que la inicialización es opcional.) Es una cuestión de
+      seguridad. Reduciendo la duración de disponibilidad al bloque,
+      se reduce la posibilidad de que sea usada inapropiadamente en otra
+      parte del bloque. En resumen, la legibilidad mejora porque el
+      lector no teiene que volver al inicio del bloque para ver el tipo
+      de una variable.
+    </p>
+      <div class="sect2" title="6.3.1. Bucles for">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5755296"></a>6.3.1. Bucles <code class="keyword">for</code></h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	En C++, a menudo verá bucles <code class="keyword">for</code> con el
+	contador definido dentro de la propia expresión.
+      </p>
+        <pre class="programlisting">
+<span class="hl kwa">for</span> <span class="hl opt">(</span><span class="hl kwb">int</span> j <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> j <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> j<span class="hl opt">++) {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;j = &quot;</span> <span class="hl opt">&lt;&lt;</span> j <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+<span class="hl kwa">for</span> <span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">100</span><span class="hl opt">;</span> i<span class="hl opt">++)</span>
+    cout  <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;i = &quot;</span> <span class="hl opt">&lt;&lt;</span> i <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+</pre>
+        <p>
+	Las sentencias anteriores son casos especiales importantes, que
+	provocan confusión en los programadores novatos de C++.
+      </p>
+        <p>
+	Las variables <code class="varname">i</code> y <code class="varname">j</code> están
+	definidas directamente dentro la expresión
+	<code class="keyword">for</code> (algo que no se puede hacer en C). Esas
+	variables están disponibles para usarlas en el bucle. Es una
+	sintaxis muy conveniente porque el contexto disipa cualquier
+	duda sobre el proposito de <code class="varname">i</code> y
+	<code class="varname">j</code>, asi que no necesita utilizar nombres
+	extraños como <code class="varname">contador_bucle_i</code> para quede
+	más claro.
+      </p>
+        <p>
+	Sin embargo, podría resultar confuso si espera que la vida de
+	las variables <code class="varname">i</code> y <code class="varname">j</code>
+	continúe después del bucle - algo que no ocurre<sup>[<a id="idp5761208" href="#ftn.idp5761208" class="footnote">56</a>]</sup>
+      </p>
+        <p>
+	El capítulo 3 indica que las sentencias <code class="keyword">while</code>
+	y <code class="keyword">switch</code> también permiten la definición de
+	objetos en sus expresiones de control, aunque ese uso es menos
+	importante que con el bucle <code class="keyword">for</code>.
+      </p>
+        <p>
+	Hay que tener cuidado con las variables locales que ocultan las
+	variables del ámbito superior. En general, usar el mismo nombre
+	para una variable anidada y una variable que es global en ese
+	ámbito es confuso y propenso a errores<sup>[<a id="idp5765800" href="#ftn.idp5765800" class="footnote">57</a>]</sup>
+      </p>
+        <p>
+	Creo que los bloques pequeños son un indicador de un buen
+	diseño. Si una sola función requiere varias páginas, quizá está
+	intentando demasiadas cosas en esa función. Funciones de
+	granularidad más fina no sólo son más útiles, tambíén facilitan
+	la localización de errores.
+      </p>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5749064" href="#idp5749064" class="para">55</a>] </sup>C99, la versión actual del Estándar de C, permite definir
+      variables en cualquier punto del bloque, como C++</p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5761208" href="#idp5761208" class="para">56</a>] </sup>Un reciente borrador del estándar C++ dice que la vida de
+	la variable se extiende hasta el final del ámbito que encierra
+	el bucle <code class="keyword">for</code>. Algunos compiladores lo
+	implementan, pero eso no es correcto de modo que su código sólo
+	será portable si limita el ámbito al bucle
+	<code class="keyword">for</code>.</p>
+        </div>
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp5765800" href="#idp5765800" class="para">57</a>] </sup>El lenguaje Java considera esto una idea tan mala que lo
+	considera un error.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch06s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch06s02.html">6.2. Limpieza garantizada por el destructor</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C06.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch06s03s02.html">6.3.2. Alojamiento de memoria</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch06s03s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

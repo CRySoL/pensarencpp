@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.4. Comparición de recursos limitados</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="C11.html" title="10: Concurrencia" />
+    <link rel="prev" href="ch10s03s05.html" title="10.3.5. Prioridad" />
+    <link rel="next" href="ch10s04s02.html" title="10.4.2. Acceso no apropiado a recursos" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s05.html">10.3.5. Prioridad</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s04s02.html">10.4.2. Acceso no apropiado a recursos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.4. Comparición de recursos limitados">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5327808"></a>10.4. Comparición de recursos limitados</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Piense en un programa con un único hilo como una solitaria
+      entidad moviéndose a lo largo del espacio de su problema y
+      haciendo una cosa en cada instante. Debido a que sólo hay una
+      entidad, no tiene que preocuparse por el problema de dos
+      entidades intentando usar el mismo recurso al mismo tiempo:
+      problemas como dos personas intentando aparcar en el mismo
+      sitio, pasar por una puerta al mismo tiempo o incluso hablar al
+      mismo tiempo.
+    </p>
+      <p>
+      Con multihilado las cosas ya no son solitarias, pero ahora tiene
+      la posibilidad de tener dos o más hilos intentando utilizar un
+      mismo recurso a la vez. Esto puede causar dos problemas
+      distintos. El primero es que el recurso necesario podría no
+      existir. En C++, el programador tiene un control total sobre la
+      vida de los objetos, y es fácil crear hilos que intenten usar
+      objetos que han sido destruidos antes de que esos hilos hayan
+      finalizado.
+    </p>
+      <p>
+      El segundo problema es que dos o más hilos podrían chocar cuando
+      intenten acceder al mismo dispositivo al mismo tiempo. Si no
+      previene esta colisión, tendrá dos hilos intentando acceder a la
+      misma cuenta bancaria al mismo tiempo, imprimir en la misma
+      impresora, ajustar la misma válvula, etc.
+    </p>
+      <p>
+      Esta sección presenta el problema de los objetos que desaparecen
+      mientras las tareas aún están usándolos y el problema del choque
+      entre tareas sobre recursos compartidos. Aprenderá sobre las
+      herramientas que se usan para solucionar esos problemas.
+    </p>
+      <div class="sect2" title="10.4.1. Aseguramiento de la existencia de objetos">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp5331728"></a>10.4.1. Aseguramiento de la existencia de objetos</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	La gestión de memoria y recursos son las principales
+	preocupaciones en C++. Cuando crea cualquier programa en C++,
+	tiene la opción de crear objetos en la pila o en el heap
+	(utilizando new). En un programa con un solo hilo, normalmente
+	es sencillo seguir la vida de los objetos con el fin de que no
+	tenga que utilizar objetos que ya están destruidos.
+      </p>
+        <p>
+	Los ejemplos mostrados en este capítulo crean
+	objetos <code class="classname">Runnable</code> en el heap utilizando
+	new, se dará cuenta que esos objetos nunca son destruidos
+	explícitamente. Sin embargo, podrá por la salida cuando
+	ejecuta el programa que la biblioteca de hilos sigue la pista
+	a cada tarea y, eventualmente, las destruye. Esto ocurre
+	cuando el método Runnable::run() finaliza - volver de run()
+	indica que la tarea ha finalizado.
+      </p>
+        <p>
+	Recargar el hilo al destruir una tarea es un problema. Ese
+	hilo sabe necesariamente si otro necesita hacer referencia a
+	ese Runnable, y por ello el Runnable podría ser destruido
+	prematuramente. Para ocuparse de este problema, el mecanismo
+	de la biblioteca ZThread mantiene un conteo de referencias
+	sobre las tareas. Una tarea se mantiene viva hasta que su
+	contador de referencias se pone a cero, en este punto la tarea
+	se destruye. Esto quiere decir que las tareas tienen que ser
+	destruidas dinámicamente siempre, por lo que no pueden ser
+	creadas en la pila. En vez de eso, las tareas deben ser
+	creadas utilizando new, tal y como puede ver en todos los
+	ejemplos de este capítulo.  tareas in ZThreads
+      </p>
+        <p>
+	Además, también debe asegurar que los objetos que no son
+	tareas estarán vivos tanto tiempo como el que las tareas
+	necesiten de ellos. Por otro lado, resulta sencillo para los
+	objetos utilizados por las tareas salir del ámbito antes de
+	que las tareas hayan concluido. Si ocurre esto, las tareas
+	intentarán acceder zonas de almacenamiento ilegales y
+	provocará que el programa falle. He aquí un simple ejemplo:
+      </p>
+        <div class="example">
+          <a id="idp5336056"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:Incrementer.cpp {RunByHand}</span>
+<span class="hl slc">// Destroying objects while threads are still</span>
+<span class="hl slc">// running will cause serious problems.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/ThreadedExecutor.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Count <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> SZ <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> n<span class="hl opt">[</span>SZ<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">increment</span><span class="hl opt">() {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> SZ<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      n<span class="hl opt">[</span>i<span class="hl opt">]++;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Incrementer <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  Count<span class="hl opt">*</span> count<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Incrementer</span><span class="hl opt">(</span>Count<span class="hl opt">*</span> c<span class="hl opt">) :</span> <span class="hl kwd">count</span><span class="hl opt">(</span>c<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> n <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span> n <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">;</span> n<span class="hl opt">--) {</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">250</span><span class="hl opt">);</span>
+      count<span class="hl opt">-&gt;</span><span class="hl kwd">increment</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;This will cause a segmentation fault!&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  Count count<span class="hl opt">;</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t0</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Incrementer</span><span class="hl opt">(&amp;</span>count<span class="hl opt">));</span>
+    Thread <span class="hl kwd">t1</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Incrementer</span><span class="hl opt">(&amp;</span>count<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.14. C11/Incrementer.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Podría parecer a priori que la
+	clase <code class="classname">Count</code> es excesiva, pero si
+	únicamente n es un int (en lugar de una matriz), el compilador
+	puede ponerlo dentro de un registro y ese almacenamiento
+	seguirá estando disponible (aunque técnicamente es ilegal)
+	después de que el objeto <code class="classname">Count</code> salga
+	del ámbito. Es difícil detectar la violación de memoria en
+	este caso. Sus resultados podrían variar dependiendo de su
+	compilador y de su sistema operativo, pero pruebe a que n sea
+	un int y verá qué ocurre. En cualquier evento,
+	si <code class="classname">Count</code> contiene una matriz de ints y
+	como antes, el compilador está obligado a ponerlo en la pila y
+	no en un registro.
+      </p>
+        <p>
+	<code class="classname">Incrementer</code> es una tarea sencilla que
+	utiliza un objeto <code class="classname">Count</code>. En main(),
+	puede ver que las tareas <code class="classname">Incrementer</code> se
+	ejecutan el tiempo suficiente para que el salga del ámbito,
+	por lo que la tarea intentará acceder a un objeto que no
+	existe. Esto produce un fallo en el programa.
+	objeto <code class="classname">Count</code>
+      </p>
+        <p>
+	Para solucionar este problema, debemos garantizar que
+	cualquiera de los objetos compartidos entre tareas estarán
+	accesibles tanto tiempo como las tareas los necesiten. (Si los
+	objetos no fueran compartidos, podrían estar directamente
+	dentro de las clases de las tareas y, así, unir su tiempo de
+	vida a la tarea.) Dado que no queremos que el propio ámbito
+	estático del programa controle el tiempo de vida del objeto,
+	pondremos el en heap. Y para asegurar que el objeto no se
+	destruye hasta que no haya objetos (tareas, en este caso) que
+	lo estén utilizando, utilizaremos el conteo de referencias.
+      </p>
+        <p>
+	El conteo de referencias se ha explicado a lo largo del
+	volumen uno de este libro y además se revisará en este
+	volumen. La librería ZThread incluye una plantilla
+	llamada <code class="classname">CountedPtr</code> que automáticamente
+	realiza el conteo de referencias y destruye un objeto cuando
+	su contador de referencias vale cero. A continuación, se ha
+	modificado el programa para que
+	utilice <code class="classname">CountedPtr</code> para evitar el
+	fallo:
+      </p>
+        <div class="example">
+          <a id="idp5343864"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C11:ReferenceCounting.cpp</span>
+<span class="hl slc">// A CountedPtr prevents too-early destruction.</span>
+<span class="hl slc">//{L} ZThread</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/Thread.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;zthread/CountedPtr.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> ZThread<span class="hl opt">;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Count <span class="hl opt">{</span>
+  <span class="hl kwb">enum</span> <span class="hl opt">{</span> SZ <span class="hl opt">=</span> <span class="hl num">100</span> <span class="hl opt">};</span>
+  <span class="hl kwb">int</span> n<span class="hl opt">[</span>SZ<span class="hl opt">];</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">increment</span><span class="hl opt">() {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> SZ<span class="hl opt">;</span> i<span class="hl opt">++)</span>
+      n<span class="hl opt">[</span>i<span class="hl opt">]++;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Incrementer <span class="hl opt">:</span> <span class="hl kwc">public</span> Runnable <span class="hl opt">{</span>
+  CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;</span> count<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Incrementer</span><span class="hl opt">(</span><span class="hl kwb">const</span> CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;&amp;</span> c <span class="hl opt">) :</span> <span class="hl kwd">count</span><span class="hl opt">(</span>c<span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> n <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span> n <span class="hl opt">&gt;</span> <span class="hl num">0</span><span class="hl opt">;</span> n<span class="hl opt">--) {</span>
+      Thread<span class="hl opt">::</span><span class="hl kwd">sleep</span><span class="hl opt">(</span><span class="hl num">250</span><span class="hl opt">);</span>
+      count<span class="hl opt">-&gt;</span><span class="hl kwd">increment</span><span class="hl opt">();</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  CountedPtr<span class="hl opt">&lt;</span>Count<span class="hl opt">&gt;</span> <span class="hl kwd">count</span><span class="hl opt">(</span><span class="hl kwa">new</span> Count<span class="hl opt">);</span>
+  <span class="hl kwa">try</span> <span class="hl opt">{</span>
+    Thread <span class="hl kwd">t0</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Incrementer</span><span class="hl opt">(</span>count<span class="hl opt">));</span>
+    Thread <span class="hl kwd">t1</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">Incrementer</span><span class="hl opt">(</span>count<span class="hl opt">));</span>
+  <span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Synchronization_Exception<span class="hl opt">&amp;</span> e<span class="hl opt">) {</span>
+    cerr <span class="hl opt">&lt;&lt;</span> e<span class="hl opt">.</span><span class="hl kwd">what</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 10.15. C11/ReferenceCounting.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+	Ahora <code class="classname">Incrementer</code> contiene un
+	objeto <code class="classname">CountedPtr</code>, que gestiona
+	un <code class="classname">Count</code>. En la función main(), los
+	objetos <code class="classname">CountedPtr</code> se pasan a los dos
+	objetos <code class="classname">Incrementer</code> por valor, por lo
+	que se llama el constructor de copia, incrementando el
+	conteo de referencias. Mientras la tarea esté ejecutándose, el
+	contador de referencias no valdrá cero, por lo que el
+	objeto <code class="classname">Count</code> utilizado
+	por <code class="classname">CountedPtr</code> no será
+	destruído. Solamente cuando todas las tareas que utilice
+	el <code class="classname">Count</code> terminen se llamará al
+	destructor (automáticamente) sobre el
+	objeto <code class="classname">Count</code> por
+	el <code class="classname">CountedPtr</code>.
+     </p>
+        <p>
+	Siempre que tenga una tarea que utilice más de un objeto, casi
+	siempre necesitará controlar aquellos objetos utilizando la
+	plantilla <code class="classname">CountedPtr</code> para evitar
+	problemas derivados del tiempo de vida de los objetos.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s05.html">10.3.5. Prioridad</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C11.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s04s02.html">10.4.2. Acceso no apropiado a recursos</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s04s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

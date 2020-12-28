@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>16.8. Por qué usar iteradores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C16.html" title="16: Introducción a las Plantillas" />
+    <link rel="prev" href="ch16s07s02.html" title="16.7.2. PStash con iteradores" />
+    <link rel="next" href="ch16s09.html" title="16.9. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s07s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s07s02.html">16.7.2. PStash con iteradores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s09.html">16.9. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s09.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="16.8. Por qué usar iteradores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp8699200"></a>16.8. Por qué usar iteradores</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Hasta ahora se han visto los mecanismos de los iteradores, pero
+      entender el por qué son tan importantes necesita un ejemplo más
+      complejo.
+    </p>
+      <p>
+      Es normal ver el polimorfismo, la creación dinámica de objetos,
+      y los contenedores en un programa orientado a objetos real. Los
+      contendores y la creación dinámica de objetos resuelven el
+      problema de no saber cuantos o que tipo de objetos se
+      necesitarán. Y si el contenedor está configurado para manejar
+      punteros a la clase base, cada vez que se ponga un puntero a una
+      clase derivada hay un upcast (con los beneficios que conlleva de
+      claridad de código y extensibilidad). Como código del final del
+      Volumen 1, este ejemplo reune varios aspectos de todo lo que se
+      ha aprendido - si es capaz de seguir este ejemplo, entonces está
+      preparado para el Volumen 2.
+    </p>
+      <p>
+      Suponga que esta creando un programa que permite al usuario
+      editar y producir diferentes clases de dibujos. Cada dibujo es
+      un objeto que contiene una colección de objetos
+      <code class="classname">Shape</code>:
+    </p>
+      <div class="example">
+        <a id="idp8702688"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:Shape.h</span>
+<span class="hl ppc">#ifndef SHAPE_H</span>
+<span class="hl ppc">#define SHAPE_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+
+<span class="hl kwc">class</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Shape</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Circle <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Circle</span><span class="hl opt">() {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Circle</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::~Circle</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::draw</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Circle::erase</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Square <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Square</span><span class="hl opt">() {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Square</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::~Square</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::draw</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Square::erase</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Line <span class="hl opt">:</span> <span class="hl kwc">public</span> Shape <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Line</span><span class="hl opt">() {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Line</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Line::~Line</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">; }</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">draw</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Line::draw</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">erase</span><span class="hl opt">() {</span> std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Line::erase</span><span class="hl esc">\n</span><span class="hl str">&quot;</span><span class="hl opt">;}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// SHAPE_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.29. C16/Shape.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Se usa la estructura clásica de las funciones virtuales en la
+      clase base que son sobreescritas en la clase derivada. Hay que
+      resaltar que la clase <code class="classname">Shape </code> incluye un
+      destructor virtual, algo que se debería añadir automáticamente a
+      cualquier clase con funciones <code class="keyword">virtual</code>es. Si un contenedor maneja
+      punteros o referencias a objetos <code class="classname">Shape</code>,
+      entonces cuando los destructores virtuales sean llamados para
+      estos objetos todo será correctamente limpiado.
+    </p>
+      <p>
+      Cada tipo diferente de dibujo en el siguiente ejemplo hace uso
+      de una plantilla de clase contenedora diferente: el
+      <code class="classname">PStash </code> y el <code class="classname">Stack
+      </code> que han sido definido en este capítulo, y la clase
+      <code class="classname">vector </code> de la Librería Estándar de
+      C++. El «uso» de los contenedores es extremadamente
+      simple, y en general la herencia no es la mejor aproximación
+      (composición puede tener más sentido), pero en este caso la
+      herencia es una aproximación más simple.
+    </p>
+      <div class="example">
+        <a id="idp8708928"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C16:Drawing.cpp</span>
+<span class="hl ppc">#include &lt;vector&gt;</span> <span class="hl slc">// Uses Standard vector too!</span>
+<span class="hl ppc"></span><span class="hl ppc">#include</span> <span class="hl pps">&quot;TPStash2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;TStack2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Shape.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// A Drawing is primarily a container of Shapes:</span>
+<span class="hl kwc">class</span> Drawing <span class="hl opt">:</span> <span class="hl kwc">public</span> PStash<span class="hl opt">&lt;</span>Shape<span class="hl opt">&gt; {</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Drawing</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Drawing&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// A Plan is a different container of Shapes:</span>
+<span class="hl kwc">class</span> Plan <span class="hl opt">:</span> <span class="hl kwc">public</span> Stack<span class="hl opt">&lt;</span>Shape<span class="hl opt">&gt; {</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Plan</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Plan&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// A Schematic is a different container of Shapes:</span>
+<span class="hl kwc">class</span> Schematic <span class="hl opt">:</span> <span class="hl kwc">public</span> vector<span class="hl opt">&lt;</span>Shape<span class="hl opt">*&gt; {</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">Schematic</span><span class="hl opt">() {</span> cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Schematic&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">; }</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// A function template:</span>
+<span class="hl kwc">template</span><span class="hl opt">&lt;</span><span class="hl kwc">class</span> Iter<span class="hl opt">&gt;</span>
+<span class="hl kwb">void</span> <span class="hl kwd">drawAll</span><span class="hl opt">(</span>Iter start<span class="hl opt">,</span> Iter end<span class="hl opt">) {</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span>start <span class="hl opt">!=</span> end<span class="hl opt">) {</span>
+    <span class="hl opt">(*</span>start<span class="hl opt">)-&gt;</span><span class="hl kwd">draw</span><span class="hl opt">();</span>
+    start<span class="hl opt">++;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  <span class="hl slc">// Each type of container has </span>
+  <span class="hl slc">// a different interface:</span>
+  Drawing d<span class="hl opt">;</span>
+  d<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> Circle<span class="hl opt">);</span>
+  d<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> Square<span class="hl opt">);</span>
+  d<span class="hl opt">.</span><span class="hl kwd">add</span><span class="hl opt">(</span><span class="hl kwa">new</span> Line<span class="hl opt">);</span>
+  Plan p<span class="hl opt">;</span>
+  p<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> Line<span class="hl opt">);</span>
+  p<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> Square<span class="hl opt">);</span>
+  p<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> Circle<span class="hl opt">);</span>
+  Schematic s<span class="hl opt">;</span>
+  s<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> Square<span class="hl opt">);</span>
+  s<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> Circle<span class="hl opt">);</span>
+  s<span class="hl opt">.</span><span class="hl kwd">push_back</span><span class="hl opt">(</span><span class="hl kwa">new</span> Line<span class="hl opt">);</span>
+  Shape<span class="hl opt">*</span> sarray<span class="hl opt">[] = {</span> 
+    <span class="hl kwa">new</span> Circle<span class="hl opt">,</span> <span class="hl kwa">new</span> Square<span class="hl opt">,</span> <span class="hl kwa">new</span> Line 
+  <span class="hl opt">};</span>
+  <span class="hl slc">// The iterators and the template function</span>
+  <span class="hl slc">// allow them to be treated generically:</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Drawing d:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">drawAll</span><span class="hl opt">(</span>d<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> d<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">());</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Plan p:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">drawAll</span><span class="hl opt">(</span>p<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> p<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">());</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Schematic s:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwd">drawAll</span><span class="hl opt">(</span>s<span class="hl opt">.</span><span class="hl kwd">begin</span><span class="hl opt">(),</span> s<span class="hl opt">.</span><span class="hl kwd">end</span><span class="hl opt">());</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Array sarray:&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl slc">// Even works with array pointers:</span>
+  <span class="hl kwd">drawAll</span><span class="hl opt">(</span>sarray<span class="hl opt">,</span> 
+    sarray <span class="hl opt">+</span> <span class="hl kwa">sizeof</span><span class="hl opt">(</span>sarray<span class="hl opt">)/</span><span class="hl kwa">sizeof</span><span class="hl opt">(*</span>sarray<span class="hl opt">));</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;End of main&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 16.30. C16/Drawing.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Los distintos tipos de contenedores manejan punteros a
+      <code class="classname">Shape </code> y punteros a objetos de clases
+      derivadas de <code class="classname">Shape</code>. Sin embargo, debido
+      al polimorfismo, cuando se llama a las funcione virtuales ocurre
+      el comportamiento adecuado.
+    </p>
+      <p>
+      Note que <code class="varname">sarray</code>, el array de
+      <code class="classname">Shape*</code>, puede ser recorrido como un
+      contenedor.
+    </p>
+      <div class="sect2" title="16.8.1. Plantillas Función">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp8714792"></a>16.8.1. Plantillas Función</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	En <code class="function">drawAll()</code> se ve algo nuevo. En este
+	capítulo, únicamente hemos estado usando <span class="emphasis"><em>plantillas
+	  de clases</em></span>, las cuales pueden instanciar nuevas
+	clases basadas en uno o más parámetros de tipo. Sin embargo,
+	se puede crear <span class="emphasis"><em>plantillas de función</em></span>, las
+	cuales crean nuevas funciones basadas en parámetros de
+	tipo. La razón para crear una plantilla de función es la misma
+	por la cual se crea una plantilla de clase: intentar crear
+	código más genérico, y se hace retrasando la especificación de
+	uno o más tipos.  Se quiere decir que estos parámetros de
+	tipos soportan ciertas operaciones, no qué tipos exactos son.
+      </p>
+        <p>
+	Se puede pensar sobre la plantilla función <code class="function">drawAll()
+	</code> como si fuera un <span class="emphasis"><em>algoritmo </em></span>
+	(y así es como se llaman la mayoría de las plantillas de
+	función de la STL). Sólo dice como hacer algo dado unos
+	iteradores que describen un rango de elementos, mientras que
+	estos iteradores pueden ser desreferenciados, incrementados, y
+	comparados. Estos son exactamente la clase de iteradores que
+	hemos estado desarrollando en este capítulo, y también - y no
+	por casualidad - la clase de iteradores que son producidos por
+	los contenedores de la Librería Estándar de C++, evidenciado
+	por el uso de <code class="classname">vector</code> en este ejemplo.
+      </p>
+        <p>
+	Además nos gustaría que <code class="function">drawAll() </code> fuera un
+	<span class="emphasis"><em>algoritmo genérico</em></span>, para que los
+	contenedores pudieran ser de cualquier tipo y que no se
+	tuviera que escribir una nueva versión del algoritmo para cada
+	tipo diferente del contenedor. Aquí es donde las plantillas de
+	funciones son esenciales, porque automáticamente generan el
+	código específico para cada tipo de contenedor diferente. Pero
+	sin la indirección extra proporcionada por los iteradores,
+	estas generalizaciones no serían posibles. Este es el motivo
+	por el que los iteradores son importantes; nos permiten
+	escribir código de propósito general que involucra a
+	contenedores sin conocer la estructura subyacente del
+	contenedor. (Note que los iteradores de C++ y los algoritmos
+	genéricos requieren plantillas de funciones).
+      </p>
+        <p>
+	Se puede ver el alcance de esto en el
+	<code class="function">main()</code>, ya que <code class="function">drawAll()
+	</code> funciona sin cambiar cada uno de los diferentes
+	tipos de contenedores. E incluso más interesante,
+	<code class="function">drawAll() </code> también funciona con punteros
+	al principio y al final del array
+	<code class="varname">sarray</code>. Esta habilidad para tratar arrays
+	como contenedores está integrada en el diseño de la Librería
+	Estándar de C++, cuyos algoritmos se parecen mucho a
+	<code class="function">drawAll()</code>.
+      </p>
+        <p>
+	Debido a que las plantillas de clases contenedoras están
+	raramente sujetas a la herencia y al upcast se ven como clases
+	«ordinarias», casi nunca se verán funciones virtuales en
+	clases contenedoras. La reutilización de las clases contenedoras está
+	implementado mediante plantillas, no mediante herencia.
+      </p>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch16s07s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch16s07s02.html">16.7.2. PStash con iteradores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C16.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch16s09.html">16.9. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch16s09.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

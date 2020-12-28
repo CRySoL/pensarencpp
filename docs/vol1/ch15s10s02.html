@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.10.2. Comportamiento de las funciones virtuales dentro de los constructores</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+    <link rel="prev" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+    <link rel="next" href="ch15s10s03.html" title="15.10.3. Destructores y destructores virtuales" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10.html">15.10. funciones virtuales y constructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s03.html">15.10.3. Destructores y destructores virtuales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.10.2. Comportamiento de las funciones virtuales dentro de los constructores">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8262328"></a>15.10.2. Comportamiento de las funciones virtuales dentro de los
+      constructores</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	La jerarquía de las llamadas a los constructores plantea un
+	interesante dilema. ¿Qué ocurre si se está dentro de un
+	constructor y se llama a una función virtual? Dentro de una
+	función miembro ordinaria se puede imaginar que ocurrirá - la
+	llamada virtual es resuelta en tiempo de ejecución porque el
+	objeto no puede conocer si la función miembro es de la clase en
+	la que está o es de una clase derivada. Por consistencia, se
+	podría pensar que también es lo que debería ocurrir dentro de
+	los constructores.
+      </p>
+      <p>
+	No es el caso. Si se llama a una función virtual dentro de un
+	constructor, sólo se usa la versión local de la función. Es
+	decir, el mecanismo virtual no funciona dentro del constructor.
+      </p>
+      <p>
+	éste comportamiento tiene sentido por dos
+	motivos. Conceptualmente, el trabajo del constructor es dar al
+	objeto una <span class="emphasis"><em>existencia</em></span>. Dentro de cualquier
+	constructor, el objeto puede ser formado sólo parcialmente - se
+	puede saber sólo que los objetos de la clase base han sido
+	inicializados, pero no se puede saber que clases heredan de
+	ésta. Una función virtual, sin embargo, se mueve "arriba" y
+	"abajo" dentro de la jerarquía de herencia. Llama a una función
+	de una clase derivada. Si se pudiera hacer esto dentro de un
+	constructor, se estaría llamando a una función que debe manejar
+	miembros que todavía no han sido inicializados, una receta
+	segura para el desastre.
+      </p>
+      <p>
+	El segundo motivo es mecánico. Cuando se llama a un constructor,
+	una de las primeras cosas que hace es inicializar su VPTR. Sin
+	embargo, sólo puede saber que es del tipo "actual" - el tipo
+	para el que se ha escrito el constructor. El código del
+	constructor ignora completamente si el objeto está en la base de
+	otra clase. Cuando el compilador genera código para ese
+	constructor, se genera código para un constructor de esa clase,
+	no para la clase base, ni para una clase derivada (debido a que
+	una clase no puede saber quién la hereda). Por eso, el VPTR que
+	use debe apuntar a la VTABLE de <span class="emphasis"><em>esa</em></span> clase. El
+	VPTR permanece inicializado a la VTABLE para el resto de vida
+	del objeto a menos que no sea la última llamada al
+	constructor. Si posteriormente se llama a un constructor de una
+	clase derivada, éste constructor pone el VPTR a
+	<span class="emphasis"><em>su</em></span> VTABLE, y así hasta que el último
+	constructor termine. El estado del VPTR es determinado por el
+	constructor que sea llamado en último lugar. Otra razón por la
+	que los constructores son llamados en orden desde la base al más
+	derivado.
+      </p>
+      <p>
+	Pero mientras que toda esta serie de llamadas al constructor
+	tiene lugar, cada constructor ha puesto el VPTR a su propia
+	VTABLE. Si se usa el mecanismo virtual para llamar a funciones,
+	producirá sólo una llamada a través de su propia VTABLE, y no de
+	la VTABLE del más derivado (como debería suceder después de que
+	todos los constructores hayan sido llamados). Además, muchos
+	compiladores reconocen cuando se hace una llamada a una función
+	virtual dentro de un constructor, y realizan una ligadura
+	estática porque saben que la ligadura dinámica producirá una
+	llamada a una función local. En todo caso, no se conseguirán los
+	resultados que se podían esperar inicialmente de la llamada a
+	una función virtual dentro de un constructor.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10.html">15.10. funciones virtuales y constructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s10s03.html">15.10.3. Destructores y destructores virtuales</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s10s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

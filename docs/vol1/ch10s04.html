@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>10.4. Dependencia en la inicialización de variables estáticas</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C10.html" title="10: Control de nombres" />
+    <link rel="prev" href="ch10s03s03.html" title="10.3.3. Métodos estáticos" />
+    <link rel="next" href="ch10s05.html" title="10.5. Especificaciones de enlazado alternativo" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s03.html">10.3.3. Métodos estáticos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05.html">10.5. Especificaciones de enlazado alternativo</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="10.4. Dependencia en la inicialización de variables estáticas">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp6703632"></a>10.4. Dependencia en la inicialización de variables
+      estáticas</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Dentro de una unidad de traducción específica, está garantizado
+      que el orden de inicialización de los objetos estáticos será el
+      mismo que el de aparición de sus definiciones en la unidad de
+      traducción.
+    </p>
+      <p>
+      No obstante, no hay garantías sobre el orden en que se
+      inicializan los objetos estáticos entre diferentes unidades de
+      traducción, y el lenguaje no proporciona ninguna forma de
+      averiguarlo. Esto puede producir problemas significativos. Como
+      ejemplo de desastre posible (que provocará el cuelgue de
+      sistemas operativos primitivos o la necesidad de matar el
+      proceso en otros más sofisticados), si un archivo contiene:
+    </p>
+      <div class="example">
+        <a id="idp6705632"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Out.cpp {O}</span>
+<span class="hl slc">// First file</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+std<span class="hl opt">::</span>ofstream <span class="hl kwd">out</span><span class="hl opt">(</span><span class="hl str">&quot;out.txt&quot;</span><span class="hl opt">);</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.25. C10/Out.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      y otro archivo utiliza el objeto <code class="varname">out</code> en uno
+      de sus inicializadores
+    </p>
+      <div class="example">
+        <a id="idp6707072"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C10:Oof.cpp</span>
+<span class="hl slc">// Second file</span>
+<span class="hl slc">//{L} Out</span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl kwc">extern</span> std<span class="hl opt">::</span>ofstream out<span class="hl opt">;</span>
+<span class="hl kwc">class</span> Oof <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Oof</span><span class="hl opt">() {</span> out <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;ouch&quot;</span><span class="hl opt">; }</span>
+<span class="hl opt">}</span> oof<span class="hl opt">;</span>
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 10.26. C10/Oof.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      el programa puede funcionar, o puede que no. Si el entorno de
+      programación construye el programa de forma que el primer
+      archivo sea inicializado después del segundo, no habrá
+      problemas. Pero si el segundo archivo se inicializa antes que el
+      primero, el constructor para <code class="classname">Oof</code> se
+      sustenta en la existencia de <code class="varname">out</code>, que todavía
+      no ha sido construido, lo que causa el caos.
+    </p>
+      <p>
+      Este problema sólo ocurre con inicializadores de objetos
+      estáticos que dependen el uno del otro. Los estáticos dentro de
+      cada unidad de traducción son inicializados antes de la primera
+      invocación a cualquier función de esa unidad, aunque puede que
+      después de <code class="function">main()</code>. No puede estar seguro
+      del orden de inicialización de objetos estáticos si están en
+      archivos diferentes.
+    </p>
+      <p>
+      Un ejemplo sutil puede encontrarse en ARM.<sup>[<a id="idp6711312" href="#ftn.idp6711312" class="footnote">68</a>]</sup> en un archivo que
+      aparece en el rango global:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl kwb">int</span> y<span class="hl opt">;</span>
+<span class="hl kwb">int</span> x <span class="hl opt">=</span> y <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">;</span>
+</pre>
+      <p>
+      y en un segundo archivo también en el ámbitoglobal:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwc">extern</span> <span class="hl kwb">int</span> x<span class="hl opt">;</span>
+<span class="hl kwb">int</span> y <span class="hl opt">=</span> x <span class="hl opt">+</span> <span class="hl num">1</span><span class="hl opt">;</span>
+</pre>
+      <p>
+      Para todos los objetos estáticos, el mecanismo de carga-enlazado
+      garantiza una inicialización estática a cero antes de la
+      inicialización dinámica especificada por el programador. En el
+      ejemplo anterior, la inicialización a cero de la zona de memoria
+      ocupada por el objeto <code class="code">fstream out</code> no tiene especial
+      relevancia, por lo que realmente no está definido hasta que se
+      llama al constructor. Pese a ello, en el caso de los tipos
+      predefinidos, la inicialización a cero sí tiene importancia, y
+      si los archivos son inicializados en el orden mostrado arriba, y
+      empieza estáticamente inicializada a cero, por lo que
+      <code class="varname">x</code> se convierte en uno, e <code class="varname">y</code>
+      es dinámicamente inicializada a dos. Pero si los archivos fuesen
+      inicializados en orden opuesto, <code class="varname">x</code> sería
+      estáticamente inicializada a cero, <code class="varname">y</code>
+      dinámicamente inicializada a uno y después, <code class="varname">x</code>
+      pasaría a valer dos.
+    </p>
+      <p>
+      Los programadores deben estar al tanto de esto porque puede darse
+      el caso de crear un programa con dependencias de inicialización
+      estáticas que funcionen en una plataforma determinada y, de golpe
+      y misteriosamente, compilarlo en otro entorno y que deje de
+      funcionar.
+    </p>
+      <div class="sect2" title="10.4.1. Qué hacer">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp6717032"></a>10.4.1. Qué hacer</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+	Existen tres aproximaciones para tratar con este problema:
+      </p>
+        <div class="orderedlist">
+          <ol class="orderedlist" type="1">
+            <li class="listitem">
+              <p>
+	    No hacerlo. Evitar las dependencias de inicialización
+	    estática es la mejor solución.
+	  </p>
+            </li>
+            <li class="listitem">
+              <p>
+	    Si debe hacerlo, coloque las definiciones de objetos
+	    estáticos críticos en un único fichero, de forma que pueda
+	    controlar, de forma portable, su inicialización
+	    colocándolos en el orden correcto.
+	  </p>
+            </li>
+            <li class="listitem">
+              <p>
+	    Si está convencido que es inevitable dispersar objetos
+	    estáticos entre unidades de traducción diferentes (como
+	    en el caso de una librería, donde no puede controlar el
+	    programa que la usa), hay dos técnicas de programación
+	    para solventar el problema.
+	  </p>
+            </li>
+          </ol>
+        </div>
+        <div class="sect3" title="Técnica uno">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6720512"></a>Técnica uno</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	  El pionero de esta técnica fue <span class="author"><span class="firstname">Jerry</span> <span class="surname">Schwarz</span></span> mientras creaba la
+	    librería <code class="filename">iostream</code> (puesto que las
+	    definiciones para <code class="varname">cin</code>,
+	    <code class="varname">cout</code> y <code class="varname">cerr</code> son
+	    <code class="keyword">static</code> y residen en archivos
+	    diferentes). Realmente es inferior a la segunda técnica
+	    pero ha pululado durante mucho tiempo por lo que puede
+	    encontrarse con código que la utilice; así pues, es
+	    importante que entienda como funciona.
+      </p>
+          <p>
+	Esta técnica requiere una clase adicional en su archivo de
+	cabecera. Esta clase es la responsable de la inicialización
+	dinámica de sus objetos estáticos de librería. He aquí un
+	ejemplo simple:
+      </p>
+          <div class="example">
+            <a id="idp6724416"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Initializer.h</span>
+<span class="hl slc">// Static initialization technique</span>
+<span class="hl ppc">#ifndef INITIALIZER_H</span>
+<span class="hl ppc">#define INITIALIZER_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwc">extern</span> <span class="hl kwb">int</span> x<span class="hl opt">;</span> <span class="hl slc">// Declarations, not definitions</span>
+<span class="hl kwc">extern</span> <span class="hl kwb">int</span> y<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Initializer <span class="hl opt">{</span>
+  <span class="hl kwb">static int</span> initCount<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Initializer</span><span class="hl opt">() {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Initializer()&quot;</span> <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+    <span class="hl slc">// Initialize first time only</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>initCount<span class="hl opt">++ ==</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+      std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;performing initialization&quot;</span>
+                <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+      x <span class="hl opt">=</span> <span class="hl num">100</span><span class="hl opt">;</span>
+      y <span class="hl opt">=</span> <span class="hl num">200</span><span class="hl opt">;</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Initializer</span><span class="hl opt">() {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;~Initializer()&quot;</span> <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+    <span class="hl slc">// Clean up last time only</span>
+    <span class="hl kwa">if</span><span class="hl opt">(--</span>initCount <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">) {</span>
+      std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;performing cleanup&quot;</span> 
+                <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+      <span class="hl slc">// Any necessary cleanup here</span>
+    <span class="hl opt">}</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// The following creates one object in each</span>
+<span class="hl slc">// file where Initializer.h is included, but that</span>
+<span class="hl slc">// object is only visible within that file:</span>
+<span class="hl kwb">static</span> Initializer init<span class="hl opt">;</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// INITIALIZER_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.27. C10/Initializer.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  Las declaraciones para <code class="varname">x</code> e
+	<code class="varname">y</code> anuncian tan sólo que esos objetos
+	existen, pero no reservan espacio para los objetos. No
+	obstante, la definición para el <code class="code">Initializer init</code>
+	reserva espacio para ese objeto en cada archivo en que se
+	incluya el archivo de cabecera. Pero como el nombre es
+	<code class="keyword">static</code> (en esta ocasión controlando la visibilidad,
+	no la forma en la que se almacena; el almacenamiento se
+	produce a nivel de archivo por defecto), sólo es visible en
+	esa unidad de traducción, por lo que el enlazador no se
+	quejará por múltiples errores de definición.
+      </p>
+          <p>
+	  He aquí el archivo con las definiciones para
+	  <code class="varname">x</code>, <code class="varname">y</code> e
+	  <code class="varname">initCount</code>:
+      </p>
+          <div class="example">
+            <a id="idp6730616"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:InitializerDefs.cpp {O}</span>
+<span class="hl slc">// Definitions for Initializer.h</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Initializer.h&quot;</span><span class="hl ppc"></span>
+<span class="hl slc">// Static initialization will force</span>
+<span class="hl slc">// all these values to zero:</span>
+<span class="hl kwb">int</span> x<span class="hl opt">;</span>
+<span class="hl kwb">int</span> y<span class="hl opt">;</span>
+<span class="hl kwb">int</span> Initializer<span class="hl opt">::</span>initCount<span class="hl opt">;</span>
+<span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.28. C10/InitializerDefs.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  (Por supuesto, una instancia <span class="emphasis"><em>estática de
+	    fichero</em></span> de <code class="varname">init</code> también se
+	    incluye en este archivo cuando se incluye el archivo de
+	    cabecera. Suponga que otros dos archivos se crean por
+	    la librería del usuario:
+      </p>
+          <div class="example">
+            <a id="idp6732800"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Initializer.cpp {O}</span>
+<span class="hl slc">// Static initialization</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Initializer.h&quot;</span><span class="hl ppc"></span>
+<span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.29. C10/Initializer.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	y
+      </p>
+          <div class="example">
+            <a id="idp6733984"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Initializer2.cpp</span>
+<span class="hl slc">//{L} InitializerDefs Initializer</span>
+<span class="hl slc">// Static initialization</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Initializer.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;inside main()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;leaving main()&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.30. C10/Initializer2.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	Ahora no importa en qué unidad de traducción se inicializa
+	primero. La primera vez que una unidad de traducción que
+	contenga <code class="filename">Initializer.h</code> se inicialice,
+	<code class="varname">initCount</code> será cero por lo que la
+	inicialización será llevada a cabo. (Esto depende en gran
+	medida en el hecho que la zona de almacenamiento estático está
+	a cero antes de que cualquier inicialización dinámica se lleve
+	a cabo). Para el resto de unidades de traducción,
+	<code class="varname">initCount</code> no será cero y se eludirá la
+	inicialización. La limpieza ocurre en el orden inverso, y
+	<code class="function">~Initializer()</code> asegura que sólo ocurrirá
+	una vez.
+      </p>
+          <p>
+	Este ejemplo utiliza tipos del lenguaje como objetos estáticos
+	globales. Esta técnica también funciona con clases, pero esos
+	objetos deben ser inicializados dinámicamente por la clase
+	<code class="classname">Initializer</code>.  Una forma de hacer esto
+	es creando clases sin constructores ni destructores, pero sí
+	con métodos de inicialización y limpieza con nombres
+	diferentes. Una aproximación más común, de todas formas, es
+	tener punteros a objetos y crearlos utilizando <code class="keyword">new</code>
+	  dentro de <code class="function">Initializer()</code>.
+      </p>
+        </div>
+        <div class="sect3" title="Técnica dos">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp6739904"></a>Técnica dos</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+	Bastante después de la aparición de la técnica uno, alguien
+	(no sé quien) llegó con la técnica explicada en esta sección,
+	que es mucho más simple y limpia que la anterior. El hecho de
+	que tardase tanto en descubrirse es un tributo a la
+	complejidad de C++.
+      </p>
+          <p>
+	Esta técnica se sustenta en el hecho de que los objetos
+	estáticos dentro de funciones (sólo) se inicializan la primera
+	vez que se llama a la función. Tenga presente que el problema
+	que estamos intentando resolver aquí no es cuando se
+	inicializan los objetos estáticos (que se puede controlar
+	separadamente) sino más bien asegurarnos de que la
+	inicialización ocurre en el orden adecuado.
+      </p>
+          <p>
+	Esta técnica es muy limpia y astuta. Para cualquier
+	dependencia de inicialización, se coloca un objeto estático
+	dentro de una función que devuelve una referencia a ese
+	objeto. De esta forma, la única manera de acceder al objeto
+	estático es llamando a la función, y si ese objeto necesita
+	acceder a otros objetos estáticos de los que depende, debe
+	llamar a sus funciones. Y la primera vez que se llama a una
+	función, se fuerza a llevar a cabo la inicialización. Está
+	garantizado que el orden de la inicialización será correcto
+	debido al diseño del código, no al orden que arbitrariamente
+	decide el enlazador.
+      </p>
+          <p>
+	  Para mostrar un ejemplo, aquí tenemos dos clases que
+	  dependen la una de la otra. La primera contiene un
+	  <code class="type">bool</code> que sólo se inicializa por el constructor,
+	  por lo que se puede decir si se ha llamado el constructor
+	  por una instancia estática de la clase (el área de
+	  almacenamiento estático se inicializa a cero al inicio del
+	  programa, lo que produce un valor <code class="keyword">false</code> para el
+	  <code class="type">bool</code> si el constructor no ha sido llamado).
+      </p>
+          <div class="example">
+            <a id="idp6745296"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency1.h</span>
+<span class="hl ppc">#ifndef DEPENDENCY1_H</span>
+<span class="hl ppc">#define DEPENDENCY1_H</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+
+<span class="hl kwc">class</span> Dependency1 <span class="hl opt">{</span>
+  <span class="hl kwb">bool</span> init<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Dependency1</span><span class="hl opt">() :</span> <span class="hl kwd">init</span><span class="hl opt">(</span><span class="hl kwa">true</span><span class="hl opt">) {</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dependency1 construction&quot;</span> 
+              <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dependency1 init: &quot;</span> 
+              <span class="hl opt">&lt;&lt;</span> init <span class="hl opt">&lt;&lt;</span> std<span class="hl opt">::</span>endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DEPENDENCY1_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.31. C10/Dependency1.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	El constructor también indica cuando ha sido llamado, y es
+	posible el estado del objeto para averiguar si ha sido
+	inicializado.
+      </p>
+          <p>
+	La segunda clase es inicializada por un objeto de la primera
+	clase, que es lo que causa la dependencia:
+      </p>
+          <div class="example">
+            <a id="idp6747496"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency2.h</span>
+<span class="hl ppc">#ifndef DEPENDENCY2_H</span>
+<span class="hl ppc">#define DEPENDENCY2_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency1.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> Dependency2 <span class="hl opt">{</span>
+  Dependency1 d1<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Dependency2</span><span class="hl opt">(</span><span class="hl kwb">const</span> Dependency1<span class="hl opt">&amp;</span> dep1<span class="hl opt">):</span> <span class="hl kwd">d1</span><span class="hl opt">(</span>dep1<span class="hl opt">){</span>
+    std<span class="hl opt">::</span>cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Dependency2 construction &quot;</span><span class="hl opt">;</span>
+    <span class="hl kwd">print</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> d1<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(); }</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DEPENDENCY2_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.32. C10/Dependency2.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	El constructor se anuncia a si mismo y imprime el estado del
+	  objeto <code class="varname">d1</code> por lo que puede ver si éste se
+	  ha inicializado cuando se llama al constructor.
+      </p>
+          <p>
+	Para demostrar lo que puede ir mal, el siguiente archivo
+	primero pone las definiciones de los objetos estáticos en el
+	orden incorrecto, tal y como sucedería si el enlazador
+	inicializase el objeto <code class="classname">Dependency2</code>
+	antes del <code class="classname">Dependency1</code>. Después se
+	invierte el orden para mostrar que funciona correctamente si
+	el orden resulta ser el correcto. Finalmente, se muestra la
+	técnica dos.
+      </p>
+          <p>
+	  Para proporcionar una salida más legible, se ha creado la
+	  función <code class="function">separator()</code>. El truco está en
+	  que usted no puede llamar a la función globalmente a menos
+	  que la función sea utilizada para llevar a cabo la
+	  inicialización de la variable, por lo que
+	  <code class="function">separator()</code> devuelve un valor absurdo
+	  que es utilizado para inicializar un par de variables
+	  globales.
+      </p>
+          <div class="example">
+            <a id="idp6752304"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Technique2.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Returns a value so it can be called as</span>
+<span class="hl slc">// a global initializer:</span>
+<span class="hl kwb">int</span> <span class="hl kwd">separator</span><span class="hl opt">() {</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;---------------------&quot;</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> <span class="hl num">1</span><span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl slc">// Simulate the dependency problem:</span>
+<span class="hl kwc">extern</span> Dependency1 dep1<span class="hl opt">;</span>
+Dependency2 <span class="hl kwd">dep2</span><span class="hl opt">(</span>dep1<span class="hl opt">);</span>
+Dependency1 dep1<span class="hl opt">;</span>
+<span class="hl kwb">int</span> x1 <span class="hl opt">=</span> <span class="hl kwd">separator</span><span class="hl opt">();</span>
+
+<span class="hl slc">// But if it happens in this order it works OK:</span>
+Dependency1 dep1b<span class="hl opt">;</span>
+Dependency2 <span class="hl kwd">dep2b</span><span class="hl opt">(</span>dep1b<span class="hl opt">);</span>
+<span class="hl kwb">int</span> x2 <span class="hl opt">=</span> <span class="hl kwd">separator</span><span class="hl opt">();</span>
+
+<span class="hl slc">// Wrapping static objects in functions succeeds</span>
+Dependency1<span class="hl opt">&amp;</span> <span class="hl kwd">d1</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Dependency1 dep1<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> dep1<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+Dependency2<span class="hl opt">&amp;</span> <span class="hl kwd">d2</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Dependency2 <span class="hl kwd">dep2</span><span class="hl opt">(</span><span class="hl kwd">d1</span><span class="hl opt">());</span>
+  <span class="hl kwa">return</span> dep2<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  Dependency2<span class="hl opt">&amp;</span> dep2 <span class="hl opt">=</span> <span class="hl kwd">d2</span><span class="hl opt">();</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.33. C10/Technique2.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  Las funciones <code class="function">d1()</code> y
+	<code class="function">d2()</code> contienen instancias estáticas de
+	los objetos <code class="classname">Dependency1</code> y
+	<code class="classname">Dependency2</code>.  Ahora, la única forma de
+	acceder a los objetos estáticos es llamando a las funciones y
+	eso fuerza la inicialización estática en la primera llamada a
+	la función. Esto significa que se garantiza la inicialización
+	correcta, cosa que verá cuando lance el programa y observe la
+	salida.
+      </p>
+          <p>
+	He aquí como debe organizar el código para usar esta
+	técnica. Ordinariamente, los objetos estáticos deben ser
+	definidos en archivos diferentes (puesto que se ha visto
+	forzado a ello por alguna razón; recuerde que definir objetos
+	estáticos en archivos diferentes es lo que causa el problema),
+	por lo que definirá las funciones envoltorio <code class="literal">wrapping functions</code>) en archivos
+	diferentes. Pero éstas necesitan estar declaradas en los
+	archivos de cabecera:
+      </p>
+          <div class="example">
+            <a id="idp6758120"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency1StatFun.h</span>
+<span class="hl ppc">#ifndef DEPENDENCY1STATFUN_H</span>
+<span class="hl ppc">#define DEPENDENCY1STATFUN_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency1.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwc">extern</span> Dependency1<span class="hl opt">&amp;</span> <span class="hl kwd">d1</span><span class="hl opt">();</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DEPENDENCY1STATFUN_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.34. C10/Dependency1StatFun.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	  En realidad, el «extern» es redundante para la
+	declaración de la función. Éste es el segundo archivo de
+	cabecera:
+      </p>
+          <div class="example">
+            <a id="idp6759928"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency2StatFun.h</span>
+<span class="hl ppc">#ifndef DEPENDENCY2STATFUN_H</span>
+<span class="hl ppc">#define DEPENDENCY2STATFUN_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency2.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwc">extern</span> Dependency2<span class="hl opt">&amp;</span> <span class="hl kwd">d2</span><span class="hl opt">();</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DEPENDENCY2STATFUN_H ///:~</span><span class="hl ppc"></span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.35. C10/Dependency2StatFun.h</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	Ahora, en los archivos de implementación donde previamente
+	habría situado las definiciones de los objetos estáticos, situará
+	las definiciones de las funciones envoltorio:
+      </p>
+          <div class="example">
+            <a id="idp6761664"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency1StatFun.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency1StatFun.h&quot;</span><span class="hl ppc"></span>
+Dependency1<span class="hl opt">&amp;</span> <span class="hl kwd">d1</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Dependency1 dep1<span class="hl opt">;</span>
+  <span class="hl kwa">return</span> dep1<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.36. C10/Dependency1StatFun.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	Presumiblemente, otro código puede también componer esos
+	archivos. He aquí otro archivo:
+      </p>
+          <div class="example">
+            <a id="idp6763128"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Dependency2StatFun.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency1StatFun.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency2StatFun.h&quot;</span><span class="hl ppc"></span>
+Dependency2<span class="hl opt">&amp;</span> <span class="hl kwd">d2</span><span class="hl opt">() {</span>
+  <span class="hl kwb">static</span> Dependency2 <span class="hl kwd">dep2</span><span class="hl opt">(</span><span class="hl kwd">d1</span><span class="hl opt">());</span>
+  <span class="hl kwa">return</span> dep2<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.37. C10/Dependency2StatFun.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	Ahora hay dos archivos que pueden ser enlazados en cualquier
+	orden y si contuviesen objetos estáticos ordinarios podría
+	producirse cualquier orden de inicialización. Pero como
+	contienen funciones envoltorio, no hay posibilidad de
+	inicialización incorrecta:
+      </p>
+          <div class="example">
+            <a id="idp6765000"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C10:Technique2b.cpp</span>
+<span class="hl slc">//{L} Dependency1StatFun Dependency2StatFun</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Dependency2StatFun.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span> <span class="hl kwd">d2</span><span class="hl opt">(); }</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 10.38. C10/Technique2b.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+	Cuando ejecute este programa verá que la inicialización del
+	  objeto estático <code class="classname">Dependency1</code> siempre
+	  se lleva a cabo antes de la inicialización del objeto
+	  estático <code class="classname">Dependency2</code>. También puede
+	  ver que ésta es una solución bastante más simple que la de
+	  la uno.
+      </p>
+          <p>
+	  Puede verse tentado a escribir <code class="function">d1()</code> y
+	  <code class="function">d2()</code> como funciones <code class="keyword">inline</code>
+	  dentro de sus respectivos archivos de cabecera, pero eso es
+	  algo que, definitivamente, no debe hacer. Una función
+	  <code class="keyword">inline</code> puede ser duplicada en cada archivo en el
+	  que aparezca y esa duplicación incluye la definición de los
+	  objetos estáticos. Puesto que las funciones <code class="keyword">inline</code>
+	  llevan asociado por defecto enlazado interno, esto provocará
+	  la aparición de múltiples objetos estáticos entre las
+	  diversas unidades de traducción, lo que ciertamente causará
+	  problemas. Es por eso que debe asegurarse que sólo existe
+	  una única definición para cada función contenedora, y eso
+	  significa no hacerlas <code class="keyword">inline</code>.
+      </p>
+        </div>
+      </div>
+      <div class="footnotes">
+        <br />
+        <hr width="100" align="left" />
+        <div class="footnote">
+          <p><sup>[<a id="ftn.idp6711312" href="#idp6711312" class="para">68</a>] </sup>Bjarne
+	  Stroustrup and Margaret Ellis, The Annotated C++ Reference Manual,
+	  Addison-Wesley, 1990, pp. 20-21.</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch10s03s03.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch10s03s03.html">10.3.3. Métodos estáticos</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch10s05.html">10.5. Especificaciones de enlazado alternativo</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch10s05.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

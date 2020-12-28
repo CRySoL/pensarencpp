@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>15.10.6. Creación una jerarquía basada en objetos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="ch15s10.html" title="15.10. funciones virtuales y constructores" />
+    <link rel="prev" href="ch15s10s05.html" title="15.10.5. Mecanismo virtual en los destructores" />
+    <link rel="next" href="ch15s11.html" title="15.11. Sobrecarga de operadores" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s05.html">15.10.5. Mecanismo virtual en los destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s11.html">15.11. Sobrecarga de operadores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s11.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="15.10.6. Creación una jerarquía basada en objetos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp8300384"></a>15.10.6. Creación una jerarquía basada en objetos</h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Un asunto que ha aparecido de forma recurrente a lo largo de
+	todo el libro cuando se usaban las clases
+	<code class="classname">Stack</code> y <code class="classname">Stash</code> es
+	el "problema de la propiedad". El "propietario" se refiere a
+	quien o al que sea responsable de llamar al
+	<code class="keyword">delete</code> de aquellos objetos que hayan sido
+	creados dinámicamente (usando <code class="keyword">new</code>). El
+	problema cuando se usan contenedores es que es necesario ser lo
+	suficientemente flexible para manejar distintos tipos de
+	objetos. Para conseguirlo, los contenedores manejan punteros a
+	<code class="type">void</code> por lo que no pueden saber el tipo del
+	objeto que están manejando. Borrar un puntero a
+	<code class="type">void</code> no llama al destructor, por lo que el
+	contenedor no puede ser responsable de borrar sus objetos.
+      </p>
+      <p>
+	Una solución fue presentada en el ejemplo
+	<code class="filename">C14:InheritStack.cpp</code>, en el que
+	<code class="classname">Stack</code> era heredado en una nueva clase que
+	aceptaba y producía únicamente objetos
+	<code class="type">string</code>, por lo que se les podía borrar de
+	manera adecuada. Era una buena solución pero requería heredar
+	una nueva clase contenedera por cada tipo que se quisiera
+	manejar en el contenedor. (Aunque suene un poco tedioso funciona
+	bastante bien como se verá en el capítulo 16 cuando las
+	plantillas o templates sean introducidos).
+      </p>
+      <p>
+	El problema es que se quiere que el contenedor maneje más de un
+	tipo, pero sólo se quieren usar punteros a
+	<code class="type">void</code>. Otra solución es usar polimorfismo
+	forzando a todos los objetos incluidos en el contenedor a ser
+	heredados de la misma clase base. Es decir, el contenedor maneja
+	los objetos de la clase base, y sólo hay que usar funciones
+	virtuales - en particular, se pueden llamar a destructores
+	virtuales para solucionar el problema de pertenencia.
+      </p>
+      <p>
+	Esta solución usa lo que se conoce como "jerarquía de raiz
+	única" (<span class="foreignphrase"><em class="foreignphrase">singly-rooted hierarchy</em></span>)
+	o "jerarquía basada en objetos" (<span class="foreignphrase"><em class="foreignphrase">object-based
+	hierarchy</em></span>), siendo el último nombre debido a que la
+	clase raiz de la jerarquía suele ser llamada "Objeto". Además,
+	el usar jerarquía de raiz única, tiene como resultado otros
+	beneficios: de hecho, cualquier otro lenguaje orientado a
+	objetos que no sea el C++ obliga a usar una jerarquía - cuando
+	se crea una clase se hereda automáticamente de forma directa o
+	indirecta de una clase base común, una clase base que fue
+	establecida por los creadores del lenguaje. En C++, se penso que
+	forzar a tener una base clase común crearía demasiada
+	sobrecarga, por lo que se desestimó. Sin embargo, se puede
+	elegir usar en nuestros proyectos una clase base común, y esta
+	materia será tratada en el segundo volumen de este libro.
+      </p>
+      <p>
+	Para solucionar el problema de pertenencia, se puede crear una
+	clase base <code class="classname">Object</code> extremadamente simple,
+	que sólo tiene un destructor virtual. De esta forma
+	<code class="classname">Stack</code> puede manejar objetos que hereden
+	de <code class="classname">Object</code>:
+      </p>
+      <div class="example">
+        <a id="idp8310352"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:OStack.h</span>
+<span class="hl slc">// Using a singly-rooted hierarchy</span>
+<span class="hl ppc">#ifndef OSTACK_H</span>
+<span class="hl ppc">#define OSTACK_H</span>
+
+<span class="hl kwc">class</span> Object <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">virtual</span> <span class="hl opt">~</span><span class="hl kwd">Object</span><span class="hl opt">() =</span> <span class="hl num">0</span><span class="hl opt">;</span>
+<span class="hl opt">};</span>
+
+<span class="hl slc">// Required definition:</span>
+<span class="hl kwc">inline</span> Object<span class="hl opt">::~</span><span class="hl kwd">Object</span><span class="hl opt">() {}</span>
+
+<span class="hl kwc">class</span> Stack <span class="hl opt">{</span>
+  <span class="hl kwb">struct</span> Link <span class="hl opt">{</span>
+    Object<span class="hl opt">*</span> data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> next<span class="hl opt">;</span>
+    <span class="hl kwd">Link</span><span class="hl opt">(</span>Object<span class="hl opt">*</span> dat<span class="hl opt">,</span> Link<span class="hl opt">*</span> nxt<span class="hl opt">) :</span> 
+      <span class="hl kwd">data</span><span class="hl opt">(</span>dat<span class="hl opt">),</span> <span class="hl kwd">next</span><span class="hl opt">(</span>nxt<span class="hl opt">) {}</span>
+  <span class="hl opt">}*</span> head<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Stack</span><span class="hl opt">() :</span> <span class="hl kwd">head</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">) {}</span>
+  <span class="hl opt">~</span><span class="hl kwd">Stack</span><span class="hl opt">(){</span> 
+    <span class="hl kwa">while</span><span class="hl opt">(</span>head<span class="hl opt">)</span>
+      <span class="hl kwa">delete</span> <span class="hl kwd">pop</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">push</span><span class="hl opt">(</span>Object<span class="hl opt">*</span> dat<span class="hl opt">) {</span>
+    head <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Link</span><span class="hl opt">(</span>dat<span class="hl opt">,</span> head<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  Object<span class="hl opt">*</span> <span class="hl kwd">peek</span><span class="hl opt">()</span> <span class="hl kwb">const</span> <span class="hl opt">{</span> 
+    <span class="hl kwa">return</span> head ? head<span class="hl opt">-&gt;</span>data <span class="hl opt">:</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  Object<span class="hl opt">*</span> <span class="hl kwd">pop</span><span class="hl opt">() {</span>
+    <span class="hl kwa">if</span><span class="hl opt">(</span>head <span class="hl opt">==</span> <span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">return</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    Object<span class="hl opt">*</span> result <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>data<span class="hl opt">;</span>
+    Link<span class="hl opt">*</span> oldHead <span class="hl opt">=</span> head<span class="hl opt">;</span>
+    head <span class="hl opt">=</span> head<span class="hl opt">-&gt;</span>next<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> oldHead<span class="hl opt">;</span>
+    <span class="hl kwa">return</span> result<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// OSTACK_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.16. C15/OStack.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Para simplificar las cosas se crea todo en el fichero cabecera,
+	la definición (requerida) del destructor virtual puro es
+	introducida en línea el el fichero cabecera, y
+	<code class="function">pop()</code> también está en línea aunque podría
+	ser considearado como demasiado largo para ser incluido así.
+      </p>
+      <p>
+	Los objetos <code class="classname">Link</code> (lista) ahora manejan
+	punteros a <code class="classname">Object</code> en vez de punteros a
+	<code class="type">void</code>, y la <code class="classname">Stack</code> (pila) sólo
+	aceptará y devolverá punteros a
+	<code class="classname">Object</code>. Ahora
+	<code class="classname">Stack</code> es mucho más flexible, ya que puede
+	manejar un montón de tipos diferentes pero además es capaz de
+	destruirá cualquier objeto dejado en la pila. La nueva
+	limitación (que será finalmente eliminada cuando las plantillas
+	se apliquen al problema en el capítulo 16) es que todo lo que se
+	ponga en la pila debe ser heredado de
+	<code class="classname">Object</code>. Esto está bien si se crea una clase
+	desde la nada, pero ¿qué pasa si se tiene una clase como
+	<code class="classname">string</code> y se quiere ser capaz de meterla en
+	la pila? En este caso, la nueva clase debe ser al mismo tiempo
+	un <code class="classname">string</code> y un <code class="classname">Object</code>, lo
+	que significa que debe heredar de ambas clases. Esto se conoce
+	como <span class="emphasis"><em>herencia múltiple</em></span> y es materia para un
+	capítulo entero en el Volumen 2 de este libro (se puede bajar de
+	www.BruceEckel.com). cuando se lea este capítulo, se verá que la
+	herencia múltiple genera un montón de complejidad, y que es una
+	característica que hay que usar con cuentagotas. Sin embargo,
+	ésta situación es lo suficiéntemente simple como para no tener
+	problemas al usar herencia múltiple:
+      </p>
+      <div class="example">
+        <a id="idp8317904"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C15:OStackTest.cpp</span>
+<span class="hl slc">//{T} OStackTest.cpp</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;OStack.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../require.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;fstream&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include &lt;string&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl slc">// Use multiple inheritance. We want </span>
+<span class="hl slc">// both a string and an Object:</span>
+<span class="hl kwc">class</span> MyString<span class="hl opt">:</span> <span class="hl kwc">public</span> string<span class="hl opt">,</span> <span class="hl kwc">public</span> Object <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl opt">~</span><span class="hl kwd">MyString</span><span class="hl opt">() {</span>
+    cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;deleting string: &quot;</span> <span class="hl opt">&lt;&lt; *</span><span class="hl kwa">this</span> <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwd">MyString</span><span class="hl opt">(</span>string s<span class="hl opt">) :</span> <span class="hl kwd">string</span><span class="hl opt">(</span>s<span class="hl opt">) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">(</span><span class="hl kwb">int</span> argc<span class="hl opt">,</span> <span class="hl kwb">char</span><span class="hl opt">*</span> argv<span class="hl opt">[]) {</span>
+  <span class="hl kwd">requireArgs</span><span class="hl opt">(</span>argc<span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">);</span> <span class="hl slc">// File name is argument</span>
+  ifstream <span class="hl kwd">in</span><span class="hl opt">(</span>argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  <span class="hl kwd">assure</span><span class="hl opt">(</span>in<span class="hl opt">,</span> argv<span class="hl opt">[</span><span class="hl num">1</span><span class="hl opt">]);</span>
+  Stack textlines<span class="hl opt">;</span>
+  string line<span class="hl opt">;</span>
+  <span class="hl slc">// Read file and store lines in the stack:</span>
+  <span class="hl kwa">while</span><span class="hl opt">(</span><span class="hl kwd">getline</span><span class="hl opt">(</span>in<span class="hl opt">,</span> line<span class="hl opt">))</span>
+    textlines<span class="hl opt">.</span><span class="hl kwd">push</span><span class="hl opt">(</span><span class="hl kwa">new</span> <span class="hl kwd">MyString</span><span class="hl opt">(</span>line<span class="hl opt">));</span>
+  <span class="hl slc">// Pop some lines from the stack:</span>
+  MyString<span class="hl opt">*</span> s<span class="hl opt">;</span>
+  <span class="hl kwa">for</span><span class="hl opt">(</span><span class="hl kwb">int</span> i <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> i <span class="hl opt">&lt;</span> <span class="hl num">10</span><span class="hl opt">;</span> i<span class="hl opt">++) {</span>
+    <span class="hl kwa">if</span><span class="hl opt">((</span>s<span class="hl opt">=(</span>MyString<span class="hl opt">*)</span>textlines<span class="hl opt">.</span><span class="hl kwd">pop</span><span class="hl opt">())==</span><span class="hl num">0</span><span class="hl opt">)</span> <span class="hl kwa">break</span><span class="hl opt">;</span>
+    cout <span class="hl opt">&lt;&lt; *</span>s <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+    <span class="hl kwa">delete</span> s<span class="hl opt">;</span> 
+  <span class="hl opt">}</span>
+  cout <span class="hl opt">&lt;&lt;</span> <span class="hl str">&quot;Letting the destructor do the rest:&quot;</span>
+    <span class="hl opt">&lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 15.17. C15/OStackTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Aunque es similar a la versión anterior del programa de pruebas
+	de <code class="classname">Stack</code>, se puede ver que sólo se han
+	sacado 10 elementos de la pila, lo que implica que probablemente
+	quede algún elemento. Como la pila ahora maneja
+	<code class="classname">Object</code>s, el destructor puede limpiarlos
+	de forma adecuada, como se puede ver en la salida del programa
+	gracias a que los objetos <code class="classname">MyString</code>
+	muestran un mensaje cuando son destruidos.
+      </p>
+      <p>
+	Crear contenedores que manejen <code class="classname">Object</code>s es
+	una aproximación razonable - si se tiene una jerarquía de raiz
+	única (debido al lenguaje o por algún requerimiento que obligue
+	a que todas las clases hereden de
+	<code class="classname">Object</code>). En este caso, está garantizado
+	que todo es un <code class="classname">Object</code> y no es muy
+	complicado usar contenedores. Sin embargo, en C++ no se puede
+	esperar este comportamiento de todas las clases, por lo que se
+	está abocado a usar herencia múltiple si se quiere usar esta
+	aproximación. Se verá en el capítulo 16 que las plantillas
+	solucionan este problema de una forma más simple y elegante.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch15s10s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch15s10s05.html">15.10.5. Mecanismo virtual en los destructores</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch15s10.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch15s11.html">15.11. Sobrecarga de operadores</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch15s11.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

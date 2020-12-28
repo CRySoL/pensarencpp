@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>12.6. Conversión automática de tipos</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C12.html" title="12: Sobrecarga de operadores" />
+    <link rel="prev" href="ch12s05.html" title="12.5. Sobrecargar la asignación" />
+    <link rel="next" href="ch12s06s02.html" title="12.6.2. Conversión por operador" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s05.html">12.5. Sobrecargar la asignación</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s06s02.html">12.6.2. Conversión por operador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="12.6. Conversión automática de tipos">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp7374968"></a>12.6. Conversión automática de tipos</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      En C y C++, si el compilador encuentra una expresión o una llamada a función que usa
+      un tipo que no es el que se requiere, a menudo podrá realizar una conversión
+      automática de tipos desde el tipo que tiene al tipo que necesita. En C++, puede
+      conseguir este mismo efecto para los tipos definidos por el usuario creando
+      funciones de conversión automática de tipos. Estas funciones se pueden ver en dos
+      versiones: un tipo particular de constructores y un operador sobrecargado.
+    </p>
+      <div class="sect2" title="12.6.1. Conversión por constructor">
+        <div class="titlepage">
+          <div>
+            <div>
+              <h3 class="title"><a id="idp7376272"></a>12.6.1. Conversión por constructor</h3>
+            </div>
+          </div>
+        </div>
+        <p>
+		Si define un constructor que toma como su único argumento un objeto (o referencia)
+		de otro tipo, ese constructor permite al compilador realizar una conversión
+		automática de tipos. Por ejemplo:
+      </p>
+        <div class="example">
+          <a id="idp7377272"></a>
+          <div class="example-contents">
+            <pre class="programlisting">
+<span class="hl slc">//: C12:AutomaticTypeConversion.cpp</span>
+<span class="hl slc">// Type conversion constructor</span>
+<span class="hl kwc">class</span> One <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">One</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Two <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Two</span><span class="hl opt">(</span><span class="hl kwb">const</span> One<span class="hl opt">&amp;) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Two<span class="hl opt">) {}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  One one<span class="hl opt">;</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span>one<span class="hl opt">);</span> <span class="hl slc">// Wants a Two, has a One</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+          </div>
+          <p class="title">
+            <strong>Listado 12.18. C12/AutomaticTypeConversion.cpp</strong>
+          </p>
+        </div>
+        <br class="example-break" />
+        <p>
+		Cuando el compilador ve que <code class="function">f()</code> es invocada pasando un objeto
+		<code class="classname">One</code>, mira en la declaración de <code class="function">f()</code> y
+		ve que requiere un <code class="classname">Two</code>. Entonces busca si hay alguna manera
+		de conseguir un <code class="classname">Two</code> a partir de un
+		<code class="classname">One</code>, encuentra el constructor
+		<code class="function">Two::Two(One)</code> y lo llama. Pasa el objeto
+		<code class="classname">Two</code> resultante a <code class="function">f()</code>.
+      </p>
+        <p>
+		En este caso, la conversión automática de tipos le ha salvado del problema de
+		definir dos versiones sobrecargadas de <code class="function">f()</code>. Sin embargo el
+		coste es la llamada oculta al constructor de <code class="classname">Two</code>, que puede
+		ser importante si está preocupado por la eficiencia de las llamadas a
+		<code class="function">f()</code>,
+      </p>
+        <div class="sect3" title="Evitar la conversión por constructor">
+          <div class="titlepage">
+            <div>
+              <div>
+                <h4 class="title"><a id="idp7382928"></a>Evitar la conversión por constructor</h4>
+              </div>
+            </div>
+          </div>
+          <p>
+		  Hay veces en que la conversión automática de tipos vía constructor puede
+		  ocasionar problemas. Para desactivarlo, modifique el constructor anteponiéndole
+		  la palabra reservada <code class="keyword">explicit</code> (que sólo funciona con constructores). Así
+		  se ha hecho para modificar el constructor de la clase <code class="classname">Two</code>
+		  en el ejemplo anterior:
+		</p>
+          <div class="example">
+            <a id="idp7384840"></a>
+            <div class="example-contents">
+              <pre class="programlisting">
+<span class="hl slc">//: C12:ExplicitKeyword.cpp</span>
+<span class="hl slc">// Using the &quot;explicit&quot; keyword</span>
+<span class="hl kwc">class</span> One <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">One</span><span class="hl opt">() {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwc">class</span> Two <span class="hl opt">{</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwc">explicit</span> <span class="hl kwd">Two</span><span class="hl opt">(</span><span class="hl kwb">const</span> One<span class="hl opt">&amp;) {}</span>
+<span class="hl opt">};</span>
+
+<span class="hl kwb">void</span> <span class="hl kwd">f</span><span class="hl opt">(</span>Two<span class="hl opt">) {}</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  One one<span class="hl opt">;</span>
+<span class="hl slc">//!  f(one); // No auto conversion allowed</span>
+  <span class="hl kwd">f</span><span class="hl opt">(</span><span class="hl kwd">Two</span><span class="hl opt">(</span>one<span class="hl opt">));</span> <span class="hl slc">// OK -- user performs conversion</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+            </div>
+            <p class="title">
+              <strong>Listado 12.19. C12/ExplicitKeyword.cpp</strong>
+            </p>
+          </div>
+          <br class="example-break" />
+          <p>
+		  Haciendo el constructor de <code class="classname">Two</code> explícito, se le dice al
+		  compilador que no realice ninguna conversión automática de tipos usando ese
+		  constructor en particular (sí se podrían usar otros constructores no explícitos
+		  de esa clase para realizar conversiones automáticas). Si el usuario quiere que
+		  ocurra esa conversión, debe escribir el codigo necesario. En el código de
+		  arriba, <code class="function">f(Two(one))</code> crea un objeto temporal de tipo
+		  <code class="classname">Two</code> a partir de <code class="varname">one</code>, justo como el
+		  compilador hizo automáticamente en la versión anterior.
+		</p>
+        </div>
+      </div>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch12s05.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch12s05.html">12.5. Sobrecargar la asignación</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C12.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch12s06s02.html">12.6.2. Conversión por operador</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch12s06s02.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

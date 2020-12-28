@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>3.2.2. El Framework TestSuite</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 2)" />
+    <link rel="up" href="ch03s02.html" title="3.2. Un framework de pruebas unitarias sencillo" />
+    <link rel="prev" href="ch03s02.html" title="3.2. Un framework de pruebas unitarias sencillo" />
+    <link rel="next" href="ch03s02s03.html" title="3.2.3. Suites de test" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s02.html">3.2. Un framework de pruebas unitarias sencillo </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02s03.html">3.2.3. Suites de test </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect2" title="3.2.2. El Framework TestSuite">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h3 class="title"><a id="idp3591288"></a>3.2.2. El Framework TestSuite </h3>
+          </div>
+        </div>
+      </div>
+      <p>
+	Algunas herramientas de pruebas unitarias automatizadas de C++
+	están disponibles en la World Wide Web para descargar, como
+	CppUnit.[24] Nuestra intención aquí no es sólo presentar un
+	mecanismo de prueba que sea fácil de usar, sino también fácil
+	de entender internamente e incluso modificar si es
+	necesario. Por lo tanto, en el espíritu de Hacer Lo Más Simple
+	Que Podría Posiblemente Funcionar,[25] hemos desarrollado el
+	Framework TestSuite, un espacio de nombres llamado TestSuite
+	que contiene dos clases principales: Test y Suite.
+      </p>
+      <p>
+	La clase Test es una clase base abstracta de la cual deriva un
+	objeto test. Tiene constancia del número de éxitos y
+	fracasos y muestra el texto de cualquier condición de prueba
+	que falla. Simplemente para sobreescribir la función run( ),
+	que debería llamar en turnos a la macro test_() para cada
+	condición de prueba boolean que defina.
+      </p>
+      <p>
+	Para definir una prueba para la clase Fecha usando el
+	framework, puede heredar de Test como se muetra en el
+	siguiente programa:
+      </p>
+      <div class="example">
+        <a id="idp3593792"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:DateTest.h</span>
+<span class="hl ppc">#ifndef DATETEST_H</span>
+<span class="hl ppc">#define DATETEST_H</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Date.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;../TestSuite/Test.h&quot;</span><span class="hl ppc"></span>
+
+<span class="hl kwc">class</span> DateTest <span class="hl opt">:</span> <span class="hl kwc">public</span> TestSuite<span class="hl opt">::</span>Test <span class="hl opt">{</span>
+  Date mybday<span class="hl opt">;</span>
+  Date today<span class="hl opt">;</span>
+  Date myevebday<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">DateTest</span><span class="hl opt">():</span> <span class="hl kwd">mybday</span><span class="hl opt">(</span><span class="hl num">1951</span><span class="hl opt">,</span> <span class="hl num">10</span><span class="hl opt">,</span> <span class="hl num">1</span><span class="hl opt">),</span> <span class="hl kwd">myevebday</span><span class="hl opt">(</span><span class="hl str">&quot;19510930&quot;</span><span class="hl opt">) {}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">run</span><span class="hl opt">() {</span>
+    <span class="hl kwd">testOps</span><span class="hl opt">();</span>
+    <span class="hl kwd">testFunctions</span><span class="hl opt">();</span>
+    <span class="hl kwd">testDuration</span><span class="hl opt">();</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">testOps</span><span class="hl opt">() {</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;</span> today<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;=</span> today<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">!=</span> today<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">==</span> mybday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;=</span> mybday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&lt;=</span> mybday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>myevebday <span class="hl opt">&lt;</span> mybday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;</span> myevebday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">&gt;=</span> myevebday<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday <span class="hl opt">!=</span> myevebday<span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">testFunctions</span><span class="hl opt">() {</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getYear</span><span class="hl opt">() ==</span> <span class="hl num">1951</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getMonth</span><span class="hl opt">() ==</span> <span class="hl num">10</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">getDay</span><span class="hl opt">() ==</span> <span class="hl num">1</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getYear</span><span class="hl opt">() ==</span> <span class="hl num">1951</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getMonth</span><span class="hl opt">() ==</span> <span class="hl num">9</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">getDay</span><span class="hl opt">() ==</span> <span class="hl num">30</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>mybday<span class="hl opt">.</span><span class="hl kwd">toString</span><span class="hl opt">() ==</span> <span class="hl str">&quot;19511001&quot;</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>myevebday<span class="hl opt">.</span><span class="hl kwd">toString</span><span class="hl opt">() ==</span> <span class="hl str">&quot;19510930&quot;</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">testDuration</span><span class="hl opt">() {</span>
+    Date <span class="hl kwd">d2</span><span class="hl opt">(</span><span class="hl num">2003</span><span class="hl opt">,</span> <span class="hl num">7</span><span class="hl opt">,</span> <span class="hl num">4</span><span class="hl opt">);</span>
+    Date<span class="hl opt">::</span>Duration dur <span class="hl opt">=</span> <span class="hl kwd">duration</span><span class="hl opt">(</span>mybday<span class="hl opt">,</span> d2<span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>years <span class="hl opt">==</span> <span class="hl num">51</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>months <span class="hl opt">==</span> <span class="hl num">9</span><span class="hl opt">);</span>
+    <span class="hl kwd">test_</span><span class="hl opt">(</span>dur<span class="hl opt">.</span>days <span class="hl opt">==</span> <span class="hl num">3</span><span class="hl opt">);</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">};</span>
+<span class="hl ppc">#endif</span> <span class="hl slc">// DATETEST_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.5. C02/DateTest.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	Ejecutar la prueba es una sencilla cuestión de instaciación
+	de un objeto DateTest y llamar a su función run( ):
+      </p>
+      <div class="example">
+        <a id="idp3597848"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C02:DateTest.cpp</span>
+<span class="hl slc">// Automated testing (with a framework).</span>
+<span class="hl slc">//{L} Date ../TestSuite/Test</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;DateTest.h&quot;</span><span class="hl ppc"></span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  DateTest test<span class="hl opt">;</span>
+  test<span class="hl opt">.</span><span class="hl kwd">run</span><span class="hl opt">();</span>
+  <span class="hl kwa">return</span> test<span class="hl opt">.</span><span class="hl kwd">report</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+<span class="hl com">/* Output:</span>
+<span class="hl com">Test &quot;DateTest&quot;:</span>
+<span class="hl com">        Passed: 21,      Failed: 0</span>
+<span class="hl com">*/</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 3.6. C02/DateTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+	La función Test::report( ) muestra la salida previa y devuelve
+	el número de fallos, de este modo es conveniente usarlo como
+	valor de retorno desde el main( ).
+      </p>
+      <p>
+	La clase Test usa RTTI[26] para obtener el nombre de su
+	clase(por ejemplo, DateTest) para el informe. Hay también una
+	función setStream() si quiere enviar los resultados de la
+	prueba a un fichero en lugar de la salida estándar (por
+	defecto). Verá la implementación de la clase Test más tarde en
+	este capítulo.
+      </p>
+      <p>
+	La macro test_( ) puede extraer el texto de la condición
+	booleana que falla, junto con el nombre del fichero y número
+	de línea.[27] Para ver lo que ocurre cuando un fallo aparece,
+	puede insertar un error intencionado en el código, por ejemplo
+	invirtiendo la condición en la primera llamda a test_( ) en
+	DateTest::testOps( ) en el código de ejemplo previo. La salida
+	indica exactamente que la prueba tenía un error y dónde ocurrió:
+      </p>
+      <p>
+	DateTest fallo: (mybday &gt; hoy) , DateTest.h (línea 31)
+	Test "DateTest":
+	Passados: 20  Fallados: 1
+      </p>
+      <p>
+	Además de test_( ), el framework incluye las funciones
+	succed_( ) y fail_( ), para casos donde una prueba Boolean no
+	funcionará. Estas funciones se aplican cuando la clase que está
+	probando podría lanzar excepciones. Durante la prueba, crear
+	un conjunto de entrada que causará que la excepción aparezca. Si
+	no, es un error y puede llamar a fail_( ) explicitamente para
+	mostrar un mensaje y actualizar el contador de fallos. Si
+	lanza la excecpión como se esperaba, llame a succeed_( ) para
+	actualizar el contador de éxitos.
+      </p>
+      <p>
+	Para ilustrar, suponga que modificamos la especificación de
+	los dos constructor no por defecto de Date para lanzar una
+	excepción DateError (un tipo anidado dentro de Date y derivado
+	de std::logic_error) si los parámetros de entrada no representa
+	un fecha válida: Date(const string&amp; s) throw(DateError);
+	Date(int year, int month, int day) throw(DateError);
+      </p>
+      <p>
+	La función DateTest::run( ) puede ahora llamar a la siguiente
+	función para probar el manejo de excepciones:
+      </p>
+      <pre class="programlisting">
+<span class="hl kwb">void</span> <span class="hl kwd">testExceptions</span><span class="hl opt">() {</span>
+<span class="hl kwa">try</span> <span class="hl opt">{</span>
+Date <span class="hl kwd">d</span><span class="hl opt">(</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">,</span><span class="hl num">0</span><span class="hl opt">);</span>  <span class="hl slc">// Invalid</span>
+<span class="hl kwd">fail_</span><span class="hl opt">(</span><span class="hl str">&quot;Invalid date undetected in Date int ctor&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Date<span class="hl opt">::</span>DateError<span class="hl opt">&amp;) {</span>
+<span class="hl kwd">succeed_</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+<span class="hl kwa">try</span> <span class="hl opt">{</span>
+Date <span class="hl kwd">d</span><span class="hl opt">(</span><span class="hl str">&quot;&quot;</span><span class="hl opt">);</span>  <span class="hl slc">// Invalid</span>
+<span class="hl kwd">fail_</span><span class="hl opt">(</span><span class="hl str">&quot;Invalid date undetected in Date string ctor&quot;</span><span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl kwa">catch</span><span class="hl opt">(</span>Date<span class="hl opt">::</span>DateError<span class="hl opt">&amp;) {</span>
+<span class="hl kwd">succeed_</span><span class="hl opt">();</span>
+<span class="hl opt">}</span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+	En ambos casos, si una excepción no se lanza, es un
+	error. Fíjese que debe pasar manualmente un mensaje a
+	fail_( ), pues no se está evaluando una expresión booleana.
+      </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch03s02.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch03s02.html">3.2. Un framework de pruebas unitarias sencillo </a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="ch03s02.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch03s02s03.html">3.2.3. Suites de test </a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch03s02s03.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

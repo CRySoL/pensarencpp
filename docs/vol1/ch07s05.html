@@ -1,0 +1,413 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="no"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
+    <title>7.5. Elección entre sobrecarga y argumentos por defecto</title>
+    <link rel="stylesheet" type="text/css" href="common.css" />
+    <link rel="stylesheet" type="text/css" href="chunk.css" />
+    <link rel="stylesheet" type="text/css" href="highlight.css" />
+    <meta name="generator" content="DocBook XSL Stylesheets V1.76.1" />
+    <link rel="home" href="index.html" title="Pensar en C++ (Volumen 1)" />
+    <link rel="up" href="C07.html" title="7: Sobrecarga de funciones y argumentos por defecto" />
+    <link rel="prev" href="ch07s04.html" title="7.4. Argumentos por defecto" />
+    <link rel="next" href="ch07s06.html" title="7.6. Resumen" />
+  </head>
+  <body>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch07s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch07s04.html">7.4. Argumentos por defecto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch07s06.html">7.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch07s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="sect1" title="7.5. Elección entre sobrecarga y argumentos por defecto">
+      <div class="titlepage">
+        <div>
+          <div>
+            <h2 class="title" style="clear: both"><a id="idp5950000"></a>7.5. Elección entre sobrecarga y argumentos por defecto</h2>
+          </div>
+        </div>
+      </div>
+      <p>
+      Tanto la sobrecarga de funciones como los argumentos por defecto
+      resultan útiles para ponerle nombre a las funciones. Sin embargo, a
+      veces puede resultar confuso saber qué técnica utilizar. Por ejemplo,
+      estudie la siguiente herramienta que está diseñada para tratar
+      automáticamente bloques de memoria:
+    </p>
+      <div class="example">
+        <a id="idp5951320"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C07:Mem.h</span>
+<span class="hl ppc">#ifndef MEM_H</span>
+<span class="hl ppc">#define MEM_H</span>
+<span class="hl kwc">typedef</span> <span class="hl kwb">unsigned char</span> byte<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Mem <span class="hl opt">{</span>
+  byte<span class="hl opt">*</span> mem<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">ensureMinSize</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Mem</span><span class="hl opt">();</span>
+  <span class="hl kwd">Mem</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">);</span>
+  <span class="hl opt">~</span><span class="hl kwd">Mem</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">msize</span><span class="hl opt">();</span>
+  byte<span class="hl opt">*</span> <span class="hl kwd">pointer</span><span class="hl opt">();</span>
+  byte<span class="hl opt">*</span> <span class="hl kwd">pointer</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize<span class="hl opt">);</span>
+<span class="hl opt">};</span> 
+<span class="hl ppc">#endif</span> <span class="hl slc">// MEM_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 7.9. C07/Mem.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      El objeto <code class="classname">Mem</code> contiene un bloque de
+      octetos y se asegura de que tiene suficiente memoria. El
+      constructor por defecto no reserva memoria pero el segundo
+      constructor se asegura de que hay <em class="parameter"><code>sz</code></em>
+      octetos de memoria en el objeto <code class="classname">Mem</code>. El
+      destructor libera la memoria, <code class="methodname">msize()</code>
+      le dice cuántos octetos hay actualmente en
+      <code class="classname">Mem</code> y
+      <code class="methodname">pointer()</code> retorna un puntero al
+      principio de la memoria reservada (<code class="classname">Mem</code>
+      es una herramienta a bastante bajo nivel).  Hay una versión
+      sobrecargada de <code class="methodname">pointer()</code> que los
+      programadores clientes pueden utilizar para obtener un puntero
+      que apunta a un bloque de memoria con al menos el tamaño
+      <code class="varname">minSize</code>, y el método lo asegura.
+    </p>
+      <p>
+      El constructor y el método <code class="methodname">pointer()</code>
+      utilizan el método privado
+      <code class="methodname">ensureMinSize()</code> para incrementar el
+      tamaño del bloque de memoria (note que no es seguro mantener el
+      valor de retorno de <code class="methodname">pointer()</code> si se
+      cambia el tamaño del bloque de memoria).
+    </p>
+      <p>
+      He aquí la implementación de la clase:
+    </p>
+      <div class="example">
+        <a id="idp5957392"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C07:Mem.cpp {O}</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Mem.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;cstring&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+Mem<span class="hl opt">::</span><span class="hl kwd">Mem</span><span class="hl opt">() {</span> mem <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span> size <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+
+Mem<span class="hl opt">::</span><span class="hl kwd">Mem</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz<span class="hl opt">) {</span>
+  mem <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  size <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+  <span class="hl kwd">ensureMinSize</span><span class="hl opt">(</span>sz<span class="hl opt">);</span> 
+<span class="hl opt">}</span>
+
+Mem<span class="hl opt">::~</span><span class="hl kwd">Mem</span><span class="hl opt">() {</span> <span class="hl kwa">delete</span> <span class="hl opt">[]</span>mem<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> Mem<span class="hl opt">::</span><span class="hl kwd">msize</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> size<span class="hl opt">; }</span>
+
+<span class="hl kwb">void</span> Mem<span class="hl opt">::</span><span class="hl kwd">ensureMinSize</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(</span>size <span class="hl opt">&lt;</span> minSize<span class="hl opt">) {</span>
+    byte<span class="hl opt">*</span> newmem <span class="hl opt">=</span> <span class="hl kwa">new</span> byte<span class="hl opt">[</span>minSize<span class="hl opt">];</span>
+    <span class="hl kwd">memset</span><span class="hl opt">(</span>newmem <span class="hl opt">+</span> size<span class="hl opt">,</span> <span class="hl num">0</span><span class="hl opt">,</span> minSize <span class="hl opt">-</span> size<span class="hl opt">);</span>
+    <span class="hl kwd">memcpy</span><span class="hl opt">(</span>newmem<span class="hl opt">,</span> mem<span class="hl opt">,</span> size<span class="hl opt">);</span>
+    <span class="hl kwa">delete</span> <span class="hl opt">[]</span>mem<span class="hl opt">;</span>
+    mem <span class="hl opt">=</span> newmem<span class="hl opt">;</span>
+    size <span class="hl opt">=</span> minSize<span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+<span class="hl opt">}</span>
+
+byte<span class="hl opt">*</span> Mem<span class="hl opt">::</span><span class="hl kwd">pointer</span><span class="hl opt">() {</span> <span class="hl kwa">return</span> mem<span class="hl opt">; }</span>
+
+byte<span class="hl opt">*</span> Mem<span class="hl opt">::</span><span class="hl kwd">pointer</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize<span class="hl opt">) {</span>
+  <span class="hl kwd">ensureMinSize</span><span class="hl opt">(</span>minSize<span class="hl opt">);</span>
+  <span class="hl kwa">return</span> mem<span class="hl opt">;</span> 
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 7.10. C07/Mem.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Puede observar que <code class="methodname">ensureMinSize()</code> es
+      la única función responsable de reservar memoria y que la
+      utilizan tanto el segundo constructor como la segunda versión
+      sobrecargada de <code class="methodname">pointer()</code>. Dentro de
+      <code class="methodname">ensureSize()</code> no se hace nada si el
+      tamaño es lo suficientemente grande. Si se ha de reservar más
+      memoria para que el bloque sea más grande (que es el mismo
+      caso cuando el bloque tiene tamaño cero después del
+      constructor por defecto), la nueva porción de más se pone a
+      cero utilizando la función de la librería estándar de C
+      <code class="function">memset()</code>, que fue presentada en el
+      Capítulo 5. La siguiente llamada es a la función de la
+      librería estándar de C <code class="function">memcpy()</code>, que en
+      este caso copia los octetos existentes de
+      <code class="varname">mem</code> a <code class="varname">newmem</code>
+      (normalmente de una manera eficaz).  Finalmente, se libera la
+      memoria antigua y se asignan a los atributos apropiados la
+      nueva memoria y su tamaño.
+    </p>
+      <p>
+      La clase <code class="classname">Mem</code> se ha diseñado para su
+      utilización como herramienta dentro de otras clases para
+      simplificar su gestión de la memoria (también se podría
+      utilizar para ocultar un sistema de gestión de memoria más
+      avanzada proporcionado, por ejemplo, por el el sistema
+      operativo). Esta clase se comprueba aquí con una simple
+      clase de tipo <code class="type">string</code>:
+    </p>
+      <div class="example">
+        <a id="idp5963888"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C07:MemTest.cpp</span>
+<span class="hl slc">// Testing the Mem class</span>
+<span class="hl slc">//{L} Mem</span>
+<span class="hl ppc">#include</span> <span class="hl pps">&quot;Mem.h&quot;</span><span class="hl ppc"></span>
+<span class="hl ppc">#include &lt;cstring&gt;</span>
+<span class="hl ppc">#include &lt;iostream&gt;</span>
+<span class="hl kwa">using namespace</span> std<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> MyString <span class="hl opt">{</span>
+  Mem<span class="hl opt">*</span> buf<span class="hl opt">;</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">MyString</span><span class="hl opt">();</span>
+  <span class="hl kwd">MyString</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str<span class="hl opt">);</span>
+  <span class="hl opt">~</span><span class="hl kwd">MyString</span><span class="hl opt">();</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">concat</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str<span class="hl opt">);</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">);</span>
+<span class="hl opt">};</span>
+
+MyString<span class="hl opt">::</span><span class="hl kwd">MyString</span><span class="hl opt">() {</span>  buf <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">; }</span>
+
+MyString<span class="hl opt">::</span><span class="hl kwd">MyString</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str<span class="hl opt">) {</span>
+  buf <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Mem</span><span class="hl opt">(</span><span class="hl kwd">strlen</span><span class="hl opt">(</span>str<span class="hl opt">) +</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwd">strcpy</span><span class="hl opt">((</span><span class="hl kwb">char</span><span class="hl opt">*)</span>buf<span class="hl opt">-&gt;</span><span class="hl kwd">pointer</span><span class="hl opt">(),</span> str<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> MyString<span class="hl opt">::</span><span class="hl kwd">concat</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>buf<span class="hl opt">)</span> buf <span class="hl opt">=</span> <span class="hl kwa">new</span> Mem<span class="hl opt">;</span>
+  <span class="hl kwd">strcat</span><span class="hl opt">((</span><span class="hl kwb">char</span><span class="hl opt">*)</span>buf<span class="hl opt">-&gt;</span><span class="hl kwd">pointer</span><span class="hl opt">(</span>
+    buf<span class="hl opt">-&gt;</span><span class="hl kwd">msize</span><span class="hl opt">() +</span> <span class="hl kwd">strlen</span><span class="hl opt">(</span>str<span class="hl opt">) +</span> <span class="hl num">1</span><span class="hl opt">),</span> str<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+
+<span class="hl kwb">void</span> MyString<span class="hl opt">::</span><span class="hl kwd">print</span><span class="hl opt">(</span>ostream<span class="hl opt">&amp;</span> os<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span><span class="hl opt">(!</span>buf<span class="hl opt">)</span> <span class="hl kwa">return</span><span class="hl opt">;</span>
+  os <span class="hl opt">&lt;&lt;</span> buf<span class="hl opt">-&gt;</span><span class="hl kwd">pointer</span><span class="hl opt">() &lt;&lt;</span> endl<span class="hl opt">;</span>
+<span class="hl opt">}</span>
+
+MyString<span class="hl opt">::~</span><span class="hl kwd">MyString</span><span class="hl opt">() {</span> <span class="hl kwa">delete</span> buf<span class="hl opt">; }</span>
+
+<span class="hl kwb">int</span> <span class="hl kwd">main</span><span class="hl opt">() {</span>
+  MyString <span class="hl kwd">s</span><span class="hl opt">(</span><span class="hl str">&quot;My test string&quot;</span><span class="hl opt">);</span>
+  s<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span>cout<span class="hl opt">);</span>
+  s<span class="hl opt">.</span><span class="hl kwd">concat</span><span class="hl opt">(</span><span class="hl str">&quot; some additional stuff&quot;</span><span class="hl opt">);</span>
+  s<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span>cout<span class="hl opt">);</span>
+  MyString s2<span class="hl opt">;</span>
+  s2<span class="hl opt">.</span><span class="hl kwd">concat</span><span class="hl opt">(</span><span class="hl str">&quot;Using default constructor&quot;</span><span class="hl opt">);</span>
+  s2<span class="hl opt">.</span><span class="hl kwd">print</span><span class="hl opt">(</span>cout<span class="hl opt">);</span>
+<span class="hl opt">}</span> <span class="hl slc">///:~</span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 7.11. C07/MemTest.cpp</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Todo lo que puede hacer con esta clase es crear un
+      <code class="classname">MyString</code>, concatenar texto e imprimir a
+      un <code class="classname">ostream</code>. La clase sólo contiene un
+      puntero a un <code class="classname">Mem</code>, pero note la
+      diferencia entre el constructor por defecto, que pone el
+      puntero a cero, y el segundo constructor, que crea un
+      <code class="classname">Mem</code> y copia los datos dentro del
+      mismo. La ventaja del constructor por defecto es que puede
+      crear, por ejemplo, un array grande de objetos
+      <code class="classname">MyString</code> vacíos con pocos recursos,
+      pues el tamaño de cada objeto es sólo un puntero y la única
+      sobrecarga en el rendimiento del constructor por defecto es el
+      de asignarlo a cero.  El coste de un
+      <code class="classname">MyString</code> sólo empieza a aumentar cuando
+      concatena datos; en ese momento el objeto
+      <code class="classname">Mem</code> se crea si no ha sido creado todavía.
+      Sin embargo, si utiliza el constructor por defecto y nunca
+      concatena ningún dato, la llamada al destructor todavía es
+      segura porque cuando se llama a <code class="keyword">delete</code>
+      con un puntero a cero, el compilador no hace nada para no
+      causar problemas.
+    </p>
+      <p>
+      Si mira los dos constructores, en principio, podría parecer que
+      son candidatos para utilizar argumentos por defecto. Sin embargo,
+      si elimina el constructor por defecto y escribe el constructor que
+      queda con un argumento por defecto:
+    </p>
+      <pre class="programlisting">
+<span class="hl kwd">MyString</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str <span class="hl opt">=</span> <span class="hl str">&quot;&quot;</span><span class="hl opt">);</span>
+</pre>
+      <p>
+      todo funcionará correctamente, pero perderá la eficacia anterior
+      pues siempre se creará el objeto <code class="classname">Mem</code>. Para
+      volver a tener la misma eficacia de antes, ha de modificar el
+      constructor:
+    </p>
+      <pre class="programlisting">
+MyString<span class="hl opt">::</span><span class="hl kwd">MyString</span><span class="hl opt">(</span><span class="hl kwb">char</span><span class="hl opt">*</span> str<span class="hl opt">) {</span>
+  <span class="hl kwa">if</span> <span class="hl opt">(!*</span>str<span class="hl opt">) {</span> <span class="hl slc">// Apunta a un string vacío</span>
+    buf <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">;</span>
+    <span class="hl kwa">return</span><span class="hl opt">;</span>
+  <span class="hl opt">}</span>
+  buf <span class="hl opt">=</span> <span class="hl kwa">new</span> <span class="hl kwd">Mem</span><span class="hl opt">(</span><span class="hl kwd">strlen</span><span class="hl opt">(</span>str<span class="hl opt">) +</span> <span class="hl num">1</span><span class="hl opt">);</span>
+  <span class="hl kwd">strcpy</span><span class="hl opt">((</span><span class="hl kwb">char</span><span class="hl opt">*)</span>buf<span class="hl opt">-&gt;</span><span class="hl kwd">pointer</span><span class="hl opt">(),</span> str<span class="hl opt">);</span>
+<span class="hl opt">}</span>
+</pre>
+      <p>
+      Esto significa, en efecto, que el valor por defecto es un caso que
+      ha de tratarse separadamente de un valor que no lo es. Aunque
+      parece algo inocente con un pequeño constructor como éste, en
+      general esta práctica puede causar problemas. Si tiene que tratar
+      por separado el valor por defecto en vez de tratarlo como un valor
+      ordinario, debería ser una pista para que al final se implementen
+      dos funciones diferentes dentro de una función: una versión para
+      el caso normal y otra para el caso por defecto. Podría partirlo en
+      dos cuerpos de función diferentes y dejar que el compilador
+      elija. Esto resulta en un ligero (pero normalmente invisible)
+      incremento de la eficacia porque el argumento extra no se pasa y
+      por tanto el código extra debido a la condición condición no se
+      ejecuta. Más importante es que está manteniendo el código
+      <span class="emphasis"><em>en</em></span> dos funciones separadas en vez de
+      combinarlas en una utilizando argumentos por defecto, lo que
+      resultará en un mantenimiento más sencillo, sobre todo si las
+      funciones son largas.
+    </p>
+      <p>
+      Por otro lado, considere la clase <code class="classname">Mem</code>. Si
+      mira las definiciones de los dos constructores y las dos
+      funciones <code class="methodname">pointer()</code>, puede ver que la
+      utilización de argumentos por defecto en ambos casos no causará
+      que los métodos cambien. Así, la clase podría ser fácilmente:
+    </p>
+      <div class="example">
+        <a id="idp5975864"></a>
+        <div class="example-contents">
+          <pre class="programlisting">
+<span class="hl slc">//: C07:Mem2.h</span>
+<span class="hl ppc">#ifndef MEM2_H</span>
+<span class="hl ppc">#define MEM2_H</span>
+<span class="hl kwc">typedef</span> <span class="hl kwb">unsigned char</span> byte<span class="hl opt">;</span>
+
+<span class="hl kwc">class</span> Mem <span class="hl opt">{</span>
+  byte<span class="hl opt">*</span> mem<span class="hl opt">;</span>
+  <span class="hl kwb">int</span> size<span class="hl opt">;</span>
+  <span class="hl kwb">void</span> <span class="hl kwd">ensureMinSize</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize<span class="hl opt">);</span>
+<span class="hl kwc">public</span><span class="hl opt">:</span>
+  <span class="hl kwd">Mem</span><span class="hl opt">(</span><span class="hl kwb">int</span> sz <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+  <span class="hl opt">~</span><span class="hl kwd">Mem</span><span class="hl opt">();</span>
+  <span class="hl kwb">int</span> <span class="hl kwd">msize</span><span class="hl opt">();</span>
+  byte<span class="hl opt">*</span> <span class="hl kwd">pointer</span><span class="hl opt">(</span><span class="hl kwb">int</span> minSize <span class="hl opt">=</span> <span class="hl num">0</span><span class="hl opt">);</span>
+<span class="hl opt">};</span> 
+<span class="hl ppc">#endif</span> <span class="hl slc">// MEM2_H ///:~</span><span class="hl ppc"></span>
+</pre>
+        </div>
+        <p class="title">
+          <strong>Listado 7.12. C07/Mem2.h</strong>
+        </p>
+      </div>
+      <br class="example-break" />
+      <p>
+      Note que la llamada a <code class="code">ensureMinSize(0)</code>
+      siempre será bastante eficiente.
+    </p>
+      <p>
+      Aunque ambos casos se basan en decisiones por motivos de
+      eficacia, debe tener cuidado para no caer en la trampa de pensar
+      sólo en la eficacia (siempre fascinante). Lo más importante en
+      el diseño de una clase es la interfaz de la clase (sus miembros
+      públicos, que son las que el programador cliente tiene a su
+      disposición). Si se implementa una clase fácil de utilizar y
+      reutilizar, entonces ha tenido éxito; siempre puede realizar
+      ajustes para mejorar la eficacia en caso necesario, pero el
+      efecto de una clase mal diseñada porque el programador está
+      obsesionado con la eficacia puede resultar grave. Su primera
+      preocupación debería ser que la interfaz tenga sentido para
+      aquéllos que la utilicen y para los que lean el código. Note que
+      en <code class="filename">MemTest.cpp</code> el uso de
+      <code class="classname">MyString</code> no cambia independientemente de
+      si se utiliza el constructor por defecto o si la eficacia es
+      buena o mala.
+    </p>
+    </div>
+    <div class="navfooter">
+      <hr />
+      <table width="100%" summary="Navigation footer">
+        <tr>
+          <td class="navititle" width="1%">
+            <a accesskey="p" href="ch07s04.html">
+              <img src="./images/prev.png" alt="Anterior" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="left">
+            <a accesskey="p" href="ch07s04.html">7.4. Argumentos por defecto</a>
+          </td>
+          <td width="10%" align="center">
+            <a accesskey="u" href="C07.html">
+              <img src="./images/up.png" alt="Subir" />
+            </a>
+          </td>
+          <td class="navititle" width="40%" align="right">
+            <a accesskey="n" href="ch07s06.html">7.6. Resumen</a>
+          </td>
+          <td class="navititle" width="1%" align="right">
+            <a accesskey="n" href="ch07s06.html">
+              <img src="./images/next.png" alt="Siguiente" />
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td valign="top"> </td>
+          <td> </td>
+          <td width="10%" align="center">
+            <a accesskey="h" href="index.html">
+              <img src="./images/home.png" alt="Inicio" />
+            </a>
+          </td>
+          <td> </td>
+          <td valign="top"> </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
