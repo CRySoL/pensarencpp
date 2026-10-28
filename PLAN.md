@@ -32,38 +32,33 @@ Los capítulos incluidos que tienen párrafos vacíos se publican con huecos: el
 PDF lleva C05 entero en blanco. Por eso el plan empieza por terminar lo que ya
 está incluido.
 
-## Fase 0: preparación, antes de traducir nada
+## Fase 0: preparación, antes de traducir nada (hecha el 29/10/2026)
 
 1. **Dependencias.** Instalar todo lo que lista [DEPENDS](DEPENDS), en
    especial `docbook-xsl` y `highlight`. Sin `docbook-xsl`, `xsltproc` intenta
    descargar las hojas de estilo de sourceforge y falla.
 2. **Seguimiento.** `make status` mide lo pendiente por capítulo.
    `utils/translation_status.py -s FICHERO` lo desglosa por sección y `-v`
-   indica la línea de cada bloque pendiente. Falta usarlo para sustituir la
-   tabla manual de [STATUS](STATUS), que lleva años desfasada: asigna
-   responsable a capítulos que siguen al 0 %.
-3. **Glosario.** Reunir en un fichero los términos ya fijados en el volumen 1
-   y en lo traducido del volumen 2:
-   - términos traducidos: plantilla, iterador, contenedor, objeto-función,
-     hilo, bloqueo letal…;
-   - términos que se dejan en inglés: *framework*, y los patrones *Template
-     Method* y *Builder*.
+   indica la línea de cada bloque pendiente. Pendiente: usarlo para sustituir
+   la tabla manual de [STATUS](STATUS), que lleva años desfasada.
+3. **Glosario.** Hecho: el glosario de [TRADUCCION](TRADUCCION) recoge los
+   términos que fija el volumen 1, marcados con `[V1]`. Cuando una propuesta
+   anterior del glosario choca con el uso del volumen 1, manda el volumen 1.
+4. **Notas al pie.** Decidido: se escriben como `<footnote>` en el punto de
+   la marca `[n]`, igual que en el volumen 1. La convención está en
+   [DOCBOOK](DOCBOOK). El texto de las notas se toma del original en HTML.
 
-   Hay que tenerlo cerrado antes de C05, C06 y C07, que son los capítulos con
-   más terminología.
-4. **Decidir qué hacer con las notas al pie.** El texto traducido conserva las
-   marcas `[15]` del original, pero el texto de las notas no está en el
-   repositorio. Propuesta: resolverlo mientras se traduce cada sección,
-   recuperando la nota del original (cada capítulo lleva la URL en la
-   cabecera) y escribiéndola como `<footnote>`. Si se deja para el final, habrá
-   que repasar todo el volumen otra vez.
+## Fase 1: cerrar lo casi terminado (hecha el 29/10/2026)
 
-## Fase 1: cerrar lo casi terminado (unas 4.600 palabras)
-
-- **C02 y C03:** restos sueltos, unas 150 palabras, casi todo en los
-  ejercicios de C03.
+- **C02 y C03:** restos sueltos. Lo que el script daba por pendiente eran
+  sobre todo fragmentos de código metidos en `<para>`; ahora van en
+  `<programlisting>`. El ejercicio 5 de C03 se queda en inglés a propósito:
+  son cadenas de código y la frase que debe producir el programa.
 - **C04:** el resto de «Manipuladores», y además «Iostream examples»,
   «Internationalization», «Summary» y «Exercises».
+- En los tres capítulos se han incorporado las notas al pie y se ha
+  normalizado la terminología del texto ya traducido según el glosario
+  (sobre todo «stream», que pasa a «flujo»).
 
 ## Fase 2: completar los capítulos a medias (unas 25.800 palabras)
 
@@ -108,19 +103,34 @@ Cada unidad de trabajo es un `sect1`, o un `sect2` si la sección pasa de
 1. **Traducir:** rellenar el bloque vacío que sigue a cada comentario en
    inglés. Los títulos también cuentan: en C05, C07 y C08 aparecen como
    `<title> </title>`. **El comentario no se borra**, como pide el README.
+   `utils/fill_translation.py` rellena los huecos a partir de un fichero de
+   reglas (fragmento del comentario y traducción) y no escribe nada si alguna
+   regla no encaja.
 2. **Normas:** seguir [TRADUCCION](TRADUCCION) y `misc/guiaestilo.html`:
    - nada de gerundios en los títulos y la menor pasiva posible;
-   - dirigirse al lector en tercera persona («usted»);
+   - dirigirse al lector en tercera persona del singular, sin escribir
+     «usted» salvo que haga falta para evitar ambigüedad;
    - no traducir el código ni los identificadores;
    - usar `<kw>`, `<oper>`, `<code>` y `<classname>` como indica
      [DOCBOOK](DOCBOOK).
 3. **Listados:** respetar las marcas `//: V2Cxx:Fichero.cpp`, con una línea en
-   blanco encima y otra debajo. `fix_includes.py` se encarga del resto.
-4. **Verificar:** ejecutar `make Volumen2.xml validate`, comprobar con
+   blanco encima y otra debajo. `fix_includes.py` se encarga del resto. Los
+   fragmentos de código o de salida que estén metidos en un `<para>` o
+   aplanados dentro de un comentario van en `<programlisting>` o `<screen>`,
+   con el formato del original.
+4. **Notas al pie:** sustituir cada marca `[n]` del texto traducido por su
+   `<footnote>`, según [DOCBOOK](DOCBOOK). `utils/footnotes.py -o` lista las
+   notas que cita el original de un capítulo, con su texto; sin `-o`, las
+   marcas que aún quedan en la traducción.
+5. **Resto del capítulo:** al cerrar un capítulo, aplicar el glosario también
+   al texto que ya estaba traducido (sin reescribirlo), y pasar
+   `utils/unwrap.py` por el fichero para dejar en una sola línea cada párrafo,
+   tanto de la traducción como del original en los comentarios.
+6. **Verificar:** ejecutar `make Volumen2.xml validate`, comprobar con
    `utils/translation_status.py -s -v FICHERO` que la sección no deja bloques
    pendientes y, de vez en cuando, generar `make vol2 Volumen2.pdf` para ver
    el resultado.
-5. **Revisión:** revisar el diff y hacer el commit, por sección o por
+7. **Revisión:** revisar el diff y hacer el commit, por sección o por
    capítulo.
 
 ## Fuera de este plan
