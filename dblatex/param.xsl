@@ -136,5 +136,33 @@
 	</xsl:template>
 
 
+  <!-- dblatex 0.3.x genera 'ucs' + inputenc[utf8x] para latex.encoding=utf8.
+       Ambos están obsoletos y son incompatibles con el hyperref actual: la
+       compilación aborta en \hypersetup. Se sustituyen por el inputenc
+       estándar, redefiniendo las plantillas de dblatex/xsl/lang.xsl. -->
+  <xsl:template name="encode.before.style">
+    <xsl:text>\IfFileExists{ifxetex.sty}{%&#10;</xsl:text>
+    <xsl:text>    \usepackage{ifxetex}%&#10;</xsl:text>
+    <xsl:text>  }{%&#10;</xsl:text>
+    <xsl:text>    \newif\ifxetex&#10;</xsl:text>
+    <xsl:text>    \xetexfalse&#10;</xsl:text>
+    <xsl:text>  }&#10;</xsl:text>
+    <xsl:text>\ifxetex&#10;</xsl:text>
+    <xsl:text>\usepackage{fontspec}&#10;</xsl:text>
+    <xsl:text>\usepackage{xltxtra}&#10;</xsl:text>
+    <xsl:text>\defaultfontfeatures{Mapping=tex-text}&#10;</xsl:text>
+    <xsl:value-of select="$xetex.font"/>
+    <xsl:text>\else&#10;</xsl:text>
+    <xsl:text>\usepackage[T1]{fontenc}&#10;</xsl:text>
+    <xsl:text>\usepackage[utf8]{inputenc}&#10;</xsl:text>
+    <xsl:text>\fi&#10;</xsl:text>
+  </xsl:template>
+
+  <!-- Los acentos dentro de los listados los resuelve la lista 'literate'
+       de pec.sty; si aparece uno que no esté allí, la compilación aborta. -->
+  <xsl:template name="encode.after.style">
+    <xsl:text>\lstset{inputencoding=utf8, extendedchars=true}&#10;</xsl:text>
+  </xsl:template>
+
 
 </xsl:stylesheet>

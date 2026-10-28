@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 '''
 Transforma ficheros de texto plano a DocBook listo para traducir. El
@@ -104,4 +104,4 @@ for line in src:
 
 src.close()
 dst.close()
-print "generated '%s'" % outfile
+print("generated '%s'" % outfile)

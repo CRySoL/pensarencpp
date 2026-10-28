@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys, re
 
 regex = [
-    ['\n\s*\n\s*//:\s*V(\d)C(\d{2}):([\w\d\.]+).*\n',
+    [r'\n\s*\n\s*//:\s*V(\d)C(\d{2}):([\w\d\.]+).*\n',
      '''
 
 <example>
@@ -13,9 +13,9 @@ regex = [
 </programlisting>
 </example>
 '''],
-    ['\s*(<xi:include.*)',               '\n\\1'],
-    ['\$Date:\s(\d{4}-\d{2}-\d{2}).*\$', '\\1'],
-    ['\$Revision:\s(\d+).*\$',           '\\1'],
+    [r'\s*(<xi:include.*)',              '\n\\1'],
+    [r'\$Date:\s(\d{4}-\d{2}-\d{2}).*\$', '\\1'],
+    [r'\$Revision:\s(\d+).*\$',          '\\1'],
     ['<kw>',                             '<literal role="keyword">'],
     ['</kw>',                            '</literal>'],
     ['<oper>',                           '<literal role="operator">'],

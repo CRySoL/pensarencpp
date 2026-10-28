@@ -8,14 +8,15 @@ PDF=$(patsubst %.svg, %.pdf,  $(wildcard *.svg))
 
 all: $(PNG) $(PDF)
 
+# Inkscape 1.x: las opciones cortas -e/-P/-A de la rama 0.x ya no existen
 %.png: %.svg
-	inkscape -e $@ -d 85 $<
+	inkscape --export-type=png --export-filename=$@ --export-dpi=85 $<
 
 %.ps: %.svg
-	inkscape -P $@ $<
+	inkscape --export-type=ps --export-filename=$@ $<
 
 %.pdf: %.svg
-	inkscape -A $@ $<
+	inkscape --export-type=pdf --export-filename=$@ $<
 
 #%.pdf: %.ps
 #	$(EPS2PDF) < $< > $@

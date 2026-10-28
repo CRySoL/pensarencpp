@@ -1,14 +1,13 @@
-#!/usr/bin/python
-# -*- coding: iso-8859-1 -*-
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
 
-# Proyecto ´Pensar en C++ª, traducciÛn de ´Thinking in C++ª de Bruce Eckel
+# Proyecto ¬´Pensar en C++¬ª, traducci√≥n de ¬´Thinking in C++¬ª de Bruce Eckel
 #
 # Este programilla prepara los ficheros fuente proporcionados con el
 # libro (fichero 'TICPP-2nd-ed-Vol-one-code.zip') para ser incluidos en
 # los documentos DocBook mediante XInclude.  Para ello cambia los
-# ficheros de formato DOS a Unix utilizando dos2unix. TambiÈn elimina
-# las lineas [1-4] de modo que queden tal como aparecen en el libro
-# original.
+# ficheros de formato DOS a Unix. Tambi√©n elimina las lineas [1-4] de
+# modo que queden tal como aparecen en el libro original.
 #
 #
 # Copyright (C) 2004, 2010 David Villa
@@ -32,39 +31,45 @@ import sys, os
 
 def main(codedir):
 
-   # subdirectorios de las capÌtulos
+   # subdirectorios de los cap√≠tulos
    content = [os.path.join(codedir, x) for x in os.listdir(codedir)]
    chapters = [x for x in content if os.path.isdir(x)]
 
-   print chapters
+   print(chapters)
 
    for d in chapters:
       for f in os.listdir(d):
-         #print os.path.splitext(f)[1]
+         #print(os.path.splitext(f)[1])
          if os.path.splitext(f)[1] not in ['.cpp', '.h']: continue
-	 filename = os.path.join(d, f)
-	 print 'Fixing', filename
-	 os.system('fromdos %s' % filename)
-	 dellines(filename, 1, 4)
+         filename = os.path.join(d, f)
+         print('Fixing', filename)
+         fromdos(filename)
+         dellines(filename, 1, 4)
 
 
-# elimina las lÌneas del rango [l1-l2] en el fichero 'name'
+# convierte los finales de l√≠nea DOS (CRLF) en Unix (LF)
+def fromdos(name):
+   with open(name, 'rb') as handler:
+      content = handler.read()
+
+   with open(name, 'wb') as handler:
+      handler.write(content.replace(b'\r\n', b'\n'))
+
+
+# elimina las l√≠neas del rango [l1-l2] en el fichero 'name'
 def dellines(name, l1, l2):
 
    if l1 >= l2:
-       print 'Rango incorrecto [%d-%d]' % (l1, l2)
+       print('Rango incorrecto [%d-%d]' % (l1, l2))
        return
 
-   handler = open(name)
-   content = handler.readlines()
-   handler.close()
+   # en modo binario para no depender de la codificaci√≥n del listado
+   with open(name, 'rb') as handler:
+      content = handler.readlines()
 
-   handler = open(name, 'w')
-
-   handler.writelines(content[:l1])
-   handler.writelines(content[l2+1:])
-
-   handler.close()
+   with open(name, 'wb') as handler:
+      handler.writelines(content[:l1])
+      handler.writelines(content[l2+1:])
 
 
 main(sys.argv[1])

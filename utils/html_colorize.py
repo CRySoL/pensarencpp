@@ -1,6 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-import sys, os
+import subprocess
+import sys
+
+# Los HTML generados por los XSL usan 'chunker.output.encoding'
+# (ISO-8859-1). Se trabaja con latin-1 porque es transparente a nivel de
+# byte: cualquier secuencia se lee y se reescribe sin alterarla, sea cual
+# sea la codificación real del fichero.
+ENCODING = 'iso-8859-1'
 
 NORMAL, INCODE = range(2)
 SKIP_LINES = [1,2,3,4]
@@ -14,11 +21,11 @@ replaces = [
 
 
 def colorize(fname):
-  fd = open(fname)
+  fd = open(fname, encoding=ENCODING)
   content = fd.readlines()
   fd.close()
 
-  fo = open(fname, 'w')
+  fo = open(fname, 'w', encoding=ENCODING)
 
   status = NORMAL
 
@@ -39,16 +46,17 @@ def colorize(fname):
           listing = listing.replace(r[0], r[1])
 
         tmpname = fname + '.code'
-        tmpfd = open(tmpname, 'w')
+        tmpfd = open(tmpname, 'w', encoding=ENCODING)
         tmpfd.write(listing)
         tmpfd.close()
-#        command = 'highlight --data-dir ./stylesheets/highlight ' +\
-#                  '--style emacs21 -fS c++ %s' % tmpname
+#        command = ['highlight', '--data-dir', './stylesheets/highlight',
+#                   '--style', 'emacs21', '-fS', 'c++', tmpname]
 
-        command = 'highlight --style=edit-emacs -fS c++ %s' % tmpname
+        command = ['highlight', '--style=edit-emacs', '-fS', 'c++', tmpname]
 
-#        command = 'highlight -fS c++ %s' % tmpname
-        fo.write(os.popen(command).read())
+#        command = ['highlight', '-fS', 'c++', tmpname]
+        fo.write(subprocess.run(command, stdout=subprocess.PIPE,
+                                check=True).stdout.decode(ENCODING))
 
       else:
         #if not nline in SKIP_LINES:
@@ -61,5 +69,5 @@ def colorize(fname):
 
 
 for fname in sys.argv[1:]:
-  print 'Colorizing', fname
+  print('Colorizing', fname)
   colorize(fname)

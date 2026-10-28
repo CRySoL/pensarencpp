@@ -19,15 +19,15 @@ vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images
 
-	-rm $@/*.css
+	$(RM) $@/*.css
 #	cp stylesheets/*.css $@/
 
-	ln -s ../stylesheets/common.css $@/
-	ln -s ../stylesheets/single.css $@/
-	ln -s ../stylesheets/chunk.css $@/
-	ln -s ../stylesheets/highlight.css $@/
+	ln -sf ../stylesheets/common.css $@/
+	ln -sf ../stylesheets/single.css $@/
+	ln -sf ../stylesheets/chunk.css $@/
+	ln -sf ../stylesheets/highlight.css $@/
 
-#	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@/$@.html $(SINGLE_XSL) $<
+	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@/$@.html $(SINGLE_XSL) $<
 	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@ $(CHUNK_XSL) $<
 
 	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py

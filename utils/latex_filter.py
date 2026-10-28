@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys
 import re
 
 changes = [\
-  ('\\texttt{#', '\\texttt{\#'),
+  ('\\texttt{#', '\\texttt{\\#'),
   ('{#include',  '{\\#include'),
   ('{#define',   '{\\#define'),
   ('{#ifdef',    '{\\#ifdef'),
@@ -17,7 +17,7 @@ changes = [\
   ]
 
 changes2 = [\
-  ('(?!\\)&', '\\&'),
+  (r'(?!\\)&', r'\&'),
   ]
 
 changes = [\

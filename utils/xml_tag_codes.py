@@ -1,10 +1,10 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import sys, re
 
 regex = [
-    ('\n?\s*(<programlisting(?:\s[\s\w\"=+]*)?>)\s*\n*', '\n\n\\1\n[BEGINCODE]\n'),
-    ('\n?\s*(</programlisting>)\s*\n', '\n[ENDCODE]\n\\1\n\n'),
+    (r'\n?\s*(<programlisting(?:\s[\s\w\"=+]*)?>)\s*\n*', '\n\n\\1\n[BEGINCODE]\n'),
+    (r'\n?\s*(</programlisting>)\s*\n', '\n[ENDCODE]\n\\1\n\n'),
     ]
 
 if len(sys.argv) > 1:
