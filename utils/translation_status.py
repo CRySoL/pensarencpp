@@ -50,13 +50,16 @@ def text_of(block):
     return ' '.join(''.join(out).split())
 
 
-def language(text):
+def language(text, strict=False):
+    "con strict, hacen falta al menos dos palabras de referencia"
     words = [w.lower() for w in WORD.findall(text)]
     en = sum(w in EN for w in words)
     es = sum(w in ES for w in words)
     if not words:
         return 'empty'
     if en + es < 2:
+        if strict:
+            return 'short'
         return 'es' if es else 'en' if en else 'short'
     if en > 2 * es:
         return 'en'
@@ -66,8 +69,7 @@ def language(text):
 
 
 def is_translated(element):
-    blocks = [element] if name(element) in BLOCKS else \
-        [b for b in element.iter() if name(b) in BLOCKS]
+    blocks = [b for b in element.iter() if name(b) in BLOCKS]
     if not blocks:
         return None
     return any(language(text_of(b)) not in ('empty', 'en') for b in blocks)
@@ -84,7 +86,7 @@ def measure(root):
     "devuelve (traducido, pendiente, [líneas pendientes])"
     done, pending, lines = 0, 0, []
     for comment in root.iter(etree.Comment):
-        if not comment.text or language(comment.text) != 'en':
+        if not comment.text or language(comment.text, strict=True) != 'en':
             continue
         target = next_element(comment)
         if target is None:
