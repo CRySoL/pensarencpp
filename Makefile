@@ -101,6 +101,12 @@ validate: Volumen1.xml Volumen2.xml
 	xmllint --noout --postvalid $^
 #	xsltproc --xinclude --noout --postvalid stylesheets/profile.xsl Volumen%.xml
 
+# Palabras del original traducidas y pendientes por capítulo
+status:
+	@python utils/translation_status.py master_Volumen1.xml $(sort $(filter-out %.ok.xml, $(wildcard V1-*.xml)))
+	@echo
+	@python utils/translation_status.py master_Volumen2.xml $(sort $(filter-out %.ok.xml, $(wildcard V2-*.xml)))
+
 
 # Limpieza
 clean:

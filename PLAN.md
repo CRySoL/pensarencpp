@@ -2,30 +2,31 @@
 
 ## Estado (medido el 28/10/2026)
 
-La medición localiza cada comentario con el original en inglés y comprueba si
-el bloque que le sigue está traducido. Las cifras son palabras del original.
+Cifras de `make status` (`utils/translation_status.py`). Para cada
+comentario con el original en inglés, el script comprueba si el bloque que le
+sigue está traducido. Las cifras son palabras del original.
 
 - **Volumen 1: traducido por completo.** Lo único que queda en inglés se deja
   así a propósito: las condiciones de Eckel, citadas en el Prólogo, y algunas
   referencias bibliográficas.
-- **Volumen 2: unas 46.000 palabras traducidas y unas 86.400 pendientes, un
-  35 % hecho.**
+- **Volumen 2: unas 46.300 palabras traducidas y unas 86.700 pendientes, un
+  34 % hecho.**
 
 | Cap.  | Tema                   | Pendiente | Hecho | En `master_Volumen2.xml`                    |
 |-------|------------------------|----------:|------:|---------------------------------------------|
-| C01   | Excepciones            |     9.150 |   8 % | incluido                                    |
-| C02   | Programación defensiva |        46 |  99 % | incluido                                    |
-| C03   | Cadenas                |        85 |  98 % | incluido                                    |
-| C04   | Iostreams              |     4.390 |  67 % | incluido                                    |
-| C05   | Plantillas a fondo     |    14.280 |   0 % | incluido (**sale vacío**)                   |
-| C06   | Algoritmos genéricos   |    16.060 |  13 % | incluido (**con el inglés copiado en el texto**) |
-| C07   | Contenedores genéricos |    21.290 |   0 % | comentado                                   |
-| C08   | RTTI                   |     3.050 |   0 % | comentado                                   |
+| C01   | Excepciones            |     9.210 |   8 % | incluido                                    |
+| C02   | Programación defensiva |        61 |  99 % | incluido                                    |
+| C03   | Cadenas                |        90 |  98 % | incluido                                    |
+| C04   | Iostreams              |     4.410 |  67 % | incluido                                    |
+| C05   | Plantillas a fondo     |    14.370 |   0 % | incluido (**sale vacío**)                   |
+| C06   | Algoritmos genéricos   |    16.090 |  13 % | incluido (**con el inglés copiado en el texto**) |
+| C07   | Contenedores genéricos |    21.380 |   0 % | comentado                                   |
+| C08   | RTTI                   |     3.070 |   0 % | comentado                                   |
 | C09   | Herencia múltiple      |     4.350 |  20 % | incluido                                    |
-| C10   | Patrones de diseño     |     6.420 |  48 % | incluido                                    |
-| C11   | Concurrencia           |     5.820 |  61 % | incluido                                    |
-| ApenA | Lecturas recomendadas  |     1.410 |   0 % | comentado                                   |
-| ApenB | Etc.                   |        20 |   0 % | comentado                                   |
+| C10   | Patrones de diseño     |     6.430 |  49 % | incluido                                    |
+| C11   | Concurrencia           |     5.790 |  62 % | incluido                                    |
+| ApenA | Lecturas recomendadas  |     1.420 |   0 % | comentado                                   |
+| ApenB | Etc.                   |        25 |   0 % | comentado                                   |
 
 Los capítulos incluidos que tienen párrafos vacíos se publican con huecos: el
 PDF lleva C05 entero en blanco. Por eso el plan empieza por terminar lo que ya
@@ -36,10 +37,11 @@ está incluido.
 1. **Dependencias.** Instalar todo lo que lista [DEPENDS](DEPENDS), en
    especial `docbook-xsl` y `highlight`. Sin `docbook-xsl`, `xsltproc` intenta
    descargar las hojas de estilo de sourceforge y falla.
-2. **Medición.** Añadir a `utils/` el script que mide lo pendiente y un
-   objetivo `make status` que sustituya la tabla manual de [STATUS](STATUS).
-   Esa tabla lleva años desfasada: asigna responsable a capítulos que siguen
-   al 0 %.
+2. **Seguimiento.** `make status` mide lo pendiente por capítulo.
+   `utils/translation_status.py -s FICHERO` lo desglosa por sección y `-v`
+   indica la línea de cada bloque pendiente. Falta usarlo para sustituir la
+   tabla manual de [STATUS](STATUS), que lleva años desfasada: asigna
+   responsable a capítulos que siguen al 0 %.
 3. **Glosario.** Reunir en un fichero los términos ya fijados en el volumen 1
    y en lo traducido del volumen 2:
    - términos traducidos: plantilla, iterador, contenedor, objeto-función,
@@ -56,14 +58,14 @@ está incluido.
    cabecera) y escribiéndola como `<footnote>`. Si se deja para el final, habrá
    que repasar todo el volumen otra vez.
 
-## Fase 1: cerrar lo casi terminado (unas 4.500 palabras)
+## Fase 1: cerrar lo casi terminado (unas 4.600 palabras)
 
-- **C02 y C03:** restos sueltos, unas 130 palabras, casi todo en los
+- **C02 y C03:** restos sueltos, unas 150 palabras, casi todo en los
   ejercicios de C03.
 - **C04:** el resto de «Manipuladores», y además «Iostream examples»,
   «Internationalization», «Summary» y «Exercises».
 
-## Fase 2: completar los capítulos a medias (unas 25.700 palabras)
+## Fase 2: completar los capítulos a medias (unas 25.800 palabras)
 
 - **C11:** el final de «Finalización de tareas», más «Cooperación entre
   hilos», «Bloqueo letal», el resumen y los ejercicios.
@@ -73,7 +75,7 @@ está incluido.
 - **C01:** desde «Capturar una excepción» hasta el final. Los títulos están
   traducidos, pero los párrafos no.
 
-## Fase 3: capítulos sin empezar (unas 54.700 palabras)
+## Fase 3: capítulos sin empezar (unas 54.900 palabras)
 
 - **C08 (RTTI):** es corto y no depende de otros capítulos. Al terminarlo se
   descomenta en el maestro.
@@ -114,9 +116,10 @@ Cada unidad de trabajo es un `sect1`, o un `sect2` si la sección pasa de
      [DOCBOOK](DOCBOOK).
 3. **Listados:** respetar las marcas `//: V2Cxx:Fichero.cpp`, con una línea en
    blanco encima y otra debajo. `fix_includes.py` se encarga del resto.
-4. **Verificar:** ejecutar `make Volumen2.xml validate`, volver a medir para
-   confirmar que la sección queda sin pendientes y, de vez en cuando, generar
-   `make vol2 Volumen2.pdf` para ver el resultado.
+4. **Verificar:** ejecutar `make Volumen2.xml validate`, comprobar con
+   `utils/translation_status.py -s -v FICHERO` que la sección no deja bloques
+   pendientes y, de vez en cuando, generar `make vol2 Volumen2.pdf` para ver
+   el resultado.
 5. **Revisión:** revisar el diff y hacer el commit, por sección o por
    capítulo.
 
