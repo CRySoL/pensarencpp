@@ -900,36 +900,37 @@ call word ptr [bx+4]
     <title>Clases base abstractas y funciones virtuales puras</title>
 
     <para>
-      A menudo en el diseño, se quiere la clase base para presentar
+      A menudo, en un diseño, se quiere que la clase base presente
       <emphasis>sólo</emphasis> una interfaz para sus clases
-      derivadas. Esto es, se puede querer que nadie pueda crear un
-      objeto de la clase base y que ésta sirva únicamente para hacer un
-      <foreignphrase>upcast</foreignphrase> hacia ella, y poder tener
-      una interfaz. Se consigue haciendo a la clase
-      <foreignphrase>abstract</foreignphrase> (abstracta), poniendo como
-      mínimo una <emphasis>función virtual pura</emphasis>. Se puede
-      reconocer a una función virtual pura porque usa la palabra
-      reservada <kw>virtual</kw> y es seguida por
+      derivadas. Es decir, no se quiere que nadie cree realmente un
+      objeto de la clase base, sino sólo que se haga
+      <foreignphrase>upcast</foreignphrase> hacia ella para poder usar
+      su interfaz. Se consigue haciendo que la clase sea abstracta
+      (<foreignphrase>abstract</foreignphrase>), lo que ocurre si se le
+      pone como mínimo una <emphasis>función virtual pura</emphasis>. Se
+      puede reconocer una función virtual pura porque usa la palabra
+      reservada <kw>virtual</kw> y va seguida de
       <literal>=0</literal>. Si alguien intenta hacer un objeto de una
-      clase abstracta, el compilador lo impide. Esta es una utilidad que
-      fuerza a un diseño en concreto.
+      clase abstracta, el compilador lo impide. Es una herramienta que
+      permite imponer un diseño concreto.
     </para>
 
     <para>
       Cuando se hereda una clase abstracta, hay que implementar todas
-      las funciones virtuales, o la clase que hereda se convierte en una
-      nueva clase abstracta. Crear una función virtual pura permite
-      poner una función miembro en una interfaz sin forzar a proveer un
-      cuerpo con código sin significado para esa función miembro. Al
-      mismo tiempo, una función virtual fuerza a las clases que la
-      hereden a que implemente una definición para ellas.
+      las funciones virtuales puras, o la clase que hereda se convierte
+      también en abstracta. Crear una función virtual pura permite
+      poner una función miembro en una interfaz sin verse obligado a
+      proporcionar un cuerpo de código posiblemente sin sentido para
+      esa función miembro. Al mismo tiempo, una función virtual pura
+      obliga a las clases que heredan a proporcionar una definición
+      para ella.
     </para>
 
     <para>
       En todos los ejemplos de los instrumentos, las funciones en la
       clase base <classname>Instrument</classname> eran siempre
-      funciones <quote>tontas</quote>. Si esas funciones hubieran sido
-      llamadas algo iba mal. Esto es porque la intención de la clase
+      funciones <quote>ficticias</quote>. Si alguna vez se llama a esas
+      funciones, es que algo va mal. Esto es porque la intención de la clase
       <classname>Instrument</classname> es crear una interfaz común
       para todas las clases que deriven de ella.
     </para>
@@ -949,12 +950,12 @@ call word ptr [bx+4]
     <para>
       La única razón para establecer una interfaz común es que después
       se pueda expresar de forma diferente en cada subtipo. Se crea una
-      forma básica que tiene lo que está en común con todas las clases
+      forma básica que determina lo que tienen en común todas las clases
       derivadas y nada más. Por esto, <classname>Instrument</classname> es
-      un candidato perfecto para ser una clase abstracta. Se crea una
-      clase abstracta sólo cuando se quiere manipular un conjunto de
+      un candidato adecuado para ser una clase abstracta. Se crea una
+      clase abstracta cuando sólo se quiere manipular un conjunto de
       clases a través de una interfaz común, pero la interfaz común no
-      necesita tener una implementación (o como mucho, no necesita una
+      necesita tener una implementación (o al menos, no necesita una
       implementación completa).
     </para>
 
@@ -964,17 +965,18 @@ call word ptr [bx+4]
       tendrán sentido. Es decir, <classname>Instrument</classname> sirve
       solamente para expresar la interfaz, y no una implementación
       particular, por lo que crear un objeto que sea únicamente un
-      <classname>Instrument</classname> no tendrá sentido, y
-      probablemente se quiera prevenir al usuario de hacerlo. Se puede
-      solucionar haciendo que todas las funciones virtuales en
+      <classname>Instrument</classname> no tiene sentido, y
+      probablemente se quiera impedir que el usuario lo haga. Se puede
+      conseguir haciendo que todas las funciones virtuales de
       <classname>Instrument</classname> muestren mensajes de error, pero
-      retrasa la aparición de los errores al tiempo de ejecución lo que
-      obligará a un prueba exhaustivo por parte del usuario. Es mucho
-      más productivo cazar el problema en tiempo de compilación.
+      eso retrasa la aparición de la información del error hasta el
+      tiempo de ejecución y requiere que el usuario realice pruebas
+      exhaustivas y fiables. Es mucho mejor cazar el problema en tiempo
+      de compilación.
     </para>
 
     <para>
-      Aquí está la sintaxis usada para una función virtual pura:
+      Ésta es la sintaxis usada para declarar una función virtual pura:
     </para>
 
 <programlisting>
@@ -991,17 +993,17 @@ virtual void f() = 0;
     <para>
       Si la VTABLE de una clase está incompleta, ¿qué se supone que debe
       hacer el compilador cuando alguien intente crear un objeto de esa
-      clase? No sería seguro crear un objeto de esa clase abstracta, por
-      lo que se obtendría un error de parte del compilador. Dicho de
-      otra forma, el compilador garantiza la pureza de una clase
+      clase? No puede crear de forma segura un objeto de una clase
+      abstracta, por lo que se obtiene un mensaje de error del
+      compilador. Así, el compilador garantiza la pureza de una clase
       abstracta. Hacer clases abstractas asegura que el programador
-      cliente no puede hacer mal uso de ellas.
+      cliente no pueda hacer mal uso de ellas.
     </para>
 
     <para>
-      Aquí tenemos <filename>Instrument4.cpp</filename> modificado para
+      He aquí <filename>Instrument4.cpp</filename> modificado para
       usar funciones virtuales puras. Debido a que la clase no tiene
-      otra cosa que no sea funciones virtuales, se la llama
+      más que funciones virtuales puras, se la llama
       <emphasis>clase abstracta pura</emphasis>:
     </para>
 
@@ -1012,27 +1014,27 @@ virtual void f() = 0;
     <para>
       Las funciones virtuales puras son útiles porque hacen explícita la
       abstracción de una clase e indican al usuario y al compilador cómo
-      deben ser usadas.
+      se pretendía que se usara.
     </para>
 
     <para>
-      Hay que hacer notar que las funciones virtuales puras previenen a
-      una clase abstracta de ser pasadas a una función <emphasis>por
-      valor</emphasis>, lo que es una manera de prevenir el
-      <foreignphrase>object slicing</foreignphrase> (que será descrito
-      de forma reducida). Convertir una clase en abstracta también
+      Hay que hacer notar que las funciones virtuales puras impiden que
+      una clase abstracta se pase a una función <emphasis>por
+      valor</emphasis>, por lo que son también una manera de evitar el
+      truncado de objetos (<foreignphrase>object slicing</foreignphrase>),
+      que se describirá en breve. Convertir una clase en abstracta también
       permite garantizar que se use siempre un puntero o una referencia
       cuando se haga <foreignphrase>upcasting</foreignphrase> a esa clase.
     </para>
 
     <para>
-      Sólo porque una función virtual pura impida a la VTABLE estar
-      completa no implica que no se quiera crear cuerpos de función para
-      alguna de las otras funciones. A menudo se querrá llamar a la
+      El hecho de que una función virtual pura impida que la VTABLE esté
+      completa no significa que no se quieran cuerpos de función para
+      algunas de las otras funciones. A menudo se querrá llamar a la
       versión de la función que esté en la clase base, incluso aunque
       ésta sea virtual. Es una buena idea poner siempre el código común
       tan cerca como sea posible de la raíz de la jerarquía. No sólo
-      ahorra código, si no que permite fácilmente la propagación de
+      ahorra código, sino que permite fácilmente la propagación de
       cambios.
     </para>
 
@@ -1040,18 +1042,18 @@ virtual void f() = 0;
       <title>Definiciones virtuales puras</title>
 
       <para>
-	Es posible proveer una definición para una función virtual pura
-	en la clase base. Todavía implica decirle al compilador que no
-	permita crear objetos de esa clase base abstracta, y que las
-	funciones virtuales puras deben ser definidas en las clases
-	derivadas para poder crear objetos. Sin embargo, puede haber un
-	trozo de código en común que se quiera llamar desde todas, o
-	algunas de las clases derivadas en vez de estar duplicando
-	código en todas las funciones.
+	Es posible proporcionar una definición para una función virtual
+	pura en la clase base. Se le sigue diciendo al compilador que no
+	permita crear objetos de esa clase base abstracta, y las
+	funciones virtuales puras siguen teniendo que definirse en las
+	clases derivadas para poder crear objetos. Sin embargo, puede
+	haber un fragmento de código común al que se quiera llamar desde
+	algunas o todas las definiciones de las clases derivadas en vez
+	de duplicar ese código en cada función.
       </para>
 
       <para>
-	Este es un ejemplo de definición de funciones virtuales.
+	Éste es el aspecto de una definición virtual pura:
       </para>
 
 
@@ -1060,15 +1062,15 @@ virtual void f() = 0;
 
       <para>
 	El hueco en la VTABLE de <classname>Pet</classname> todavía
-	está vacío, pero tiene funciones a las que se puede llamar desde
-	la clase derivada.
+	está vacío, pero resulta que hay una función con ese nombre a la
+	que se puede llamar desde la clase derivada.
       </para>
 
       <para>
 	Otra ventaja de esta característica es que permite cambiar de
-	una función virtual corriente a una virtual pura sin destrozar
-	el código existente (es una forma para localizar clases que no
-	redefinan a esa función virtual).
+	una función virtual corriente a una virtual pura sin alterar
+	el código existente (es una forma de localizar las clases que no
+	redefinen esa función virtual).
       </para>
     </sect2>
   </sect1>
@@ -1082,16 +1084,16 @@ virtual void f() = 0;
       direcciones de las funciones usando además las direcciones de las
       funciones de la clase base para aquellas funciones virtuales que
       no se hayan redefinido. De un modo u otro, para todos los
-      objetos que se puedan crear (es decir, aquellos que no tengan
-      funciones virtuales puras) existe un conjunto completo de
+      objetos que se puedan crear (es decir, aquellos cuya clase no
+      tenga funciones virtuales puras) existe un conjunto completo de
       direcciones de funciones en la VTABLE, por lo que será imposible
       hacer llamadas a una dirección que no esté en la VTABLE (lo cual
       sería desastroso).
     </para>
 
     <para>
-      Pero ¿qué ocurre cuando se hereda y añade una nueva función
-      virtual en la clase derivada? Aquí hay un sencillo ejemplo:
+      Pero ¿qué ocurre cuando se hereda y se añaden nuevas funciones
+      virtuales en la clase derivada? Aquí hay un sencillo ejemplo:
     </para>
 
 
@@ -1122,7 +1124,7 @@ virtual void f() = 0;
     </figure>
 
     <para>
-      Hay que hacer notar, que el compilador mapea la dirección de
+      Hay que hacer notar que el compilador coloca la dirección de
       <function>speak()</function> en exactamente el mismo lugar tanto
       en la VTABLE de <classname>Dog</classname> como en la de
       <classname>Pet</classname>. De igual forma, si una clase
@@ -1132,32 +1134,32 @@ virtual void f() = 0;
       <classname>Dog</classname>. Esto es debido a que el compilador
       genera un código que usa un simple desplazamiento numérico en la
       VTABLE para seleccionar una función virtual, como se vio con el
-      ejemplo en lenguaje ensamblador. Sin importar el subtipo en
-      concreto del objeto, su VTABLE está colocada de la misma forma por
-      lo que llamar a una función virtual se hará siempre del mismo
-      modo.
+      ejemplo en lenguaje ensamblador. Sea cual sea el subtipo concreto
+      al que pertenezca el objeto, su VTABLE tiene la misma disposición,
+      por lo que las llamadas a las funciones virtuales se harán siempre
+      del mismo modo.
     </para>
 
     <para>
       En este caso, sin embargo, el compilador está trabajando sólo con
       un puntero a un objeto de la clase base. La clase base tiene
       únicamente las funciones <function>speak()</function> y
-      <function>name()</function>, por lo que son a las únicas funciones
-      a las que el compilador permitirá acceder. ¿Cómo es posible saber
+      <function>name()</function>, por lo que son las únicas funciones
+      a las que el compilador permitirá llamar. ¿Cómo podría saber
       que se está trabajando con un objeto <classname>Dog</classname> si
-      sólo hay un puntero a un objeto de la clase base? El puntero
+      sólo tiene un puntero a un objeto de la clase base? El puntero
       podría apuntar a algún otro tipo, que no tenga una función
-      <function>sit()</function>. En este punto, puede o no tener otra
-      dirección a función en la VTABLE, pero en cualquiera de los casos,
-      hacer una llamada a una función virtual de esa VTABLE no es lo que
-      se desea hacer. De modo que el compilador hace su trabajo
-      impidiendo hacer llamadas virtuales a funciones que sólo existen
-      en las clases derivadas.
+      <function>sit()</function>. Puede que tenga o no otra dirección de
+      función en esa posición de la VTABLE, pero en cualquiera de los
+      casos, hacer una llamada virtual a esa dirección de la VTABLE no
+      es lo que se desea hacer. De modo que el compilador hace su
+      trabajo impidiendo hacer llamadas virtuales a funciones que sólo
+      existen en las clases derivadas.
     </para>
 
     <para>
-      Hay algunos poco comunes casos en los cuales se sabe que el
-      puntero actualmente apunta al objeto de una subclase
+      Hay algunos casos poco comunes en los cuales se sabe que el
+      puntero apunta realmente a un objeto de una subclase
       específica. Si se quiere hacer una llamada a una función que sólo
       exista en esa subclase, entonces hay que hacer un molde
       (<foreignphrase>cast</foreignphrase>) del puntero. Se puede quitar
@@ -1169,30 +1171,33 @@ virtual void f() = 0;
 </programlisting>
 
     <para>
-      Aquí, parece saberse que <literal>p[1]</literal> apunta a un
-      objeto <classname>Dog</classname>, pero en general no se sabe. Si
-      el problema consiste en averiguar el tipo exacto de todos los
-      objetos, hay que volver a pensar porque posiblemente no se estén
-      usando las funciones virtuales de forma apropiada. Sin embargo,
-      hay algunas situaciones en las cuales el diseño funciona mejor (o
-      no hay otra elección) si se conoce el tipo exacto de todos los
-      objetos, por ejemplo aquellos incluidos en un contenedor
-      genérico. Este es el problema de la <foreignphrase>run time type
+      Aquí se da la circunstancia de que se sabe que
+      <literal>p[1]</literal> apunta a un objeto
+      <classname>Dog</classname>, pero en general no se sabe. Si el
+      problema está planteado de forma que hay que conocer el tipo
+      exacto de todos los objetos, habría que replantearlo, porque
+      probablemente no se estén usando las funciones virtuales de forma
+      apropiada. Sin embargo, hay algunas situaciones en las cuales el
+      diseño funciona mejor (o no hay otra elección) si se conoce el
+      tipo exacto de todos los objetos guardados en un contenedor
+      genérico. Éste es el problema de la <foreignphrase>run time type
       identification</foreignphrase> o RTTI (identificación de tipos en
       tiempo de ejecución).
     </para>
 
     <para>
-      RTTI sirve para moldear un puntero de una clase base y "bajarlo" a
-      un puntero de una clase derivada ("arriba" y "abajo", en inglés
-      "up" y "down" respectivamente, se refieren al típico diagrama de
-      clases, con la clase base arriba). Hacer el molde hacia arriba
+      RTTI sirve para moldear un puntero de una clase base y
+      <quote>bajarlo</quote> a un puntero de una clase derivada
+      (<quote>arriba</quote> y <quote>abajo</quote>, en inglés
+      <quote>up</quote> y <quote>down</quote> respectivamente, se
+      refieren al típico diagrama de clases, con la clase base
+      arriba). Hacer el molde hacia arriba
       (<foreignphrase>upcast</foreignphrase>) funciona de forma
       automática, sin coacciones, debido a que es completamente
       seguro. Hacer el molde en sentido descendente
       (<foreignphrase>downcast</foreignphrase>) es inseguro porque no
-      hay información en tiempo de compilación sobre los tipos actuales,
-      por lo que hay que saber exactamente el tipo al que pertenece. Si
+      hay información en tiempo de compilación sobre los tipos reales,
+      por lo que hay que saber exactamente de qué tipo es el objeto. Si
       se hace un molde al tipo equivocado habrá problemas.
     </para>
 
@@ -1205,34 +1210,34 @@ virtual void f() = 0;
       <title>Truncado de objetos (<foreignphrase>object slicing</foreignphrase>)</title>
 
       <para>
-	Existe una gran diferencia entre pasar una dirección de un
-	objeto a pasar el objeto por valor cuando se usa el
+	Existe una gran diferencia entre pasar las direcciones de los
+	objetos y pasar los objetos por valor cuando se usa el
 	polimorfismo. Todos los ejemplos que se han visto, y
-	prácticamente todos los ejemplos que se verán, se pasan por
-	referencia y no por valor. Esto se debe a que todas las
+	prácticamente todos los ejemplos que se verán, pasan
+	direcciones y no valores. Esto se debe a que todas las
 	direcciones tienen el mismo tamaño<footnote>
 	  <para>
-	    Actualmente, no todos los punteros tienen el mismo tamaño en
-	    todos las máquinas. Sin embargo, en el contexto de esta
+	    En realidad, no todos los punteros tienen el mismo tamaño en
+	    todas las máquinas. Sin embargo, en el contexto de esta
 	    discusión se pueden considerar iguales.
 	  </para>
 	</footnote>, por lo que pasar
-	la dirección de un tipo derivado (que normalmente será un objeto
-	más grande) es lo mismo que pasar la dirección de un objeto del
-	tipo base (que es normalmente más pequeño). Como se explicó
-	anteriormente, éste es el objetivo cuando se usa el polimorfismo
-	- el código que maneja un tipo base puede, también manejar
-	objetos derivados de forma transparente
+	la dirección de un objeto de un tipo derivado (que normalmente
+	será un objeto más grande) es lo mismo que pasar la dirección de
+	un objeto del tipo base (que es normalmente más pequeño). Como se
+	explicó anteriormente, éste es el objetivo cuando se usa el
+	polimorfismo - el código que maneja un tipo base puede también
+	manejar objetos derivados de forma transparente.
       </para>
 
       <para>
-	Si se hace un <foreignphrase>upcast</foreignphrase> de un objeto
-	en vez de usar un puntero o una referencia, pasará algo que
-	puede resultar sorprendente: el objeto es "truncado", recortado,
-	hasta que lo que quede sea un subobjeto que corresponda al tipo
-	destino del molde. En el siguiente ejemplo se puede ver que
-	ocurre cuando un objeto es truncado (<foreignphrase>object
-	slicing</foreignphrase>):
+	Si se hace un <foreignphrase>upcast</foreignphrase> a un objeto
+	en vez de a un puntero o una referencia, pasará algo que
+	puede resultar sorprendente: el objeto es <quote>truncado</quote>,
+	recortado, hasta que lo único que queda es el subobjeto que
+	corresponde al tipo destino del molde. En el siguiente ejemplo se
+	puede ver qué ocurre cuando un objeto es truncado
+	(<foreignphrase>object slicing</foreignphrase>):
       </para>
 
 
@@ -1245,9 +1250,9 @@ virtual void f() = 0;
 	Después llama a la función virtual
 	<function>description()</function> del objeto
 	<classname>Pet</classname>. En el <function>main()</function>,
-	se puede esperar que la primera llamada produzca "This is
-	Alfred", y que la segunda produzca "Fluffy likes to
-	sleep". De hecho, ambas usan la versión
+	se puede esperar que la primera llamada produzca <quote>This is
+	Alfred</quote>, y que la segunda produzca <quote>Fluffy likes to
+	sleep</quote>. En realidad, ambas usan la versión de
 	<function>description()</function> de la clase base.
       </para>
 
@@ -1259,7 +1264,7 @@ virtual void f() = 0;
 	creará un objeto del tamaño de <classname>Pet</classname> que
 	será puesto en la pila y posteriormente limpiado cuando acabe la
 	llamada. Esto significa que si se pasa a
-	<function>describe()</function>un objeto de una clase heredada
+	<function>describe()</function> un objeto de una clase heredada
 	de <classname>Pet</classname>, el compilador lo acepta, pero
 	copia únicamente el fragmento del objeto que corresponda a una
 	<classname>Pet</classname>. Se desecha el fragmento derivado
@@ -1282,13 +1287,13 @@ virtual void f() = 0;
 	Ahora queda la cuestión de la llamada a la función
 	virtual. <function>Dog::description()</function> hace uso de
 	trozos de <classname>Pet</classname> (que todavía existe) y de
-	<classname>Dog</classname>, ¡el cual no existe porque fue
-	truncado!. Entonces, ¿Qué ocurre cuando se llama a la función
+	<classname>Dog</classname>, ¡que ya no existe porque fue
+	truncado! Entonces, ¿qué ocurre cuando se llama a la función
 	virtual?
       </para>
 
       <para>
-	El desastre es evitado porque el objeto es pasado por
+	Se evita el desastre porque el objeto se pasa por
 	valor. Debido a esto, el compilador conoce el tipo exacto del
 	objeto porque el objeto derivado ha sido forzado a transformarse
 	en un objeto de la clase base. Cuando se pasa por valor, se usa
@@ -1297,29 +1302,28 @@ virtual void f() = 0;
 	<classname>Pet</classname> y copia sólo las partes del objeto
 	que correspondan a <classname>Pet</classname>. En el ejemplo no
 	hay un constructor de copia explícito por lo que el compilador
-	genera uno. Quitando interpretaciones, el objeto se convierte
+	genera uno. Se mire como se mire, el objeto se convierte
 	realmente en una <classname>Pet</classname> durante el
 	truncado.
       </para>
 
       <para>
-	El <foreignphrase>Object Slicing</foreignphrase> quita parte del
-	objeto existente y se copia en un nuevo objeto, en vez de
-	simplemente cambiar el significado de una dirección cuando se
+	El truncado de objetos elimina realmente parte del objeto
+	existente al copiarlo en el nuevo objeto, en vez de simplemente
+	cambiar el significado de una dirección como ocurre cuando se
 	usa un puntero o una referencia. Debido a esto, el
 	<foreignphrase>upcasting</foreignphrase> a un objeto no se usa a
-	menudo; de hecho, normalmente, es algo a controlar y
-	prevenir. Hay que resaltar que en este ejemplo, si
+	menudo; de hecho, normalmente es algo que hay que vigilar y
+	evitar. Hay que resaltar que en este ejemplo, si
 	<function>description()</function> fuera una función virtual
 	pura en la clase base (lo cual es bastante razonable debido a
 	que realmente no hace nada en la clase base), entonces el
-	compilador impedirá el <foreignphrase>object
-	slicing</foreignphrase> debido a que no se puede "crear" un
-	objeto de la clase base (que al fin y al cabo es lo que sucede
-	cuando se hace un upcast por valor). ésto podría ser el valor
-	más importante de las funciones virtuales puras: prevenir el
-	<foreignphrase>object slicing</foreignphrase> generando un error
-	en tiempo de compilación si alguien lo intenta hacer.
+	compilador impediría el truncado de objetos, debido a que no
+	permitiría <quote>crear</quote> un objeto del tipo base (que es
+	lo que sucede cuando se hace un upcast por valor). Éste podría
+	ser el valor más importante de las funciones virtuales puras:
+	evitar el truncado de objetos generando un mensaje de error en
+	tiempo de compilación si alguien lo intenta hacer.
       </para>
     </sect2>
   </sect1>
@@ -1340,9 +1344,9 @@ virtual void f() = 0;
 
     <para>
       En el capítulo 14 se vio que redefinir una función sobrecargada en
-      la función base oculta todas las otras versiones de esa
-      función. Cuando se involucra a las funciones virtuales el
-      comportamiento es un poco diferente. Consideremos una versión
+      la clase base oculta todas las demás versiones de esa función de
+      la clase base. Cuando hay funciones virtuales de por medio, el
+      comportamiento es un poco diferente. Considere una versión
       modificada del ejemplo <filename>NameHiding.cpp</filename> del
       capítulo 14:
     </para>
@@ -1352,31 +1356,32 @@ virtual void f() = 0;
 
 
     <para>
-      La primera cosa a resaltar es que en
+      Lo primero que hay que resaltar es que en
       <classname>Derived3</classname>, el compilador no permitirá
       cambiar el tipo de retorno de una función redefinida (lo
-      permitiría si <function>f()</function> no fuera virtual). ésta es
+      permitiría si <function>f()</function> no fuera virtual). Ésta es
       una restricción importante porque el compilador debe garantizar
-      que se pueda llamar de forma "polimórfica" a la función a través
+      que se pueda llamar de forma polimórfica a la función a través
       de la clase base, y si la clase base está esperando que
       <function>f()</function> devuelva un <type>int</type>,
       entonces la versión de <function>f()</function> de la clase
-      derivada debe mantener ese compromiso o si no algo fallará.
+      derivada debe mantener ese contrato o si no algo fallará.
     </para>
 
     <para>
-      La regla que se enseño en el capítulo 14 todavía funciona: si se
+      La regla que se enseñó en el capítulo 14 todavía funciona: si se
       redefine una de las funciones miembro sobrecargadas de la
       clase base, las otras versiones sobrecargadas estarán ocultas en
-      la clase derivada. En el <function>main()</function> el código de
-      <classname>Derived4</classname> muestra lo que ocurre incluso si la
-      nueva versión de <function>f()</function> no está actualmente
-      redefiniendo una función virtual existente de la interfaz -
-      ambas versiones de <function>f()</function> en la clase base están
-      ocultas por <function>f(int)</function>. Sin embargo, si se hace un
-      upcast de <varname>d4</varname> a <classname>Base</classname>,
-      entonces únicamente las versiones de la clase base estarán
-      disponibles (porque es el compromiso de la clase base) y la
+      la clase derivada. En el <function>main()</function>, el código
+      que prueba <classname>Derived4</classname> muestra que esto ocurre
+      incluso si la nueva versión de <function>f()</function> no está
+      realmente redefiniendo la interfaz de una función virtual
+      existente - ambas versiones de <function>f()</function> de la
+      clase base están ocultas por <function>f(int)</function>. Sin
+      embargo, si se hace un upcast de <varname>d4</varname> a
+      <classname>Base</classname>, entonces únicamente las versiones de
+      la clase base estarán disponibles (porque es lo que promete el
+      contrato de la clase base) y la
       versión de la clase derivada no está disponible (debido a que no
       está especificada en la clase base).
     </para>
@@ -1392,7 +1397,7 @@ virtual void f() = 0;
 	tipo de retorno. Si se está devolviendo un puntero o una
 	referencia a una clase base, entonces la versión redefinida de
 	la función puede devolver un puntero o una referencia a una
-	clase derivada. Por ejemplo:
+	clase derivada de la que devuelve la base. Por ejemplo:
       </para>
 
 
@@ -1402,10 +1407,10 @@ virtual void f() = 0;
       <para>
 	La función miembro <function>Pet::eats()</function> devuelve un
 	puntero a <classname>PetFood</classname>. En
-	<classname>Bird</classname>, ésta función miembro es
+	<classname>Bird</classname>, esta función miembro es
 	redefinida exactamente como en la clase base, incluyendo el
 	tipo de retorno. Esto es, <function>Bird::eats()</function> hace
-	un <foreignphrase>>upcast</foreignphrase> de
+	un <foreignphrase>upcast</foreignphrase> de
 	<classname>BirdFood</classname> a <classname>PetFood</classname>
 	en el retorno de la función.
       </para>
@@ -1415,17 +1420,17 @@ virtual void f() = 0;
 	<function>eats()</function> es un puntero a
 	<classname>CatFood</classname>, que es un tipo derivado de
 	<classname>PetFood</classname>. El hecho de que el tipo de
-	retorno esté heredado del tipo de retorno la función de la clase
-	base es la única razón que hace que esto compile. De esta forma
-	el acuerdo se cumple totalmente: <function>eats()</function>
+	retorno esté heredado del tipo de retorno de la función de la
+	clase base es la única razón que hace que esto compile. De esta
+	forma el contrato se sigue cumpliendo: <function>eats()</function>
 	siempre devuelve un puntero a <classname>PetFood</classname>.
       </para>
 
       <para>
 	Si se piensa de forma polimórfica lo anterior no parece
-	necesario. ¿Por qué no simplemente se hacen upcast de todos los
-	tipos retornados a <type>PetFood*</type> como lo hace
-	<function>Bird::eats()</function>? Normalmente esa es una buena
+	necesario. ¿Por qué no hacer simplemente upcast de todos los
+	tipos de retorno a <type>PetFood*</type>, como hace
+	<function>Bird::eats()</function>? Normalmente ésa es una buena
 	solución, pero al final del <function>main()</function> se puede
 	ver la diferencia: <function>Cat::eats()</function> puede
 	devolver el tipo exacto de <classname>PetFood</classname>,
@@ -1436,64 +1441,68 @@ virtual void f() = 0;
       </para>
 
       <para>
-	Devolver el tipo exacto es un poco más general y además no
-	pierde la información específica de tipo debida al upcast
-	automático. Sin embargo, devolver un tipo de la clase base
-	generalmente resuelve el problema por lo que esto es una
-	característica bastante específica.
+	Así pues, poder devolver el tipo exacto es un poco más general y
+	no se pierde la información específica de tipo por el upcast
+	automático. Sin embargo, devolver el tipo base generalmente
+	resuelve los problemas, por lo que ésta es una característica
+	bastante especializada.
       </para>
     </sect2>
   </sect1>
 
   <sect1>
-    <title>funciones virtuales y constructores</title>
+    <title>Funciones virtuales y constructores</title>
 
     <para>
       Cuando se crea un objeto que contiene funciones virtuales, su VPTR
-      debe ser inicializado para apuntar a la correcta VTABLE. Esto debe
-      ser hecho antes de que exista la oportunidad de llamar a una
+      debe ser inicializado para apuntar a la VTABLE correcta. Esto debe
+      hacerse antes de que exista la posibilidad de llamar a una
       función virtual. Como se puede adivinar, debido a que el
-      constructor tiene el trabajo de traer a la existencia al objeto,
+      constructor tiene el trabajo de dar existencia al objeto,
       también será trabajo del constructor inicializar el VPTR. El
       compilador de forma secreta añade código al principio del
       constructor para inicializar el VPTR. Y como se describe en el
       capítulo 14, si no se crea un constructor de una clase de forma
       explícita, el compilador genera uno de forma automática. Si la
-      clase tiene funciones virtuales, el constructor incluirá el código
-      apropiado para la inicialización del VPTR. Esto tiene varias
-      consecuencias.
+      clase tiene funciones virtuales, el constructor generado incluirá
+      el código apropiado para la inicialización del VPTR. Esto tiene
+      varias consecuencias.
     </para>
 
     <para>
       La primera concierne a la eficiencia. La razón de que existan
       funciones <kw>inline</kw> es reducir la sobrecarga que
-      produce llamar a funciones pequeñas. Si C++ no proporciona
-      funciones <kw>inline</kw>, el preprocesador debe ser
-      usado para crear estas "macros". Sin embargo, el preprocesador no
-      tiene los conceptos de accesos o clases, y además no puede ser
-      usado para crear macros con funciones miembro. Además, con los
-      constructores que deben tener código oculto insertado por el
-      compilador, una macro del preprocesador no funcionaría del todo.
+      produce llamar a funciones pequeñas. Si C++ no proporcionara
+      funciones <kw>inline</kw>, se podría usar el preprocesador
+      para crear esas <quote>macros</quote>. Sin embargo, el
+      preprocesador no tiene el concepto de acceso ni el de clase, y
+      por tanto no podría usarse para crear macros de funciones
+      miembro. Además, con los constructores que deben tener código
+      oculto insertado por el compilador, una macro del preprocesador
+      no funcionaría en absoluto.
     </para>
 
     <para>
-      Hay que estar precavidos cuando se estén buscando agujeros de
-      eficiencia porque el compilador está insertando código oculto en
-      los constructores. No sólo hay que inicializar el VPTR, también
-      hay que comprobar el valor de <literal>this</literal> (en caso de
-      que el operador <kw>new</kw> devuelva cero), y llamar
-      al constructor de la clase base. Todo junto, éste código puede
-      tener cierto impacto cuando se pensaba que era una simple función
-      <kw>inline</kw>. En particular, el tamaño del
-      constructor puede aplastar al ahorro que se consigue al reducir la
-      sobrecarga en las llamadas. Si se hacen un montón de llamadas a
-      constructores inline, el tamaño del código puede crecer sin ningún
-      beneficio en la velocidad.
+      Cuando se estén buscando agujeros de eficiencia, hay que tener en
+      cuenta que el compilador está insertando código oculto en el
+      constructor. No sólo debe inicializar el VPTR, sino que también
+      debe comprobar el valor de <literal>this</literal> (por si el
+      operador <kw>new</kw> devuelve cero) y llamar a los
+      constructores de la clase base. En conjunto, este código puede
+      tener cierto impacto en lo que se pensaba que era una pequeña
+      llamada a una función <kw>inline</kw>. En particular, el tamaño
+      del constructor puede superar el ahorro que se consigue al
+      reducir la sobrecarga en las llamadas. Si se hacen un montón de
+      llamadas a constructores inline, el tamaño del código puede
+      crecer sin ningún beneficio en la velocidad.
     </para>
 
     <para>
-      Cuando esté afinando el código recuerde considerar el quitar los
-      constructores en línea.
+      Por supuesto, probablemente no convertirá de inmediato todos los
+      constructores pequeños en funciones no inline, porque es mucho más
+      fácil escribirlos inline. Pero cuando esté afinando el código,
+      recuerde considerar la posibilidad de quitar los constructores
+      inline.
     </para>
 
     <sect2>
@@ -1507,20 +1516,21 @@ virtual void f() = 0;
       </para>
 
       <para>
-	Todos los constructores de la clase base son siempre llamados en
+	Siempre se llama a todos los constructores de la clase base en
 	el constructor de una clase heredada. Esto tiene sentido porque
-	el constructor tiene un trabajo especial: ver que el objeto está
-	construido de forma apropiada. Una clase derivada sólo tiene
-	acceso a sus propios miembros, y no a los de la clase
-	base. únicamente el constructor de la clase base puede
-	inicializar de forma adecuada a sus propios elementos. Por lo
+	el constructor tiene un trabajo especial: asegurarse de que el
+	objeto se construye de forma apropiada. Una clase derivada sólo
+	tiene acceso a sus propios miembros, y no a los de la clase
+	base. Únicamente el constructor de la clase base puede
+	inicializar de forma adecuada sus propios elementos. Por lo
 	tanto es esencial que se llame a todos los constructores; de
-	otra forma el objeto no estará construido de forma
-	adecuada. Esto es por lo que el compilador obliga a hacer una
-	llamada por cada trozo en una clase derivada. Se llamará al
+	otra forma el objeto completo no estaría construido de forma
+	adecuada. Por eso el compilador obliga a hacer una llamada a un
+	constructor por cada parte de una clase derivada. Se llamará al
 	constructor por defecto si no se hace una llamada explícita a un
-	constructor de la clase base. Si no existe constructor por
-	defecto, el compilador lo creará.
+	constructor de la clase base en la lista de inicialización del
+	constructor. Si no existe constructor por defecto, el compilador
+	se quejará.
       </para>
 
       <para>
@@ -1528,23 +1538,24 @@ virtual void f() = 0;
 	hereda, se sabe todo sobre la clase base y se puede acceder a
 	todos los miembros públicos y protegidos
 	(<kw>public</kw> y <kw>protected</kw>) de la
-	clase base. ésto significa que se puede asumir que todos los
+	clase base. Esto significa que se debe poder asumir que todos los
 	miembros de la clase base son válidos cuando se está en la clase
 	derivada. En una función miembro normal, la construcción ya ha
 	ocurrido, por lo que todos los miembros de todas las partes del
 	objeto ya han sido construidos. Dentro del constructor, sin
-	embargo, hay que asumir que todos los miembros que se usen han
-	sido construidos. La única manera de garantizarlo es llamando
-	primero al constructor de la clase base. Entonces cuando se esté
+	embargo, hay que poder asumir que todos los miembros que se usen
+	han sido construidos. La única manera de garantizarlo es llamando
+	primero al constructor de la clase base. Entonces, cuando se esté
 	en el constructor de la clase derivada, todos los miembros a los
-	que se pueda acceder en la clase base han sido
-	inicializados. "Saber que todos los miembros son válidos" dentro
-	del constructor es también la razón por la que, dentro de lo
-	posible, se debe inicializar todos los objetos miembros (es
-	decir, los objetos puestos en la clase mediante composición). Si
-	se sigue ésta práctica, se puede asumir que todos los miembros
-	de la clase base y los miembros objetos del objeto actual han
-	sido inicializados.
+	que se pueda acceder en la clase base ya habrán sido
+	inicializados. <quote>Saber que todos los miembros son
+	válidos</quote> dentro del constructor es también la razón por la
+	que, siempre que sea posible, se deben inicializar todos los
+	objetos miembro (es decir, los objetos puestos en la clase
+	mediante composición) en la lista de inicialización del
+	constructor. Si se sigue esta práctica, se puede asumir que todos
+	los miembros de la clase base y los objetos miembro del objeto
+	actual han sido inicializados.
       </para>
     </sect2>
 
@@ -1556,10 +1567,10 @@ virtual void f() = 0;
 	La jerarquía de las llamadas a los constructores plantea un
 	interesante dilema. ¿Qué ocurre si se está dentro de un
 	constructor y se llama a una función virtual? Dentro de una
-	función miembro ordinaria se puede imaginar que ocurrirá - la
+	función miembro ordinaria se puede imaginar qué ocurrirá - la
 	llamada virtual es resuelta en tiempo de ejecución porque el
-	objeto no puede conocer si la función miembro es de la clase en
-	la que está o es de una clase derivada. Por consistencia, se
+	objeto no puede saber si pertenece a la clase en la que está la
+	función miembro o a alguna clase derivada de ella. Por coherencia, se
 	podría pensar que también es lo que debería ocurrir dentro de
 	los constructores.
       </para>
@@ -1571,24 +1582,26 @@ virtual void f() = 0;
       </para>
 
       <para>
-	éste comportamiento tiene sentido por dos
+	Este comportamiento tiene sentido por dos
 	motivos. Conceptualmente, el trabajo del constructor es dar al
-	objeto una <emphasis>existencia</emphasis>. Dentro de cualquier
-	constructor, el objeto puede ser formado sólo parcialmente - se
+	objeto una <emphasis>existencia</emphasis> (lo cual no es
+	precisamente una hazaña corriente). Dentro de cualquier
+	constructor, el objeto puede estar formado sólo parcialmente - se
 	puede saber sólo que los objetos de la clase base han sido
-	inicializados, pero no se puede saber que clases heredan de
-	ésta. Una función virtual, sin embargo, se mueve "arriba" y
-	"abajo" dentro de la jerarquía de herencia. Llama a una función
-	de una clase derivada. Si se pudiera hacer esto dentro de un
-	constructor, se estaría llamando a una función que debe manejar
-	miembros que todavía no han sido inicializados, una receta
-	segura para el desastre.
+	inicializados, pero no se puede saber qué clases heredan de
+	ésta. Una llamada a una función virtual, sin embargo, llega
+	<quote>hacia delante</quote> o <quote>hacia fuera</quote> dentro
+	de la jerarquía de herencia. Llama a una función de una clase
+	derivada. Si se pudiera hacer esto dentro de un constructor, se
+	estaría llamando a una función que podría manipular miembros que
+	todavía no han sido inicializados, una receta segura para el
+	desastre.
       </para>
 
       <para>
 	El segundo motivo es mecánico. Cuando se llama a un constructor,
 	una de las primeras cosas que hace es inicializar su VPTR. Sin
-	embargo, sólo puede saber que es del tipo "actual" - el tipo
+	embargo, sólo puede saber que es del tipo <quote>actual</quote> - el tipo
 	para el que se ha escrito el constructor. El código del
 	constructor ignora completamente si el objeto está en la base de
 	otra clase. Cuando el compilador genera código para ese
@@ -1596,15 +1609,15 @@ virtual void f() = 0;
 	no para la clase base, ni para una clase derivada (debido a que
 	una clase no puede saber quién la hereda). Por eso, el VPTR que
 	use debe apuntar a la VTABLE de <emphasis>esa</emphasis> clase. El
-	VPTR permanece inicializado a la VTABLE para el resto de vida
-	del objeto a menos que no sea la última llamada al
+	VPTR permanece inicializado a esa VTABLE durante el resto de la
+	vida del objeto, a menos que ésta no sea la última llamada a un
 	constructor. Si posteriormente se llama a un constructor de una
-	clase derivada, éste constructor pone el VPTR a
+	clase más derivada, ese constructor pone el VPTR a
 	<emphasis>su</emphasis> VTABLE, y así hasta que el último
 	constructor termine. El estado del VPTR es determinado por el
-	constructor que sea llamado en último lugar. Otra razón por la
-	que los constructores son llamados en orden desde la base al más
-	derivado.
+	constructor que sea llamado en último lugar. Ésta es otra razón
+	por la que los constructores son llamados en orden desde la base
+	al más derivado.
       </para>
 
       <para>
@@ -1614,10 +1627,10 @@ virtual void f() = 0;
 	producirá sólo una llamada a través de su propia VTABLE, y no de
 	la VTABLE del más derivado (como debería suceder después de que
 	todos los constructores hayan sido llamados). Además, muchos
-	compiladores reconocen cuando se hace una llamada a una función
+	compiladores reconocen cuándo se hace una llamada a una función
 	virtual dentro de un constructor, y realizan una ligadura
-	estática porque saben que la ligadura dinámica producirá una
-	llamada a una función local. En todo caso, no se conseguirán los
+	estática porque saben que la ligadura dinámica sólo producirá una
+	llamada a la función local. En cualquier caso, no se conseguirán los
 	resultados que se podían esperar inicialmente de la llamada a
 	una función virtual dentro de un constructor.
       </para>
@@ -1633,55 +1646,57 @@ virtual void f() = 0;
       </para>
 
       <para>
-	El constructor tiene el trabajo especial de iniciar un objeto
-	poco a poco, primero llamando al constructor base y después a
-	los constructores derivados en el orden de la herencia. De
-	manera similar, el destructor tiene otro trabajo especial:
-	desmontar un objeto, el cual puede pertenecer a una jerarquía de
-	clases. Para hacerlo, el compilador genera código que llama a
-	todos los destructores, pero en el orden
-	<emphasis>inverso</emphasis> al que son llamados en los
-	constructores. Es decir, el constructor empieza en la clase más
-	derivada y termina en la clase base. ésta es la opción deseable
-	y segura debido a que el destructor siempre sabe que los
+	El constructor tiene el trabajo especial de montar un objeto
+	pieza a pieza, primero llamando al constructor base y después a
+	los constructores más derivados en el orden de la herencia
+	(también debe llamar por el camino a los constructores de los
+	objetos miembro). De manera similar, el destructor tiene otro
+	trabajo especial: desmontar un objeto, el cual puede pertenecer a
+	una jerarquía de clases. Para hacerlo, el compilador genera
+	código que llama a todos los destructores, pero en el orden
+	<emphasis>inverso</emphasis> a aquel en que los llama el
+	constructor. Es decir, el destructor empieza en la clase más
+	derivada y termina en la clase base. Ésta es la opción deseable
+	y segura debido a que el destructor actual siempre sabe que los
 	miembros de la clase base están vivos y activos. Si se necesita
 	llamar a una función miembro de la clase base dentro del
 	destructor, será seguro hacerlo. De esta forma, el destructor
-	puede realizar su propio limpiado, y entonces llamar al
-	siguiente destructor, el cual hará <emphasis>su</emphasis> propio
-	limpiado, etc. Cada destructor sabe de que clase deriva, pero no
-	cuales derivan de él.
+	puede realizar su propia limpieza, y entonces llamar al
+	siguiente destructor, el cual hará <emphasis>su</emphasis> propia
+	limpieza, etc. Cada destructor sabe de qué clase deriva su clase,
+	pero no qué clases derivan de ella.
       </para>
 
       <para>
 	Hay que tener en cuenta que los constructores y los destructores
-	son los únicos lugares donde tiene que funcionar ésta jerarquía
-	de llamadas (que es automáticamente generada por el
-	compilador). En el resto de las funciones, sólo esa función, sea
-	o no virtual, será llamada (y no las versiones de la clase
-	base). La única forma para acceder a las versiones de la clase
-	base de una función consiste en llamar de forma
-	<emphasis>explicita</emphasis> a esa funciones.
+	son los únicos lugares donde tiene que producirse esta jerarquía
+	de llamadas (y por eso el compilador genera automáticamente la
+	jerarquía adecuada). En el resto de las funciones, sólo esa
+	función, sea o no virtual, será llamada (y no las versiones de la
+	clase base). La única forma de que se llame a las versiones de la
+	clase base de la misma función en las funciones ordinarias
+	(virtuales o no) consiste en llamar de forma
+	<emphasis>explícita</emphasis> a esa función.
       </para>
 
       <para>
 	Normalmente, la acción del destructor es adecuada. Pero ¿qué
 	ocurre si se quiere manipular un objeto a través de un puntero a
 	su clase base (es decir, manipular al objeto a través de su
-	interfaz genérica)? Este tipo de actividades es uno de los
-	objetivos de la programación orientada a objetos. El problema
-	viene cuando se quiere hacer un <kw>delete</kw>
-	(eliminar) de un puntero a un objeto que ha sido creado en el
-	<emphasis>montón</emphasis>
-	(<foreignphrase>>heap</foreignphrase>) con
+	interfaz genérica)? Este tipo de actividad es uno de los
+	objetivos principales de la programación orientada a objetos. El
+	problema viene cuando se quiere hacer un <kw>delete</kw>
+	(eliminar) de un puntero de este tipo a un objeto que ha sido
+	creado en el <emphasis>montón</emphasis>
+	(<foreignphrase>heap</foreignphrase>) con
 	<kw>new</kw>. Si el puntero apunta a la clase base, el
-	compilador sólo puede conocer la versión del destructor que se
-	encuentre en la clase base durante el
-	<kw>delete</kw>. ¿Suena familiar? Al fin y al cabo, es
-	el mismo problema por las que fueron creadas las funciones
-	virtuales en el caso general. Afortunadamente, las funciones
-	virtuales funcionan con los destructores como lo hacen para las
-	otras funciones excepto los constructores.
+	compilador sólo puede saber que debe llamar a la versión del
+	destructor de la clase base durante el
+	<kw>delete</kw>. ¿Le suena? Es el mismo problema que las
+	funciones virtuales se crearon para resolver en el caso
+	general. Afortunadamente, las funciones virtuales funcionan con
+	los destructores igual que con todas las demás funciones,
+	excepto los constructores.
       </para>
 
 
@@ -1693,20 +1708,22 @@ virtual void f() = 0;
 	bp</literal> sólo llama al destructor de la clase base, mientras
 	que <literal>delete b2p</literal> llama al destructor de la
 	clase derivada seguido por el destructor de la clase base, que
-	es el comportamiento que deseamos. Olvidar hacer
-	<kw>virtual</kw> a un destructor es un error
-	peligroso porque a menudo no afecta directamente al
+	es el comportamiento deseado. Olvidar hacer
+	<kw>virtual</kw> un destructor es un error
+	insidioso porque a menudo no afecta directamente al
 	comportamiento del programa, pero puede introducir de forma
-	oculta agujeros de memoria. Además, el hecho de que
-	<emphasis>alguna</emphasis> destrucción está teniendo lugar puede
-	enmascarar el problema.
+	silenciosa fugas de memoria. Además, el hecho de que
+	<emphasis>alguna</emphasis> destrucción esté teniendo lugar puede
+	enmascarar aún más el problema.
       </para>
 
       <para>
-	Es posible que el destructor sea virtual porque el objeto sabe
-	de que tipo es (lo que no ocurre durante la construcción del
-	objeto). Una vez que el objeto ha sido construido, su VPTR es
-	inicializado y se pueden usar las funciones virtuales.
+	Aunque el destructor, como el constructor, es una función
+	<quote>excepcional</quote>, es posible que el destructor sea
+	virtual porque el objeto ya sabe de qué tipo es (mientras que no
+	lo sabe durante la construcción). Una vez que el objeto ha sido
+	construido, su VPTR está inicializado, por lo que pueden
+	producirse llamadas a funciones virtuales.
       </para>
     </sect2>
 
@@ -1714,23 +1731,23 @@ virtual void f() = 0;
       <title>Destructores virtuales puros</title>
 
       <para>
-	Mientras que los destructores virtuales puros son legales en el
-	Standard C++, hay una restricción añadida cuando se usan: hay
-	que proveer de un cuerpo de función a los destructores virtuales
-	puros. Esto parece antinatural; ¿Cómo puede una función virtual
-	ser "pura" si necesita el cuerpo de una función? Pero si se
-	tiene en cuenta que los constructores y los destructores son
+	Aunque los destructores virtuales puros son legales en C++
+	Estándar, hay una restricción añadida cuando se usan: hay
+	que proporcionar un cuerpo de función para el destructor virtual
+	puro. Esto parece antinatural; ¿cómo puede una función virtual
+	ser <quote>pura</quote> si necesita el cuerpo de una función? Pero
+	si se tiene en cuenta que los constructores y los destructores son
 	operaciones especiales tiene más sentido, especialmente si se
 	recuerda que todos los destructores en una jerarquía de clases
-	son llamados siempre. Si se quita la definición de un destructor
-	virtual puro, ¿a qué cuerpo de función se llamará durante la
-	destrucción? Por esto, es absolutamente necesario que el
-	compilador y el enlazador requieran la existencia del cuerpo de
+	son llamados siempre. Si se pudiera omitir la definición de un
+	destructor virtual puro, ¿a qué cuerpo de función se llamaría
+	durante la destrucción? Por esto, es absolutamente necesario que
+	el compilador y el enlazador exijan la existencia del cuerpo de
 	una función para un destructor virtual puro.
       </para>
 
       <para>
-	Si es puro, pero la función tiene cuerpo ¿cuál es su valor? La
+	Si es puro, pero tiene que tener cuerpo, ¿qué valor tiene? La
 	única diferencia que se verá entre el destructor virtual puro y
 	el no-puro es que el destructor virtual puro convierte a la
 	clase base en abstracta, por lo que no se puede crear un objeto
@@ -1740,11 +1757,11 @@ virtual void f() = 0;
 
       <para>
 	Sin embargo, las cosas son un poco confusas cuando se hereda una
-	clase de otra que contenga un destructor puro virtual. Al
+	clase de otra que contenga un destructor virtual puro. Al
 	contrario que en el resto de las funciones virtuales puras,
 	<emphasis>no</emphasis> es necesario dar una definición de un
 	destructor virtual puro en la clase derivada. El hecho de que el
-	siguiente código compile es la prueba:
+	siguiente código compile y enlace es la prueba:
       </para>
 
 
@@ -1752,37 +1769,36 @@ virtual void f() = 0;
 
 
       <para>
-	Normalmente, una función virtual pura en una clase base causará
-	que la clase derivada sea abstracta a menos que esa (y todas las
-	demás funciones virtuales puras) tengan una definición. Pero
-	aquí, no parece ser el caso. Sin embargo, hay que recordar que
-	el compilador crea <emphasis>automáticamente</emphasis> una
-	definición del destructor en todas las clases si no se crea una
-	de forma explícita. Esto es lo que sucede aquí - el destructor
-	de la clase base es redefinido de forma oculta, y una
-	definición es puesta por el compilador por lo que
-	<classname>Derived</classname> no es abstracta.
+	Normalmente, una función virtual pura en una clase base haría
+	que la clase derivada fuera abstracta a menos que se le diera
+	una definición a ella (y a todas las demás funciones virtuales
+	puras). Pero aquí no parece ser el caso. Sin embargo, hay que
+	recordar que el compilador crea <emphasis>automáticamente</emphasis>
+	una definición del destructor en todas las clases si no se crea
+	una de forma explícita. Esto es lo que sucede aquí - el destructor
+	de la clase base se está redefiniendo de forma silenciosa, por lo
+	que es el compilador quien proporciona la definición y
+	<classname>Derived</classname> no es realmente abstracta.
       </para>
 
       <para>
-	Esto nos brinda una cuestión interesante: ¿Cuál es el sentido de
-	un destructor virtual puro? Al contrario que con las funciones
-	virtuales puras ordinarias en las que hay que
-	<emphasis>dar</emphasis> el cuerpo de una función, en una clase
-	derivada de otra con un destructor virtual puro, no se está
-	obligado a implementar el cuerpo de la función porque el
-	compilador genera automáticamente el destructor. Entonces ¿Cuál
-	es la diferencia entre un destructor virtual normal y un
-	destructor virtual puro?
+	Esto plantea una cuestión interesante: ¿cuál es el sentido de
+	un destructor virtual puro? A diferencia de una función virtual
+	pura ordinaria, hay que <emphasis>darle</emphasis> un cuerpo de
+	función. En una clase derivada, no se está obligado a
+	proporcionar una definición, ya que el compilador genera
+	automáticamente el destructor. Entonces, ¿cuál es la diferencia
+	entre un destructor virtual normal y un destructor virtual puro?
       </para>
 
       <para>
-	La única diferencia ocurre cuando se tiene una clase que sólo
+	La única diferencia aparece cuando se tiene una clase que sólo
 	tiene una función virtual pura: el destructor. En este caso, el
 	único efecto de la <emphasis>pureza</emphasis> del destructor es
-	prevenir la instanciación de la clase base, pero si no existen
-	otros destructores en las clase heredadas, el destructor virtual
-	se ejecutará. Por esto, mientras que el añadir un destructor
+	impedir la instanciación de la clase base. Si hubiera otras
+	funciones virtuales puras, éstas impedirían la instanciación de
+	la clase base, pero si no las hay, será el destructor virtual
+	puro el que lo haga. Por esto, mientras que añadir un destructor
 	virtual es esencial, el hecho de que sea puro o no lo sea no es
 	tan importante.
       </para>
@@ -1791,7 +1807,7 @@ virtual void f() = 0;
 	Cuando se ejecuta el siguiente ejemplo, se puede ver que se
 	llama al cuerpo de la función virtual pura después de la versión
 	que está en la clase derivada, igual que con cualquier otro
-	destructor.
+	destructor:
       </para>
 
 
