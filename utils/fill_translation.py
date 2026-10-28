@@ -19,6 +19,9 @@ un fichero de reglas en Python:
   unwrap.py.
 - Con el tipo 'code' o 'screen', el hueco se sustituye por un
   <programlisting> o un <screen> con el texto tal cual (se escapan &, < y >).
+- Con el tipo 'replace', el bloque que sigue al comentario no tiene por qué
+  estar vacío: se sustituye su contenido. Sirve para rehacer traducciones a
+  medias o párrafos donde se pegó el original.
 
 Si alguna regla falla, no se escribe nada.
 
@@ -30,8 +33,31 @@ import re
 import sys
 
 EMPTY = re.compile(r'\s*<(para|title)>\s*</\1>')
+OPEN = re.compile(r'\s*<(para|title)>')
 COMMENT = re.compile(r'<!--(.*?)-->', re.S)
 LISTING = {'code': 'programlisting', 'screen': 'screen'}
+
+
+class Block:
+    "el <para> o <title> que empieza en pos, con sus elementos anidados"
+    def __init__(self, text, pos):
+        opening = OPEN.match(text, pos)
+        self.ok = opening is not None
+        if not self.ok:
+            return
+        tag = opening.group(1)
+        tags = re.compile(rf'<(/?){tag}>')
+        depth, end = 0, opening.start(1) - 1
+        for m in tags.finditer(text, end):
+            depth += -1 if m.group(1) else 1
+            if depth == 0:
+                end = m.end()
+                break
+        else:
+            self.ok = False
+            return
+        self.tag, self.start, self.end = tag, pos, end
+        self.lead = text[pos:opening.start(1) - 1]
 
 
 def norm(text):
@@ -57,6 +83,17 @@ def fill(text, rules):
         snippet, translation = rule[0], rule[1]
         kind = rule[2] if len(rule) > 2 else None
         match = matcher(snippet)
+        if kind == 'replace':
+            hits = [m for m in COMMENT.finditer(text)
+                    if match(m.group(1)) and Block(text, m.end()).ok]
+            if len(hits) != 1:
+                errors.append(f'{len(hits)} bloques: {snippet[:60]!r}')
+                continue
+            block = Block(text, hits[0].end())
+            new = f'{block.lead}<{block.tag}>{norm(translation)}</{block.tag}>'
+            text = text[:block.start] + new + text[block.end:]
+            continue
+
         # solo cuentan los comentarios que aún tienen el hueco vacío detrás
         hits = [m for m in COMMENT.finditer(text)
                 if match(m.group(1)) and EMPTY.match(text, m.end())]

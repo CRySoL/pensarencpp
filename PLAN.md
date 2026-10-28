@@ -62,8 +62,11 @@ está incluido.
 
 ## Fase 2: completar los capítulos a medias (unas 25.800 palabras)
 
-- **C11:** el final de «Finalización de tareas», más «Cooperación entre
-  hilos», «Bloqueo letal», el resumen y los ejercicios.
+- **C11 (hecho el 29/10/2026):** el final de «Finalización de tareas», más
+  «Cooperación entre hilos», «Interbloqueo», el resumen y los ejercicios.
+  Además: la parte ya traducida tuteaba al lector en las primeras secciones
+  y tenía 22 «FIXME» y párrafos a medias; se han rehecho esos párrafos y se
+  han restaurado cinco `<sect3>` cuyos títulos estaban pegados al texto.
 - **C10:** el resto de «Factorías», más Builder, Observador, «Despachado
   múltiple», el resumen y los ejercicios.
 - **C09:** desde «Herencia de implementación» hasta el final.
@@ -105,7 +108,10 @@ Cada unidad de trabajo es un `sect1`, o un `sect2` si la sección pasa de
    `<title> </title>`. **El comentario no se borra**, como pide el README.
    `utils/fill_translation.py` rellena los huecos a partir de un fichero de
    reglas (fragmento del comentario y traducción) y no escribe nada si alguna
-   regla no encaja.
+   regla no encaja. Con el tipo `'replace'` rehace un párrafo ya traducido.
+   Antes de dar un capítulo por cerrado, `utils/translation_status.py -r`
+   señala las traducciones a medias, y conviene buscar los «FIXME» y el
+   tuteo que hayan quedado de traducciones anteriores.
 2. **Normas:** seguir [TRADUCCION](TRADUCCION) y `misc/guiaestilo.html`:
    - nada de gerundios en los títulos y la menor pasiva posible;
    - dirigirse al lector en tercera persona del singular, sin escribir
@@ -135,6 +141,25 @@ Cada unidad de trabajo es un `sect1`, o un `sect2` si la sección pasa de
 
 ## Fuera de este plan
 
-Las tareas pendientes del volumen 1 que figuran en [TODO](TODO): cambiar
-«template» por «plantilla» en todo el libro y traducir los comentarios de los
-listados. Son tareas de revisión, no de traducción.
+La tarea pendiente del volumen 1 que figura en [TODO](TODO): traducir los
+comentarios de los listados. Es una tarea de revisión, no de traducción. (El
+cambio de «template» por «plantilla» ya está hecho en la prosa del volumen 1;
+solo queda la aclaración «(o templates)» de la primera mención en C16.)
+
+## Asuntos pendientes del volumen 1
+
+Surgieron en la revisión automática del volumen 1 y requieren una decisión:
+
+1. **Agradecimientos del Prólogo.** La sección «Agradecimientos» de
+   [V1-Prologo.xml](V1-Prologo.xml) publica literalmente «Por hacer: LuCAS,
+   spanglish@uma.es, docbook-ayuda@es.tldp.org». Falta escribir el texto.
+2. ***Redefining* frente a *overriding*.** El glosario traduce *override*
+   como «redefinir», pero Eckel distingue *redefining* (función miembro
+   ordinaria) de *overriding* (función virtual). Por ahora, la definición de
+   C14 («Ocultación de nombres») deja ambos términos en inglés, como ya hacía
+   C15, y el resto de C15 y C16 usa «redefinir». Hay que fijar un término para
+   cada uno y aplicarlo a C14, C15 y al glosario, que también rige el
+   volumen 2.
+3. ***Librarian*.** El glosario tiene «bibliotecario» en «No convencen». En
+   C02 y C03 se ha usado «gestor de librerías». Si se acepta, hay que
+   añadirlo al glosario.

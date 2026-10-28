@@ -5,9 +5,11 @@ Cada comentario con el original en inglés cuenta como traducido si el
 elemento que le sigue contiene texto en castellano, y como pendiente si está
 vacío o sigue en inglés. Las cifras son palabras del original.
 
-Uso: translation_status.py [-s] [-v] FICHERO.xml...
+Uso: translation_status.py [-s] [-v] [-r] FICHERO.xml...
   -s  desglose por sect1
   -v  línea de cada bloque pendiente
+  -r  línea de cada traducción mucho más corta que su original: suele ser
+      un párrafo a medias o con un trozo del original pegado
 """
 
 import re
@@ -101,6 +103,23 @@ def measure(root):
     return done, pending, lines
 
 
+def too_short(root, ratio=0.6, minimum=15):
+    "líneas de las traducciones con menos de ratio veces las palabras del original"
+    lines = []
+    for comment in root.iter(etree.Comment):
+        if not comment.text or language(comment.text, strict=True) != 'en':
+            continue
+        target = next_element(comment)
+        if target is None or not is_translated(target):
+            continue
+        original = len(comment.text.split())
+        blocks = [b for b in target.iter() if name(b) in BLOCKS]
+        translated = sum(len(text_of(b).split()) for b in blocks)
+        if original >= minimum and translated < ratio * original:
+            lines.append(target.sourceline)
+    return lines
+
+
 def section_title(sect):
     title = sect.find('title')
     if title is None:
@@ -121,6 +140,7 @@ def main():
     args = sys.argv[1:]
     sections = '-s' in args
     verbose = '-v' in args
+    review = '-r' in args
     files = [a for a in args if not a.startswith('-')]
     if not files:
         sys.exit(__doc__)
@@ -147,6 +167,11 @@ def main():
 
         if verbose and lines:
             print('    pendiente en líneas:', ' '.join(map(str, lines)))
+
+        if review:
+            short = too_short(root)
+            if short:
+                print('    revisar en líneas:', ' '.join(map(str, short)))
 
     if len(files) > 1:
         print(f"{'TOTAL':{width}}  {total_done:9}  {total_pending:9}  "
