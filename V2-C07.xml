@@ -1,0 +1,3153 @@
+<?xml  version="1.0" encoding="utf-8"?>
+<!-- -*- sgml -*- -->
+<!--
+  Editor:              Emacs/PSGML
+  Traducción original:
+  Formateado DocBook:
+-->
+
+<!-- original de referencia en:
+https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985769
+-->
+
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+                 "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd">
+
+<chapter
+  xmlns:xi="http://www.w3.org/2001/XInclude"
+  id="C07">
+
+  <!-- 7: Generic Containers -->
+  <title> </title>
+
+  <!--
+  Container classes are the solution to a specific kind of code reuse problem. They are building blocks used to create object–oriented programs, and they make the internals of a program much easier to construct.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  A container class describes an object that holds other objects. Container classes are so important that they were considered fundamental to early object-oriented languages. In Smalltalk, for example, programmers think of the language as the program translator together with the class library, and a critical part of that library is the set of container classes. It became natural, therefore, for C++ compiler vendors to also include a container class library. You’ll note that the vector is so useful that it was introduced in its simplest form early in Volume 1 of this book.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  Like many other early C++ libraries, early container class libraries followed Smalltalk’s object-based hierarchy, which worked well for Smalltalk, but turned out to be awkward and difficult to use in C++. Another approach was required.
+  -->
+  <para>
+
+  </para>
+
+  <!--
+  The C++ approach to containers is based on templates. The containers in the Standard C++ library represent a broad range of data structures designed to work well with the standard algorithms and to meet common software development needs.
+  -->
+  <para>
+
+  </para>
+
+  <sect1>
+    <!-- : Containers and iterators -->
+    <title> </title>
+
+
+    <!--
+    If you don’t know how many objects you’re going to need to solve a particular problem, or how long they will last, you also don’t know ahead of time how to store those objects. How can you know how much space to create? The answer is you don’t—until run time.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The solution to most problems in object-oriented design seems simple; you create another type of object. For the storage problem, the new type of object holds other objects or pointers to objects. This new type of object, which is typically referred to in C++ as a container (also called a collection in some languages), expands itself whenever necessary to accommodate everything you place inside it. You don’t need to know ahead of time how many objects you’re going to place in a container; you just create a container object and let it take care of the details.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Fortunately, a good object-oriented programming language comes with a set of containers. In C++, it’s the Standard Template Library (STL). In some libraries, a generic container is considered good enough for all needs, and in others (C++ in particular) the library has different types of containers for different needs: a vector for efficient access to all elements, and a linked list for efficient insertion at all positions, and several more, so you can choose the particular type that fits your needs.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    All containers have some way to put things in and get things out. The way you place something into a container is fairly obvious; there’s a function called “push” or “add” or a similar name. The way you retrieve things from a container is not always as apparent; if an entity is array-like, such as a vector, you might be able to use an indexing operator or function. But in many situations this doesn’t make sense. Also, a single- selection function is restrictive. What if you want to manipulate or compare a group of elements in the container?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The solution for flexible element access is the iterator, an object whose job is to select the elements within a container and present them to the user of the iterator. As a class, an iterator also provides a level of abstraction, which you can use to separate the details of the container from the code that’s accessing that container. The container, via the iterator, is seen as a sequence. The iterator lets you traverse the sequence without worrying about the underlying structure—that is, whether it’s a vector, a linked list, a set, or something else. This gives you the flexibility to easily change the underlying data structure without disturbing the code in your program that traverses the container. Separating iteration from the container’s control also allows multiple simultaneous iterators.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    From a design standpoint, all you really want is a sequence that can be manipulated to solve your problem. If a single type of sequence satisfied all your needs, there would be no reason to have different types. You need a choice of containers for two reasons. First, containers provide different types of interfaces and external behavior. A stack has an interface and a behavior that is different from that of a queue, which is different from that of a set or a list. One of these might provide a more flexible solution to your problem than the other, or it might provide a clearer abstraction that conveys your design intent. Second, different containers have different efficiencies for certain operations. Compare a vector to a list, for example. Both are simple sequences that can have nearly identical interfaces and external behaviors. But certain operations can have radically different costs. Randomly accessing elements in a vector is a constant-time operation; it takes the same amount of time regardless of the element you select. However, it is expensive to move through a linked list to randomly access an element, and it takes longer to find an element if it is farther down the list. On the other hand, if you want to insert an element in the middle of a sequence, it’s cheaper with a list than with a vector. The efficiencies of these and other operations depend on the underlying structure of the sequence. In the design phase, you might start with a list and, when tuning for performance, change to a vector, or vice-versa. Because of iterators, code that merely traverses sequences is insulated from changes in the underlying sequence implementation.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Remember that a container is only a storage cabinet that holds objects. If that cabinet solves all your needs, it probably doesn’t really matter how it is implemented. If you’re working in a programming environment that has built-in overhead due to other factors, the cost difference between a vector and a linked list might not matter. You might need only one type of sequence. You can even imagine the “perfect” container abstraction, which can automatically change its underlying implementation according to the way it is used.[99]
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : STL reference documentation -->
+      <title> </title>
+
+
+      <!--
+      As in the previous chapter, you will notice that this chapter does not contain exhaustive documentation describing each of the member functions in each STL container. Although we describe the member functions we use, we’ve left the full descriptions to others. We recommend the online resources available for the Dinkumware, Silicon Graphics, and STLPort STL implementations.[100]
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : A first look -->
+    <title> </title>
+
+
+    <!--
+    Here’s an example using the set class template, a container modeled after a traditional mathematical set and which does not accept duplicate values. The following set was created to work with ints:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Intset.cpp
+
+
+
+    <!--
+    The insert( ) member does all the work: it attempts to insert an element and ignores it if it’s already there. Often the only activities involved in using a set are simply insertion and testing to see whether it contains the element. You can also form a union, an intersection, or a difference of sets and test to see if one set is a subset of another. In this example, the values 0–9 are inserted into the set 25 times, but only the 10 unique instances are accepted.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Now consider taking the form of Intset.cpp and modifying it to display a list of the words used in a document. The solution becomes remarkably simple.
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:WordSet.cpp
+
+
+
+    <!--
+    The only substantive difference here is that the set holds strings instead of integers. The words are pulled from a file, but the other operations are similar to those in Intset.cpp. Not only does the output reveal that duplicates have been ignored, but because of the way set is implemented, the words are automatically sorted.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A set is an example of an associative container, one of the three categories of containers provided by the Standard C++ library. The containers and their categories are summarized in the following table:
+    -->
+    <para>
+
+    </para>
+    <!-- FIXME: aquí va una tabla del original -->
+    <!--
+    Category Containers Sequence Containers vector, list, deque Container Adaptors queue, stack, priority_queue Associative Containers set, map, multiset, multimap
+    -->
+
+    <!--
+    These categories represent different models that are used for different needs. The Sequence Containers simply organize their elements linearly, and are the most fundamental type of containers. For some problems, special properties need to be attached to these sequences, and that’s exactly what the Container Adaptors do—they model abstractions such as a queue or stack. The associative containers organize their data based on keys, allowing for fast retrieval of that data.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    All the containers in the standard library hold copies of the objects you place in them, and expand their resources as needed, so your objects must be copy-constructible (have an accessible copy constructor) and assignable (have an accessible assignment operator). The key difference between one container and another is the way the objects are stored in memory and what operations are available to the user.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A vector, as you already know, is a linear sequence that allows rapid random access to its elements. However, it’s expensive to insert an element in the middle of a co-located sequence like a vector, just as it is with an array. A deque (double-ended- queue, pronounced “deck”) also allows random access that’s nearly as fast as vector, but it’s significantly faster when it needs to allocate new storage, and you can easily add new elements at the front as well as the back of the sequence. A list is a doubly linked list, so it’s expensive to move around randomly but cheap to insert an element anywhere. Thus list, deque and vector are similar in their basic functionality (they all hold linear sequences), but different in the cost of their activities. For your first attempt at a program, you could choose any one and experiment with the others only if you’re tuning for efficiency.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Many of the problems you set out to solve will only require a simple linear sequence such as a vector, deque, or list. All three have a member function push_back( ) that you use to insert a new element at the back of the sequence (deque and list also have push_front( ), which inserts elements at the beginning of the sequence).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    But how do you retrieve the elements stored in a sequence container? With a vector or deque, it is possible to use the indexing operator[ ], but that doesn’t work with list. You can use iterators on all three sequences to access elements. Each container provides the appropriate type of iterator for accessing its elements.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Even though the containers hold objects by value (that is, they hold copies of whole objects), sometimes you’ll want to store pointers so that you can refer to objects from a hierarchy and thus take advantage of the polymorphic behavior of the classes represented. Consider the classic “shape” example where shapes have a set of common operations, and you have different types of shapes. Here’s what it looks like using the STL vector to hold pointers to various Shape types created on the heap:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Stlshape.cpp
+
+
+
+    <!--
+    The creation of Shape, Circle, Square, and Triangle should be fairly familiar. Shape is an abstract base class (because of the pure specifier =0) that defines the interface for all types of Shapes. The derived classes override the virtual function draw( ) to perform the appropriate operation. Now we’d like to create a bunch of different types of Shape objects, and the natural place to store them is in an STL container. For convenience, this typedef:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+typedef std::vector&lt;Shape*&gt; Container;
+</programlisting>
+
+    <!--
+    creates an alias for a vector of Shape*, and this typedef:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+typedef Container::iterator Iter;
+</programlisting>
+
+    <!--
+    uses that alias to create another one, for vector<Shape*>::iterator. Notice that the container type name must be used to produce the appropriate iterator, which is defined as a nested class. Although there are different types of iterators (forward, bidirectional, random, and so on), they all have the same basic interface: you can increment them with ++, you can dereference them to produce the object they’re currently selecting, and you can test them to see if they’re at the end of the sequence. That’s what you’ll want to do 90 percent of the time. And that’s what is done in the previous example: after a container is created, it’s filled with different types of Shape pointers. Notice that the upcast happens as the Circle, Square, or Rectangle pointer is added to the Shapes container, which doesn’t know about those specific types but instead holds only Shape*. As soon as the pointer is added to the container, it loses its specific identity and becomes an anonymous Shape*. This is exactly what we want: toss them all in and let polymorphism sort it out.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The first for loop creates an iterator and sets it to the
+    beginning of the sequence by calling the begin( ) member
+    function for the container. All containers have begin( ) and
+    end( ) member functions that produce an iterator selecting,
+    respectively, the beginning of the sequence and one past the end
+    of the sequence. To test to see if you’re done, you make sure
+    the iterator is not equal to the iterator produced by end( );
+    don’t use < or <=. The only tests that work are != and ==, so
+    it’s common to write a loop like:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+for(Iter i = shapes.begin(); i != shapes.end(); i++)
+</programlisting>
+
+    <!--
+    This says “take me through every element in the sequence.”
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    What do you do with the iterator to produce the element it’s selecting? You dereference it using (what else?) the ‘*’ (which is actually an overloaded operator). What you get back is whatever the container is holding. This container holds Shape*, so that’s what *i produces. If you want to call a Shape member function, you must do so with the -> operator, so you write the line:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+(*i)-&gt;draw();
+</programlisting>
+
+    <!--
+    This calls the draw( ) function for the Shape* the iterator is currently selecting. The parentheses are ugly but necessary to produce the desired operator precedence.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    As they are destroyed or in other cases where the pointers are removed, the STL containers do not automatically call delete for the pointers they contain. If you create an object on the heap with new and place its pointer in a container, the container can’t tell if that pointer is also placed inside another container, nor if it refers to heap memory in the first place. As always, you are responsible for managing your own heap allocations. The last lines in the program move through and delete every object in the container so that proper cleanup occurs. The easiest and safest way to handle pointers in containers is to use smart pointers. It should be noted that auto_ptr can’t be used for this purpose, so you will need to look outside of the C++ Standard Library for a suitable smart pointers.[101]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You can change the type of container that this program uses with two lines. Instead of including <vector>, you include <list>, and in the first typedef you say:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+typedef std::list&lt;Shape*&gt; Container;
+</programlisting>
+
+    <!--
+    instead of using a vector. Everything else goes untouched. This is possible not because of an interface enforced by inheritance (there is little inheritance in the STL), but because the interface is enforced by a convention adopted by the designers of the STL, precisely so you could perform this kind of interchange. Now you can easily switch between vector and list or any other container that supports the same interface (both syntactically and semantically) and see which one works fastest for your needs.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Containers of strings -->
+      <title> </title>
+
+
+      <!--
+      In the previous example, at the end of main( ) it was necessary to move through the whole list and delete all the Shape pointers:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+for(Iter j = shapes.begin(); j != shapes.end(); j++)
+delete *j;
+</programlisting>
+
+      <!--
+      STL containers make sure that each object they contain has its destructor called when the container itself is destroyed. Pointers, however, have no destructor, so we have to delete them ourselves.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This highlights what could be seen as an oversight in the STL: there’s no facility in any of the STL containers to automatically delete the pointers they contain, so you must do it manually. It’s as if the assumption of the STL designers was that containers of pointers weren’t an interesting problem, but that’s not the case.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Automatically deleting a pointer turns out to be problematic because of the multiple membership problem. If a container holds a pointer to an object, it’s not unlikely that pointer could also be in another container. A pointer to an Aluminum object in a list of Trash pointers could also reside in a list of Aluminum pointers. If that happens, which list is responsible for cleaning up that object—that is, which list “owns” the object?
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This question is virtually eliminated if the object rather than a pointer resides in the list. Then it seems clear that when the list is destroyed, the objects it contains must also be destroyed. Here, the STL shines, as you can see when creating a container of string objects. The following example stores each incoming line as a string in a vector<string>:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:StringVector.cpp
+
+
+
+      <!--
+      Once the vector<string> called strings is created, each line in the file is read into a string and put in the vector:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+while(getline(in, line))
+strings.push_back(line);
+</programlisting>
+
+      <!--
+      The operation that’s being performed on this file is to add line numbers. A stringstream provides easy conversion from an int to a string of characters representing that int.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Assembling string objects is quite easy, since operator+ is overloaded. Sensibly enough, the iterator w can be dereferenced to produce a string that can be used as both an rvalue and an lvalue:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+*w = ss.str() + ": " + *w;
+</programlisting>
+
+      <!--
+      You may be surprised that you can assign back into the container via the iterator, but it’s a tribute to the careful design of the STL.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Because the vector<string> contains the objects, two things are worthy of note. First, as explained before, you don’t need to explicitly clean up the string objects. Even if you put addresses of the string objects as pointers into other containers, it’s clear that strings is the “master list” and maintains ownership of the objects.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Second, you are effectively using dynamic object creation, and yet you never use new or delete! It’s all taken care of for you by the vector because it stores copies of the objects you give it. Thus your coding is significantly cleaned up.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : Inheriting from STL containers -->
+      <title> </title>
+
+
+      <!--
+      The power of instantly creating a sequence of elements is amazing, and it makes you realize how much time you may have lost in the past solving this particular problem. For example, many utility programs involve reading a file into memory, modifying the file, and writing it back out to disk. You might as well take the functionality in StringVector.cpp and package it into a class for later reuse.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Now the question is: do you create a member object of type vector, or do you inherit? A general object-oriented design guideline is to prefer composition (member objects) over inheritance, but the standard algorithms expect sequences that implement a particular interface, so inheritance is often necessary.
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:FileEditor.h
+
+
+
+      <!--
+      The constructor opens the file and reads it into the FileEditor, and write( ) puts the vector of string onto any ostream. Notice in write( ) that you can have a default argument for the reference.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The implementation is quite simple:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:FileEditor.cpp
+
+
+
+      <!--
+      The functions from StringVector.cpp are simply repackaged. Often this is the way classes evolve—you start by creating a program to solve a particular application and then discover some commonly used functionality within the program that can be turned into a class.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The line-numbering program can now be rewritten using FileEditor:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:FEditTest.cpp
+
+
+
+      <!--
+      Now the operation of reading the file is in the constructor:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+FileEditor file(argv[1]);
+</programlisting>
+
+      <!--
+      (or in the open( ) member function), and writing happens in the single line (which defaults to sending the output to cout):
+      -->
+      <para>
+
+      </para>
+<programlisting>
+file.write();
+</programlisting>
+
+      <!--
+      The bulk of the program is involved with modifying the file in memory.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : A plethora of iterators -->
+    <title> </title>
+
+
+    <!--
+    An iterator is an abstraction for genericity. It works with different types of containers without knowing the underlying structure of those containers. Most containers support iterators,[102] so you can say:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+&lt;ContainerType&gt;::iterator
+&lt;ContainerType&gt;::const_iterator
+</programlisting>
+
+    <!--
+    to produce the iterator types for a container. Every container has a begin( ) member function that produces an iterator indicating the beginning of the elements in the container, and an end( ) member function that produces an iterator which is the past-the-end marker of the container. If the container is const¸ begin( ) and end( ) produce const iterators, which disallow changing the elements pointed to (because the appropriate operators are const).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    All iterators can advance within their sequence (via operator++) and allow == and != comparisons. Thus, to move an iterator it forward without running it off the end, you say something like:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+while(it != pastEnd) {
+// Do something
+++it;
+}
+</programlisting>
+
+    <!--
+    where pastEnd is the past-the-end marker produced by the container’s end( ) member function.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    An iterator can be used to produce the container element that it is currently selecting via the dereferencing operator (operator*). This can take two forms. If it is an iterator traversing a container, and f( ) is a member function of the type of objects held in the container, you can say either:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+(*it).f();
+</programlisting>
+
+    <!--
+    or
+    -->
+    <para>
+
+    </para>
+<programlisting>
+it-&gt;f();
+</programlisting>
+
+    <!--
+    Knowing this, you can create a template that works with any container. Here, the apply( ) function template calls a member function for every object in the container, using a pointer to member that is passed as an argument:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Apply.cpp
+
+
+
+    <!--
+    You can’t use operator-> here because the resulting statement would be:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+(it-&gt;*f)();
+</programlisting>
+
+    <!--
+    which attempts to use the iterator’s operator->*, which is not provided by the iterator classes.[103]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    It is much easier to use either for_each( ) or transform( ) to apply functions to sequences, as you saw in the previous chapter.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Iterators in reversible containers -->
+      <title> </title>
+
+
+      <!--
+      A container may also be reversible, which means that it can produce iterators that move backward from the end, as well as iterators that move forward from the beginning. All standard containers support such bidirectional iteration.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A reversible container has the member functions rbegin( ) (to produce a reverse_iterator selecting the end) and rend( ) (to produce a reverse_iterator indicating “one past the beginning”). If the container is const, rbegin( ) and rend( ) will produce const_reverse_iterators.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following example uses vector but will work with all containers that support iteration:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:Reversible.cpp
+
+
+
+      <!--
+      You move backward through the container using the same syntax as you do when moving forward through a container with an ordinary iterator.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : Iterator categories -->
+      <title> </title>
+
+
+      <!--
+      The iterators in the Standard C++ library are classified into “categories” that describe their capabilities. The order in which they are generally described moves from the categories with the most restricted behavior to those with the most powerful behavior.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- : Input: read–only, one pass -->
+        <title> </title>
+
+
+        <!--
+        The only predefined implementations of input iterators are istream_iterator and istreambuf_iterator, to read from an istream. As you can imagine, an input iterator can only be dereferenced once for each element that’s selected, just as you can only read a particular portion of an input stream once. They can only move forward. A special constructor defines the past-the-end value. In summary, you can dereference it for reading (once only for each value) and move it forward.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Output: write–only, one pass -->
+        <title> </title>
+
+
+        <!--
+        This is the complement of an input iterator, but for writing rather than reading. The only predefined implementations of output iterators are ostream_iterator and ostreambuf_iterator, to write to an ostream, and the less commonly used raw_storage_iterator. Again, these can only be dereferenced once for each written value, and they can only move forward. There is no concept of a terminal past-the-end value for an output iterator. Summarizing, you can dereference it for writing (once only for each value) and move it forward.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Forward: multiple read/write -->
+        <title> </title>
+
+
+        <!--
+        The forward iterator contains all the functionality of both the input iterator and the output iterator, plus you can dereference an iterator location multiple times, so you can read and write to a value multiple times. As the name implies, you can only move forward. There are no predefined iterators that are only forward iterators.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Bidirectional: operator–– -->
+        <title> </title>
+
+
+        <!--
+        The bidirectional iterator has all the functionality of the forward iterator, and in addition it can be moved backward one location at a time using operator- -. The iterators returned by the list container are bidirectional.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Random–access: like a pointer -->
+        <title> </title>
+
+
+        <!--
+        Finally, the random-access iterator has all the functionality of the bidirectional iterator plus all the functionality of a pointer (a pointer is a random-access iterator), except that there is no “null” iterator analogue to a null pointer. Basically, anything you can do with a pointer you can do with a random-access iterator, including indexing with operator[ ], adding integral values to a pointer to move it forward or backward by a number of locations, or comparing one iterator to another with comparison operators.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Is this really important? -->
+        <title> </title>
+
+
+        <!--
+        Why do you care about this categorization? When you’re just using containers in a straightforward way (for example, just hand-coding all the operations you want to perform on the objects in the container), it usually doesn’t matter. Things either work or they don’t. The iterator categories become important when:
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        1. You use some of the fancier built-in iterator types that will be demonstrated shortly, or you “graduate” to creating your own iterators (demonstrated later in this chapter).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        2. You use the STL algorithms (the subject of the previous chapter). Each of the algorithms places requirements on its iterators. Knowledge of the iterator categories is even more important when you create your own reusable algorithm templates, because the iterator category required by your algorithm determines how flexible the algorithm will be. If you require only the most primitive iterator category (input or output), your algorithm will work with everything (copy( ) is an example of this).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        An iterator’s category is identified by a hierarchy of iterator tag classes. The class names correspond to the iterator categories, and their derivation reflects the relationship between them:
+        -->
+        <para>
+
+        </para>
+<programlisting>
+struct input_iterator_tag {};
+struct output_iterator_tag {};
+struct forward_iterator_tag :
+public input_iterator_tag {};
+struct bidirectional_iterator_tag :
+public forward_iterator_tag {};
+struct random_access_iterator_tag :
+public bidirectional_iterator_tag {};
+</programlisting>
+
+        <!--
+        The class forward_iterator_tag derives only from input_iterator_tag, not from output_iterator_tag, because we need to have past-the-end iterator values in algorithms that use forward iterators, but algorithms that use output iterators always assume that operator* can be dereferenced. For this reason, it is important to make sure that a past-the-end value is never passed to an algorithm that expects an output iterator.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        For efficiency, certain algorithms provide different implementations for different iterator types, which they infer from the iterator tag defined by the iterator. We will use some of these tag classes later in this chapter when we define our own iterator types.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <!-- : Predefined iterators -->
+      <title> </title>
+
+
+      <!--
+      The STL has a predefined set of iterators that can be quite handy. For example, you’ve already seen the reverse_iterator objects produced by calling rbegin( ) and rend( ) for all the basic containers.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The insertion iterators are necessary because some of the STL algorithms—copy( ), for example—use the assignment operator= to place objects in the destination container. This is a problem when you’re using the algorithm to fill the container rather than to overwrite items that are already in the destination container—that is, when the space isn’t already there. What the insert iterators do is change the implementation of operator= so that instead of doing an assignment, it calls a “push” or “insert” function for that container, thus causing it to allocate new space. The constructors for both back_insert_iterator and front_insert_iterator take a basic sequence container object (vector, deque or list) as their argument and produce an iterator that calls push_back( ) or push_front( ), respectively, to perform assignment. The helper functions back_inserter( ) and front_inserter( ) produce these insert- iterator objects with a little less typing. Since all the basic sequence containers support push_back( ), you will probably find yourself using back_inserter( ) with some regularity.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      An insert_iterator lets you insert elements in the middle of the sequence, again replacing the meaning of operator=, but this time by automatically calling insert( ) instead of one of the “push” functions. The insert( ) member function requires an iterator indicating the place to insert before, so the insert_iterator requires this iterator in addition to the container object. The shorthand function inserter( ) produces the same object.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following example shows the use of the different types of inserters:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:Inserters.cpp
+
+
+
+      <!--
+      Since vector does not support push_front( ), it cannot produce a front_insert_iterator. However, you can see that vector does support the other two types of insertions (even though, as you shall see later, insert( ) is not an efficient operation for vector). Note the use of the nested type Cont::value_type instead of hard-coding int.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- : More on stream iterators -->
+        <title> </title>
+
+
+        <!--
+        We introduced the use of the stream iterators ostream_iterator (an output iterator) and istream_iterator (an input iterator) in conjunction with copy( ) in the previous chapter. Remember that an output stream doesn’t have any concept of an “end,” since you can always just keep writing more elements. However, an input stream eventually terminates (for example, when you reach the end of a file), so you need a way to represent that. An istream_iterator has two constructors, one that takes an istream and produces the iterator you actually read from, and the other which is the default constructor and produces an object that is the past-the-end sentinel. In the following program this object is named end:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:StreamIt.cpp
+
+
+
+        <!--
+        When in runs out of input (in this case when the end of the file is reached), init becomes equivalent to end, and the copy( ) terminates.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Because out is an ostream_iterator<string>, you can simply assign any string object to the dereferenced iterator using operator=, and that string will be placed on the output stream, as seen in the two assignments to out. Because out is defined with a newline as its second argument, these assignments also insert a newline along with each assignment.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Although it is possible to create an istream_iterator<char> and ostream_iterator<char>, these actually parse the input and thus will, for example, automatically eat whitespace (spaces, tabs, and newlines), which is not desirable if you want to manipulate an exact representation of an istream. Instead, you can use the special iterators istreambuf_iterator and ostreambuf_iterator, which are designed strictly to move characters.[104] Although these are templates, they are meant to be used with template arguments of either char or wchar_t.[105] The following example lets you compare the behavior of the stream iterators with the streambuf iterators:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:StreambufIterator.cpp
+
+
+
+        <!--
+        The stream iterators use the parsing defined by istream::operator>>, which is probably not what you want if you are parsing characters directly—it’s fairly rare that you want all the whitespace stripped out of your character stream. You’ll virtually always want to use a streambuf iterator when using characters and streams, rather than a stream iterator. In addition, istream::operator>> adds significant overhead for each operation, so it is only appropriate for higher-level operations such as parsing numbers.[106]
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Manipulating raw storage -->
+        <title> </title>
+
+
+        <!--
+        The raw_storage_iterator is defined in <memory> and is an output iterator. It is provided to enable algorithms to store their results in uninitialized memory. The interface is quite simple: the constructor takes an output iterator that is pointing to the raw memory (typically a pointer), and the operator= assigns an object into that raw memory. The template parameters are the type of the output iterator pointing to the raw storage and the type of object that will be stored. Here’s an example that creates Noisy objects, which print trace statements for their construction, assignment, and destruction (we’ll show the Noisy class definition later):
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:RawStorageIterator.cpp
+
+
+
+        <!--
+        To make the raw_storage_iterator template happy, the raw storage must be of the same type as the objects you’re creating. That’s why the pointer from the new array of char is cast to a Noisy*. The assignment operator forces the objects into the raw storage using the copy- constructor. Note that the explicit destructor call must be made for proper cleanup, and this also allows the objects to be deleted one at a time during container manipulation. The expression delete np would be invalid anyway since the static type of a pointer in a delete expression must be the same as the type assigned to in the new expression.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : The basic sequences: vector, list, deque -->
+    <title> </title>
+
+
+    <!--
+    Sequences keep objects in whatever order you store them. They differ in the efficiency of their operations, however, so if you are going to manipulate a sequence in a particular fashion, choose the appropriate container for those types of manipulations. So far in this book we’ve been using vector as the container of choice. This is quite often the case in applications. When you start making more sophisticated uses of containers, however, it becomes important to know more about their underlying implementations and behavior so that you can make the right choices.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Basic sequence operations -->
+      <title> </title>
+
+
+      <!--
+      Using a template, the following example shows the operations supported by all the basic sequences: vector, deque, and list:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:BasicSequenceOperations.cpp
+
+
+
+      <!--
+      The first function template, print( ), demonstrates the basic information you can get from any sequence container: whether it’s empty, its current size, the size of the largest possible container, the element at the beginning, and the element at the end. You can also see that every container has begin( ) and end( ) member functions that return iterators.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The basicOps( ) function tests everything else (and in turn calls print( )), including a variety of constructors: default, copy-constructor, quantity and initial value, and beginning and ending iterators. There are an assignment operator= and two kinds of assign( ) member functions. One takes a quantity and an initial value, and the other takes a beginning and ending iterator.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      All the basic sequence containers are reversible containers, as shown by the use of the rbegin( ) and rend( ) member functions. A sequence container can be resized, and the entire contents of the container can be removed with clear( ). When you call resize( ) to expand a sequence, the new elements use the default constructor of the type of element in the sequence, or if they are built-in types, they are zero-initialized.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Using an iterator to indicate where you want to start inserting into any sequence container, you can insert( ) a single element, a number of elements that all have the same value, and a group of elements from another container using the beginning and ending iterators of that group.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To erase( ) a single element from the middle, use an iterator; to erase( ) a range of elements, use a pair of iterators. Notice that since a list supports only bidirectional iterators, all the iterator motion must be performed with increments and decrements. (If the containers were limited to vector and deque, which produce random- access iterators, operator+ and operator- could have been used to move the iterators in bigger jumps.)
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Although both list and deque support push_front( ) and pop_front( ), vector does not, but push_back( ) and pop_back( ) work with all three.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The naming of the member function swap( ) is a little confusing, since there’s also a nonmember swap( ) algorithm that interchanges the values of any two objects of same type. The member swap( ) swaps everything in one container for another (if the containers hold the same type), effectively swapping the containers themselves. It does this efficiently by swapping the contents of each container, which consists mostly of pointers. The nonmember swap( ) algorithm normally uses assignment to interchange its arguments (an expensive operation for an entire container), but it is customized through template specialization to call the member swap( ) for the standard containers. There is also an iter_swap algorithm that uses iterators to interchange two elements in the same container.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following sections discuss the particulars of each type of sequence container.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : vector -->
+      <title> </title>
+
+
+      <!--
+      The vector class template is intentionally made to look like a souped-up array, since it has array-style indexing, but also can expand dynamically. The vector class template is so fundamentally useful that it was introduced in a primitive way early in this book and was used regularly in previous examples. This section will give a more in-depth look at vector.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      To achieve maximally-efficient indexing and iteration, vector maintains its storage as a single contiguous array of objects. This is a critical point to observe in understanding the behavior of vector. It means that indexing and iteration are lightning-fast, being basically the same as indexing and iterating over an array of objects. But it also means that inserting an object anywhere but at the end (that is, appending) is not really an acceptable operation for a vector. In addition, when a vector runs out of preallocated storage, to maintain its contiguous array it must allocate a whole new (larger) chunk of storage elsewhere and copy the objects to the new storage. This approach produces a number of unpleasant side-effects.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- : Cost of overflowing allocated storage -->
+        <title> </title>
+
+
+        <!--
+        A vector starts by grabbing a block of storage, as if it’s taking a guess at how many objects you plan to put in it. As long as you don’t try to put in more objects than can be held in the initial block of storage, everything proceeds rapidly. (If you do know how many objects to expect, you can preallocate storage using reserve( ).) But eventually you will put in one too many objects, and the vector responds by:
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        1. Allocating a new, bigger piece of storage.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        2. Copying all the objects from the old storage to the new (using the copy-constructor).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        3. Destroying all the old objects (the destructor is called for each one).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        4. Releasing the old memory.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        For complex objects, this copy-construction and destruction can end up being expensive if you often overfill your vector, which is why vectors (and STL containers in general) are designed for value types (i.e. types that are cheap to copy). This includes pointers.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To see what happens when you’re filling a vector, here is the Noisy class mentioned earlier. It prints information about its creations, destructions, assignments, and copy-constructions:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:Noisy.h
+
+
+
+
+//: V2C07:Noisy.cpp
+
+
+
+        <!--
+        Each Noisy object has its own identifier, and static variables keep track of all the creations, assignments (using operator=), copy-constructions, and destructions. The id is initialized using the create counter inside the default constructor; the copy-constructor and assignment operator take their id values from the rvalue. With operator= the lvalue is already an initialized object, so the old value of id is printed before it is overwritten with the id from the rvalue.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        To support certain operations such as sorting and searching (which are used implicitly by some of the containers), Noisy must have an operator< and operator==. These simply compare the id values. The ostream inserter follows the usual form and simply prints the id.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Objects of type NoisyGen are function objects (since there is an operator( )) that produce Noisy objects during testing.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        NoisyReport is a Singleton object[107] because we only want one report printed at program termination. It has a private constructor so no additional NoisyReport objects can be created, it disallows assignment and copy- construction, and it has a single static instance of NoisyReport called nr. The only executable statements are in the destructor, which is called as the program exits and static destructors are called. This destructor prints the statistics captured by the static variables in Noisy.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Using Noisy.h, the following program shows a vector overflowing its allocated storage:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:VectorOverflow.cpp
+
+
+
+        <!--
+        You can use the default value of 1000, or you can use your own value by putting it on the command line.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        When you run this program, you’ll see a single default constructor call (for n), then a lot of copy-constructor calls, then some destructor calls, then some more copy- constructor calls, and so on. When the vector runs out of space in the linear array of bytes it has allocated, it must (to maintain all the objects in a linear array, which is an essential part of its job) get a bigger piece of storage and move everything over, first copying and then destroying the old objects. You can imagine that if you store a lot of large and complex objects, this process could rapidly become prohibitive.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        There are two solutions to this problem. The nicest one requires that you know beforehand how many objects you’re going to make. In that case, you can use reserve( ) to tell the vector how much storage to preallocate, thus eliminating all the copies and destructions and making everything very fast (especially random access to the objects with operator[ ]). Note that the use of reserve( ) is different from using the vector constructor with an integral first argument; the latter initializes a prescribed number of elements using the element type’s default constructor.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Generally you won’t know how many objects you’ll need. If vector reallocations are slowing things down, you can change sequence containers. You could use a list, but as you’ll see, the deque allows speedy insertions at either end of the sequence and never needs to copy or destroy objects as it expands its storage. The deque also allows random access with operator[ ], but it’s not quite as fast as vector’s operator[ ]. So if you’re creating all your objects in one part of the program and randomly accessing them in another, you may find yourself filling a deque and then creating a vector from the deque and using the vector for rapid indexing. You don’t want to program this way habitually—just be aware of these issues (that is, avoid premature optimization).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        There is a darker side to vector’s reallocation of memory, however. Because vector keeps its objects in a nice, neat array, the iterators used by vector can be simple pointers. This is good—of all the sequence containers, these pointers allow the fastest selection and manipulation. Whether they are simple pointers, or whether they are iterator objects that hold an internal pointer into their container, consider what happens when you add the one additional object that causes the vector to reallocate storage and move it elsewhere. The iterator’s pointer is now pointing off into nowhere:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:VectorCoreDump.cpp
+
+
+
+        <!--
+        This illustrates the concept of iterator invalidation. Certain operations cause internal changes to a container’s underlying data, so any iterators in effect before such changes may no longer be valid afterward. If your program is breaking mysteriously, look for places where you hold onto an iterator while adding more objects to a vector. You’ll need to get a new iterator after adding elements or use operator[ ] instead for element selections. If you combine this observation with the awareness of the potential expense of adding new objects to a vector, you may conclude that the safest way to use a vector is to fill it up all at once (ideally, knowing first how many objects you’ll need) and then just use it (without adding more objects) elsewhere in the program. This is the way vector has been used in the book up to this point. The Standard C++ library documents the container operations that invalidate iterators.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        You may observe that using vector as the “basic” container in the earlier chapters of this book might not be the best choice in all cases. This is a fundamental issue in containers and in data structures in general—the “best” choice varies according to the way the container is used. The reason vector has been the “best” choice up until now is that it looks a lot like an array and was thus familiar and easy for you to adopt. But from now on it’s also worth thinking about other issues when choosing containers.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : Inserting and erasing elements -->
+        <title> </title>
+
+
+        <!--
+        The vector is most efficient if:
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        1. You reserve( ) the correct amount of storage at the beginning so the vector never has to reallocate.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        2. You only add and remove elements from the back end.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        It is possible to insert and erase elements from the middle of a vector using an iterator, but the following program demonstrates what a bad idea this is:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:VectorInsertAndErase.cpp
+
+
+
+        <!--
+        When you run the program, you’ll see that the call to reserve( ) really does only allocate storage—no constructors are called. The generate_n( ) call is busy: each call to NoisyGen::operator( ) results in a construction, a copy-construction (into the vector), and a destruction of the temporary. But when an object is inserted into the vector in the middle, it must shift everything down to maintain the linear array, and, since there is enough space, it does this with the assignment operator. (If the argument of reserve( ) is 10 instead of 11, it must reallocate storage.) When an object is erased from the vector, the assignment operator is once again used to move everything up to cover the place that is being erased. (Notice that this requires that the assignment operator properly clean up the lvalue.) Last, the object on the end of the array is deleted.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <!-- : deque -->
+      <title> </title>
+
+
+      <!--
+      The deque container is a basic sequence optimized for adding and removing elements from either end. It also allows for reasonably fast random access—it has an operator[ ] like vector. However, it does not have vector’s constraint of keeping everything in a single sequential block of memory. Instead, a typical implementation of deque uses multiple blocks of sequential storage (keeping track of all the blocks and their order in a mapping structure). For this reason, the overhead for a deque to add or remove elements at either end is low. In addition, it never needs to copy and destroy contained objects during a new storage allocation (like vector does), so it is far more efficient than vector if you are adding an unknown quantity of objects at either end. This means that vector is the best choice only if you have a good idea of how many objects you need. In addition, many of the programs shown earlier in this book that use vector and push_back( ) might have been more efficient had we used a deque instead. The interface to deque differs only slightly from vector (deque has a push_front( ) and pop_front( ) while vector does not, for example), so converting code from using vector to using deque is trivial. Consider StringVector.cpp, which can be changed to use deque by replacing the word “vector” with “deque” everywhere. The following program adds parallel deque operations to the vector operations in StringVector.cpp and performs timing comparisons:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:StringDeque.cpp
+
+
+
+      <!--
+      Knowing now what you do about the inefficiency of adding things to vector because of storage reallocation, you might expect dramatic differences between the two. However, on a 1.7 MB text file, one compiler’s program produced the following (measured in platform/compiler specific clock ticks, not seconds):
+      -->
+      <para>
+
+      </para>
+<programlisting>
+Read into vector: 8350
+Read into deque: 7690
+Indexing vector: 2360
+Indexing deque: 2480
+Iterating vector: 2470
+Iterating deque: 2410
+</programlisting>
+
+      <!--
+      A different compiler and platform roughly agreed with this. It’s not so dramatic, is it? This points out some important issues:
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      1. We (programmers and authors) are typically bad at guessing where inefficiencies occur in our programs.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      2. Efficiency comes from a combination of effects. Here, reading the lines in and converting them to strings may dominate over the cost of vector vs. deque.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      3. The string class is probably fairly well designed in terms of efficiency.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This doesn’t mean you shouldn’t use a deque rather than a vector when you know that an uncertain number of objects will be pushed onto the end of the container. On the contrary, you should—when you’re tuning for performance. But also be aware that performance issues are usually not where you think they are, and the only way to know for sure where your bottlenecks are is by testing. Later in this chapter, you’ll see a more “pure” comparison of performance between vector, deque, and list.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : Converting between sequences -->
+      <title> </title>
+
+
+      <!--
+      Sometimes you need the behavior or efficiency of one kind of container for one part of your program, and you need a different container’s behavior or efficiency in another part of the program. For example, you may need the efficiency of a deque when adding objects to the container but the efficiency of a vector when indexing them. Each of the basic sequence containers (vector, deque, and list) has a two- iterator constructor (indicating the beginning and ending of the sequence to read from when creating a new object) and an assign( ) member function to read into an existing container, so you can easily move objects from one sequence container to another.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following example reads objects into a deque and then converts to a vector:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:DequeConversion.cpp
+
+
+
+      <!--
+      You can try various sizes, but note that it makes no difference—the objects are simply copy-constructed into the new vectors. What’s interesting is that v1 does not cause multiple allocations while building the vector, no matter how many elements you use. You might initially think that you must follow the process used for v2 and preallocate the storage to prevent messy reallocations, but this is unnecessary because the constructor used for v1 determines the memory requirement ahead of time.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- : Cost of overflowing allocated storage -->
+        <title> </title>
+
+
+        <!--
+        It’s illuminating to see what happens with a deque when it overflows a block of storage, in contrast with VectorOverflow.cpp:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:DequeOverflow.cpp
+
+
+
+        <!--
+        Here you will have relatively few (if any) destructors called before the words “cleaning up” appear in the output. Since the deque allocates all its storage in blocks instead of a contiguous array like vector, it never needs to move existing storage of each of its data blocks. (Thus, no additional copy-constructions and destructions occur.) The deque simply allocates a new block. For the same reason, the deque can just as efficiently add elements to the beginning of the sequence, since if it runs out of storage, it (again) just allocates a new block for the beginning. (The index block that holds the data blocks together may need to be reallocated, however.) Insertions in the middle of a deque, however, could be even messier than for vector (but not as costly).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Because of deque’s clever storage management, an existing iterator is not invalidated after you add new things to either end of a deque, as it was demonstrated to do with vector (in VectorCoreDump.cpp). If you stick to what deque is best at—insertions and removals from either end, reasonably rapid traversals and fairly fast random-access using operator[ ]—you’ll be in good shape.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <!-- : Checked random–access -->
+      <title> </title>
+
+
+      <!--
+      Both vector and deque provide two random access functions: the indexing operator (operator[ ]), which you’ve seen already, and at( ), which checks the boundaries of the container that’s being indexed and throws an exception if you go out of bounds. It does cost more to use at( ):
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:IndexingVsAt.cpp
+
+
+
+      <!--
+      As you saw in Chapter 1, different systems may handle the uncaught exception in different ways, but you’ll know one way or another that something went wrong with the program when using at( ), whereas it’s possible to remain ignorant when using operator[ ].
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : list -->
+      <title> </title>
+
+
+      <!--
+      A list is implemented as a doubly linked list data structure and is thus designed for rapid insertion and removal of elements anywhere in the sequence, whereas for vector and deque this is a much more costly operation. A list is so slow when randomly accessing elements that it does not have an operator[ ]. It’s best used when you’re traversing a sequence, in order, from beginning to end (or vice-versa), rather than choosing elements randomly from the middle. Even then the traversal can be slower than with a vector, but if you aren’t doing a lot of traversals, that won’t be your bottleneck.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The memory overhead of each link in a list requires a forward and backward pointer on top of the storage for the actual object. Thus, a list is a better choice when you have larger objects that you’ll be inserting and removing from the middle of the list.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      It’s better not to use a list if you think you might be traversing it a lot, looking for objects, since the amount of time it takes to get from the beginning of the list—which is the only place you can start unless you’ve already got an iterator to somewhere you know is closer to your destination—to the object of interest is proportional to the number of objects between the beginning and that object.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The objects in a list never move after they are created. “Moving” a list element means changing the links, but never copying or assigning the actual objects. This means that iterators aren’t invalidated when items are added to the list as it was demonstrated earlier to be the case vector. Here’s an example using a list of Noisy objects:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:ListStability.cpp
+
+
+
+      <!--
+      Operations as seemingly radical as reversing and sorting the list require no copying of objects because, instead of moving the objects, the links are simply changed. However, notice that sort( ) and reverse( ) are member functions of list, so they have special knowledge of the internals of list and can rearrange the elements instead of copying them. On the other hand, the swap( ) function is a generic algorithm and doesn’t know about list in particular, so it uses the copying approach for swapping two elements. In general, use the member version of an algorithm if that is supplied instead of its generic algorithm equivalent. In particular, use the generic sort( ) and reverse( ) algorithms only with arrays, vectors, and deques.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you have large, complex objects, you might want to choose a list first, especially if construction, destruction, copy- construction, and assignment are expensive and if you are doing things like sorting the objects or otherwise reordering them a lot.
+      -->
+      <para>
+
+      </para>
+
+      <sect3>
+        <!-- : Special list operations -->
+        <title> </title>
+
+
+        <!--
+        The list has some special built-in operations to make the best use of the structure of the list. You’ve already seen reverse( ) and sort( ). Here are some of the others:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:ListSpecialFunctions.cpp
+
+
+
+        <!--
+        After filling four lists with Noisy objects, one list is spliced into another in three ways. In the first, the entire list l2 is spliced into l1 at the iterator it1. Notice that after the splice, l2 is empty—splicing means removing the elements from the source list. The second splice inserts elements from l3 starting at it2 into l1 starting at it1. The third splice starts at it1 and uses elements from l4 starting at it3 and ending at it4. The seemingly redundant mention of the source list is because the elements must be erased from the source list as part of the transfer to the destination list.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The output from the code that demonstrates remove( ) shows that the list does not have to be sorted in order for all the elements of a particular value to be removed.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Finally, if you merge( ) one list with another, the merge only works sensibly if the lists have been sorted. What you end up with in that case is a sorted list containing all the elements from both lists (the source list is erased—that is, the elements are moved to the destination list).
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        A unique( ) member function removes all duplicates, but only if you sort the list first:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:UniqueList.cpp
+
+
+
+        <!--
+        The list constructor used here takes the starting and past-the-end iterator from another container and copies all the elements from that container into itself. Here, the “container” is just an array, and the “iterators” are pointers into that array, but because of the design of the STL, the list constructor works with arrays just as easily as with any other container.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        The unique( ) function will remove only adjacent duplicate elements, and thus sorting is typically necessary before calling unique( ). The exception is when the problem you’re trying to solve includes eliminating adjacent duplicates according to the current ordering.
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        Four additional list member functions are not demonstrated here: a remove_if( ) that takes a predicate, which decides whether an object should be removed; a unique( ) that takes a binary predicate to perform uniqueness comparisons; a merge( ) that takes an additional argument which performs comparisons; and a sort( ) that takes a comparator (to provide a comparison or override the existing one).
+        -->
+        <para>
+
+        </para>
+      </sect3>
+
+      <sect3>
+        <!-- : list vs. set -->
+        <title> </title>
+
+
+        <!--
+        Looking at the previous example, you might note that if you want a sorted sequence with no duplicates, you could get that result with a set. It’s interesting to compare the performance of the two containers:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:ListVsSet.cpp
+
+
+
+        <!--
+        When you run the program, you should discover that set is much faster than list. This is reassuring—after all, it is set’s primary job description to hold only unique elements in sorted order!
+        -->
+        <para>
+
+        </para>
+
+        <!--
+        This example uses the header PrintContainer.h, which contains a function template that prints any sequence container to an output stream. PrintContainer.h is defined as follows:
+        -->
+        <para>
+
+        </para>
+
+
+//: V2C07:PrintContainer.h
+
+
+
+        <!--
+        The print( ) template defined here just calls the print( ) function template we defined in the previous chapter in PrintSequence.h.
+        -->
+        <para>
+
+        </para>
+      </sect3>
+    </sect2>
+
+    <sect2>
+      <!-- : Swapping sequences -->
+      <title> </title>
+
+
+      <!--
+      We mentioned earlier that all basic sequences have a member function swap( ) that’s designed to switch one sequence with another (but only for sequences of the same type). The member swap( ) makes use of its knowledge of the internal structure of the particular container in order to be efficient:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:Swapping.cpp
+
+
+
+      <!--
+      When you run this, you’ll discover that each type of sequence container can swap one sequence for another without any copying or assignments, even if the sequences are of different sizes. In effect, you’re completely swapping the resources of one object for another.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The STL algorithms also contain a swap( ), and when this function is applied to two containers of the same type, it uses the member swap( ) to achieve fast performance. Consequently, if you apply the sort( ) algorithm to a container of containers, you will find that the performance is very fast—it turns out that fast sorting of a container of containers was a design goal of the STL.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : set -->
+    <title> </title>
+
+
+    <!--
+    The set container accepts only one copy of each element. It also sorts the elements. (Sorting isn’t intrinsic to the conceptual definition of a set, but the STL set stores its elements in a balanced tree data structure to provide rapid lookups, thus producing sorted results when you traverse it.) The first two examples in this chapter used sets.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Consider the problem of creating an index for a book. You might like to start with all the words in the book, but you only want one instance of each word, and you want them sorted. A set is perfect for this and solves the problem effortlessly. However, there’s also the problem of punctuation and any other nonalpha characters, which must be stripped off to generate proper words. One solution to this problem is to use the Standard C library functions isalpha( ) and isspace( ) to extract only the characters you want. You can replace all unwanted characters with spaces so that you can easily extract valid words from each line you read:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:WordList.cpp
+
+
+
+    <!--
+    The call to transform( ) replaces each character to be ignored with a space. The set container not only ignores duplicate words, but compares the words it keeps according to the function object less<string> (the default second template argument for the set container), which in turn uses string::operator<( ), so the words emerge in alphabetical order.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You don’t need to use a set just to get a sorted sequence. You can use the sort( ) function (along with a multitude of other functions in the STL) on different STL containers. However, it’s likely that set will be faster here. Using a set is particularly handy when you just want to do lookup, since its find( ) member function has logarithmic complexity and so is much faster than the generic find( ) algorithm. As you recall, the generic find( ) algorithm needs to traverse the whole range until it finds the search element (resulting in a worst-case complexity of N, and an average complexity of N/2). However, if you have a sequence container that is already sorted, use equal_range( ) for logarithmic complexity when finding elements.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The following version shows how to build the list of words with an istreambuf_iterator that moves the characters from one place (the input stream) to another (a string object), depending on whether the Standard C library function isalpha( ) returns true:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:WordList2.cpp
+
+
+
+    <!--
+    This example was suggested by Nathan Myers, who invented the istreambuf_iterator and its relatives. This iterator extracts information character by character from a stream. Although the istreambuf_iterator template argument might imply that you could extract, for example, ints instead of char, that’s not the case. The argument must be of some character type—a regular char or a wide character.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    After the file is open, an istreambuf_iterator called p is attached to the istream so characters can be extracted from it. The set<string> called wordlist will hold the resulting words.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The while loop reads words until it finds the end of the input stream. This is detected using the default constructor for istreambuf_iterator, which produces the past-the-end iterator object end. Thus, if you want to test to make sure you’re not at the end of the stream, you simply say p != end.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The second type of iterator that’s used here is the insert_iterator, which you saw previously. This inserts objects into a container. Here, the “container” is the string called word, which, for the purposes of insert_iterator, behaves like a container. The constructor for insert_iterator requires the container and an iterator indicating where it should start inserting the characters. You could also use a back_insert_iterator, which requires that the container have a push_back( ) (string does).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    After the while loop sets everything up, it begins by looking for the first alpha character, incrementing start until that character is found. It then copies characters from one iterator to the other, stopping when a nonalpha character is found. Each word, assuming it is nonempty, is added to wordlist.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : A completely reusable tokenizer -->
+      <title> </title>
+
+
+      <!--
+      The word list examples use different approaches to extract tokens from a stream, neither of which is very flexible. Since the STL containers and algorithms all revolve around iterators, the most flexible solution will itself use an iterator. You could think of the TokenIterator as an iterator that wraps itself around any other iterator that can produce characters. Because it is certainly a type of input iterator (the most primitive type of iterator), it can provide input to any STL algorithm. Not only is it a useful tool in itself, the following TokenIterator is also a good example of how you can design your own iterators.[108]
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The TokenIterator class is doubly flexible. First, you can choose the type of iterator that will produce the char input. Second, instead of just saying what characters represent the delimiters, TokenIterator will use a predicate that is a function object whose operator( ) takes a char and decides whether it should be in the token. Although the two examples given here have a static concept of what characters belong in a token, you could easily design your own function object to change its state as the characters are read, producing a more sophisticated parser.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following header file contains two basic predicates, Isalpha and Delimiters, along with the template for TokenIterator:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:TokenIterator.h
+
+
+
+      <!--
+      The TokenIterator class derives from the std::iterator template. It might appear that some kind of functionality comes with std::iterator, but it is purely a way of tagging an iterator, to tell a container that uses it what it can do. Here, you can see input_iterator_tag as the iterator_category template argument—this tells anyone who asks that a TokenIterator only has the capabilities of an input iterator and cannot be used with algorithms requiring more sophisticated iterators. Apart from the tagging, std::iterator doesn’t do anything beyond providing several useful type definitions. You must implement all other functionality yourself.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The TokenIterator class may look a little strange at first, because the first constructor requires both a “begin” and an “end” iterator as arguments, along with the predicate. Remember, this is a “wrapper” iterator that has no idea how to tell when it’s at the end of its input, so the ending iterator is necessary in the first constructor. The reason for the second (default) constructor is that the STL algorithms (and any algorithms you write) need a TokenIterator sentinel to be the past-the-end value. Since all the information necessary to see if the TokenIterator has reached the end of its input is collected in the first constructor, this second constructor creates a TokenIterator that is merely used as a placeholder in algorithms.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The core of the behavior happens in operator++. This erases the current value of word using string::resize( ) and then finds the first character that satisfies the predicate (thus discovering the beginning of the new token) using find_if( ). The resulting iterator is assigned to first, thus moving first forward to the beginning of the token. Then, as long as the end of the input is not reached and the predicate is satisfied, input characters are copied into word. Finally, the TokenIterator object is returned and must be dereferenced to access the new token.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The postfix increment requires an object of type CaptureState to hold the value before the increment, so it can be returned. Producing the actual value is a straightforward operator*. The only other functions to define for an output iterator are the operator== and operator!= to indicate whether the TokenIterator has reached the end of its input. You can see that the argument for operator== is ignored—it only cares about whether it has reached its internal last iterator. Notice that operator!= is defined in terms of operator==.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A good test of TokenIterator includes a number of different sources of input characters, including a streambuf_iterator, a char*, and a deque<char>::iterator. Finally, the original word list problem is solved:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:TokenIteratorTest.cpp
+
+
+
+      <!--
+      When using an istreambuf_iterator, you create one to attach to the istream object and one with the default constructor as the past-the-end marker. Both are used to create the TokenIterator that will produce the tokens; the default constructor produces the faux TokenIterator past-the-end sentinel. (This is just a placeholder and is ignored.) The TokenIterator produces strings that are inserted into a container of string—here a vector<string> is used in all cases except the last. (You could also concatenate the results onto a string.) Other than that, a TokenIterator works like any other input iterator.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      When defining a bidirectional (and therefore also a random access) iterator, you can get reverse iterators “for free” by using the std::reverse_iterator adaptor. If you have already defined an iterator for a container with bidirectional capabilities, you can get a reverse iterator from your forward-traversing iterator with lines like the following inside your container class:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+// Assume "iterator" is your nested iterator type
+typedef std::reverse_iterator&lt;iterator&gt; reverse_iterator;
+reverse_iterator rbegin() {return reverse_iterator(end());
+reverse_iterator rend() {return reverse_iterator(begin());
+</programlisting>
+
+      <!--
+      The std::reverse_iterator adaptor does all the work for you. For example, if you use the * operator to dereference your reverse iterator, it automatically decrements a temporary copy of the forward iterator it is holding in order to return the correct element, since reverse iterators logically point one position past the element they refer to.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : stack -->
+    <title> </title>
+
+
+    <!--
+    The stack container, along with queue and priority_queue, are classified as adaptors, which means they adapt one of the basic sequence containers to store their data. This is an unfortunate case of confusing what something does with the details of its underlying implementation—the fact that these are called “adaptors” is of primary value only to the creator of the library. When you use them, you generally don’t care that they’re adaptors, but instead that they solve your problem. Admittedly it’s useful at times to know that you can choose an alternate implementation or build an adaptor from an existing container object, but that’s generally one level removed from the adaptor’s behavior. So, while you may see it emphasized elsewhere that a particular container is an adaptor, we’ll only point out that fact when it’s useful. Note that each type of adaptor has a default container that it’s built upon, and this default is the most sensible implementation. In most cases you won’t need to concern yourself with the underlying implementation.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The following example shows stack<string> implemented in the three ways: the default (which uses deque), then with a vector, and finally with a list:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Stack1.cpp
+
+
+
+    <!--
+    The top( ) and pop( ) operations will probably seem non- intuitive if you’ve used other stack classes. When you call pop( ), it returns void rather than the top element that you might have expected. If you want the top element, you get a reference to it with top( ). It turns out this is more efficient, since a traditional pop( ) must return a value rather than a reference and thus invokes the copy-constructor. More important, it is exception safe, as we discussed in Chapter 1. If pop( ) both changed the state of the stack and attempted to return the top element, an exception in the element’s copy-constructor could cause the element to be lost. When you’re using a stack (or a priority_queue, described later), you can efficiently refer to top( ) as many times as you want and then discard the top element explicitly using pop( ). (Perhaps if some term other than the familiar “pop” had been used, this would have been a bit clearer.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The stack template has a simple interface—essentially the member functions you saw earlier. Since it only makes sense to access a stack at its top, no iterators are available for traversing it. Nor are there sophisticated forms of initialization, but if you need that, you can use the underlying container upon which the stack is implemented. For example, suppose you have a function that expects a stack interface, but in the rest of your program you need the objects stored in a list. The following program stores each line of a file along with the leading number of spaces in that line. (You might imagine it as a starting point for performing some kind of source-code reformatting.)
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Stack2.cpp
+
+
+
+    <!--
+    The function that requires the stack interface just sends each top( ) object to an ostream and then removes it by calling pop( ). The Line class determines the number of leading spaces and then stores the contents of the line without the leading spaces. The ostream operator<< re-inserts the leading spaces so the line prints properly, but you can easily change the number of spaces by changing the value of lspaces. (The member functions to do this are not shown here.) In main( ), the input file is read into a list<Line>, and then each line in the list is copied into a stack that is sent to stackOut( ).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You cannot iterate through a stack; this emphasizes that you only want to perform stack operations when you create a stack. You can get equivalent “stack” functionality using a vector and its back( ), push_back( ), and pop_back( ) member functions, and then you have all the additional functionality of the vector. The program Stack1.cpp can be rewritten to show this:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Stack3.cpp
+
+
+
+    <!--
+    This produces the same output as Stack1.cpp, but you can now perform vector operations as well. A list can also push things at the front, but it’s generally less efficient than using push_back( ) with vector. (In addition, deque is usually more efficient than list for pushing things at the front.)
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : queue -->
+    <title> </title>
+
+
+    <!--
+    The queue container is a restricted form of a deque—you can only enter elements at one end and pull them off the other end. Functionally, you could use a deque anywhere you need a queue, and you would then also have the additional functionality of the deque. The only reason you need to use a queue rather than a deque, then, is when you want to emphasize that you will only be performing queue-like behavior.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The queue class is an adaptor like stack, in that it is built on top of another sequence container. As you might guess, the ideal implementation for a queue is a deque, and that is the default template argument for the queue; you’ll rarely need a different implementation.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Queues are often used if you want to model a system where some elements are waiting to be served by other elements in the system. A classic example of this is the “bank-teller problem.” Customers arrive at random intervals, get into a line, and then are served by a set of tellers. Since the customers arrive randomly and each takes a random amount of time to be served, there’s no way to deterministically know how long the line will be at any time. However, it’s possible to simulate the situation and see what happens.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    In a realistic simulation each customer and teller should be run by a separate thread. What we’d like is a multithreaded environment so that each customer or teller would have his own thread. However, Standard C++ has no support for multithreading. On the other hand, with a little adjustment to the code, it’s possible to simulate enough multithreading to provide a satisfactory solution.[109]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    In multithreading, multiple threads of control run simultaneously, sharing the same address space. Quite often you have fewer CPUs than you do threads (and often only one CPU). To give the illusion that each thread has its own CPU, a time- slicing mechanism says “OK, current thread, you’ve had enough time. I’m going to stop you and give time to some other thread.” This automatic stopping and starting of threads is called preemptive, and it means you (the programmer) don’t need to manage the threading process.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    An alternative approach has each thread voluntarily yield the CPU to the scheduler, which then finds another thread that needs running. Instead, we’ll build the “time-slicing” into the classes in the system. Here, it will be the tellers that represent the “threads,” (the customers will be passive). Each teller will have an infinite-looping run( ) member function that will execute for a certain number of “time units” and then simply return. By using the ordinary return mechanism, we eliminate the need for any swapping. The resulting program, although small, provides a remarkably reasonable simulation:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:BankTeller.cpp
+
+
+
+    <!--
+    Each customer requires a certain amount of service time, which is the number of time units that a teller must spend on the customer to serve that customer’s needs. The amount of service time will be different for each customer and will be determined randomly. In addition, you won’t know how many customers will be arriving in each interval, so this will also be determined randomly.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The Customer objects are kept in a queue<Customer>, and each Teller object keeps a reference to that queue. When a Teller object is finished with its current Customer object, that Teller will get another Customer from the queue and begin working on the new Customer, reducing the Customer’s service time during each time slice that the Teller is allotted. All this logic is in the run( ) member function, which is basically a three-way if statement based on whether the amount of time necessary to serve the customer is less than, greater than, or equal to the amount of time left in the teller’s current time slice. Notice that if the Teller has more time after finishing with a Customer, it gets a new customer and recurses into itself.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Just as with a stack, when you use a queue, it’s only a queue and doesn’t have any of the other functionality of the basic sequence containers. This includes the ability to get an iterator in order to step through the stack. However, the underlying sequence container (that the queue is built upon) is held as a protected member inside the queue, and the identifier for this member is specified in the C++ Standard as ‘c’, which means that you can derive from queue to access the underlying implementation. The CustomerQ class does exactly that, for the sole purpose of defining an ostream operator<< that can iterate through the queue and display its members.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The driver for the simulation is the while loop in main( ), which uses processor ticks (defined in <ctime>) to determine if the simulation has run for at least 5 seconds. At the beginning of each pass through the loop, a random number of customers is added, with random service times. Both the number of tellers and the queue contents are displayed so you can see the state of the system. After running each teller, the display is repeated. At this point, the system adapts by comparing the number of customers and the number of tellers. If the line is too long, another teller is added, and if it is short enough, a teller can be removed. In this adaptation section of the program you can experiment with policies regarding the optimal addition and removal of tellers. If this is the only section that you’re modifying, you might want to encapsulate policies inside different objects.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    We’ll revisit this example in a multithreaded exercise in Chapter 11.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Priority queues -->
+    <title> </title>
+
+
+    <!--
+    When you push( ) an object onto a priority_queue, that object is sorted into the queue according to a comparison function or function object. (You can allow the default less template to supply this, or you can provide one of your own.) The priority_queue ensures that when you look at the top( ) element, it will be the one with the highest priority. When you’re done with it, you call pop( ) to remove it and bring the next one into place. Thus, the priority_queue has nearly the same interface as a stack, but it behaves differently.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Like stack and queue, priority_queue is an adaptor that is built on top of one of the basic sequences—the default sequence being vector.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    It’s trivial to make a priority_queue that works with ints:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue1.cpp
+
+
+
+    <!--
+    This pushes into the priority_queue 100 random values from 0 to 24. When you run this program you’ll see that duplicates are allowed, and the highest values appear first. To show how you can change the ordering by providing your own function or function object, the following program gives lower-valued numbers the highest priority:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue2.cpp
+
+
+
+    <!--
+    A more interesting problem is a to-do list, where each object contains a string and a primary and secondary priority value:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue3.cpp
+
+
+
+    <!--
+    The ToDoItem’s operator< must be a nonmember function for it to work with less< >. Other than that, everything happens automatically. The output is
+    -->
+    <para>
+
+    </para>
+<programlisting>
+A1: Water lawn
+A2: Feed dog
+B1: Feed cat
+B7: Feed bird
+C3: Mow lawn
+C4: Empty trash
+</programlisting>
+
+    <!--
+    You cannot iterate through a priority_queue, but it’s possible to simulate the behavior of a priority_queue using a vector, thus allowing you access to that vector. You can do this by looking at the implementation of priority_queue, which uses make_heap( ), push_heap( ), and pop_heap( ). (These are the soul of the priority_queue—in fact you could say that the heap is the priority queue and that priority_queue is just a wrapper around it.) This turns out to be reasonably straightforward, but you might think that a shortcut is possible. Since the container used by priority_queue is protected (and has the identifier, according to the Standard C++ specification, named c), you can inherit a new class that provides access to the underlying implementation:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue4.cpp
+
+
+
+    <!--
+    However, if you run this program, you’ll discover that the vector doesn’t contain the items in the descending order that you get when you call pop( ), the order that you want from the priority queue. It would seem that if you want to create a vector that is a priority queue, you have to do it by hand, like this:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue5.cpp
+
+
+
+    <!--
+    But this program behaves in the same way as the previous one! What you are seeing in the underlying vector is called a heap. This heap data structure represents the tree of the priority queue (stored in the linear structure of the vector), but when you iterate through it, you do not get a linear priority-queue order. You might think that you can simply call sort_heap( ), but that only works once, and then you don’t have a heap anymore, but instead a sorted list. This means that to go back to using it as a heap, the user must remember to call make_heap( ) first. This can be encapsulated into your custom priority queue:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue6.cpp
+
+
+
+    <!--
+    If sorted is true, the vector is not organized as a heap but instead as a sorted sequence. The assureHeap( ) function guarantees that it’s put back into heap form before performing any heap operations on it. The first for loop in main( ) now has the additional quality that it displays the heap as it is being built.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    In the previous two programs we had to introduce a seemingly extraneous usage of the “this->” prefix. Although some compilers do not require it, the standard definition of C++ does. Note that the class PQV derives from vector<T>, therefore begin( ) and end( ), inherited from vector<T>, are dependent names.[110] Compilers can’t look up names from dependent base classes in the definition of a template (vector, in this case) because for a given instantiation an explicitly specialized version of the template might be used that does not have a given member. The special naming requirement guarantees that you won’t end up calling a base class member in some cases and possibly a function from an enclosing scope (such as a global one) in other cases. The compiler has no way of knowing that a call to begin( ) is dependent, so we must give it a clue with a “this‑>” qualification.[111] This tells the compiler that begin( ) is in the scope of PQV, so it waits until an instance of PQV is fully instantiated. If this qualifying prefix is left out, the compiler will attempt an early lookup for the names begin and end (at template definition time, and will fail to find them because there are no such names declared in enclosing lexical scopes in this example). In the code above, however, the compiler waits until the point of instantiation of pqi, and then finds the correct specializations of begin( ) and end( ) in vector<int>.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The only drawback to this solution is that the user must remember to call sort( ) before viewing it as a sorted sequence (although one could conceivably redefine all the member functions that produce iterators so that they guarantee sorting). Another solution is to create a priority queue that is not a vector, but will build you a vector whenever you want one:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue7.cpp
+
+
+
+    <!--
+    The PQV class template follows the same form as the STL’s priority_queue, but has the additional member getVector( ), which creates a new vector that’s a copy of the one in PQV (which means that it’s already a heap). It then sorts that copy (leaving PQV’s vector untouched), and reverses the order so that traversing the new vector produces the same effect as popping the elements from the priority queue.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You may observe that the approach of deriving from priority_queue used in PriorityQueue4.cpp could be used with the above technique to produce more succinct code:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PriorityQueue8.cpp
+
+
+
+    <!--
+    The brevity of this solution makes it the simplest and most desirable, plus it’s guaranteed that the user will not have a vector in the unsorted state. The only potential problem is that the getVector( ) member function returns the vector<T> by value, which might cause some overhead issues with complex values of the parameter type T.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Holding bits -->
+    <title> </title>
+
+
+    <!--
+    Because C is a language that purports to be “close to the hardware,” many have found it dismaying that there is no native binary representation for numbers. Decimal, of course, and hexadecimal (tolerable only because it’s easier to group the bits in your mind), but octal? Ugh. Whenever you read specs for chips you’re trying to program, they don’t describe the chip registers in octal or even hexadecimal—they use binary. And yet C won’t let you say 0b0101101, which is the obvious solution for a language close to the hardware.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although there’s still no native binary representation in C++, things have improved with the addition of two classes: bitset and vector<bool>, both of which are designed to manipulate a group of on-off values.[112] The primary differences between these types are:
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    · Each bitset holds a fixed number of bits. You establish the quantity of bits in the bitset template argument. The vector<bool> can, like a regular vector, expand dynamically to hold any number of bool values.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    · The bitset template is explicitly designed for performance when manipulating bits, and is not a “regular” STL container. As such, it has no iterators. The number of bits, being a template parameter, is known at compile time and allows the underlying integral array to be stored on the runtime stack. The vector<bool> container, on the other hand, is a specialization of a vector and so has all the operations of a normal vector—the specialization is just designed to be space efficient for bool.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    There is no trivial conversion between a bitset and a vector<bool>, which implies that the two are for very different purposes. Furthermore, neither is a traditional “STL container.” The bitset template class has an interface for bit-level operations and in no way resembles the STL containers we’ve discussed up to this point. The vector<bool> specialization of vector is similar to an STL-like container, but it differs as discussed below.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : bitset<n> -->
+      <title> </title>
+
+
+      <!--
+      The template for bitset accepts an unsigned integral template argument that is the number of bits to represent. Thus, bitset<10> is a different type than bitset<20>, and you cannot perform comparisons, assignments, and so on between the two.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A bitset provides the most commonly used bitwise operations in an efficient form. However, each bitset is implemented by logically packing bits in an array of integral types (typically unsigned longs, which contain at least 32 bits). In addition, the only conversion from a bitset to a numerical value is to an unsigned long (via the function to_ulong( )).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The following example tests almost all the functionality of the bitset (the missing operations are redundant or trivial). You’ll see the description of each of the bitset outputs to the right of the output so that the bits all line up and you can compare them to the source values. If you still don’t understand bitwise operations, running this program should help.
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:BitSet.cpp
+
+
+
+      <!--
+      To generate interesting random bitsets, the randBitset( ) function is created. This function demonstrates operator<<= by shifting each 16 random bits to the left until the bitset (which is templatized in this function for size) is full. The generated number and each new 16 bits are combined using the operator|=.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The main( ) function first shows the unit size of a bitset. If it is less than 32 bits, sizeof produces 4 (4 bytes = 32 bits), which is the size of a single long on most implementations. If it’s between 32 and 64, it requires two longs, greater than 64 requires 3 longs, and so on. Thus, you make the best use of space if you use a bit quantity that fits in an integral number of longs. However, notice there’s no extra overhead for the object—it’s as if you were hand-coding for a long.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Although there are no other numerical conversions from bitset besides to_ulong( ), there is a stream inserter that produces a string containing ones and zeros, and this can be as long as the actual bitset.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      There’s still no primitive format for binary values, but bitset supports the next best thing: a string of ones and zeros with the least-significant bit (lsb) on the right. The three constructors demonstrated take the entire string, the string starting at character 2, and the string from character 2 through 11. You can write to an ostream from a bitset using operator<<, and it comes out as ones and zeros. You can also read from an istream using operator>> (not shown here).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      You’ll notice that bitset only has three nonmember operators: and (&), or (|), and exclusive-or (^). Each of these creates a new bitset as its return value. All the member operators opt for the more efficient &=, |=, and so on, where a temporary is not created. However, these forms change the bitset’s value (which is a in most of the tests in the above example). To prevent this, we created a temporary to be used as the lvalue by invoking the copy- constructor on a; this is why you see the form BS(a). The result of each test is displayed, and occasionally a is reprinted so you can easily look at it for reference.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The rest of the example should be self-explanatory when you run it; if not you can find the details in your compiler’s documentation or in the other documentation mentioned earlier in this chapter.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : vector<bool> -->
+      <title> </title>
+
+
+      <!--
+      The vector<bool> container is a specialization of the vector template. A normal bool variable requires at least one byte, but since a bool only has two states, the ideal implementation of vector<bool> is such that each bool value only requires one bit. Since typical library implementations pack the bits into integral arrays, the iterator must be specially defined and cannot be a pointer to bool.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The bit-manipulation functions for vector<bool> are much more limited than those of bitset. The only member function that was added to those already in vector is flip( ), to invert all the bits. There is no set( ) or reset( ) as in bitset. When you use operator[ ], you get back an object of type vector<bool>::reference, which also has a flip( ) to invert that individual bit.
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:VectorOfBool.cpp
+
+
+
+      <!--
+      The last part of this example takes a vector<bool> and converts it to a bitset by first turning it into a string of ones and zeros. Here, you must know the size of the bitset at compile time. You can see that this conversion is not the kind of operation you’ll want to do on a regular basis.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The vector<bool> specialization is a “crippled” STL container in the sense that certain guarantees that other containers provide are missing. For example, with the other containers the following relationships hold:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+// Let c be an STL container other than vector&lt;bool&gt;:
+T&amp; r = c.front();
+T* p = &amp;*c.begin();
+</programlisting>
+
+      <!--
+      For all other containers, the front( ) function yields an lvalue (something you can get a non-const reference to), and begin( ) must yield something you can dereference and then take the address of. Neither is possible because bits are not addressable. Both vector<bool> and bitset use a proxy class (the nested reference class, mentioned earlier) to read and set bits as necessary.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : Associative containers -->
+    <title> </title>
+
+
+    <!--
+    The set, map, multiset, and multimap are called associative containers because they associate keys with values. Well, at least maps and multimaps associate keys with values, but you can look at a set as a map that has no values, only keys (and they can in fact be implemented this way), and the same for the relationship between multiset and multimap. So, because of the structural similarity, sets and multisets are lumped in with associative containers.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The most important basic operations with associative containers are putting things in and, in the case of a set, seeing if something is in the set. In the case of a map, you want to first see if a key is in the map, and if it exists, you want the associated value for that key. There are many variations on this theme, but that’s the fundamental concept. The following example shows these basics:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:AssociativeBasics.cpp
+
+
+
+    <!--
+    The set<Noisy> object ns is created using two iterators into an array of Noisy objects, but there is also a default constructor and a copy-constructor, and you can pass in an object that provides an alternate scheme for doing comparisons. Both sets and maps have an insert( ) member function to put things in, and you can check to see if an object is already in an associative container in two ways. The count( ) member function, when given a key, will tell you how many times that key occurs. (This can only be zero or one in a set or map, but it can be more than one with a multiset or multimap.) The find( ) member function will produce an iterator indicating the first occurrence (with set and map, the only occurrence) of the key that you give it or will produce the past-the-end iterator if it can’t find the key. The count( ) and find( ) member functions exist for all the associative containers, which makes sense. The associative containers also have member functions lower_bound( ), upper_bound( ), and equal_range( ), which only make sense for multiset and multimap, as you will see. (But don’t try to figure out how they would be useful for set and map, since they are designed for dealing with a range of duplicate keys, which those containers don’t allow.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Designing an operator[ ] always presents a bit of a dilemma. Because it’s intended to be treated as an array-indexing operation, people don’t tend to think about performing a test before they use it. But what happens if you decide to index out of the bounds of the array? One option is to throw an exception, but with a map, “indexing out of the array” could mean that you want to create a new entry at that location, and that’s the way the STL map treats it. The first for loop after the creation of the map<int, Noisy> nm just “looks up” objects using the operator[ ], but this is actually creating new Noisy objects! The map creates a new key-value pair (using the default constructor for the value) if you look up a value with operator[ ] and it isn’t there. This means that if you really just want to look something up and not create a new entry, you must use the member functions count( ) (to see if it’s there) or find( ) (to get an iterator to it).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    A number of problems are associated with the for loop that prints the values of the container using operator[ ]. First, it requires integral keys (which we happen to have here). Next and worse, if all the keys are not sequential, you’ll end up counting from zero to the size of the container, and if some spots don’t have key-value pairs, you’ll automatically create them and miss some of the higher values of the keys. Finally, if you look at the output from the for loop, you’ll see that things are very busy, and it’s quite puzzling at first why there are so many constructions and destructions for what appears to be a simple lookup. The answer only becomes clear when you look at the code in the map template for operator[ ], which will be something like this:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+mapped_type&amp; operator[] (const key_type&amp; k) {
+value_type tmp(k,T());
+return (*((insert(tmp)).first)).second;
+}
+</programlisting>
+
+    <!--
+    The map::insert( ) function takes a key-value pair and does nothing if there is already an entry in the map with the given key—otherwise it inserts an entry for the key. In either case, it returns a new key-value pair holding an iterator to the inserted pair as its first element and holding true as the second element if an insertion took place. The members first and second give the key and value, respectively, because map::value_type is really just a typedef for a std::pair:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+typedef pair&lt;const Key, T&gt; value_type;
+</programlisting>
+
+    <!--
+    You’ve seen the std::pair template before. It’s a simple holder for two values of independent types, as you can see by its definition:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+template&lt;class T1, class T2&gt; struct pair {
+typedef T1 first_type;
+typedef T2 second_type;
+T1 first;
+T2 second;
+pair();
+pair(const T1&amp; x, const T2&amp; y) : first(x), second(y) {}
+// Templatized copy-constructor:
+template&lt;class U, class V&gt; pair(const pair&lt;U, V&gt; &amp;p);
+};
+</programlisting>
+
+    <!--
+    The pair template class is very useful, especially when you want to return two objects from a function (since a return statement only takes one object). There’s even a shorthand for creating a pair called make_pair( ), which is used in AssociativeBasics.cpp.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    So to retrace the steps, map::value_type is a pair of the key and the value of the map—actually, it’s a single entry for the map. But notice that pair packages its objects by value, which means that copy-constructions are necessary to get the objects into the pair. Thus, the creation of tmp in map::operator[ ] will involve at least a copy-constructor call and destructor call for each object in the pair. Here, we’re getting off easy because the key is an int. But if you want to really see what kind of activity can result from map::operator[ ], try running this:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:NoisyMap.cpp
+
+
+
+    <!--
+    You’ll see that both the insertion and lookup generate a lot of extra objects, and that’s because of the creation of the tmp object. If you look back up at map::operator[ ], you’ll see that the second line calls insert( ), passing it tmp—that is, operator[ ] does an insertion every time. The return value of insert( ) is a different kind of pair, where first is an iterator pointing to the key-value pair that was just inserted, and second is a bool indicating whether the insertion took place. You can see that operator[ ] grabs first (the iterator), dereferences it to produce the pair, and then returns the second, which is the value at that location.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    So on the upside, map has this fancy “make a new entry if one isn’t there” behavior, but the downside is that you always get a lot of extra object creations and destructions when you use map::operator[ ]. Fortunately, AssociativeBasics.cpp also demonstrates how to reduce the overhead of insertions and deletions, by avoiding operator[ ] if you don’t need it. The insert( ) member function is slightly more efficient than operator[ ]. With a set, you hold only one object, but with a map, you hold key-value pairs; so insert( ) requires a pair as its argument. Here’s where make_pair( ) comes in handy, as you can see.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    For looking objects up in a map, you can use count( ) to see whether a key is in the map, or you can use find( ) to produce an iterator pointing directly at the key-value pair. Again, since the map contains pairs, that’s what the iterator produces when you dereference it, so you have to select first and second. When you run AssociativeBasics.cpp, you’ll notice that the iterator approach involves no extra object creations or destructions. It’s not as easy to write or read, though.
+    -->
+    <para>
+
+    </para>
+
+    <sect2>
+      <!-- : Generators and fillers for associative containers -->
+      <title> </title>
+
+
+      <!--
+      You’ve seen how useful the fill( ), fill_n( ), generate( ), and generate_n( ) function templates in <algorithm> have been for filling the sequential containers (vector, list, and deque) with data. However, these are implemented by using operator= to assign values into the sequential containers, and the way that you add objects to associative containers is with their respective insert( ) member functions. Thus, the default “assignment” behavior causes a problem when trying to use the “fill” and “generate” functions with associative containers.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      One solution is to duplicate the “fill” and “generate” functions, creating new ones that can be used with associative containers. It turns out that only the fill_n( ) and generate_n( ) functions can be duplicated (fill( ) and generate( ) copy sequences, which doesn’t make sense with associative containers), but the job is fairly easy, since you have the <algorithm> header file to work from:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:assocGen.h
+
+
+
+      <!--
+      You can see that instead of using iterators, the container class itself is passed (by reference, of course).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This code demonstrates two valuable lessons. The first is that if the algorithms don’t do what you want, copy the nearest thing and modify it. You have the example at hand in the STL header, so most of the work has already been done.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The second lesson is more pointed: if you look long enough, there’s probably a way to do it in the STL without inventing anything new. The present problem can instead be solved by using an insert_iterator (produced by a call to inserter( )), which calls insert( ) to place items in the container instead of operator=. This is not simply a variation of front_insert_iterator or back_insert_iterator because those iterators use push_front( ) and push_back( ), respectively. Each of the insert iterators is different by virtue of the member function it uses for insertion, and insert( ) is the one we need. Here’s a demonstration that shows filling and generating both a map and a set. (It can also be used with multimap and multiset.) First, some templatized generators are created. (This may seem like overkill, but you never know when you’ll need them. For that reason they’re placed in a header file.)
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:SimpleGenerators.h
+
+
+
+      <!--
+      Both generators expect that T can be incremented, and they simply use operator++ to generate new values from whatever you used for initialization. PairGen creates an STL pair object as its return value, and that’s what can be placed into a map or multimap using insert( ).
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The last function is a generalization of operator<< for ostreams, so that any pair can be printed, assuming each element of the pair supports a stream operator<<. (It is in namespace std for the strange name lookup reasons discussed in Chapter 5, and explained once again after Thesaurus.cpp later on in this chapter.) As you can see in the following, this allows the use of copy( ) to output the map:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:AssocInserter.cpp
+
+
+
+      <!--
+      The second argument to inserter is an iterator, which is an optimization hint to help the insertion go faster (instead of always starting the search at the root of the underlying tree). Since an insert_iterator can be used with many different types of containers, with non-associative containers it is more than a hint—it is required.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Note how the ostream_iterator is created to output a pair. This won’t work if the operator<< isn’t created. Since it’s a template, it is automatically instantiated for pair<int, int>.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : The magic of maps -->
+      <title> </title>
+
+
+      <!--
+      An ordinary array uses an integral value to index into a sequential set of elements of some type. A map is an associative array, which means you associate one object with another in an array-like fashion. Instead of selecting an array element with a number as you do with an ordinary array, you look it up with an object! The example that follows counts the words in a text file, so the index is the string object representing the word, and the value being looked up is the object that keeps count of the strings.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In a single-item container such as a vector or a list, only one thing is being held. But in a map, you’ve got two things: the key (what you look up by, as in mapname[key]) and the value that results from the lookup with the key. If you simply want to move through the entire map and list each key-value pair, you use an iterator, which when dereferenced produces a pair object containing both the key and the value. You access the members of a pair by selecting first or second.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      This same philosophy of packaging two items together is also used to insert elements into the map, but the pair is created as part of the instantiated map and is called value_type, containing the key and the value. So one option for inserting a new element is to create a value_type object, loading it with the appropriate objects and then calling the insert( ) member function for the map. Instead, the following example uses the aforementioned special feature of map: if you’re trying to find an object by passing in a key to operator[ ] and that object doesn’t exist, operator[ ] will automatically insert a new key-value pair for you, using the default constructor for the value object. With that in mind, consider an implementation of a word-counting program:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:WordCount.cpp
+
+
+
+      <!--
+      This example shows the power of zero-initialization. Consider this line of code from the program:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+wordmap[word]++;
+</programlisting>
+
+      <!--
+      This expression increments the int associated with word. If there isn’t such a word in the map, a key-value pair for the word is automatically inserted, with the value initialized to zero by a call to the pseudo-constructor int( ), which returns a 0.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Printing the entire list requires traversing it with an iterator. (There’s no copy( ) shortcut for a map unless you want to write an operator<< for the pair in the map.) As previously mentioned, dereferencing this iterator produces a pair object, with the first member the key and the second member the value.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      If you want to find the count for a particular word, you can use the array index operator, like this:
+      -->
+      <para>
+
+      </para>
+<programlisting>
+cout &lt;&lt; "the: " &lt;&lt; wordmap["the"] &lt;&lt; endl;
+</programlisting>
+
+      <!--
+      You can see that one of the great advantages of the map is the clarity of the syntax; an associative array makes intuitive sense to the reader. (Note, however, that if “the” isn’t already in the wordmap, a new entry will be created!)
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : Multimaps and duplicate keys -->
+      <title> </title>
+
+
+      <!--
+      A multimap is a map that can contain duplicate keys. At first this may seem like a strange idea, but it can occur surprisingly often. A phone book, for example, can have many entries with the same name.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Suppose you are monitoring wildlife, and you want to keep track of where and when each type of animal is spotted. Thus, you may see many animals of the same kind, all in different locations and at different times. So if the type of animal is the key, you’ll need a multimap. Here’s what it looks like:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:WildLifeMonitor.cpp
+
+
+
+      <!--
+      All the data about a sighting is encapsulated into the class DataPoint, which is simple enough that it can rely on the synthesized assignment and copy-constructor. It uses the Standard C library time functions to record the time of the sighting.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the array of string, animal, notice that the char* constructor is automatically used during initialization, which makes initializing an array of string quite convenient. Since it’s easier to use the animal names in a vector, the length of the array is calculated, and a vector<string> is initialized using the vector(iterator, iterator) constructor.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      The key-value pairs that make up a Sighting are the string, which names the type of animal, and the DataPoint, which says where and when it was sighted. The standard pair template combines these two types and is typedefed to produce the Sighting type. Then an ostream operator<< is created for Sighting; this will allow you to iterate through a map or multimap of Sightings and display it.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      SightingGen generates random sightings at random data points to use for testing. It has the usual operator( ) necessary for a function object, but it also has a constructor to capture and store a reference to a vector<string>, which is where the aforementioned animal names are stored.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      A DataMap is a multimap of string-DataPoint pairs, which means it stores Sightings. It is filled with 50 Sightings using generate_n( ) and displayed. (Notice that because there is an operator<< that takes a Sighting, an ostream_iterator can be created.) At this point the user is asked to select the animal for which they want to see all the sightings. If you press q, the program will quit, but if you select an animal number, the equal_range( ) member function is invoked. This returns an iterator (DMIter) to the beginning of the set of matching pairs and an iterator indicating past-the-end of the set. Since only one object can be returned from a function, equal_range( ) makes use of pair. Since the range pair has the beginning and ending iterators of the matching set, those iterators can be used in copy( ) to print all the sightings for a particular type of animal.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+
+    <sect2>
+      <!-- : Multisets -->
+      <title> </title>
+
+
+      <!--
+      You’ve seen the set, which allows only one object of each value to be inserted. The multiset is odd by comparison since it allows more than one object of each value to be inserted. This seems to go against the whole idea of “setness,” where you can ask, “Is ‘it’ in this set?” If there can be more than one “it,” what does that question mean?
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      With some thought, you can see that it makes little sense to have more than one object of the same value in a set if those duplicate objects are exactly the same (with the possible exception of counting occurrences of objects, but as seen earlier in this chapter that can be handled in an alternative, more elegant fashion). Thus, each duplicate object will have something that makes it “different” from the other duplicates—most likely different state information that is not used in the calculation of the key during the comparison. That is, to the comparison operation, the objects look the same, but they contain some differing internal state.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Like any STL container that must order its elements, the multiset template uses the less function object by default to determine element ordering. This uses the contained class’s operator<, but you can always substitute your own comparison function.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      Consider a simple class that contains one element that is used in the comparison and another that is not:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:MultiSet1.cpp
+
+
+
+      <!--
+      In X, all the comparisons are made with the char c. The comparison is performed with operator<, which is all that is necessary for the multiset, since in this example the default less comparison object is used. The class Xgen randomly generates X objects, but the comparison value is restricted to the span from ‘A’ to ‘E’. In main( ), a multiset<X> is created and filled with 25 X objects using Xgen, guaranteeing that there will be duplicate keys. So that we know what the unique values are, a regular set<X> is created from the multiset (using the iterator, iterator constructor). These values are displayed, and then each one produces the equal_range( ) in the multiset (equal_range( ) has the same meaning here as it does with multimap: all the elements with matching keys). Each set of matching keys is then printed.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      As a second example, a (possibly) more elegant version of WordCount.cpp can be created using multiset:
+      -->
+      <para>
+
+      </para>
+
+
+//: V2C07:MultiSetWordCount.cpp
+
+
+
+      <!--
+      The setup in main( ) is identical to WordCount.cpp, but then each word is simply inserted into the multiset<string>. An iterator is created and initialized to the beginning of the multiset; dereferencing this iterator produces the current word. The equal_range( ) member function (not generic algorithm) produces the starting and ending iterators of the word that’s currently selected, and the algorithm distance( ) (defined in <iterator>) counts the number of elements in that range. The iterator it is then moved forward to the end of the range, which puts it at the next word. If you’re unfamiliar with the multiset, this code can seem more complex. The density of it and the lack of need for supporting classes such as Count has a lot of appeal.
+      -->
+      <para>
+
+      </para>
+
+      <!--
+      In the end, is this really a “set,” or should it be called something else? An alternative is the generic “bag” that is defined in some container libraries, since a bag holds anything, without discrimination—including duplicate objects. This is close, but it doesn’t quite fit since a bag has no specification about how elements should be ordered. A multiset (which requires that all duplicate elements be adjacent to each other) is even more restrictive than the concept of a set. A set implementation might use a hashing function to order its elements, which would not put them in sorted order. Besides, if you want to store a bunch of objects without any special criteria, you will probably just use a vector, deque, or list.
+      -->
+      <para>
+
+      </para>
+    </sect2>
+  </sect1>
+
+  <sect1>
+    <!-- : Combining STL containers -->
+    <title> </title>
+
+
+    <!--
+    When using a thesaurus, you want to know all the words that are similar to a particular word. When you look up a word, then, you want a list of words as the result. Here, the “multi” containers (multimap or multiset) are not appropriate. The solution is to combine containers, which is easily done using the STL. Here, we need a tool that turns out to be a powerful general concept, which is a map that associates a string with a vector:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Thesaurus.cpp
+
+
+
+    <!--
+    A Thesaurus maps a string (the word) to a vector<string> (the synonyms). A TEntry is a single entry in a Thesaurus. By creating an ostream operator<< for a TEntry, a single entry from the Thesaurus can easily be printed (and the whole Thesaurus can easily be printed with copy( )). Notice the very strange placement of the stream inserter: we put it inside the std namespace![113] This operator<<( ) function is used by ostream_iterator in the first call to copy( ) in main( ) above. When the compiler instantiates the needed ostream_iterator specialization, according to the rules of argument-dependent lookup (ADL) it only looks in std because that is where all the arguments to copy( ) are declared. If we declared our inserter in the global namespace (by removing the namespace block around it), then it would not be found. By placing it in std we enable ADL to find it.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The ThesaurusGen creates “words” (which are just single letters) and “synonyms” for those words (which are just other randomly chosen single letters) to be used as thesaurus entries. It randomly chooses the number of synonym entries to make, but there must be at least two. All the letters are chosen by indexing into a static string that is part of ThesaurusGen.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    In main( ), a Thesaurus is created, filled with 10 entries and printed using the copy( ) algorithm. The menu( ) function asks the user to choose a “word” to look up by typing the letter of that word. The find( ) member function discovers whether the entry exists in the map. (Remember, you don’t want to use operator[ ], which will automatically make a new entry if it doesn’t find a match!) If so, operator[ ] fetches out the vector<string> that is displayed. The selection of the reply string is generated randomly, to allow automated testing.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Because templates make the expression of powerful concepts easy, you can take this concept much further, creating a map of vectors containing maps, and so on. For that matter, you can combine any of the STL containers this way.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Cleaning up containers of pointers -->
+    <title> </title>
+
+
+    <!--
+    In Stlshape.cpp, the pointers did not clean themselves up automatically. It would be convenient to be able to do this easily, rather than writing out the code each time. Here is a function template that will clean up the pointers in any sequence container. Note that it is placed in the book’s root directory for easy access:
+    -->
+    <para>
+
+    </para>
+<example>
+<title>purge.h</title>
+<programlisting language="C++">
+<xi:include parse="text" href="./code_v2/purge.h"/>
+</programlisting>
+</example>
+
+    <!--
+    In the first version of purge( ), note that typename is absolutely necessary. This is exactly the case that keyword was designed to solve: Seq is a template argument, and iterator is something that is nested within that template. So what does Seq::iterator refer to? The typename keyword specifies that it refers to a type, and not something else.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Although the container version of purge( ) must work with an STL-style container, the iterator version of purge( ) will work with any range, including an array.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Here is a rewrite of Stlshape.cpp, modified to use the purge( ) function:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Stlshape2.cpp
+
+
+
+    <!--
+    When using purge( ), carefully consider ownership issues. If an object pointer is held in more than one container, be sure not to delete it twice, and you don’t want to destroy the object in the first container before the second one is finished with it. Purging the same container twice is not a problem because purge( ) sets the pointer to zero once it deletes that pointer, and calling delete for a zero pointer is a safe operation.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Creating your own containers -->
+    <title> </title>
+
+
+    <!--
+    With the STL as a foundation, you can create your own containers. Assuming you follow the same model of providing iterators, your new container will behave as if it were a built- in STL container.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Consider the “ring” data structure, which is a circular sequence container. If you reach the end, it just wraps around to the beginning. This can be implemented on top of a list as follows:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Ring.cpp
+
+
+
+    <!--
+    You can see that most of the coding is in the iterator. The Ring iterator must know how to loop back to the beginning, so it must keep a reference to the list of its “parent” Ring object in order to know if it’s at the end and how to get back to the beginning.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    You’ll notice that the interface for Ring is quite limited; in particular, there is no end( ), since a ring just keeps looping. This means that you won’t be able to use a Ring in any STL algorithms that require a past-the-end iterator, which are many. (It turns out that adding this feature is a nontrivial exercise.) Although this can seem limiting, consider stack, queue, and priority_queue, which don’t produce any iterators at all!
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : STL extensions -->
+    <title> </title>
+
+
+    <!--
+    Although the STL containers may provide all the functionality you’ll ever need, they are not complete. For example, the standard implementations of set and map use trees, and although these are reasonably fast, they may not be fast enough for your needs. In the C++ Standards Committee it was generally agreed that hashed implementations of set and map should have been included in Standard C++, however, there was not enough time to add these components, and thus they were left out.[114]
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Fortunately, alternatives are freely available. One of the nice things about the STL is that it establishes a basic model for creating STL-like classes, so anything built using the same model is easy to understand if you are already familiar with the STL.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The SGI STL from Silicon Graphics[115] is one of the most robust implementations of the STL and can be used to replace your compiler’s STL if that is found wanting. In addition, SGI has added a number of extensions including hash_set, hash_multiset, hash_map, hash_multimap, slist (a singly linked list), and rope (a variant of string optimized for very large strings and fast concatenation and substring operations).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Let’s consider a performance comparison between a tree-based map and the SGI hash_map. To keep things simple, the mappings will be from int to int:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:MapVsHashMap.cpp
+
+
+
+    <!--
+    The performance test we ran showed a speed improvement of roughly 4: 1 for the hash_map over the map in all operations (and as expected, find( ) is slightly faster than operator[ ] for lookups for both types of map). If a profiler shows a bottleneck in your map, consider a hash_map.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Non–STL containers -->
+    <title> </title>
+
+
+    <!--
+    There are two “non-STL” containers in the standard library: bitset and valarray.[116] We say “non-STL” because neither of these containers fulfills all the requirements of STL containers. The bitset container, which we covered earlier in this chapter, packs bits into integers and does not allow direct addressing of its members. The valarray template class is a vector-like container that is optimized for efficient numeric computation. Neither container provides iterators. Although you can instantiate a valarray with nonnumeric types, it has mathematical functions that are intended to operate with numeric data, such as sin, cos, tan, and so on.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Here’s a tool to print elements in a valarray:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:PrintValarray.h
+
+
+
+    <!--
+    Most of valarray’s functions and operators operate on a valarray as a whole, as the following example illustrates:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Valarray1.cpp
+
+
+
+    <!--
+    The valarray class provides a constructor that takes an array of the target type and the count of elements in the array to initialize the new valarray. The shift( ) member function shifts each valarray element one position to the left (or to the right, if its argument is negative) and fills in holes with the default value for the type (zero in this case). There is also a cshift( ) member function that does a circular shift (or “rotate”). All mathematical operators and functions are overloaded to operate on valarrays, and binary operators require valarray arguments of the same type and size. The apply( ) member function, like the transform( ) algorithm, applies a function to each element, but the result is collected into a result valarray. The relational operators return suitably-sized instances of valarray<bool> that indicate the result of element-by-element comparisons, such as with eq above. Most operations return a new result array, but a few, such as min( ), max( ), and sum( ), return a single scalar value, for obvious reasons.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The most interesting thing you can do with valarrays is reference subsets of their elements, not only for extracting information, but also for updating it. A subset of a valarray is called a slice, and certain operators use slices to do their work. The following sample program uses slices:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:Valarray2.cpp
+
+
+
+    <!--
+    A slice object takes three arguments: the starting index, the number of elements to extract, and the “stride,” which is the gap between elements of interest. Slices can be used as indexes into an existing valarray, and a new valarray containing the extracted elements is returned. A valarray of bool, such as is returned by the expression v > 6, can be used as an index into another valarray; the elements corresponding to the true slots are extracted. As you can see, you can also use slices and masks as indexes on the left side of an assignment. A gslice object (for “generalized slice”) is like a slice, except that the counts and strides are themselves arrays, which means you can interpret a valarray as a multidimensional array. The example above extracts a 2 by 3 array from v, where the numbers start at zero and the numbers for the first dimension are found six slots apart in v, and the others two apart, which effectively extracts the matrix
+    -->
+    <para>
+
+    </para>
+<programlisting>
+1 3 5
+7 9 11
+</programlisting>
+
+    <!--
+    Here is the complete output for this program:
+    -->
+    <para>
+
+    </para>
+<programlisting>
+slice(0,4,3): 1 4 7 10
+elements &gt; 6: 7 8 9 10
+after squaring v: 1 2 3 16 5 6 49 8 9 100 11 12
+v restored: 1 2 3 4 5 6 7 8 9 10 11 12
+2-d slice: 1 3 5 7 9 11
+v[mask]: 2 3 5
+v[mask2]: 3 3 4 7
+capitalized: N o w I s T h e T i m e
+</programlisting>
+
+    <!--
+    A practical example of slices is found in matrix multiplication. Consider how you would write a function to multiply two matrices of integers with arrays.
+    -->
+    <para>
+
+    </para>
+<programlisting>
+void matmult(const int a[][MAXCOLS], size_t m, size_t n,
+const int b[][MAXCOLS], size_t p, size_t q,
+int result[][MAXCOLS);
+</programlisting>
+
+    <!--
+    This function multiplies the m-by-n matrix a by the p-by-q matrix b, where n and p are expected to be equal. As you can see, without something like valarray, you need to fix the maximum value for the second dimension of each matrix, since locations in arrays are statically determined. It is also difficult to return a result array by value, so the caller usually passes the result array as an argument.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Using valarray, you can not only pass any size matrix, but you can also easily process matrices of any type, and return the result by value. Here’s how:
+    -->
+    <para>
+
+    </para>
+
+
+//: V2C07:MatrixMultiply.cpp
+
+
+
+    <!--
+    Each entry in the result matrix c is the dot product of a row in a with a column in b. By taking slices, you can extract these rows and columns as valarrays and use the global * operator and sum( ) function provided by valarray to do the work succinctly. The result valarray is computed at runtime; there’s no need to worry about the static limitations of array dimensions. You do have to compute linear offsets of the position [i][j] yourself (see the formula i*bcols + j above), but the size and type freedom is worth it.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Summary -->
+    <title> </title>
+
+
+    <!--
+    The goal of this chapter was not just to introduce the STL containers in some considerable depth. Although every detail could not be covered here, you now know enough that you can look up further information in the other resources. Our hope is that this chapter has helped you grasp the power available in the STL and shown you how much faster and more efficient your programming activities can be by understanding and using the STL.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+
+  <sect1>
+    <!-- : Exercises -->
+    <title> </title>
+
+
+    <!--
+    Solutions to selected exercises can be found in the electronic document The Thinking in C++ Volume 2 Annotated Solution Guide, available for a small fee from www.MindView.net.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    1. Create a set<char>, open a file (whose name is provided on the command line), and read that file in a char at a time, placing each char in the set. Print the results, and observe the organization. Are there any letters in the alphabet that are not used in that particular file?
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    2. Create three sequences of Noisy objects, a vector, deque, and list. Sort them. Now write a function template to receive the vector and deque sequences as a parameter to sort them and record the sorting time. Write a specialized template function to do the same for list (ensure to call its member sort( ) instead of the generic algorithm). Compare the performance of the different sequence types.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    3. Write a program to compare the speed of sorting a list using list::sort( ) vs. using std::sort( ) (the STL algorithm version of sort( )).
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    4. Create a generator that produces random int values between 0 and 20 inclusive, and use it to fill a multiset<int>. Count the occurrences of each value, following the example given in MultiSetWordCount.cpp.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    5. Change StlShape.cpp so that it uses a deque instead of a vector.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    6. Modify Reversible.cpp so it works with deque and list instead of vector.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    7. Use a stack<int> and populate it with a Fibonacci sequence. The program’s command line should take the number of Fibonacci elements desired, and you should have a loop that looks at the last two elements on the stack and pushes a new one for every pass through the loop.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    8. Using only three stacks (source, sorted, and losers), sort a random sequence of numbers by first placing the numbers on the source stack. Assume the number on the top of the source is the largest, and push it on the sorted stack. Continue to pop the source stack comparing it with the top of the sorted stack. Whichever number is the smallest, pop it from its stack and push it onto the on the losers’ stack. Once the source stack is empty, repeat the process using the losers’ stack as the source stack, and use the source stack as the losers’ stack. The algorithm completes when all the numbers have been placed into the winners’ stack.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    9. Open a text file whose name is provided on the command line. Read the file a word at a time, and use a multiset<string> to create a word count for each word.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    10. Modify WordCount.cpp so that it uses insert( ) instead of operator[ ] to insert elements in the map.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    11. Create a class that has an operator< and an ostream& operator<<. The class should contain a priority number. Create a generator for your class that makes a random priority number. Fill a priority_queue using your generator, and then pull the elements out to show they are in the proper order.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    12. Rewrite Ring.cpp so it uses a deque instead of a list for its underlying implementation.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    13. Modify Ring.cpp so that the underlying implementation can be chosen using a template argument. (Let that template argument default to list.)
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    14. Create an iterator class called BitBucket that just absorbs whatever you send to it without writing it anywhere.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    15. Create a kind of “hangman” game. Create a class that contains a char and a bool to indicate whether that char has been guessed yet. Randomly select a word from a file, and read it into a vector of your new type. Repeatedly ask the user for a character guess, and after each guess, display the characters in the word that have been guessed, and display underscores for the characters that haven’t. Allow a way for the user to guess the whole word. Decrement a value for each guess, and if the user can get the whole word before the value goes to zero, they win.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    16. Open a file and read it into a single string. Turn the string into a stringstream. Read tokens from the stringstream into a list<string> using a TokenIterator.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    17. Compare the performance of stack based on whether it is implemented with vector, deque, or list.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    18. Create a template that implements a singly-linked list called SList. Provide a default constructor and begin( ) and end( ) functions (via an appropriate nested iterator), insert( ), erase( ) and a destructor.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    19. Generate a sequence of random integers, storing them into an array of int. Initialize a valarray<int> with its contents. Compute the sum, minimum value, maximum value, average, and median of the integers using valarray operations.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    20. Create a valarray<int> with 12 random values. Create another valarray<int> with 20 random values. You will interpret the first valarray as a 3 x 4 matrix of ints and the second as a 4 x 5 matrix of ints, and multiply them by the rules of matrix multiplication. Store the result in a valarray<int> of size 15, representing the 3 x 5 result matrix. Use slices to multiply the rows of the first matrix time the columns of the second. Print the result in rectangular matrix form.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    The mark of a professional appears in his or her attention to the finer points of the craft. In this section of the book we discuss advanced features of C++ along with development techniques used by polished C++ professionals.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Sometimes you may need to depart from the conventional wisdom of sound object-oriented design by inspecting the runtime type of an object. Most of the time you should let virtual functions do that job for you, but when writing special-purpose software tools, such as debuggers, database viewers, or class browsers, you’ll need to determine type information at runtime. This is where the runtime type identification (RTTI) mechanism becomes useful. RTTI is the topic of Chapter 8.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Multiple inheritance has taken abuse over the years, and some languages don’t even support it. Nonetheless, when used properly, it can be a powerful tool for crafting elegant, efficient code. A number of standard practices involving multiple inheritance have evolved over the years, which we present in Chapter 9.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Perhaps the most notable innovation in software development since object-oriented techniques is the use of design patterns. A design pattern describes solutions for many of the common problems involved in designing software, and can be applied in many situations and implemented in any language. In chapter 10 we describe a selected number of design patterns and implement them in C++.
+    -->
+    <para>
+
+    </para>
+
+    <!--
+    Chapter 11 explains the benefits and challenges of multithreaded programming. The current version of Standard C++ does not specify support for threads, even though most operating systems provide them. We use a portable, freely available threading library to illustrate how C++ programmers can take advantage of threads to build more usable and responsive applications.
+    -->
+    <para>
+
+    </para>
+  </sect1>
+</chapter>
