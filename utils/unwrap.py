@@ -7,9 +7,15 @@
 # que son claramente texto corrido, para que cada párrafo sea una unidad
 # manejable (diffs por párrafo, traducción párrafo a párrafo).
 #
+# Los <para> con notas al pie se juntan enteros, nota incluida, con la
+# forma <footnote><para>...</para></footnote>. En los comentarios, cada
+# elemento de una lista (1. ..., · ..., * ...) se junta por separado.
+#
 # No toca los listados (<programlisting>, <screen>), ni los <para> vacíos
 # que esperan traducción, ni los comentarios que no son prosa: cabeceras
-# de fichero, URLs, títulos de sección, trozos de código.
+# de fichero, URLs, títulos de sección, trozos de código, salidas de
+# programas. En un <para> que contiene listas, tablas o código solo se
+# juntan los <para> de dentro.
 #
 # Uso:  unwrap.py [-n] fichero.xml ...
 #       -n, --simular   dice lo que haría sin escribir nada
@@ -24,43 +30,109 @@
 import re
 import sys
 
-# regiones que se copian tal cual, y las que sí se procesan
-BLOQUE = re.compile(
-    r'(?P<codigo><(?P<et>programlisting|screen)\b.*?</(?P=et)>)'
-    r'|(?P<comentario><!--.*?-->)'
-    r'|(?P<parrafo><para\b[^>]*>.*?</para>)',
-    re.S)
+# lo que el recorrido de procesa() busca: listados, comentarios y párrafos
+INICIO = re.compile(r'<(?P<et>programlisting|screen)\b|(?P<com><!--)|(?P<par><para\b)')
+ETIQUETA_PARA = re.compile(r'<(/?)para\b[^>]*?(/?)>')
 
-# un <para> con hijos de bloque se deja en paz: juntarlo estropearía el anidado
+# un <para> con estos hijos no se junta entero: se entra en él
 HIJOS_BLOQUE = re.compile(
-    r'<(para|programlisting|screen|itemizedlist|orderedlist|variablelist'
-    r'|table|informaltable|example|figure|footnote)\b')
+    r'<(programlisting|screen|literallayout|itemizedlist|orderedlist'
+    r'|variablelist|table|informaltable|example|figure|informalfigure'
+    r'|mediaobject|blockquote|note|warning|tip|sidebar)\b')
 
 # señales de que un bloque de comentario NO es prosa
 CAMPO = re.compile(r'^\s*(Editor|Traducci|Formateado|Revisi|Autor|Fecha)\b.*:', re.M)
+EMACS = re.compile(r'Local [Vv]ariables|ispell|coding:')
 NO_PROSA = re.compile(r'^\s*(//|#|\*|={2,}|-{3,}|\}|<\?)')
-FIN_CODIGO = re.compile(r'[;{}]\s*$')
+# '#' y '==' también empiezan frases («#ifdef statement and...», «==. The...»)
+NO_PROSA_SALVO_FRASE = re.compile(r'^\s*(#|={2,})')
+FIN_CODIGO = re.compile(r'([{}]|\)\s*;)\s*$')
+FIN_PUNTO_Y_COMA = re.compile(r';\s*$')
+SIGNO_CODIGO = re.compile(r'[(){}=<>\[\]&|]')
+
+# solo cuentan como blancos los ASCII: el espacio duro (U+00A0) se respeta
+BLANCO = re.compile(r'[ \t\r\n]+')
+
+PALABRA = re.compile(r"[A-Za-zÀ-ÿ'’-]+")
+
+# comienzo de un elemento de lista dentro de un comentario; «1» solo en una
+# línea, con el texto debajo, también cuenta
+MARCA_LISTA = re.compile(r'^\s*(\d+[.)]|[·•*#-]|\[\d+\])\s')
+SOLO_NUMERO = re.compile(r'^\s*\d+\s*$')
 
 
-def es_prosa(lineas):
-    """¿Este bloque de comentario es claramente texto corrido?
+def junta(texto):
+    """Pone el texto en una línea, con un solo espacio entre palabras."""
+    return BLANCO.sub(' ', texto).strip(' ')
+
+
+def proporcion_palabras(linea):
+    """Fracción de trozos de la línea que son palabras normales."""
+    trozos = linea.split()
+    limpios = [t.strip('.,:;!?"\'“”‘’()') for t in trozos]
+    return sum(1 for t in limpios if PALABRA.fullmatch(t)) / max(len(trozos), 1)
+
+
+def es_codigo(linea, lista=False):
+    """¿La línea tiene pinta de código, de salida de programa o de marca?
+
+    Acabar en llave o en ');' es siempre código. Un ';' final solo lo es
+    si la línea tiene signos de código: en una frase no cuenta. Empezar
+    por '#' o '==' no cuenta si la línea es claramente una frase. Una
+    línea con signos de código y pocas palabras también es código (con
+    más exigencia en los elementos de lista, que se juntan aunque tengan
+    líneas cortas).
+    """
+    if FIN_CODIGO.search(linea):
+        return True
+    if FIN_PUNTO_Y_COMA.search(linea) and SIGNO_CODIGO.search(linea):
+        return True
+    if NO_PROSA.match(linea):
+        return not (NO_PROSA_SALVO_FRASE.match(linea)
+                    and proporcion_palabras(linea) >= 0.75)
+    if SIGNO_CODIGO.search(linea):
+        return proporcion_palabras(linea) < (0.6 if lista else 0.5)
+    return False
+
+
+def es_prosa(lineas, lista=False):
+    """¿Estas líneas son claramente texto corrido?
 
     Pide varias líneas, ninguna con pinta de código o URL, y que estén
-    plegadas como prosa: casi todas llenas salvo la última.
+    plegadas como prosa: casi todas llenas salvo la última. En un elemento
+    de lista no se mira lo llenas que están, y su marca no cuenta como
+    señal de código.
     """
     utiles = [l for l in lineas if l.strip()]
     if len(utiles) < 2:
         return False                       # nada que juntar
     texto = '\n'.join(utiles)
-    if '://' in texto or CAMPO.search(texto):
+    if '://' in texto or CAMPO.search(texto) or EMACS.search(texto):
         return False                       # URL de referencia o cabecera
     if '--' in texto:
         return False                       # juntarlo crearía un '--' ilegal
-    for l in utiles:
-        if NO_PROSA.match(l) or FIN_CODIGO.search(l):
+    for i, l in enumerate(utiles):
+        if i == 0 and lista:
+            if SOLO_NUMERO.match(l):
+                continue
+            l = MARCA_LISTA.sub('', l, count=1)
+        if es_codigo(l, lista):
             return False
+    if lista:
+        return True
     cortas = sum(1 for l in utiles[:-1] if len(l.strip()) < 40)
     return cortas <= len(utiles[:-1]) * 0.2
+
+
+def elementos(lineas):
+    """Parte un bloque en elementos de lista; si no es una lista, uno solo."""
+    grupos = []
+    for l in lineas:
+        if not grupos or MARCA_LISTA.match(l) or SOLO_NUMERO.match(l):
+            grupos.append([l])
+        else:
+            grupos[-1].append(l)
+    return grupos
 
 
 def junta_comentario(txt):
@@ -76,53 +148,91 @@ def junta_comentario(txt):
 
     salida, cambios = [], 0
     for bloque in re.split(r'\n\s*\n', cuerpo):
-        lineas = bloque.split('\n')
-        if es_prosa(lineas):
-            salida.append(sangria + ' '.join(bloque.split()))
-            cambios += 1
-        else:
-            salida.append(bloque.strip('\n'))
+        # los elementos de una lista se juntan cada uno por su lado, nunca
+        # entre sí
+        partes = []
+        for grupo in elementos(bloque.strip('\n').split('\n')):
+            lista = bool(MARCA_LISTA.match(grupo[0]) or SOLO_NUMERO.match(grupo[0]))
+            if es_prosa(grupo, lista):
+                partes.append(sangria + junta(' '.join(grupo)))
+                cambios += 1
+            else:
+                partes.append('\n'.join(grupo))
+        salida.append('\n'.join(partes))
     if not cambios:
         return txt
     return '<!--\n' + '\n\n'.join(salida) + '\n' + cierre + '-->'
 
 
+def fin_de_para(texto, ini):
+    """Posición tras el </para> que cierra el <para> que empieza en ini."""
+    nivel = 0
+    for m in ETIQUETA_PARA.finditer(texto, ini):
+        if m.group(2):
+            continue                       # <para/>: no abre ni cierra
+        nivel += -1 if m.group(1) else 1
+        if nivel == 0:
+            return m.end()
+    raise ValueError('<para> sin cerrar en la posición %d' % ini)
+
+
 def junta_parrafo(txt):
-    """Pone el contenido de un <para> en una sola línea."""
+    """Pone el contenido de un <para> en una sola línea, notas incluidas.
+
+    Devuelve None si el párrafo tiene estructura de bloque dentro.
+    """
     ini = txt.index('>') + 1
     apertura, cuerpo, cierre = txt[:ini], txt[ini:-len('</para>')], '</para>'
     if not cuerpo.strip():
         return txt                         # hueco por traducir: se respeta
+    if HIJOS_BLOQUE.search(cuerpo):
+        return None                        # tiene estructura dentro
     if '\n' not in cuerpo:
         return txt
-    if HIJOS_BLOQUE.search(cuerpo):
-        return txt                         # tiene estructura dentro
-    return apertura + ' '.join(cuerpo.split()) + cierre
+    junto = junta(cuerpo)
+    # dentro de las notas, el espacio junto a las etiquetas sobra
+    junto = re.sub(r'(<footnote\b[^>]*>|<para\b[^>]*>) ', r'\1', junto)
+    junto = re.sub(r' (</para>|</footnote>|<para\b[^>]*>)', r'\1', junto)
+    return apertura + junto + cierre
 
 
 def procesa(texto):
     salida, pos = [], 0
     n_par = n_com = 0
-    for m in BLOQUE.finditer(texto):
+    while True:
+        m = INICIO.search(texto, pos)
+        if not m:
+            break
         salida.append(texto[pos:m.start()])
-        pos = m.end()
-        if m.group('codigo'):
-            salida.append(m.group('codigo'))
-        elif m.group('comentario'):
-            nuevo = junta_comentario(m.group('comentario'))
-            n_com += nuevo != m.group('comentario')
+        if m.group('et'):
+            fin = texto.index('</%s>' % m.group('et'), m.start()) + len(m.group('et')) + 3
+            salida.append(texto[m.start():fin])
+        elif m.group('com'):
+            fin = texto.index('-->', m.start()) + 3
+            nuevo = junta_comentario(texto[m.start():fin])
+            n_com += nuevo != texto[m.start():fin]
             salida.append(nuevo)
+        elif texto[m.start():texto.index('>', m.start()) + 1].endswith('/>'):
+            fin = texto.index('>', m.start()) + 1
+            salida.append(texto[m.start():fin])
         else:
-            nuevo = junta_parrafo(m.group('parrafo'))
-            n_par += nuevo != m.group('parrafo')
-            salida.append(nuevo)
+            fin = fin_de_para(texto, m.start())
+            nuevo = junta_parrafo(texto[m.start():fin])
+            if nuevo is None:
+                # se copia la etiqueta de apertura y se sigue por dentro
+                fin = texto.index('>', m.start()) + 1
+                salida.append(texto[m.start():fin])
+            else:
+                n_par += nuevo != texto[m.start():fin]
+                salida.append(nuevo)
+        pos = fin
     salida.append(texto[pos:])
     return ''.join(salida), n_par, n_com
 
 
 def comprueba(antes, despues):
     """Sólo se admite haber cambiado espacio en blanco."""
-    sin_blancos = lambda s: re.sub(r'\s+', '', s)
+    sin_blancos = lambda s: BLANCO.sub('', s)
     if sin_blancos(antes) != sin_blancos(despues):
         return 'el texto ha cambiado, no sólo los espacios'
 
