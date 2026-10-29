@@ -17,20 +17,34 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   id="C16">
 
+  <!-- Introduction to Templates -->
   <title>Introducción a las plantillas</title>
 
   <highlights>
+    <!--
+    Inheritance and composition provide a way to reuse object code. The template feature in C++ provides a way to reuse source code.
+    -->
     <para>La herencia y la composición proporcionan una forma de reutilizar código objeto. Las plantillas de C++ proporcionan una manera de reutilizar el código <emphasis>fuente</emphasis>.</para>
   </highlights>
 
+  <!--
+  Although C++ templates are a general-purpose programming tool, when they were introduced in the language, they seemed to discourage the use of object-based container-class hierarchies (demonstrated at the end of Chapter 15). For example, the Standard C++ containers and algorithms (explained in two chapters of Volume 2 of this book, downloadable from www.BruceEckel.com) are built exclusively with templates and are relatively easy for the programmer to use.
+  -->
   <para>Aunque las plantillas (o templates) son una herramienta de programación de propósito general, cuando fueron introducidas en el lenguaje, parecían oponerse al uso de las jerarquías de clases contenedoras basadas en objetos (demostradas al final del Capítulo 15). Por ejemplo, los contenedores y algoritmos del C++ Estándar (explicados en dos capítulos del Volumen 2 de este libro, que se puede bajar de <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>) están construidos exclusivamente con plantillas y son relativamente fáciles de usar por el programador.</para>
 
+  <!--
+  This chapter not only demonstrates the basics of templates, it is also an introduction to containers, which are fundamental components of object-oriented programming and are almost completely realized through the containers in the Standard C++ Library. You’ll see that this book has been using container examples – the Stash and Stack – throughout, precisely to get you comfortable with containers; in this chapter the concept of the iterator will also be added. Although containers are ideal examples for use with templates, in Volume 2 (which has an advanced templates chapter) you’ll learn that there are many other uses for templates as well.
+  -->
   <para>Este capítulo no sólo muestra los fundamentos de las plantillas, también es una introducción a los contenedores, que son componentes fundamentales de la programación orientada a objetos y que se materializan casi por completo en los contenedores de la Librería Estándar de C++. Se verá que este libro ha estado usando ejemplos de contenedores (<classname>Stash</classname> y <classname>Stack</classname>) a lo largo de todo el texto, precisamente para que el lector se familiarice con los contenedores; en este capítulo se añadirá también el concepto de <classname>iterator</classname>. Aunque los contenedores son ejemplos ideales para usar con las plantillas, en el Volumen 2 (que tiene un capítulo de plantillas avanzadas) se aprenderá que también hay muchos otros usos para las plantillas.</para>
 
 
   <sect1>
+    <!-- Containers -->
     <title>Contenedores</title>
 
+    <!--
+    Suppose you want to create a stack, as we have been doing throughout the book. This stack class will hold ints, to keep it simple:
+    -->
     <para>Supóngase que se quiere crear una pila, como se ha estado haciendo a lo largo del libro. Para hacerlo sencillo, esta clase manejará enteros.</para>
 
 
@@ -43,6 +57,9 @@
 
     <para>La clase <classname>IntStack</classname> es un ejemplo trivial de una pila. Para mantener la simplicidad ha sido creada con un tamaño fijo, pero se podría modificar para que automáticamente se expanda usando la memoria del montículo, como en la clase <classname>Stack</classname> que se ha examinado a lo largo del libro.</para>
 
+    <!--
+    main( ) adds some integers to the stack, and pops them off again. To make the example more interesting, the integers are created with the fibonacci( ) function, which generates the traditional rabbit-reproduction numbers. Here is the header file that declares the function:
+    -->
     <para><function>main()</function> añade algunos enteros a la pila, y posteriormente los extrae. Para hacer el ejemplo más interesante, los enteros son creados con la función <function>fibonacci()</function>, que genera los tradicionales números de la reproducción de los conejos. Aquí está el fichero de cabecera que declara la función:</para>
 
 
@@ -51,6 +68,7 @@
 
 
 
+    <!-- Here’s the implementation: -->
     <para>Aquí está la implementación:</para>
 
 
@@ -59,18 +77,34 @@
 
 
 
+    <!--
+    This is a fairly efficient implementation, because it never generates the numbers more than once. It uses a static array of int, and relies on the fact that the compiler will initialize a static array to zero. The first for loop moves the index i to where the first array element is zero, then a while loop adds Fibonacci numbers to the array until the desired element is reached. But notice that if the Fibonacci numbers through element n are already initialized, it skips the while loop altogether.
+    -->
     <para>Ésta es una implementación bastante eficiente, porque nunca se generan los números más de una vez. Se usa un array <kw>static</kw> de <type>int</type>, y se basa en el hecho de que el compilador inicializará el array estático a cero. El primer bucle <kw>for</kw> mueve el índice <varname>i</varname> a la primera posición del array que sea cero, entonces un bucle <kw>while</kw> añade números Fibonacci al array hasta que se alcance el elemento deseado. Hay que hacer notar que si los números Fibonacci hasta el elemento <varname>n</varname> ya están inicializados, entonces se salta por completo el bucle <kw>while</kw>.</para>
 
 
     <sect2>
+      <!-- The need for containers -->
       <title>La necesidad de los contenedores</title>
 
+      <!--
+      Obviously, an integer stack isn’t a crucial tool. The real need for containers comes when you start making objects on the heap using new and destroying them with delete. In the general programming problem, you don’t know how many objects you’re going to need while you’re writing the program. For example, in an air-traffic control system you don’t want to limit the number of planes your system can handle. You don’t want the program to abort just because you exceed some number. In a computer-aided design system, you’re dealing with lots of shapes, but only the user determines (at runtime) exactly how many shapes you’re going to need. Once you notice this tendency, you’ll discover lots of examples in your own programming situations.
+      -->
       <para>Obviamente, una pila de enteros no es una herramienta crucial. La necesidad real de los contenedores viene cuando se empiezan a crear objetos en el montículo usando <kw>new</kw> y se destruyen con <kw>delete</kw>. En un problema general de programación no se sabe cuántos objetos van a ser necesarios cuando se está escribiendo el programa. Por ejemplo, en un sistema de control de tráfico aéreo no se quiere limitar el número de aviones que el sistema pueda gestionar. No puede ser que el programa se aborte sólo porque se excede algún número. En un sistema de diseño asistido por computador, se están manejando montones de formas, pero únicamente el usuario determina (en tiempo de ejecución) cuántas formas serán necesarias exactamente. Una vez que se aprecie esta tendencia, se descubrirán montones de ejemplos en las propias situaciones de programación.</para>
 
+      <!--
+      C programmers who rely on virtual memory to handle their “memory management” often find the idea of new, delete, and container classes disturbing. Apparently, one practice in C is to create a huge global array, larger than anything the program would appear to need. This may not require much thought (or awareness of malloc( ) and free( )), but it produces programs that don’t port well and that hide subtle bugs.
+      -->
       <para>Los programadores de C que dependen de la memoria virtual para manejar su <quote>gestión de memoria</quote> encuentran a menudo inquietante la idea de <kw>new</kw>, <kw>delete</kw> y de las clases contenedoras. Aparentemente, una práctica en C es crear un enorme array global, más grande que cualquier cosa que el programa parezca necesitar. Puede que esto no requiera pensar demasiado (ni conocer <function>malloc()</function> y <function>free()</function>), pero produce programas que no se pueden portar bien y que esconden errores sutiles.</para>
 
+      <!--
+      In addition, if you create a huge global array of objects in C++, the constructor and destructor overhead can slow things down significantly. The C++ approach works much better: When you need an object, create it with new, and put its pointer in a container. Later on, fish it out and do something to it. This way, you create only the objects you absolutely need. And usually you don’t have all the initialization conditions available at the start-up of the program. new allows you to wait until something happens in the environment before you can actually create the object.
+      -->
       <para>Además, si se crea un enorme array global de objetos en C++, la sobrecarga de los constructores y de los destructores puede ralentizar las cosas de forma significativa. La aproximación de C++ funciona mucho mejor: Cuando se necesite un objeto, se crea con <kw>new</kw>, y se pone su puntero en un contenedor. Más tarde, se saca y se hace algo con él. De esta forma, sólo se crean los objetos absolutamente necesarios. Y normalmente no se dan todas las condiciones para la inicialización al principio del programa. <kw>new</kw> permite esperar hasta que suceda algo en el entorno para poder crear el objeto.</para>
 
+      <!--
+      So in the most common situation, you’ll make a container that holds pointers to some objects of interest. You will create those objects using new and put the resulting pointer in the container (potentially upcasting it in the process), pulling it out later when you want to do something with the object. This technique produces the most flexible, general sort of program.
+      -->
       <para>Así, en la situación más común, se creará un contenedor que almacene punteros a algunos objetos de interés. Se crearán esos objetos usando <kw>new</kw> y se pondrá el puntero resultante en el contenedor (potencialmente haciendo upcasting en el proceso), y más tarde se sacará cuando se quiera hacer algo con el objeto. Esta técnica produce el tipo de programas más flexible y general.</para>
 
     </sect2>
@@ -79,8 +113,14 @@
     <!-- Overview of templates -->
     <title>Un vistazo a las plantillas</title>
 
+    <!--
+    Now a problem arises. You have an IntStack, which holds integers. But you want a stack that holds shapes or aircraft or plants or something else. Reinventing your source code every time doesn’t seem like a very intelligent approach with a language that touts reusability. There must be a better way.
+    -->
     <para>Ahora surge un nuevo problema. Se tiene un <classname>IntStack</classname>, que maneja enteros. Pero se quiere una pila que maneje formas, o aviones, o plantas o cualquier otra cosa. Reinventar el código fuente cada vez no parece una aproximación muy inteligente con un lenguaje que propugna la reutilización. Debe haber un camino mejor.</para>
 
+    <!--
+    There are three techniques for source code reuse in this situation: the C way, presented here for contrast; the Smalltalk approach, which significantly affected C++; and the C++ approach: templates.
+    -->
     <para>Hay tres técnicas para reutilizar código fuente en esta situación: el modo de C, presentado aquí como contraste; la aproximación de Smalltalk, que afectó de forma significativa a C++, y la aproximación de C++: las plantillas.</para>
 
     <!--
@@ -92,14 +132,30 @@
     <!-- FIXME: referencia -->
     <para><emphasis>La solución de Smalltalk</emphasis>. Smalltalk (y Java siguiendo su ejemplo) optó por una solución simple y directa: Se quiere reutilizar código, pues utilícese la herencia. Para implementarlo, cada clase contenedora maneja elementos de una clase base genérica llamada <classname>Object </classname> (similar al ejemplo del final del Capítulo 15). Pero como la librería de Smalltalk tiene una importancia tan fundamental, nunca se crea una clase desde cero. En su lugar, siempre hay que heredar de una clase existente. Se encuentra una clase lo más cercana posible a lo que se desea, se hereda de ella, y se hacen un par de cambios. Obviamente, esto es un beneficio porque minimiza el trabajo (y explica por qué se pasa tanto tiempo aprendiendo la librería de clases antes de llegar a ser un programador efectivo en Smalltalk).</para>
 
+    <!--
+    But it also means that all classes in Smalltalk end up being part of a single inheritance tree. You must inherit from a branch of this tree when creating a new class. Most of the tree is already there (it’s the Smalltalk class library), and at the root of the tree is a class called Object – the same class that each Smalltalk container holds.
+    -->
     <para>Pero también significa que todas las clases de Smalltalk acaban siendo parte de un único árbol de herencia. Hay que heredar de una rama de este árbol cuando se está creando una nueva clase. La mayoría del árbol ya está ahí (es la librería de clases de Smalltalk), y la raíz del árbol es una clase llamada <classname>Object</classname>, la misma clase que manejan los contenedores de Smalltalk.</para>
 
 
 
+    <!--
+    This is a neat trick because it means that every class in the Smalltalk (and Java[59]) class hierarchy is derived from Object, so every class can be held in every container (including that container itself). This type of single-tree hierarchy based on a fundamental generic type (often named Object, which is also the case in Java) is referred to as an “object-based hierarchy.” You may have heard this term and assumed it was some new fundamental concept in OOP, like polymorphism. It simply refers to a class hierarchy with Object (or some similar name) at its root and container classes that hold Object.
+
+    [59] With the exception, in Java, of the primitive data types. These were made non-Objects for efficiency.
+    -->
     <para>Es un truco ingenioso porque significa que cada clase en la jerarquía de herencia de Smalltalk (y Java<footnote><para>Con la excepción, en Java, de los tipos de datos primitivos, que no se hicieron <classname>Object</classname>s por eficiencia.</para></footnote>) se deriva de <classname>Object</classname>, por lo que cualquier clase puede ser almacenada en cualquier contenedor (incluyendo a los propios contenedores). Este tipo de jerarquía de árbol única basada en un tipo genérico fundamental (a menudo llamado <classname>Object</classname>, como también es el caso en Java) se conoce como <quote>jerarquía basada en objetos</quote>. Se puede haber oído este término y asumido que es un nuevo concepto fundamental de la POO, como el polimorfismo. Sin embargo, simplemente se refiere a una jerarquía de clases con <classname>Object </classname> (o algún nombre similar) en su raíz y a clases contenedoras que almacenan <classname>Object</classname>s.</para>
 
+    <!--
+    Because the Smalltalk class library had a much longer history and experience behind it than did C++, and because the original C++ compilers had no container class libraries, it seemed like a good idea to duplicate the Smalltalk library in C++. This was done as an experiment with an early C++ implementation[60], and because it represented a significant body of code, many people began using it. In the process of trying to use the container classes, they discovered a problem.
+
+    [60] The OOPS library, by Keith Gorlen while he was at NIH.
+    -->
     <para>Debido a que la librería de clases de Smalltalk tenía mucha más experiencia e historia detrás de la que tenía C++, y porque los compiladores de C++ originales no tenían librerías de clases contenedoras, parecía una buena idea duplicar la librería de Smalltalk en C++. Esto se hizo como experimento con una de las primeras implementaciones de C++<footnote><para>La librería OOPS, por Keith Gorlen, mientras estaba en el NIH.</para></footnote>, y como representaba una cantidad importante de código, mucha gente empezó a usarla. En el proceso de intentar usar las clases contenedoras, descubrieron un problema.</para>
 
+    <!--
+    The problem was that in Smalltalk (and most other OOP languages that I know of), all classes are automatically derived from a single hierarchy, but this isn’t true in C++. You might have your nice object-based hierarchy with its container classes, but then you might buy a set of shape classes or aircraft classes from another vendor who didn’t use that hierarchy. (For one thing, using that hierarchy imposes overhead, which C programmers eschew.) How do you insert a separate class tree into the container class in your object-based hierarchy? Here’s what the problem looks like:
+    -->
     <para>El problema es que en Smalltalk (y en la mayoría de los lenguajes de POO que yo conozco), todas las clases derivan automáticamente de la jerarquía única, pero esto no es cierto en C++. Se puede tener una magnífica jerarquía basada en objetos con sus clases contenedoras, pero entonces se compra un conjunto de clases de figuras, o de aviones, a otro vendedor que no usa esa jerarquía. (Por un lado, usar esa jerarquía supone una sobrecarga, que los programadores de C rehúyen). ¿Cómo se inserta un árbol de clases independiente en la clase contenedora de la jerarquía basada en objetos? El problema se parece a lo siguiente:</para>
 
     <figure>
@@ -114,8 +170,14 @@
       </mediaobject>
     </figure>
 
+    <!--
+    Because C++ supports multiple independent hierarchies, Smalltalk’s object-based hierarchy does not work so well.
+    -->
     <para>Debido a que C++ admite múltiples jerarquías independientes, la jerarquía basada en objetos de Smalltalk no funciona tan bien.</para>
 
+    <!--
+    The solution seemed obvious. If you can have many inheritance hierarchies, then you should be able to inherit from more than one class: Multiple inheritance will solve the problem. So you do the following (a similar example was given at the end of Chapter 15):
+    -->
     <para>La solución parecía obvia. Si se pueden tener múltiples jerarquías de herencia, entonces hay que ser capaces de heredar de más de una clase: la herencia múltiple resolverá el problema. Así que se hace lo siguiente (un ejemplo similar se dio al final del Capítulo 15).</para>
 
     <figure>
@@ -130,20 +192,42 @@
       </mediaobject>
     </figure>
 
+    <!--
+    Now OShape has Shape’s characteristics and behaviors, but because it is also derived from Object it can be placed in Container. The extra inheritance into OCircle, OSquare, etc. is necessary so that those classes can be upcast into OShape and thus retain the correct behavior. You can see that things are rapidly getting messy.
+    -->
     <para>Ahora <classname>OShape</classname> tiene las características y el comportamiento de <classname>Shape</classname>, pero como también está derivado de <classname>Object</classname> puede ser insertado en <classname>Container</classname>. La herencia extra de <classname>OCircle</classname>, <classname>OSquare</classname>, etc. es necesaria para que esas clases puedan hacer upcast hacia <classname>OShape </classname> y mantener así el comportamiento correcto. Se puede ver cómo las cosas se están volviendo confusas rápidamente.</para>
 
+    <!--
+    Compiler vendors invented and included their own object-based container-class hierarchies, most of which have since been replaced by template versions. You can argue that multiple inheritance is needed for solving general programming problems, but you’ll see in Volume 2 of this book that its complexity is best avoided except in special cases.
+    -->
     <para>Los vendedores de compiladores inventaron e incluyeron sus propias jerarquías de clases contenedoras basadas en objetos, la mayoría de las cuales han sido reemplazadas desde entonces por versiones con plantillas. Se puede argumentar que la herencia múltiple es necesaria para resolver problemas de programación general, pero como se verá en el Volumen 2 de este libro es mejor evitar esta complejidad excepto en casos especiales.</para>
 
     <sect2>
       <!-- The template solution -->
       <title>La solución de la plantilla</title>
 
+      <!--
+      Although an object-based hierarchy with multiple inheritance is conceptually straightforward, it turns out to be painful to use. In his original book[61] Stroustrup demonstrated what he considered a preferable alternative to the object-based hierarchy. Container classes were created as large preprocessor macros with arguments that could be substituted with your desired type. When you wanted to create a container to hold a particular type, you made a couple of macro calls.
+
+      [61] The C++ Programming Language by Bjarne Stroustrup (1st edition, Addison-Wesley, 1986).
+      -->
       <para>Aunque una jerarquía basada en objetos con herencia múltiple es conceptualmente sencilla, resulta engorrosa de usar. En su libro original<footnote><para><emphasis>The C++ Programming Language</emphasis> de Bjarne Stroustrup (1ª edición, Addison-Wesley, 1986).</para></footnote>, Stroustrup demostró lo que él consideraba una alternativa preferible a la jerarquía basada en objetos. Las clases contenedoras se creaban como grandes macros del preprocesador con argumentos que podían sustituirse por el tipo deseado. Cuando se quería crear un contenedor que manejase un tipo en concreto, se hacían un par de llamadas a macros.</para>
 
+      <!--
+      Unfortunately, this approach was confused by all the existing Smalltalk literature and programming experience, and it was a bit unwieldy. Basically, nobody got it.
+      -->
       <para>Desafortunadamente, esta aproximación quedó oscurecida por toda la literatura y la experiencia de programación existentes sobre Smalltalk, y era un poco inmanejable. Básicamente, nadie la entendía.</para>
 
+      <!--
+      In the meantime, Stroustrup and the C++ team at Bell Labs had modified his original macro approach, simplifying it and moving it from the domain of the preprocessor into the compiler. This new code-substitution device is called a template[62], and it represents a completely different way to reuse code. Instead of reusing object code, as with inheritance and composition, a template reuses source code. The container no longer holds a generic base class called Object, but instead it holds an unspecified parameter. When you use a template, the parameter is substituted by the compiler, much like the old macro approach, but cleaner and easier to use.
+
+      [62] The inspiration for templates appears to be ADA generics.
+      -->
       <para>Mientras tanto, Stroustrup y el equipo de C++ de los Laboratorios Bell habían modificado su aproximación original basada en macros, simplificándola y moviéndola del dominio del preprocesador al compilador. Este nuevo dispositivo de sustitución de código se conoce como <kw>template</kw> <footnote><para>La inspiración de las plantillas parece venir de los <kw>generics</kw> de ADA.</para></footnote> (plantilla), y representa un modo completamente diferente de reutilizar el código. En vez de reutilizar código objeto, como en la herencia y en la composición, una plantilla reutiliza <emphasis>código fuente</emphasis>. El contenedor ya no maneja una clase base genérica llamada <classname>Object</classname>, sino que gestiona un parámetro no especificado. Cuando se usa una plantilla, el parámetro es sustituido <emphasis>por el compilador</emphasis>, parecido a la antigua aproximación de las macros, pero más claro y fácil de usar.</para>
 
+      <!--
+      Now, instead of worrying about inheritance or composition when you want to use a container class, you take the template version of the container and stamp out a specific version for your particular problem, like this:
+      -->
       <para>Ahora, en vez de preocuparse por la herencia o la composición cuando se quiera usar una clase contenedora, se toma la versión en plantilla del contenedor y se genera una versión específica para el problema concreto, de este modo:</para>
 
       <figure>
@@ -158,6 +242,9 @@
 	</mediaobject>
       </figure>
 
+      <!--
+      The compiler does the work for you, and you end up with exactly the container you need to do your job, rather than an unwieldy inheritance hierarchy. In C++, the template implements the concept of a parameterized type. Another benefit of the template approach is that the novice programmer who may be unfamiliar or uncomfortable with inheritance can still use canned container classes right away (as we’ve been doing with vector throughout the book).
+      -->
       <para>El compilador hace el trabajo por nosotros, y se obtiene exactamente el contenedor necesario para hacer el trabajo, en vez de una jerarquía de herencia inmanejable. En C++, la plantilla implementa el concepto de <emphasis>tipo parametrizado</emphasis>. Otro beneficio de la aproximación de las plantillas es que el programador novato que no tenga familiaridad o esté incómodo con la herencia puede usar desde el principio clases contenedoras ya hechas (como se ha estado haciendo a lo largo del libro con el <classname>vector</classname>).</para>
 
     </sect2>
@@ -165,10 +252,17 @@
 
 
   <sect1>
+    <!-- Template syntax -->
     <title>Sintaxis de las plantillas</title>
 
+    <!--
+    The template keyword tells the compiler that the class definition that follows will manipulate one or more unspecified types. At the time the actual class code is generated from the template, those types must be specified so that the compiler can substitute them.
+    -->
     <para>La palabra reservada <kw>template</kw> le dice al compilador que la definición de clase que sigue manipulará uno o más tipos no especificados. En el momento en que se genera el código real de la clase a partir de la plantilla, hay que especificar esos tipos para que el compilador pueda sustituirlos.</para>
 
+    <!--
+    To demonstrate the syntax, here’s a small example that produces a bounds-checked array:
+    -->
     <para>Para demostrar la sintaxis, aquí está un pequeño ejemplo que produce un array con límites comprobados:</para>
 
 
@@ -177,16 +271,26 @@
 
 
 
+    <!-- You can see that it looks like a normal class except for the line -->
     <para>Se puede ver que parece una clase normal excepto por la línea</para>
 
 <programlisting>
     template&lt;class T&gt;
 </programlisting>
 
+    <!--
+    which says that T is the substitution parameter, and that it represents a type name. Also, you see T used everywhere in the class where you would normally see the specific type the container holds.
+    -->
     <para>que indica que <parameter>T</parameter> es un parámetro de sustitución, y que representa un nombre de tipo. Además, se puede ver que <parameter>T</parameter> se usa en todas las partes de la clase donde normalmente se vería el tipo específico que el contenedor gestiona.</para>
 
+    <!--
+    In Array, elements are inserted and extracted with the same function: the overloaded operator [ ] . It returns a reference, so it can be used on both sides of an equal sign (that is, as both an lvalue and an rvalue). Notice that if the index is out of bounds, the require( ) function is used to print a message. Since operator[] is an inline, you could use this approach to guarantee that no array-bounds violations occur, then remove the require( ) for the shipping code.
+    -->
     <para>En <classname>Array</classname> los elementos son insertados y extraídos con la misma función: el operador sobrecargado <oper>operator[]</oper>. Devuelve una referencia, por lo que puede ser usado en ambos lados del signo igual (es decir, tanto como <emphasis>valor izquierdo</emphasis> como <emphasis>valor derecho</emphasis>). Hay que hacer notar que si el índice se sale de los límites se usa la función <function>require() </function> para mostrar un mensaje. Como <oper>operator[] </oper> es <kw>inline</kw>, se puede usar esta aproximación para garantizar que no se producen violaciones de los límites del array, y después eliminar el <function>require()</function> en el código que se entregue.</para>
 
+    <!--
+    In main( ), you can see how easy it is to create Arrays that hold different types of objects. When you say
+    -->
     <para>En el <function>main()</function>, se puede ver lo fácil que es crear <classname>Array</classname>s que manejen distintos tipos de objetos. Cuando se dice:</para>
 
 <programlisting>
@@ -194,12 +298,19 @@
     Array&lt;float&gt; fa;
 </programlisting>
 
+    <!--
+    the compiler expands the Array template (this is called instantiation) twice, to create two new generated classes, which you can think of as Array_int and Array_float. (Different compilers may decorate the names in different ways.) These are classes just like the ones you would have produced if you had performed the substitution by hand, except that the compiler creates them for you as you define the objects ia and fa. Also note that duplicate class definitions are either avoided by the compiler or merged by the linker.
+    -->
     <para>el compilador expande dos veces la plantilla <classname>Array </classname> (esto se conoce como <emphasis>instanciación</emphasis>), para crear dos nuevas <emphasis>clases generadas</emphasis>, que se pueden imaginar como <classname>Array_int </classname> y <classname>Array_float</classname>. (Diferentes compiladores pueden decorar los nombres de diferentes maneras). Estas clases son idénticas a las que se habrían obtenido haciendo la sustitución a mano, excepto que el compilador las crea por nosotros cuando se definen los objetos <varname>ia </varname> y <varname>fa</varname>. También hay que notar que las definiciones de clases duplicadas o bien las evita el compilador o bien las fusiona el enlazador.</para>
 
 
     <sect2>
+      <!-- Non-inline function definitions -->
       <title>Definiciones de función no inline</title>
 
+      <!--
+      Of course, there are times when you’ll want to have non-inline member function definitions. In this case, the compiler needs to see the template declaration before the member function definition. Here’s the example above, modified to show the non-inline member definition:
+      -->
       <para>Por supuesto, hay veces en las que se querrá tener definiciones de funciones miembro no inline. En ese caso, el compilador necesita ver la declaración de la plantilla antes que la definición de la función miembro. Aquí está el ejemplo anterior, modificado para mostrar la definición del miembro no inline:</para>
 
 
@@ -208,22 +319,39 @@
 
 
 
+      <!--
+      Any reference to a template’s class name must be accompanied by its template argument list, as in Array<T>::operator[]. You can imagine that internally, the class name is being decorated with the arguments in the template argument list to produce a unique class name identifier for each template instantiation.
+      -->
       <para>Cualquier referencia al nombre de una plantilla de clase debe estar acompañada por su lista de argumentos de plantilla, como en <code>Array&lt;T&gt;::operator[]</code>. Se puede imaginar que internamente, el nombre de la clase se decora con los argumentos de la lista de argumentos de la plantilla para producir un nombre identificador único de la clase por cada instanciación de la plantilla.</para>
 
       <sect3>
+	<!-- Header files -->
 	<title>Ficheros de cabecera</title>
 
+	<!--
+	Even if you create non-inline function definitions, you’ll usually want to put all declarations and definitions for a template into a header file. This may seem to violate the normal header file rule of “Don’t put in anything that allocates storage,” (which prevents multiple definition errors at link time), but template definitions are special. Anything preceded by template<...> means the compiler won’t allocate storage for it at that point, but will instead wait until it’s told to (by a template instantiation), and that somewhere in the compiler and linker there’s a mechanism for removing multiple definitions of an identical template. So you’ll almost always put the entire template declaration and definition in the header file, for ease of use.
+	-->
 	<para>Incluso si se crean definiciones de funciones no inline, normalmente se querrá poner todas las declaraciones y definiciones de una plantilla en un fichero de cabecera. Esto parece violar la regla usual de los ficheros de cabecera de <quote>No poner nada que asigne almacenamiento</quote>, (lo cual previene errores de definición múltiple en tiempo de enlace), pero las definiciones de plantillas son especiales. Todo lo que vaya precedido por <code>template&lt;...&gt; </code> significa que el compilador no asignará almacenamiento en ese momento, sino que esperará hasta que se lo indiquen (en la instanciación de una plantilla), y que en algún lugar del compilador y del enlazador hay un mecanismo para eliminar las múltiples definiciones de una plantilla idéntica. Por lo tanto casi siempre se pondrá toda la declaración y definición de la plantilla en el fichero de cabecera por facilidad de uso.</para>
 
+	<!--
+	There are times when you may need to place the template definitions in a separate cpp file to satisfy special needs (for example, forcing template instantiations to exist in only a single Windows dll file). Most compilers have some mechanism to allow this; you’ll have to investigate your particular compiler’s documentation to use it.
+	-->
 	<para>Hay veces en las que puede ser necesario poner las definiciones de la plantilla en un fichero <filename role="extension">cpp </filename> separado para satisfacer necesidades especiales (por ejemplo, forzar las instanciaciones de las plantillas para que se encuentren en un único fichero <filename role="extension">dll </filename> de Windows). La mayoría de los compiladores tienen algún mecanismo para permitir esto; hay que investigar la documentación del compilador concreto para usarlo.</para>
 
+	<!--
+	Some people feel that putting all of the source code for your implementation in a header file makes it possible for people to steal and modify your code if they buy a library from you. This might be an issue, but it probably depends on the way you look at the problem: Are they buying a product or a service? If it’s a product, then you have to do everything you can to protect it, and probably you don’t want to give source code, just compiled code. But many people see software as a service, and even more than that, a subscription service. The customer wants your expertise, they want you to continue maintaining this piece of reusable code so that they don’t have to – so they can focus on getting their job done. I personally think most customers will treat you as a valuable resource and will not want to jeopardize their relationship with you. As for the few who want to steal rather than buy or do original work, they probably can’t keep up with you anyway.
+	-->
 	<para>Algunas personas opinan que poner todo el código fuente de la implementación en un fichero de cabecera hace posible que otros roben y modifiquen el código si le compran a usted la librería. Esto puede ser un inconveniente, pero probablemente dependa del modo de mirar el problema: ¿Se está comprando un producto o un servicio? Si es un producto, entonces hay que hacer todo lo posible por protegerlo, y probablemente no se quiera dar el código fuente, sino sólo el código compilado. Pero mucha gente ve el software como un servicio, incluso más, como un servicio por suscripción. El cliente quiere la pericia de usted, quiere que siga manteniendo ese fragmento de código reutilizable para no tener que hacerlo él, y así poder centrarse en hacer su propio trabajo. Personalmente creo que la mayoría de los clientes le tratarán como un recurso valioso y no querrán poner en peligro su relación con usted. Y en cuanto a los pocos que quieran robar en vez de comprar o hacer el trabajo original, de todas formas probablemente no podrían seguirle el ritmo.</para>
       </sect3>
     </sect2>
 
     <sect2>
+      <!-- IntStack as a template -->
       <title>IntStack como plantilla</title>
 
+      <!--
+      Here is the container and iterator from IntStack.cpp, implemented as a generic container class using templates:
+      -->
       <para>Aquí están el contenedor y el iterador de <filename>IntStack.cpp</filename>, implementados como una clase contenedora genérica usando plantillas:</para>
 
 
@@ -232,10 +360,19 @@
 
 
 
+      <!--
+      Notice that a template makes certain assumptions about the objects it is holding. For example, StackTemplate assumes there is some sort of assignment operation for T inside the push( ) function. You could say that a template “implies an interface” for the types it is capable of holding.
+      -->
       <para>Hay que darse cuenta de que una plantilla asume ciertas características de los objetos que está manejando. Por ejemplo, <classname>StackTemplate </classname> asume que hay algún tipo de operación de asignación para <parameter>T </parameter> dentro de la función <function>push()</function>. Se puede decir que una plantilla <quote>implica una interfaz</quote> para los tipos que es capaz de manejar.</para>
 
+      <!--
+      Another way to say this is that templates provide a kind of weak typing mechanism for C++, which is ordinarily a strongly-typed language. Instead of insisting that an object be of some exact type in order to be acceptable, weak typing requires only that the member functions that it wants to call are available for a particular object. Thus, weakly-typed code can be applied to any object that can accept those member function calls, and is thus much more flexible[63].
+
+      [63] All methods in both Smalltalk and Python are weakly typed, and so those languages do not need a template mechanism. In effect, you get templates without templates.
+      -->
       <para>Otra forma de decir esto es que las plantillas proporcionan una especie de mecanismo de <emphasis>tipado débil</emphasis> en C++, que normalmente es un lenguaje fuertemente tipado. En vez de insistir en que un objeto sea de un tipo exacto para que sea aceptable, el tipado débil requiere únicamente que las funciones miembro a las que se quiere llamar estén <emphasis>disponibles</emphasis> para un objeto en particular. Es decir, el código débilmente tipado puede ser aplicado a cualquier objeto que acepte esas llamadas a funciones miembro, lo que lo hace mucho más flexible<footnote><para>Todos los métodos en Smalltalk y Python están débilmente tipados, y ése es el motivo por el que estos lenguajes no necesitan un mecanismo de plantillas. En efecto, se consiguen plantillas sin necesidad de plantillas.</para></footnote>.</para>
 
+      <!-- Here’s the revised example to test the template: -->
       <para>Aquí está el ejemplo revisado para comprobar la plantilla:</para>
 
 
@@ -244,13 +381,20 @@
 
 
 
+      <!--
+      The only difference is in the creation of is. Inside the template argument list you specify the type of object the stack and iterator should hold. To demonstrate the genericness of the template, a StackTemplate is also created to hold string. This is tested by reading in lines from the source-code file.
+      -->
       <para>La única diferencia está en la creación de <varname>is</varname>. Dentro de la lista de argumentos de la plantilla hay que especificar el tipo de objeto que la pila y el iterador deberán manejar. Para demostrar la genericidad de la plantilla, se crea también un <classname>StackTemplate </classname> para manejar <type>string</type>. Esto se prueba leyendo las líneas del fichero de código fuente.</para>
 
     </sect2>
 
     <sect2>
+      <!-- Constants in templates -->
       <title>Constantes en las plantillas</title>
 
+      <!--
+      Template arguments are not restricted to class types; you can also use built-in types. The values of these arguments then become compile-time constants for that particular instantiation of the template. You can even use default values for these arguments. The following example allows you to set the size of the Array class during instantiation, but also provides a default value:
+      -->
       <para>Los argumentos de las plantillas no están restringidos a tipos clase; también se pueden usar tipos predefinidos. Los valores de estos argumentos se convierten en constantes en tiempo de compilación para esa instanciación en particular de la plantilla. Se pueden usar incluso valores por defecto para esos argumentos. El siguiente ejemplo nos permite indicar el tamaño de la clase <classname>Array </classname> durante la instanciación, pero también proporciona un valor por defecto:</para>
 
 
@@ -258,19 +402,35 @@
 
 
 
+      <!--
+      As before, Array is a checked array of objects and prevents you from indexing out of bounds. The class Holder is much like Array except that it has a pointer to an Array instead of an embedded object of type Array. This pointer is not initialized in the constructor; the initialization is delayed until the first access. This is called lazy initialization; you might use a technique like this if you are creating a lot of objects, but not accessing them all, and want to save storage.
+      -->
       <para>Como antes, <classname>Array </classname> es un array de objetos comprobado que impide indexar fuera de los límites. La clase <classname>Holder </classname> es muy parecida a <classname>Array </classname> excepto que tiene un puntero a <classname>Array </classname> en vez de tener incrustado un objeto del tipo <classname>Array</classname>. Este puntero no se inicializa en el constructor; la inicialización es retrasada hasta el primer acceso. Esto se conoce como <emphasis>inicialización perezosa</emphasis>; se puede usar una técnica como ésta si se está creando un montón de objetos, pero no se accede a todos ellos y se quiere ahorrar almacenamiento.</para>
 
+      <!--
+      You’ll notice that the size value in both templates is never stored internally in the class, but it is used as if it were a data member inside the member functions.
+      -->
       <para>Hay que resaltar que en ninguna de las dos plantillas se almacena internamente el valor de <varname>size</varname> en la clase, pero se usa como si fuera un atributo dentro de las funciones miembro.</para>
 
     </sect2>
   </sect1>
   <sect1>
+    <!-- Stack and Stashas templates -->
     <title>Stack y Stash como plantillas</title>
 
+    <!--
+    The recurring “ownership” problems with the Stash and Stack container classes that have been revisited throughout this book come from the fact that these containers haven’t been able to know exactly what types they hold. The nearest they’ve come is the Stack “container of Object” that was seen at the end of Chapter 15 in OStackTest.cpp.
+    -->
     <para>Los problemas recurrentes de <quote>propiedad</quote> con las clases contenedoras <classname>Stash</classname> y <classname>Stack </classname> que se han ido revisando a lo largo del libro vienen del hecho de que estos contenedores no han sido capaces de saber exactamente qué tipos manejan. Lo más cerca que han estado es el <classname>Stack </classname> <quote>contenedor de Object</quote> que se vio al final del Capítulo 15 en <filename>OStackTest.cpp</filename>.</para>
 
+    <!--
+    If the client programmer doesn’t explicitly remove all the pointers to objects that are held in the container, then the container should be able to correctly delete those pointers. That is to say, the container “owns” any objects that haven’t been removed, and is thus responsible for cleaning them up. The snag has been that cleanup requires knowing the type of the object, and creating a generic container class requires not knowing the type of the object. With templates, however, we can write code that doesn’t know the type of the object, and easily instantiate a new version of that container for every type that we want to contain. The individual instantiated containers do know the type of objects they hold and can thus call the correct destructor (assuming, in the typical case where polymorphism is involved, that a virtual destructor has been provided).
+    -->
     <para>Si el programador cliente no elimina explícitamente todos los punteros a objeto que están almacenados en el contenedor, entonces el contenedor debería ser capaz de eliminar esos punteros de manera adecuada. Es decir, el contenedor <quote>posee</quote> cualquiera de los objetos que no hayan sido eliminados, y es el responsable de limpiarlos. La dificultad radica en que el limpiado requiere conocer el tipo del objeto, y crear una clase contenedora genérica requiere <emphasis>no </emphasis> conocer el tipo de ese objeto. Con las plantillas, sin embargo, podemos escribir código que no conozca el tipo de objeto, y fácilmente instanciar una nueva versión del contenedor por cada tipo que queramos que contenga. Cada contenedor instanciado <emphasis>conoce </emphasis> el tipo de objetos que maneja y puede por tanto llamar al destructor correcto (suponiendo, en el caso típico en el que interviene el polimorfismo, que se haya proporcionado un destructor virtual).</para>
 
+    <!--
+    For the Stack this turns out to be quite simple since all of the member functions can be reasonably inlined:
+    -->
     <para>Para <classname>Stack</classname> esto resulta bastante sencillo, ya que todas las funciones miembro pueden ser razonablemente inline:</para>
 
 
@@ -278,6 +438,9 @@
 
 
 
+    <!--
+    If you compare this to the OStack.h example at the end of Chapter 15, you will see that Stack is virtually identical, except that Object has been replaced with T. The test program is also nearly identical, except that the necessity for multiply-inheriting from string and Object (and even the need for Object itself) has been eliminated. Now there is no MyString class to announce its destruction, so a small new class is added to show a Stack container cleaning up its objects:
+    -->
     <para>Si se compara esto con el ejemplo de <filename>OStack.h </filename> al final del Capítulo 15, se verá que <classname>Stack </classname> es virtualmente idéntica, excepto que <classname>Object </classname> ha sido reemplazado por <parameter>T</parameter>. El programa de prueba también es casi idéntico, excepto que se ha eliminado la necesidad de herencia múltiple de <type>string </type> y <classname>Object </classname> (e incluso la necesidad del propio <classname>Object </classname>). Ahora no hay una clase <classname>MyString </classname> que anuncie su destrucción, por lo que se añade una pequeña clase nueva para mostrar cómo un contenedor <classname>Stack </classname> limpia sus objetos:</para>
 
 
@@ -285,13 +448,23 @@
 
 
 
+    <!--
+    The destructor for X is virtual, not because it’s necessary here, but because xx could later be used to hold objects derived from X.
+    -->
     <para>El destructor de <classname>X </classname> es virtual, no porque sea necesario aquí, sino porque <varname>xx</varname> podría ser usado más tarde para manejar objetos derivados de <classname>X</classname>.</para>
 
+    <!--
+    Notice how easy it is to create different kinds of Stacks for string and for X. Because of the template, you get the best of both worlds: the ease of use of the Stack class along with proper cleanup.
+    -->
     <para>Note lo fácil que es crear diferentes clases de <classname>Stack</classname>s para <type>string</type> y para <classname>X</classname>. Gracias a la plantilla, se consigue lo mejor de los dos mundos: la facilidad de uso de la clase <classname>Stack </classname> junto con un limpiado correcto.</para>
 
     <sect2>
+      <!-- Templatized pointer Stash -->
       <title>Stash de punteros como plantilla</title>
 
+      <!--
+      Reorganizing the PStash code into a template isn’t quite so simple because there are a number of member functions that should not be inlined. However, as a template those function definitions still belong in the header file (the compiler and linker take care of any multiple definition problems). The code looks quite similar to the ordinary PStash except that you’ll notice the size of the increment (used by inflate( )) has been templatized as a non-class parameter with a default value, so that the increment size can be modified at the point of instantiation (notice that this means that the increment size is fixed; you may also argue that the increment size should be changeable throughout the lifetime of the object):
+      -->
       <para>Reorganizar el código de <classname>PStash </classname> en una plantilla no es tan simple porque hay varias funciones miembro que no deberían ser inline. Sin embargo, al tratarse de una plantilla, esas definiciones de función siguen perteneciendo al fichero de cabecera (el compilador y el enlazador se ocupan de los problemas de definición múltiple). El código parece bastante similar al <classname>PStash </classname> ordinario excepto que el tamaño del incremento (usado por <function>inflate()</function>) ha sido puesto en la plantilla como un parámetro no de clase con un valor por defecto, para que el tamaño de incremento pueda ser modificado en el momento de la instanciación (esto significa que el tamaño del incremento es fijo; también se podría argumentar que debería poder cambiarse a lo largo de la vida del objeto):</para>
 
 
@@ -299,8 +472,14 @@
 
 
 
+      <!--
+      The default increment size used here is small to guarantee that calls to inflate( ) occur. This way we can make sure it works correctly.
+      -->
       <para>El tamaño de incremento por defecto que se usa aquí es pequeño para garantizar que se produzcan llamadas a <function>inflate()</function>. Así podemos asegurarnos de que funciona correctamente.</para>
 
+      <!--
+      To test the ownership control of the templatized PStash, the following class will report creations and destructions of itself, and also guarantee that all objects that have been created were also destroyed. AutoCounter will allow only objects of its type to be created on the stack:
+      -->
       <para>Para comprobar el control de propiedad de <classname>PStash </classname> en plantilla, la siguiente clase informa de la creación y destrucción de sus propios objetos, y también garantiza que todos los objetos que hayan sido creados sean destruidos. <classname>AutoCounter </classname> sólo permitirá crear objetos de su tipo en la pila:</para>
 
 
@@ -309,18 +488,39 @@
 
 
 
+      <!--
+      The AutoCounter class does two things. First, it sequentially numbers each instance of AutoCounter: the value of this number is kept in id, and the number is generated using the static data member count.
+      -->
       <para>La clase <classname>AutoCounter </classname> hace dos cosas. Primero, numera cada instancia de <classname>AutoCounter </classname> de forma secuencial: el valor de este número se guarda en <varname>id</varname>, y el número se genera usando el atributo <varname>count </varname> que es <kw>static</kw>.</para>
 
+      <!--
+      Second, and more complex, a static instance (called verifier) of the nested class CleanupCheck keeps track of all of the AutoCounter objects that are created and destroyed, and reports back to you if you don’t clean all of them up (i.e. if there is a memory leak). This behavior is accomplished using a set class from the Standard C++ Library, which is a wonderful example of how well-designed templates can make life easy (you can learn about all the containers in the Standard C++ Library in Volume 2 of this book, available online).
+      -->
       <para>Segundo, y más complejo, una instancia estática (llamada <varname>verifier</varname>) de la clase anidada <classname>CleanupCheck </classname> se mantiene al tanto de todos los objetos <classname>AutoCounter </classname> que son creados y destruidos, e informa al programador si no se han limpiado todos (es decir, si existe una fuga de memoria). Este comportamiento se consigue usando la clase <classname>set</classname> de la Librería Estándar de C++, que es un magnífico ejemplo de cómo las plantillas bien diseñadas nos pueden hacer la vida más fácil (en el Volumen 2 de este libro, disponible en línea, se puede aprender todo sobre los contenedores de la Librería Estándar de C++).</para>
 
+      <!--
+      The set class is templatized on the type that it holds; here it is instantiated to hold AutoCounter pointers. A set will allow only one instance of each distinct object to be added; in add( ) you can see this take place with the set::insert( ) function. insert( ) actually informs you with its return value if you’re trying to add something that’s already been added; however, since object addresses are being added we can rely on C++’s guarantee that all objects have unique addresses.
+      -->
       <para>La clase <classname>set </classname> es una plantilla parametrizada con el tipo que contiene; aquí se instancia para manejar punteros a <classname>AutoCounter</classname>. Un <classname>set </classname> permite que se inserte sólo una instancia de cada objeto distinto; en <function>add() </function> se puede ver que esto sucede con la función <function>set::insert()</function>. En realidad, <function>insert() </function> informa con su valor de retorno de si se está intentando añadir algo que ya se había incluido; sin embargo, como lo que se añaden son direcciones de objetos, podemos confiar en la garantía de C++ de que todos los objetos tienen direcciones únicas.</para>
 
+      <!--
+      In remove( ), set::erase( ) is used to remove an AutoCounter pointer from the set. The return value tells you how many instances of the element were removed; in our case we only expect zero or one. If the value is zero, however, it means this object was already deleted from the set and you’re trying to delete it a second time, which is a programming error that will be reported through require( ).
+      -->
       <para>En <function>remove()</function>, se usa <function>set::erase() </function> para eliminar un puntero a <classname>AutoCounter </classname> del <classname>set</classname>. El valor de retorno indica cuántas instancias del elemento se han eliminado; en nuestro caso sólo se espera cero o uno. Si el valor es cero, sin embargo, significa que el objeto ya había sido borrado del conjunto y que se está intentando borrar por segunda vez, lo cual es un error de programación que se notificará mediante <function>require()</function>.</para>
 
+      <!--
+      The destructor for CleanupCheck does a final check by making sure that the size of the set is zero – this means that all of the objects have been properly cleaned up. If it’s not zero, you have a memory leak, which is reported through require( ).
+      -->
       <para>El destructor de <classname>CleanupCheck </classname> hace una comprobación final asegurándose de que el tamaño del <classname>set </classname> es cero, lo que significa que todos los objetos han sido eliminados de manera adecuada. Si no es cero, se tiene una fuga de memoria, lo cual se muestra mediante el <function>require()</function>.</para>
 
+      <!--
+      The constructor and destructor for AutoCounter register and unregister themselves with the verifier object. Notice that the constructor, copy-constructor, and assignment operator are private, so the only way for you to create an object is with the static create( ) member function – this is a simple example of a factory, and it guarantees that all objects are created on the heap, so verifier will not get confused over assignments and copy-constructions.
+      -->
       <para>El constructor y el destructor de <classname>AutoCounter </classname> se registran y se dan de baja en el objeto <varname>verifier</varname>. Hay que resaltar que el constructor, el constructor de copia, y el operador de asignación son <kw>private</kw>, por lo que la única forma de crear un objeto es con la función miembro <function>static create() </function>; esto es un ejemplo sencillo de una <literal>factory</literal>, y garantiza que todos los objetos sean creados en el montículo, por lo que <varname>verifier</varname> no se verá confundido por asignaciones y construcciones de copia.</para>
 
+      <!--
+      Since all of the member functions have been inlined, the only reason for the implementation file is to contain the static data member definitions:
+      -->
       <para>Como todas las funciones miembro han sido definidas inline, la única razón para el fichero de implementación es que contenga las definiciones de los atributos estáticos:</para>
 
 
@@ -329,14 +529,23 @@
 
 
 
+      <!--
+      With AutoCounter in hand, we can now test the facilities of the PStash. The following example not only shows that the PStash destructor cleans up all the objects that it currently owns, but it also demonstrates how the AutoCounter class detects objects that haven’t been cleaned up:
+      -->
       <para>Con el <classname>AutoCounter </classname> en la mano, podemos comprobar las facilidades que proporciona el <classname>PStash</classname>. El siguiente ejemplo no sólo muestra que el destructor de <classname>PStash </classname> limpia todos los objetos que posee en ese momento, sino que también muestra cómo la clase <classname>AutoCounter </classname> detecta los objetos que no se han limpiado:</para>
 
 
 //: V1C16:TPStashTest.cpp
 
 
+      <!--
+      When AutoCounter elements 5 and 6 are removed from the PStash, they become the responsibility of the caller, but since the caller never cleans them up they cause memory leaks, which are then detected by AutoCounter at run time.
+      -->
       <para>Cuando se eliminan los elementos <classname>AutoCounter </classname> 5 y 6 del <classname>PStash</classname>, pasan a ser responsabilidad de quien hace la llamada, pero como éste nunca los limpia, provocan fugas de memoria, que <classname>AutoCounter </classname> detecta en tiempo de ejecución.</para>
 
+      <!--
+      When you run the program, you’ll see that the error message isn’t as specific as it could be. If you use the scheme presented in AutoCounter to discover memory leaks in your own system, you will probably want to have it print out more detailed information about the objects that haven’t been cleaned up. Volume 2 of this book shows more sophisticated ways to do this.
+      -->
       <para>Cuando se ejecuta el programa, se verá que el mensaje de error no es tan específico como podría ser. Si se usa el esquema presentado en <classname>AutoCounter </classname> para descubrir fugas de memoria en un sistema propio, probablemente se quiera imprimir información más detallada sobre los objetos que no se hayan limpiado. El Volumen 2 de este libro muestra algunas formas más sofisticadas de hacer esto.</para>
 
 
@@ -345,12 +554,22 @@
 
 
   <sect1>
+    <!-- Turning ownership on and off -->
     <title>Activación y desactivación de la propiedad</title>
 
+    <!--
+    Let’s return to the ownership problem. Containers that hold objects by value don’t usually worry about ownership because they clearly own the objects they contain. But if your container holds pointers (which is more common with C++, especially with polymorphism), then it’s very likely those pointers may also be used somewhere else in the program, and you don’t necessarily want to delete the object because then the other pointers in the program would be referencing a destroyed object. To prevent this from happening, you must consider ownership when designing and using a container.
+    -->
     <para>Volvamos al problema de la propiedad. Los contenedores que manejan objetos por valor normalmente no se preocupan por la propiedad porque claramente poseen los objetos que contienen. Pero si el contenedor gestiona punteros (lo cual es más común en C++, especialmente con el polimorfismo), entonces es bastante probable que esos punteros se usen también en algún otro lugar del programa, y no necesariamente se quiere borrar el objeto porque entonces los otros punteros del programa estarían referenciando un objeto destruido. Para evitar que esto ocurra, hay que tener en cuenta la propiedad cuando se diseña y se usa un contenedor.</para>
 
+    <!--
+    Many programs are much simpler than this, and don’t encounter the ownership problem: One container holds pointers to objects that are used only by that container. In this case ownership is very straightforward: The container owns its objects.
+    -->
     <para>Muchos programas son mucho más simples, y no se encuentran con el problema de la propiedad: un contenedor maneja punteros a objetos que sólo usa ese contenedor. En este caso la propiedad es evidente: el contenedor posee sus objetos.</para>
 
+    <!--
+    The best approach to handling the ownership problem is to give the client programmer a choice. This is often accomplished by a constructor argument that defaults to indicating ownership (the simplest case). In addition there may be “get” and “set” functions to view and modify the ownership of the container. If the container has functions to remove an object, the ownership state usually affects that removal, so you may also find options to control destruction in the removal function. You could conceivably add ownership data for every element in the container, so each position would know whether it needed to be destroyed; this is a variant of reference counting, except that the container and not the object knows the number of references pointing to an object.
+    -->
     <para>La mejor aproximación para gestionar el problema de la propiedad es dar al programador cliente la posibilidad de elegir. Esto se consigue a menudo con un argumento del constructor que por defecto indica propiedad (el caso más sencillo). Además puede haber funciones <quote>get</quote> y <quote>set</quote> para ver y modificar la propiedad del contenedor. Si el contenedor tiene funciones para eliminar un objeto, el estado de propiedad normalmente afecta a esa eliminación, por lo que también se pueden encontrar opciones para controlar la destrucción en la función de eliminación. Es concebible añadir datos de propiedad para cada elemento del contenedor, de modo que cada posición sepa si es necesario destruirla; esto es una variante del conteo de referencias, excepto en que es el contenedor y no el objeto el que conoce el número de referencias a un objeto.</para>
 
 
@@ -359,8 +578,14 @@
 
 
 
+    <!--
+    The default behavior is for the container to destroy its objects but you can change this by either modifying the constructor argument or using the owns( ) read/write member functions.
+    -->
     <para>El comportamiento por defecto del contenedor consiste en destruir sus objetos, pero se puede cambiar modificando el argumento del constructor o usando las funciones miembro de lectura/escritura <function>owns()</function>.</para>
 
+    <!--
+    As with most templates you’re likely to see, the entire implementation is contained in the header file. Here’s a small test that exercises the ownership abilities:
+    -->
     <para>Como con la mayoría de las plantillas que se verán, la implementación entera se encuentra en el fichero de cabecera. Aquí tenemos una pequeña prueba que ejercita las capacidades de gestión de la propiedad:</para>
 
 
@@ -370,15 +595,25 @@
 
 
 
+    <!--
+    The ac2 object doesn’t own the objects you put into it, thus ac is the “master” container which takes responsibility for ownership. If, partway through the lifetime of a container, you want to change whether a container owns its objects, you can do so using owns( ).
+    -->
     <para>El objeto <varname>ac2 </varname> no posee los objetos que se ponen en él, por tanto <varname>ac </varname> es el contenedor <quote>maestro</quote> que asume la responsabilidad de la propiedad. Si a mitad de la vida de un contenedor se quiere cambiar si posee o no sus objetos, se puede hacer usando <function>owns()</function>.</para>
 
+    <!--
+    It would also be possible to change the granularity of the ownership so that it is on an object-by-object basis, but that will probably make the solution to the ownership problem more complex than the problem.
+    -->
     <para>También sería posible cambiar la granularidad de la propiedad para que se gestionase objeto por objeto, pero eso probablemente haría la solución del problema de la propiedad más compleja que el propio problema.</para>
 
 
   </sect1>
   <sect1>
+    <!-- Holding objects by value -->
     <title>Manejo de objetos por valor</title>
 
+    <!--
+    Actually creating a copy of the objects inside a generic container is a complex problem if you don’t have templates. With templates, things are relatively simple – you just say that you are holding objects rather than pointers:
+    -->
     <para>En realidad, crear una copia de los objetos dentro de un contenedor genérico es un problema complejo si no se tienen plantillas. Con las plantillas las cosas se vuelven relativamente sencillas: sólo hay que indicar que se están manejando objetos en vez de punteros:</para>
 
 
@@ -387,6 +622,9 @@
 
 
 
+    <!--
+    The copy constructor for the contained objects does most of the work by passing and returning the objects by value. Inside push( ), storage of the object onto the Stack array is accomplished with T::operator=. To guarantee that it works, a class called SelfCounter keeps track of object creations and copy-constructions:
+    -->
     <para>El constructor de copia de los objetos contenidos hace la mayor parte del trabajo al pasar y devolver los objetos por valor. Dentro de <function>push()</function>, el almacenamiento del objeto en el array de <classname>Stack </classname> se realiza con <function>T::operator=</function>. Para garantizar que funciona, una clase llamada <classname>SelfCounter </classname> lleva la cuenta de las creaciones y construcciones de copia de los objetos:</para>
 
 
@@ -402,39 +640,73 @@
 //: V1C16:ValueStackTest.cpp
 
 
+    <!--
+    When a Stack container is created, the default constructor of the contained object is called for each object in the array. You’ll initially see 100 SelfCounter objects created for no apparent reason, but this is just the array initialization. This can be a bit expensive, but there’s no way around it in a simple design like this. An even more complex situation arises if you make the Stack more general by allowing the size to grow dynamically, because in the implementation shown above this would involve creating a new (larger) array, copying the old array to the new, and destroying the old array (this is, in fact, what the Standard C++ Library vector class does).
+    -->
     <para>Cuando se crea un contenedor <classname>Stack</classname>, se llama al constructor por defecto del objeto contenido para cada objeto del array. Inicialmente se verán 100 objetos <classname>SelfCounter </classname> creados sin ningún motivo aparente, pero esto es justamente la inicialización del array. Esto puede resultar un poco caro, pero no hay forma de evitarlo en un diseño simple como éste. Se produce una situación aún más compleja si se hace <classname>Stack </classname> más general permitiendo que su tamaño crezca dinámicamente, porque en la implementación mostrada anteriormente esto implicaría crear un nuevo array (más grande), copiar el antiguo en el nuevo y destruir el antiguo (de hecho, así es como lo hace la clase <classname>vector </classname> de la Librería Estándar de C++).</para>
   </sect1>
 
 
   <sect1>
+    <!-- Introducing iterators -->
     <title>Introducción a los iteradores</title>
 
+    <!--
+    An iterator is an object that moves through a container of other objects and selects them one at a time, without providing direct access to the implementation of that container. Iterators provide a standard way to access elements, whether or not a container provides a way to access the elements directly. You will see iterators used most often in association with container classes, and iterators are a fundamental concept in the design and use of the Standard C++ containers, which are fully described in Volume 2 of this book (downloadable from www.BruceEckel.com). An iterator is also a kind of design pattern, which is the subject of a chapter in Volume 2.
+    -->
     <para>Un <literal>iterator </literal> es un objeto que se mueve a través de un contenedor de otros objetos y los selecciona de uno en uno, sin proporcionar un acceso directo a la implementación del contenedor. Los iteradores proporcionan una forma estándar de acceder a los elementos, tanto si un contenedor proporciona alguna manera de acceder a los elementos directamente como si no. Los iteradores se usan sobre todo en asociación con clases contenedoras, y son un concepto fundamental en el diseño y el uso de los contenedores del C++ Estándar, que se describen por completo en el Volumen 2 de este libro (que se puede bajar de <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>). Un iterador es también un tipo de <emphasis>patrón de diseño</emphasis>, que es el tema de un capítulo del Volumen 2.</para>
 
+    <!--
+    In many ways, an iterator is a “smart pointer,” and in fact you’ll notice that iterators usually mimic most pointer operations. Unlike a pointer, however, the iterator is designed to be safe, so you’re much less likely to do the equivalent of walking off the end of an array (or if you do, you find out about it more easily).
+    -->
     <para>En muchos sentidos, un iterador es un <quote>puntero inteligente</quote>, y de hecho se verá que los iteradores normalmente imitan la mayoría de las operaciones de los punteros. Sin embargo, al contrario que un puntero, el iterador está diseñado para ser seguro, por lo que es mucho menos probable hacer el equivalente a salirse del final de un array (o, si se hace, se descubre más fácilmente).</para>
 
+    <!--
+    Consider the first example in this chapter. Here it is with a simple iterator added:
+    -->
     <para>Considere el primer ejemplo de este capítulo. Aquí está con un iterador sencillo añadido:</para>
 
 
 //: V1C16:IterIntStack.cpp
 
 
+    <!--
+    The IntStackIter has been created to work only with an IntStack. Notice that IntStackIter is a friend of IntStack, which gives it access to all the private elements of IntStack.
+    -->
     <para>El <classname>IntStackIter </classname> ha sido creado para trabajar sólo con un <classname>IntStack</classname>. Hay que resaltar que <classname>IntStackIter </classname> es un <kw>friend </kw> de <classname>IntStack</classname>, lo que le da acceso a todos los elementos privados de <classname>IntStack</classname>.</para>
 
+    <!--
+    Like a pointer, IntStackIter’s job is to move through an IntStack and retrieve values. In this simple example, the IntStackIter can move only forward (using both the pre- and postfix forms of the operator++). However, there is no boundary to the way an iterator can be defined, other than those imposed by the constraints of the container it works with. It is perfectly acceptable (within the limits of the underlying container) for an iterator to move around in any way within its associated container and to cause the contained values to be modified.
+    -->
     <para>Como un puntero, el trabajo de <classname>IntStackIter </classname> consiste en moverse a través de un <classname>IntStack </classname> y obtener valores. En este sencillo ejemplo, el objeto <classname>IntStackIter </classname> se puede mover sólo hacia adelante (usando las formas prefija y sufija del <oper>operator++ </oper>). Sin embargo, no hay límites en la forma en que se puede definir un iterador aparte de las restricciones impuestas por el contenedor con el que trabaje. Es totalmente aceptable (dentro de los límites del contenedor subyacente) que un iterador se mueva de cualquier forma por su contenedor asociado y que provoque la modificación de los valores contenidos.</para>
 
+    <!--
+    It is customary that an iterator is created with a constructor that attaches it to a single container object, and that the iterator is not attached to a different container during its lifetime. (Iterators are usually small and cheap, so you can easily make another one.)
+    -->
     <para>Es habitual que un iterador se cree con un constructor que lo asocie a un único objeto contenedor, y que ese iterador no se asocie a otro contenedor diferente durante su ciclo de vida. (Los iteradores son normalmente pequeños y baratos, por lo que se puede crear otro fácilmente).</para>
 
+    <!--
+    With the iterator, you can traverse the elements of the stack without popping them, just as a pointer can move through the elements of an array. However, the iterator knows the underlying structure of the stack and how to traverse the elements, so even though you are moving through them by pretending to “increment a pointer,” what’s going on underneath is more involved. That’s the key to the iterator: It is abstracting the complicated process of moving from one container element to the next into something that looks like a pointer. The goal is for every iterator in your program to have the same interface so that any code that uses the iterator doesn’t care what it’s pointing to – it just knows that it can reposition all iterators the same way, so the container that the iterator points to is unimportant. In this way you can write more generic code. All of the containers and algorithms in the Standard C++ Library are based on this principle of iterators.
+    -->
     <para>Con el iterador, se pueden recorrer los elementos de la pila sin sacarlos de ella, igual que un puntero se mueve a través de los elementos de un array. Sin embargo, el iterador conoce la estructura interna de la pila y cómo recorrer los elementos, de modo que, aunque se avance por ellos simulando <quote>incrementar un puntero</quote>, lo que pasa por debajo es más complejo. Ésa es la clave del iterador: abstrae el proceso complicado de moverse de un elemento del contenedor al siguiente y lo convierte en algo parecido a un puntero. El objetivo es que todos los iteradores del programa tengan la misma interfaz para que el código que use un iterador no se preocupe de a qué está apuntando; sólo sabe que puede reposicionar todos los iteradores de la misma manera, por lo que no importa a qué contenedor apunte el iterador. De esta forma se puede escribir código más genérico. Todos los contenedores y algoritmos en la Librería Estándar de C++ se basan en este principio de los iteradores.</para>
 
+    <!--
+    To aid in making things more generic, it would be nice to be able to say “every container has an associated class called iterator,” but this will typically cause naming problems. The solution is to add a nested iterator class to each container (notice that in this case, “iterator” begins with a lowercase letter so that it conforms to the style of the Standard C++ Library). Here is IterIntStack.cpp with a nested iterator:
+    -->
     <para>Para ayudar a hacer las cosas más genéricas, sería agradable poder decir <quote>todo contenedor tiene una clase asociada llamada <classname>iterator</classname></quote>, pero esto causará normalmente problemas de nombres. La solución consiste en añadir una clase <classname>iterator</classname> anidada a cada contenedor (fíjese en que, en este caso, <quote><classname>iterator</classname></quote> comienza con una letra minúscula para que esté conforme al estilo de la Librería Estándar de C++). Aquí está <filename>IterIntStack.cpp </filename> con un <classname>iterator </classname> anidado:</para>
 
 
 //: V1C16:NestedIterator.cpp
 
 
+    <!--
+    When making a nested friend class, you must go through the process of first declaring the name of the class, then declaring it as a friend, then defining the class. Otherwise, the compiler will get confused.
+    -->
     <para>Cuando se crea una clase <kw>friend </kw> anidada, hay que seguir el proceso de primero declarar el nombre de la clase, después declararla como <kw>friend</kw>, y después definir la clase. De otra forma, el compilador se confundirá.</para>
 
+    <!--
+    Some new twists have been added to the iterator. The current( ) member function produces the element in the container that the iterator is currently selecting. You can “jump” an iterator forward by an arbitrary number of elements using operator+=. Also, you’ll see two overloaded operators: == and != that will compare one iterator with another. These can compare any two IntStack::iterators, but they are primarily intended as a test to see if the iterator is at the end of a sequence in the same way that the “real” Standard C++ Library iterators do. The idea is that two iterators define a range, including the first element pointed to by the first iterator and up to but not including the last element pointed to by the second iterator. So if you want to move through the range defined by the two iterators, you say something like this:
+    -->
     <para>Al iterador se le han dado algunas vueltas de tuerca más. La función miembro <function>current()</function> produce el elemento que el iterador está seleccionando actualmente en el contenedor. Se puede <quote>saltar</quote> hacia adelante un número arbitrario de elementos usando el <oper>operator+=</oper>. Además, se pueden ver dos operadores sobrecargados, == y !=, que comparan un iterador con otro. Estos operadores pueden comparar dos <classname>IntStack::iterator</classname> cualesquiera, pero su intención primordial es comprobar si el iterador está al final de una secuencia de la misma manera que lo hacen los iteradores <quote>reales</quote> de la Librería Estándar de C++. La idea es que dos iteradores definan un rango, incluyendo el primer elemento apuntado por el primer iterador pero <emphasis>sin </emphasis> incluir el último elemento apuntado por el segundo iterador. Por esto, si se quiere mover a través del rango definido por los dos iteradores, se dirá algo como lo siguiente:</para>
 
 
@@ -443,144 +715,262 @@ while(start != end)
   cout &lt;&lt; start++ &lt;&lt; endl;
 </programlisting>
 
+    <!--
+    where start and end are the two iterators in the range. Note that the end iterator, which we often refer to as the end sentinel, is not dereferenced and is there only to tell you that you’re at the end of the sequence. Thus it represents “one past the end.”
+    -->
     <para>Donde <varname>start</varname> y <varname>end</varname> son los dos iteradores del rango. Note que el iterador <varname>end</varname>, al que a menudo se denomina <literal>end sentinel</literal> (centinela final), no se dereferencia y sólo está ahí para indicar que se ha llegado al final de la secuencia. Es decir, representa <quote>uno más allá del final</quote>.</para>
 
+    <!--
+    Much of the time you’ll want to move through the entire sequence in a container, so the container needs some way to produce the iterators indicating the beginning of the sequence and the end sentinel. Here, as in the Standard C++ Library, these iterators are produced by the container member functions begin( ) and end( ). begin( ) uses the first iterator constructor that defaults to pointing at the beginning of the container (this is the first element pushed on the stack). However, a second constructor, used by end( ), is necessary to create the end sentinel iterator. Being “at the end” means pointing to the top of the stack, because top always indicates the next available – but unused – space on the stack. This iterator constructor takes a second argument of type bool, which is a dummy to distinguish the two constructors.
+    -->
     <para>La mayor parte del tiempo se querrá recorrer la secuencia entera de un contenedor, por lo que el contenedor necesitará alguna forma de producir los iteradores que indican el principio de la secuencia y el centinela final. Aquí, como en la Librería Estándar de C++, estos iteradores los producen las funciones miembro del contenedor <function>begin() </function> y <function>end()</function>. <function>begin() </function> usa el primer constructor de <classname>iterator </classname> que por defecto apunta al principio del contenedor (esto es el primer elemento que se introdujo en la pila). Sin embargo, un segundo constructor, usado por <function>end()</function>, es necesario para crear el iterador centinela final. Estar <quote>al final</quote> significa apuntar a lo más alto de la pila, porque <varname>top </varname> siempre indica el siguiente espacio de la pila que esté disponible pero sin usar. Este constructor del <classname>iterator </classname> toma un segundo argumento del tipo <type>bool</type>, que es ficticio y sólo sirve para distinguir los dos constructores.</para>
 
+    <!--
+    The Fibonacci numbers are used again to fill the IntStack in main( ), and iterators are used to move through the whole IntStack and also within a narrowed range of the sequence.
+    -->
     <para>De nuevo se usan los números Fibonacci para rellenar el <classname>IntStack </classname> en el <function>main()</function>, y se usan iteradores para moverse completamente a través del <classname>IntStack </classname> así como para moverse en un reducido rango de la secuencia.</para>
 
+    <!--
+    The next step, of course, is to make the code general by templatizing it on the type that it holds, so that instead of being forced to hold only ints you can hold any type:
+    -->
     <para>El siguiente paso, por supuesto, es hacer el código general transformándolo en una plantilla del tipo que maneje, para que en vez de estar obligado a manejar sólo enteros se pueda gestionar cualquier tipo:</para>
 
 
 //: V1C16:IterStackTemplate.h
 
 
+    <!--
+    You can see that the transformation from a regular class to a template is reasonably transparent. This approach of first creating and debugging an ordinary class, then making it into a template, is generally considered to be easier than creating the template from scratch.
+    -->
     <para>Se puede ver que la transformación de una clase normal en una plantilla es razonablemente transparente. Esta aproximación de primero crear y depurar una clase ordinaria, y después transformarla en plantilla, está generalmente considerada como más sencilla que crear la plantilla desde cero.</para>
 
+    <!-- Notice that instead of just saying: -->
     <para>Fíjese en que en vez de decir sólo:</para>
 
 <programlisting>
     friend iterator;  // Hacerlo amigo
 </programlisting>
 
+    <!-- This code has: -->
     <para>este código tiene:</para>
 
 <programlisting>
     friend class iterator;  // Hacerlo amigo
 </programlisting>
 
+    <!--
+    This is important because the name “iterator” is already in scope, from an included file.
+    -->
     <para>Esto es importante porque el nombre <quote><kw>iterator</kw></quote> ya existe en el ámbito, procedente de un fichero incluido.</para>
 
+    <!--
+    Instead of the current( ) member function, the iterator has an operator* to select the current element, which makes the iterator look more like a pointer and is a common practice.
+    -->
     <para>En vez de la función miembro <function>current()</function>, el <classname>iterator </classname> tiene un <oper>operator* </oper> para seleccionar el elemento actual, lo que hace que el <classname>iterator </classname> se parezca más a un puntero y es una práctica común.</para>
 
+    <!-- Here’s the revised example to test the template: -->
     <para>Aquí está el ejemplo revisado para comprobar la plantilla:</para>
 
 
 //: V1C16:IterStackTemplateTest.cpp
 
 
+    <!--
+    The first use of the iterator just marches it from beginning to end (and shows that the end sentinel works properly). In the second usage, you can see how iterators allow you to easily specify a range of elements (the containers and iterators in the Standard C++ Library use this concept of ranges almost everywhere). The overloaded operator+= moves the start and end iterators to positions in the middle of the range of the elements in is, and these elements are printed out. Notice in the output that the end sentinel is not included in the range, thus it can be one past the end of the range to let you know you’ve passed the end – but you don’t dereference the end sentinel, or else you can end up dereferencing a null pointer. (I’ve put guarding in the StackTemplate::iterator, but in the Standard C++ Library containers and iterators there is no such code – for efficiency reasons – so you must pay attention.)
+    -->
     <para>El primer uso del iterador simplemente lo recorre de principio a fin (y muestra que el centinela final funciona correctamente). En el segundo uso, se puede ver cómo los iteradores permiten fácilmente especificar un rango de elementos (los contenedores y los iteradores de la Librería Estándar de C++ usan este concepto de rangos casi en todas partes). El <oper>operator+= </oper> sobrecargado mueve los iteradores <varname>start </varname> y <varname>end </varname> a posiciones que están en el medio del rango de elementos de <varname>is</varname>, y esos elementos se imprimen. Hay que resaltar, como se ve en la salida, que el centinela final no está incluido en el rango, por lo que puede estar uno más allá del final del rango para indicar que se ha sobrepasado el final; pero no hay que dereferenciar el centinela final, o se puede acabar dereferenciando un puntero nulo. (He puesto código de protección en <classname>StackTemplate::iterator</classname>, pero los contenedores y los iteradores de la Librería Estándar de C++ no tienen ese código, por motivos de eficiencia, así que hay que prestar atención).</para>
 
+    <!--
+    Lastly, to verify that the StackTemplate works with class objects, one is instantiated for string and filled with the lines from the source-code file, which are then printed out.
+    -->
     <para>Por último, para verificar que <classname>StackTemplate </classname> funciona con objetos de clases, se instancia uno para <type>string</type>s y se rellena con las líneas del fichero de código fuente, que después se imprimen.</para>
 
 
     <sect2>
+      <!-- Stack with iterators -->
       <title>Stack con iteradores</title>
 
 
+      <!--
+      We can repeat the process with the dynamically-sized Stack class that has been used as an example throughout the book. Here’s the Stack class with a nested iterator folded into the mix:
+      -->
       <para>Podemos repetir el proceso con la clase de tamaño dinámico <classname>Stack</classname> que ha sido usada como un ejemplo a lo largo de todo el libro. Aquí está la clase <classname>Stack </classname> con un iterador anidado incorporado:</para>
 
 
 //: V1C16:TStack2.h
 
 
+      <!--
+      You’ll also notice the class has been changed to support ownership, which works now because the class knows the exact type (or at least the base type, which will work assuming virtual destructors are used). The default is for the container to destroy its objects but you are responsible for any pointers that you pop( ).
+      -->
       <para>Hay que hacer notar también que la clase ha sido cambiada para admitir la propiedad, que ahora funciona debido a que la clase conoce el tipo exacto (o al menos el tipo base, lo que funciona suponiendo que se usan destructores virtuales). La opción por defecto es que el contenedor destruya sus objetos, pero el programador es responsable de los punteros que extraiga con <function>pop()</function>.</para>
 
+      <!--
+      The iterator is simple, and physically very small – the size of a single pointer. When you create an iterator, it’s initialized to the head of the linked list, and you can only increment it forward through the list. If you want to start over at the beginning, you create a new iterator, and if you want to remember a spot in the list, you create a new iterator from the existing iterator pointing at that spot (using the iterator’s copy-constructor).
+      -->
       <para>El iterador es simple, y físicamente muy pequeño: el tamaño de un único puntero. Cuando se crea un <classname>iterator</classname>, se inicializa a la cabeza de la lista enlazada, y sólo puede ser incrementado avanzando a través de la lista. Si se quiere empezar desde el principio, hay que crear un nuevo iterador, y si se quiere recordar un punto de la lista, hay que crear un nuevo iterador a partir del iterador existente que está apuntando a ese elemento (usando el constructor de copia del iterador).</para>
 
+      <!--
+      To call functions for the object referred to by the iterator, you can use the current( ) function, the operator*, or the pointer dereference operator-> (a common sight in iterators). The latter has an implementation that looks identical to current( ) because it returns a pointer to the current object, but is different because the pointer dereference operator performs the extra levels of dereferencing (see Chapter 12).
+      -->
       <para>Para llamar a funciones del objeto referenciado por el iterador, se puede usar la función <function>current()</function>, el <oper>operator*</oper>, o el operador de dereferencia de puntero <oper>operator-> </oper> (algo muy habitual en los iteradores). El último tiene una implementación que <emphasis>parece</emphasis> idéntica a <function>current() </function> debido a que devuelve un puntero al objeto actual, pero es diferente porque el operador de dereferencia de puntero realiza los niveles extra de dereferenciación (ver Capítulo 12).</para>
 
+      <!--
+      The iterator class follows the form you saw in the prior example. class iterator is nested inside the container class, it contains constructors to create both an iterator pointing at an element in the container and an “end sentinel” iterator, and the container class has the begin( ) and end( ) methods to produce these iterators. (When you learn the more about the Standard C++ Library, you’ll see that the names iterator, begin( ), and end( ) that are used here were clearly lifted standard container classes. At the end of this chapter, you’ll see that this enables these container classes to be used as if they were Standard C++ Library container classes.)
+      -->
       <para>La clase <classname>iterator </classname> sigue el formato que se vio en el ejemplo anterior. <classname>class iterator </classname> está anidada dentro de la clase contenedora, contiene constructores para crear un iterador que apunta a un elemento en el contenedor y un iterador <quote>centinela final</quote>, y la clase contenedora tiene los métodos <function>begin() </function> y <function>end() </function> para producir estos iteradores. (Cuando aprenda más sobre la Librería Estándar de C++, verá que los nombres <classname>iterator</classname>, <function>begin() </function> y <function>end()</function> que se usan aquí se han tomado claramente de las clases contenedoras estándar. Al final de este capítulo, se verá que esto permite usar estas clases contenedoras como si fueran clases contenedoras de la Librería Estándar de C++).</para>
 
+      <!--
+      The entire implementation is contained in the header file, so there’s no separate cpp file. Here’s a small test that exercises the iterator:
+      -->
       <para>La implementación completa se encuentra en el fichero de cabecera, por lo que no existe un fichero <filename>cpp </filename> separado. Aquí tenemos una pequeña prueba que ejercita el iterador:</para>
 
 
 //: V1C16:TStack2Test.cpp
 
 
+      <!--
+      A Stack is instantiated to hold string objects and filled with lines from a file. Then an iterator is created and used to move through the sequence. The tenth line is remembered by copy-constructing a second iterator from the first; later this line is printed and the iterator – created dynamically – is destroyed. Here, dynamic object creation is used to control the lifetime of the object.
+      -->
       <para>Se instancia un <classname>Stack </classname> para gestionar objetos <type>string </type> y se rellena con líneas de un fichero. Entonces se crea un iterador y se usa para moverse a través de la secuencia. La décima línea se recuerda mediante un segundo iterador creado con el constructor de copia a partir del primero; posteriormente esta línea se imprime y el iterador, creado dinámicamente, se destruye. Aquí la creación dinámica de objetos se usa para controlar la vida del objeto.</para>
 
 
     </sect2>
     <sect2>
+      <!-- PStash with iterators -->
       <title>PStash con iteradores</title>
 
+      <!--
+      For most container classes it makes sense to have an iterator. Here’s an iterator added to the PStash class:
+      -->
       <para>Para la mayoría de los contenedores tiene sentido tener un iterador. Aquí tenemos un iterador añadido a la clase <classname>PStash</classname>:</para>
 
 
 //: V1C16:TPStash2.h
 
 
+      <!--
+      Most of this file is a fairly straightforward translation of both the previous PStash and the nested iterator into a template. This time, however, the operators return references to the current iterator, which is the more typical and flexible approach to take.
+      -->
       <para>La mayor parte de este fichero es una traducción bastante directa a plantilla tanto del anterior <classname>PStash </classname> como del iterador anidado. Esta vez, sin embargo, los operadores devuelven referencias al iterador actual, que es la aproximación más típica y flexible.</para>
 
+      <!--
+      The destructor calls delete for all contained pointers, and because the type is captured by the template, proper destruction will take place. You should be aware that if the container holds pointers to a base-class type, that type should have a virtual destructor to ensure proper cleanup of derived objects whose addresses have been upcast when placing them in the container.
+      -->
       <para>El destructor llama a <function>delete </function> para todos los punteros que contiene, y como la plantilla captura el tipo, se ejecutará la destrucción adecuada. Hay que tener en cuenta que si el contenedor contiene punteros a un tipo de clase base, ese tipo debe tener un destructor <kw>virtual </kw> para asegurar un limpiado adecuado de los objetos derivados cuyas direcciones hayan sufrido un upcast al colocarlos en el contenedor.</para>
 
+      <!--
+      The PStash::iterator follows the iterator model of bonding to a single container object for its lifetime. In addition, the copy-constructor allows you to make a new iterator pointing at the same location as the existing iterator that you create it from, effectively making a bookmark into the container. The operator+= and operator-= member functions allow you to move an iterator by a number of spots, while respecting the boundaries of the container. The overloaded increment and decrement operators move the iterator by one place. The operator+ produces a new iterator that’s moved forward by the amount of the addend. As in the previous example, the pointer dereference operators are used to operate on the element the iterator is referring to, and remove( ) destroys the current object by calling the container’s remove( ).
+      -->
       <para>El <varname>PStash::iterator</varname> sigue el modelo de iterador ligado a un único objeto contenedor durante todo su ciclo de vida. Además, el constructor de copia permite crear un nuevo iterador que apunte a la misma posición que el iterador existente a partir del cual se crea, lo que en la práctica crea un marcador dentro del contenedor. Las funciones miembro <function>operator+= </function> y el <function>operator-=</function> permiten mover un iterador un número de posiciones, mientras se respeten los límites del contenedor. Los operadores sobrecargados de incremento y decremento mueven el iterador una posición. El <function>operator+</function> produce un nuevo iterador desplazado hacia adelante tantas posiciones como indique el sumando. Como en el ejemplo anterior, los operadores de dereferencia de punteros se usan para operar sobre el elemento al que el iterador está referenciando, y <function>remove()</function> destruye el objeto actual llamando al <function>remove()</function> del contenedor.</para>
 
+      <!--
+      The same kind of code as before (a la the Standard C++ Library containers) is used for creating the end sentinel: a second constructor, the container’s end( ) member function, and operator== and operator!= for comparison.
+      -->
       <para>Se usa el mismo tipo de código que antes (al estilo de los contenedores de la Librería Estándar de C++) para crear el centinela final: un segundo constructor, la función miembro del contenedor <function>end()</function>, y el <function>operator== </function> y <function>operator!= </function> para comparaciones.</para>
 
+      <!--
+      The following example creates and tests two different kinds of Stash objects, one for a new class called Int that announces its construction and destruction and one that holds objects of the Standard library string class.
+      -->
       <para>El siguiente ejemplo crea y comprueba dos tipos diferentes de objetos <classname>Stash</classname>, uno para una nueva clase llamada <classname>Int</classname> que anuncia su construcción y destrucción y otro que gestiona objetos de la clase <type>string </type> de la librería estándar.</para>
 
 
 //: V1C16:TPStash2Test.cpp
 
 
+      <!--
+      For convenience, Int has an associated ostream operator<< for both an Int& and an Int*.
+      -->
       <para>Por conveniencia <classname>Int </classname> tiene asociado un <varname>ostream operator&lt;&lt;</varname> para <classname>Int&amp;</classname> y <classname>Int*</classname>.</para>
 
+      <!--
+      The first block of code in main( ) is surrounded by braces to force the destruction of the PStash<Int> and thus the automatic cleanup by that destructor. A range of elements is removed and deleted by hand to show that the PStash cleans up the rest.
+      -->
       <para>El primer bloque de código en <function>main()</function> está rodeado de llaves para forzar la destrucción de <varname>PStash&lt;Int&gt;</varname> y, por tanto, el limpiado automático que realiza ese destructor. Se sacan y se borran a mano unos cuantos elementos para mostrar que <classname>PStash </classname> limpia el resto.</para>
 
+      <!--
+      For both instances of PStash, an iterator is created and used to move through the container. Notice the elegance produced by using these constructs; you aren’t assailed with the implementation details of using an array. You tell the container and iterator objects what to do, not how. This makes the solution easier to conceptualize, to build, and to modify.
+      -->
       <para>Para ambas instancias de <classname>PStash</classname>, se crea un iterador y se usa para moverse a través del contenedor. Note la elegancia que produce el uso de estas construcciones; no hay que preocuparse por los detalles de implementación de usar un array. Se le dice al contenedor y al iterador <emphasis>qué</emphasis> hacer y no <emphasis>cómo</emphasis> hacerlo. Esto produce una solución más sencilla de conceptualizar, construir y modificar.</para>
 
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- Why iterators? -->
     <title>Por qué usar iteradores</title>
 
+    <!--
+    Up until now you’ve seen the mechanics of iterators, but understanding why they are so important takes a more complex example.
+    -->
     <para>Hasta ahora se han visto los mecanismos de los iteradores, pero para entender por qué son tan importantes hace falta un ejemplo más complejo.</para>
 
+    <!--
+    It’s common to see polymorphism, dynamic object creation, and containers used together in a true object-oriented program. Containers and dynamic object creation solve the problem of not knowing how many or what type of objects you’ll need. And if the container is configured to hold pointers to base-class objects, an upcast occurs every time you put a derived-class pointer into the container (with the associated code organization and extensibility benefits). As the final code in Volume 1 of this book, this example will also pull together various aspects of everything you’ve learned so far – if you can follow this example, then you’re ready for Volume 2.
+    -->
     <para>Es normal ver el polimorfismo, la creación dinámica de objetos y los contenedores usados conjuntamente en un programa orientado a objetos real. Los contenedores y la creación dinámica de objetos resuelven el problema de no saber cuántos objetos ni de qué tipo se necesitarán. Y si el contenedor está configurado para manejar punteros a objetos de la clase base, cada vez que se ponga en el contenedor un puntero a una clase derivada se produce un upcast (con los beneficios que conlleva de organización del código y extensibilidad). Como último código del Volumen 1 de este libro, este ejemplo reúne también varios aspectos de todo lo que se ha aprendido hasta ahora; si es capaz de seguir este ejemplo, entonces está preparado para el Volumen 2.</para>
 
+    <!--
+    Suppose you are creating a program that allows the user to edit and produce different kinds of drawings. Each drawing is an object that contains a collection of Shape objects:
+    -->
     <para>Suponga que está creando un programa que permite al usuario editar y producir diferentes tipos de dibujos. Cada dibujo es un objeto que contiene una colección de objetos <classname>Shape</classname>:</para>
 
 
 //: V1C16:Shape.h
 
 
+    <!--
+    This uses the classic structure of virtual functions in the base class that are overridden in the derived class. Notice that the Shape class includes a virtual destructor, something you should automatically add to any class with virtual functions. If a container holds pointers or references to Shape objects, then when the virtual destructors are called for those objects everything will be properly cleaned up.
+    -->
     <para>Se usa la estructura clásica de las funciones virtuales en la clase base que son redefinidas en la clase derivada. Hay que resaltar que la clase <classname>Shape </classname> incluye un destructor virtual, algo que se debería añadir automáticamente a cualquier clase con funciones <kw>virtual</kw>es. Si un contenedor maneja punteros o referencias a objetos <classname>Shape</classname>, entonces cuando se llame a los destructores virtuales de esos objetos todo se limpiará correctamente.</para>
 
+    <!--
+    Each different type of drawing in the following example makes use of a different kind of templatized container class: the PStash and Stack that have been defined in this chapter, and the vector class from the Standard C++ Library. The “use”’ of the containers is extremely simple, and in general inheritance might not be the best approach (composition could make more sense), but in this case inheritance is a simple approach and it doesn’t detract from the point made in the example.
+    -->
     <para>Cada tipo diferente de dibujo en el siguiente ejemplo hace uso de una plantilla de clase contenedora diferente: el <classname>PStash </classname> y el <classname>Stack </classname> que se han definido en este capítulo, y la clase <classname>vector </classname> de la Librería Estándar de C++. El <quote>uso</quote> de los contenedores es extremadamente simple, y en general puede que la herencia no sea la mejor aproximación (la composición podría tener más sentido), pero en este caso la herencia es una aproximación sencilla y no resta valor a lo que el ejemplo quiere mostrar.</para>
 
 
 //: V1C16:Drawing.cpp
 
 
+    <!--
+    The different types of containers all hold pointers to Shape and pointers to upcast objects of classes derived from Shape. However, because of polymorphism, the proper behavior still occurs when the virtual functions are called.
+    -->
     <para>Los distintos tipos de contenedores manejan punteros a <classname>Shape </classname> y punteros a objetos (convertidos mediante upcast) de clases derivadas de <classname>Shape</classname>. Sin embargo, debido al polimorfismo, cuando se llama a las funciones virtuales se sigue produciendo el comportamiento adecuado.</para>
 
+    <!--
+    Note that sarray, the array of Shape*, can also be thought of as a container.
+    -->
     <para>Note que <varname>sarray</varname>, el array de <classname>Shape*</classname>, también puede considerarse un contenedor.</para>
 
 
     <sect2>
+      <!-- Function templates -->
       <title>Plantillas de función</title>
 
+      <!--
+      In drawAll( ) you see something new. So far in this chapter, we have been using only class templates, which instantiate new classes based on one or more type parameters. However, you can as easily create function templates, which create new functions based on type parameters. The reason you create a function template is the same reason you use for a class template: You’re trying to create generic code, and you do this by delaying the specification of one or more types. You just want to say that these type parameters support certain operations, not exactly what types they are.
+      -->
       <para>En <function>drawAll()</function> se ve algo nuevo. Hasta ahora, en este capítulo únicamente hemos estado usando <emphasis>plantillas de clase</emphasis>, que instancian nuevas clases basadas en uno o más parámetros de tipo. Sin embargo, con la misma facilidad se pueden crear <emphasis>plantillas de función</emphasis>, que crean nuevas funciones basadas en parámetros de tipo. La razón para crear una plantilla de función es la misma por la cual se crea una plantilla de clase: se intenta crear código más genérico, y se hace retrasando la especificación de uno o más tipos. Sólo se quiere decir que esos parámetros de tipo admiten ciertas operaciones, no qué tipos exactos son.</para>
 
+      <!--
+      The function template drawAll( ) can be thought of as an algorithm (and this is what most of the function templates in the Standard C++ Library are called). It just says how to do something given iterators describing a range of elements, as long as these iterators can be dereferenced, incremented, and compared. These are exactly the kind of iterators we have been developing in this chapter, and also – not coincidentally – the kind of iterators that are produced by the containers in the Standard C++ Library, evidenced by the use of vector in this example.
+      -->
       <para>Se puede pensar en la plantilla de función <function>drawAll() </function> como en un <emphasis>algoritmo </emphasis> (que es como se llama a la mayoría de las plantillas de función de la Librería Estándar de C++). Sólo dice cómo hacer algo dados unos iteradores que describen un rango de elementos, siempre que esos iteradores se puedan dereferenciar, incrementar y comparar. Ésos son exactamente el tipo de iteradores que hemos estado desarrollando en este capítulo, y también (no por casualidad) el tipo de iteradores que producen los contenedores de la Librería Estándar de C++, como demuestra el uso de <classname>vector</classname> en este ejemplo.</para>
 
+      <!--
+      We’d also like drawAll( ) to be a generic algorithm, so that the containers can be any type at all and we don’t have to write a new version of the algorithm for each different type of container. Here’s where function templates are essential, because they automatically generate the specific code for each different type of container. But without the extra indirection provided by the iterators, this genericness wouldn’t be possible. That’s why iterators are important; they allow you to write general-purpose code that involves containers without knowing the underlying structure of the container. (Notice that, in C++, iterators and generic algorithms require function templates in order to work.)
+      -->
       <para>Además nos gustaría que <function>drawAll() </function> fuera un <emphasis>algoritmo genérico</emphasis>, para que los contenedores pudieran ser de cualquier tipo y que no se tuviera que escribir una nueva versión del algoritmo para cada tipo diferente de contenedor. Aquí es donde las plantillas de función son esenciales, porque automáticamente generan el código específico para cada tipo de contenedor diferente. Pero sin la indirección extra proporcionada por los iteradores, esta genericidad no sería posible. Éste es el motivo por el que los iteradores son importantes; nos permiten escribir código de propósito general que involucra a contenedores sin conocer la estructura subyacente del contenedor. (Note que, en C++, los iteradores y los algoritmos genéricos necesitan plantillas de función para funcionar).</para>
 
+      <!--
+      You can see the proof of this in main( ), since drawAll( ) works unchanged with each different type of container. And even more interesting, drawAll( ) also works with pointers to the beginning and end of the array sarray. This ability to treat arrays as containers is integral to the design of the Standard C++ Library, whose algorithms look much like drawAll( ).
+      -->
       <para>Se puede ver la prueba de esto en el <function>main()</function>, ya que <function>drawAll() </function> funciona sin cambios con cada uno de los diferentes tipos de contenedor. E incluso más interesante, <function>drawAll() </function> también funciona con punteros al principio y al final del array <varname>sarray</varname>. Esta habilidad para tratar arrays como contenedores está integrada en el diseño de la Librería Estándar de C++, cuyos algoritmos se parecen mucho a <function>drawAll()</function>.</para>
 
+      <!--
+      Because container class templates are rarely subject to the inheritance and upcasting you see with “ordinary” classes, you’ll almost never see virtual functions in container classes. Container class reuse is implemented with templates, not with inheritance.
+      -->
       <para>Debido a que las plantillas de clases contenedoras rara vez están sujetas a la herencia y al upcast que se ven en las clases <quote>ordinarias</quote>, casi nunca se verán funciones virtuales en clases contenedoras. La reutilización de las clases contenedoras se implementa mediante plantillas, no mediante herencia.</para>
 
 
@@ -591,124 +981,214 @@ while(start != end)
 
 
   <sect1>
+    <!-- Summary -->
     <title>Resumen</title>
 
+    <!--
+    Container classes are an essential part of object-oriented programming. They are another way to simplify and hide the details of a program and to speed the process of program development. In addition, they provide a great deal of safety and flexibility by replacing the primitive arrays and relatively crude data structure techniques found in C.
+    -->
     <para>Las clases contenedoras son una parte esencial de la programación orientada a objetos. Son otro modo de simplificar y ocultar los detalles de un programa y de acelerar el proceso de desarrollo del programa. Además, proporcionan un gran nivel de seguridad y flexibilidad reemplazando los primitivos arrays y las relativamente toscas técnicas de estructuras de datos que se pueden encontrar en C.</para>
 
+    <!--
+    Because the client programmer needs containers, it’s essential that they be easy to use. This is where the template comes in. With templates the syntax for source-code reuse (as opposed to object-code reuse provided by inheritance and composition) becomes trivial enough for the novice user. In fact, reusing code with templates is notably easier than inheritance and composition.
+    -->
     <para>Como el programador cliente necesita contenedores, es esencial que sean fáciles de usar. Aquí es donde entran las plantillas. Con las plantillas la sintaxis para la reutilización del código fuente (al contrario de la reutilización del código objeto que proporcionan la herencia y la composición) se vuelve lo suficientemente trivial para el usuario novel. De hecho, la reutilización de código con plantillas es notablemente más fácil que la herencia y la composición.</para>
 
+    <!--
+    Although you’ve learned about creating container and iterator classes in this book, in practice it’s much more expedient to learn the containers and iterators in the Standard C++ Library, since you can expect them to be available with every compiler. As you will see in Volume 2 of this book (downloadable from www.BruceEckel.com), the containers and algorithms in the Standard C++ Library will virtually always fulfill your needs so you don’t have to create new ones yourself.
+    -->
     <para>Aunque se ha aprendido cómo crear contenedores y clases iteradoras en este libro, en la práctica es mucho más útil aprender los contenedores e iteradores que contiene la Librería Estándar de C++, ya que se puede esperar encontrarlos en cualquier compilador. Como se verá en el Volumen 2 de este libro (que se puede bajar de <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>), los contenedores y algoritmos de la Librería Estándar de C++ satisfarán prácticamente siempre sus necesidades, por lo que no tendrá que crear otros nuevos.</para>
 
+    <!--
+    The issues involved with container-class design have been touched upon in this chapter, but you may have gathered that they can go much further. A complicated container-class library may cover all sorts of additional issues, including multithreading, persistence and garbage collection.
+    -->
     <para>Las cuestiones relacionadas con el diseño de clases contenedoras se han tratado por encima en este capítulo, pero se habrá dado cuenta de que pueden ir mucho más allá. Una librería de clases contenedoras compleja puede abarcar todo tipo de cuestiones adicionales, como la programación multihilo, la persistencia y la recolección de basura.</para>
   </sect1>
 
   <sect1>
+    <!-- Exercises -->
     <title>Ejercicios</title>
 
     <xi:include parse="xml" href="./ejercicios.xml"/>
 
     <orderedlist>
       <listitem>
+	<!--
+	Implement the inheritance hierarchy in the OShape diagram in this chapter.
+	-->
 	<para>Implemente la jerarquía de herencia del diagrama de <classname>OShape </classname> de este capítulo.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify the result of Exercise 1 from Chapter 15 to use the Stack and iterator in TStack2.h instead of an array of Shape pointers. Add destructors to the class hierarchy so you can see that the Shape objects are destroyed when the Stack goes out of scope.
+	-->
 	<para>Modifique el resultado del Ejercicio 1 del Capítulo 15 para usar la <classname>Stack </classname> y el <classname>iterator </classname> en <filename>TStack2.h </filename> en vez de un array de punteros a <classname>Shape</classname>. Añada destructores a la jerarquía de clases para que se pueda ver que los objetos <classname>Shape </classname> se destruyen cuando la <classname>Stack </classname> sale del ámbito.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify TPStash.h so that the increment value used by inflate( ) can be changed throughout the lifetime of a particular container object.
+	-->
 	<para>Modifique <filename>TPStash.h </filename> para que el valor de incremento usado por <function>inflate() </function> pueda ser cambiado durante la vida de un objeto contenedor particular.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify TPStash.h so that the increment value used by inflate( ) automatically resizes itself to reduce the number of times it needs to be called. For example, each time it is called it could double the increment value for use in the next call. Demonstrate this functionality by reporting whenever an inflate( ) is called, and write test code in main( ).
+	-->
 	<para>Modifique <filename>TPStash.h </filename> para que el valor de incremento usado por <function>inflate() </function> se ajuste automáticamente para reducir el número de veces que hay que llamarla. Por ejemplo, cada vez que se llama podría doblar el valor de incremento para su uso en la siguiente llamada. Demuestre la funcionalidad informando cada vez que se llama a <function>inflate()</function>, y escriba código de prueba en <function>main()</function>.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Templatize the fibonacci( ) function on the type of value that it produces (so it can produce long, float, etc. instead of just int).
+	-->
 	<para>Convierta en plantilla la función <function>fibonacci() </function> sobre el tipo de valor que produce (para que pueda generar <type>long</type>, <type>float</type>, etc. en vez de sólo <type>int</type>).</para>
       </listitem>
 
       <listitem>
+	<!--
+	Using the Standard C++ Library vector as an underlying implementation, create a Set template class that accepts only one of each type of object that you put into it. Make a nested iterator class that supports the “end sentinel” concept in this chapter. Write test code for your Set in main( ), and then substitute the Standard C++ Library set template to verify that the behavior is correct.
+	-->
 	<para>Usando el <classname>vector </classname> de la Librería Estándar de C++ como implementación subyacente, cree una clase plantilla <classname>Set </classname> que acepte sólo uno de cada tipo de objeto que se introduzca en ella. Cree una clase iterador anidada que soporte el concepto de <quote>centinela final</quote> de este capítulo. Escriba código de prueba para su <classname>Set </classname> en el <function>main()</function>, y después sustitúyalo por la plantilla <classname>set </classname> de la Librería Estándar de C++ para comprobar que el comportamiento es correcto.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify AutoCounter.h so that it can be used as a member object inside any class whose creation and destruction you want to trace. Add a string member to hold the name of the class. Test this tool inside a class of your own.
+	-->
 	<para>Modifique <filename>AutoCounter.h </filename> para que pueda ser usado como un objeto miembro dentro de cualquier clase cuya creación y destrucción quiera seguir. Añada un miembro <type>string </type> para que contenga el nombre de la clase. Pruebe esta herramienta dentro de una clase propia.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Create a version of OwnerStack.h that uses a Standard C++ Library vector as its underlying implementation. You may need to look up some of the member functions of vector in order to do this (or just look at the <vector> header file).
+	-->
 	<para>Cree una versión de <filename>OwnerStack.h </filename> que use un <classname>vector </classname> de la Librería Estándar de C++ como su implementación subyacente. Puede que necesite consultar algunas de las funciones miembro de <classname>vector </classname> para poder hacerlo (o simplemente mirar el fichero de cabecera &lt;vector&gt;).</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify ValueStack.h so that it dynamically expands as you push( ) more objects and it runs out of space. Change ValueStackTest.cpp to test the new functionality.
+	-->
 	<para>Modifique <filename>ValueStack.h </filename> para que pueda expandirse dinámicamente cuando se introduzcan más objetos con <function>push()</function> y se quede sin espacio. Cambie <filename>ValueStackTest.cpp </filename> para comprobar su nueva funcionalidad.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Repeat Exercise 9 but use a Standard C++ Library vector as the internal implementation of the ValueStack. Notice how much easier this is.
+	-->
 	<para>Repita el ejercicio 9 pero use el <classname>vector </classname> de la Librería Estándar de C++ como la implementación interna de <classname>ValueStack</classname>. Note lo mucho más sencillo que resulta.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify ValueStackTest.cpp so that it uses a Standard C++ Library vector instead of a Stack in main( ). Notice the run-time behavior: Does the vector automatically create a bunch of default objects when it is created?
+	-->
 	<para>Modifique <filename>ValueStackTest.cpp </filename> para que use un <classname>vector </classname> de la Librería Estándar de C++ en vez de un <classname>Stack </classname> en el <function>main()</function>. Observe el comportamiento en tiempo de ejecución: ¿crea automáticamente el <classname>vector</classname> un montón de objetos por defecto cuando se crea?</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify TStack2.h so that it uses a Standard C++ Library vector as its underlying implementation. Make sure that you don’t change the interface, so that TStack2Test.cpp works unchanged.
+	-->
 	<para>Modifique <filename>TStack2.h </filename> para que use un <classname>vector </classname> de la Librería Estándar de C++ como su implementación subyacente. Asegúrese de que no cambia la interfaz, para que <filename>TStack2Test.cpp </filename> funcione sin cambios.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Repeat Exercise 12 using a Standard C++ Library stack instead of a vector (you may need to look up information about the stack, or hunt through the <stack> header file).
+	-->
 	<para>Repita el Ejercicio 12 usando una <classname>stack </classname> de la Librería Estándar de C++ en vez de un <classname>vector</classname> (puede que necesite buscar información sobre <classname>stack</classname>, o rebuscar en el fichero de cabecera &lt;stack&gt;).</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify TPStash2.h so that it uses a Standard C++ Library vector as its underlying implementation. Make sure that you don’t change the interface, so that TPStash2Test.cpp works unchanged.
+	-->
 	<para>Modifique <filename>TPStash2.h </filename> para que use un <classname>vector </classname> de la Librería Estándar de C++ como su implementación subyacente. Asegúrese de que no cambia la interfaz, para que <filename>TPStash2Test.cpp </filename> funcione sin cambios.</para>
       </listitem>
 
       <listitem>
+	<!--
+	In IterIntStack.cpp, modify IntStackIter to give it an “end sentinel” constructor, and add operator== and operator!=. In main( ), use an iterator to move through the elements of the container until you reach the end sentinel.
+	-->
 	<para>En <filename>IterIntStack.cpp</filename>, modifique <classname>IntStackIter </classname> para darle un constructor de <quote>centinela final</quote>, y añada el <oper>operator== </oper> y el <oper>operator!=</oper>. En el <function>main()</function>, use un iterador para moverse a través de los elementos del contenedor hasta que llegue al centinela final.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Using TStack2.h, TPStash2.h, and Shape.h, instantiate Stack and PStash containers for Shape*, fill them each with an assortment of upcast Shape pointers, then use iterators to move through each container and call draw( ) for each object.
+	-->
 	<para>Usando <filename>TStack2.h</filename>, <filename>TPStash2.h</filename> y <filename>Shape.h</filename>, instancie contenedores <classname>Stack </classname> y <classname>PStash </classname> para <classname>Shape*</classname>, rellene cada uno con un surtido de punteros a <classname>Shape</classname> convertidos mediante upcast, y después use iteradores para moverse a través de cada contenedor y llame a <function>draw() </function> para cada objeto.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Templatize the Int class in TPStash2Test.cpp so that it holds any type of object (feel free to change the name of the class to something more appropriate).
+	-->
 	<para>Convierta en plantilla la clase <type>Int </type> de <filename>TPStash2Test.cpp</filename> para que pueda contener cualquier tipo de objeto (siéntase libre de cambiar el nombre de la clase por algo más apropiado).</para>
       </listitem>
 
       <listitem>
+	<!--
+	Templatize the IntArray class in IostreamOperatorOverloading.cpp from Chapter 12, templatizing both the type of object that is contained and the size of the internal array.
+	-->
 	<para>Convierta en plantilla la clase <classname>IntArray </classname> de <filename>IostreamOperatorOverloading.cpp </filename> del Capítulo 12, parametrizando tanto el tipo de objeto contenido como el tamaño del array interno.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Turn ObjContainer in NestedSmartPointer.cpp from Chapter 12 into a template. Test it with two different classes.
+	-->
 	<para>Convierta <classname>ObjContainer </classname> en <filename>NestedSmartPointer.cpp </filename> del Capítulo 12 en una plantilla. Compruébelo con dos clases diferentes.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Modify C15:OStack.h and C15:OStackTest.cpp by templatizing class Stack so that it automatically multiply inherits from the contained class and from Object. The generated Stack should accept and produce only pointers of the contained type.
+	-->
 	<para>Modifique <filename>C15:OStack.h </filename> y <filename>C15:OStackTest.cpp </filename> convirtiendo en plantilla <classname>class Stack </classname> para que herede automáticamente (con herencia múltiple) de la clase contenida y de <classname>Object</classname>. La <classname>Stack </classname> generada debe aceptar y producir sólo punteros del tipo contenido.</para>
       </listitem>
 
       <listitem>
+	<!-- Repeat Exercise 20 using vector instead of Stack. -->
 	<para>Repita el ejercicio 20 usando <classname>vector </classname> en vez de <classname>Stack</classname>.</para>
       </listitem>
 
       <listitem>
+	<!--
+	Inherit a class StringVector from vector<void*> and redefine the push_back( ) and operator[] member functions to accept and produce only string* (and perform the proper casting). Now create a template that will automatically make a container class to do the same thing for pointers to any type. This technique is often used to reduce code bloat from too many template instantiations.
+	-->
 	<para>Herede una clase <classname>StringVector </classname> de <classname>vector&lt;void*&gt; </classname> y redefina las funciones miembro <function>push_back() </function> y <oper>operator[] </oper> para que acepten y produzcan únicamente <type>string* </type> (y realicen el moldeado adecuado). Ahora cree una plantilla que genere automáticamente una clase contenedora que haga lo mismo para punteros de cualquier tipo. Esta técnica se usa a menudo para reducir el exceso de código producido por demasiadas instanciaciones de plantillas.</para>
       </listitem>
 
       <listitem>
+	<!--
+	In TPStash2.h, add and test an operator- to PStash::iterator, following the logic of operator+.
+	-->
 	<para>En <filename>TPStash2.h</filename>, añada y compruebe un <oper>operator- </oper> para <classname>PStash::iterator</classname>, siguiendo la lógica de <oper>operator+</oper>.</para>
       </listitem>
 
       <listitem>
+	<!--
+	In Drawing.cpp, add and test a function template to call erase( ) member functions.
+	-->
 	<para>En <filename>Drawing.cpp</filename>, añada y compruebe una plantilla de función que llame a funciones miembro <function>erase()</function>.</para>
       </listitem>
 
       <listitem>
+	<!--
+	(Advanced) Modify the Stack class in TStack2.h to allow full granularity of ownership: Add a flag to each link indicating whether that link owns the object it points to, and support this information in the push( ) function and destructor. Add member functions to read and change the ownership for each link.
+	-->
 	<para>(Avanzado) Modifique la clase <classname>Stack </classname> en <filename>TStack2.h </filename> para permitir una granularidad total de la propiedad: añada una bandera a cada enlace indicando si el enlace posee el objeto al que apunta, y dé soporte a esta información en la función <function>push() </function> y en el destructor. Añada funciones miembro para leer y cambiar la propiedad de cada enlace.</para>
       </listitem>
 
       <listitem>
+	<!--
+	(Advanced) Modify PointerToMemberOperator.cpp from Chapter 12 so that the FunctionObject and operator->* are templatized to work with any return type (for operator->*, you’ll have to use member templates, described in Volume 2). Add and test support for zero, one and two arguments in Dog member functions.
+	-->
 	<para>(Avanzado) Modifique <filename>PointerToMemberOperator.cpp </filename> del Capítulo 12 para que la <classname>FunctionObject </classname> y el <oper>operator->* </oper> se conviertan en plantillas para que funcionen con cualquier tipo de retorno (para <oper>operator->*</oper>, tendrá que usar <emphasis>plantillas miembro</emphasis>, descritas en el Volumen 2). Añada y pruebe el soporte para cero, uno y dos argumentos en las funciones miembro de <classname>Dog</classname>.</para>
       </listitem>
     </orderedlist>

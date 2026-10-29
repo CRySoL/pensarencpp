@@ -17,90 +17,175 @@
   xmlns:xi="http://www.w3.org/2001/XInclude"
   id="C15">
 
+  <!-- Polymorphism & Virtual Functions -->
   <title>Polimorfismo y funciones virtuales</title>
 
   <highlights>
+    <!--
+    Polymorphism (implemented in C++ with virtual functions) is the third essential feature of an object-oriented programming language, after data abstraction and inheritance.
+    -->
     <para>El polimorfismo (implementado en C++ con funciones <kw>virtual</kw>es) es la tercera característica esencial de un lenguaje orientado a objetos, después de la abstracción de datos y la herencia.</para>
   </highlights>
 
+  <!--
+  It provides another dimension of separation of interface from implementation, to decouple what from how. Polymorphism allows improved code organization and readability as well as the creation of extensible programs that can be “grown” not only during the original creation of the project, but also when new features are desired.
+  -->
   <para>Proporciona otra dimensión de separación entre la interfaz y la implementación, desacoplando el <emphasis>qué</emphasis> del <emphasis>cómo</emphasis>. El polimorfismo permite mejorar la organización del código y su legibilidad así como la creación de programas <emphasis>extensibles</emphasis> que pueden <quote>crecer</quote> no sólo durante la creación inicial del proyecto, sino también cuando se deseen nuevas características.</para>
 
+  <!--
+  Encapsulation creates new data types by combining characteristics and behaviors. Access control separates the interface from the implementation by making the details private. This kind of mechanical organization makes ready sense to someone with a procedural programming background. But virtual functions deal with decoupling in terms of types. In Chapter 14, you saw how inheritance allows the treatment of an object as its own type or its base type. This ability is critical because it allows many types (derived from the same base type) to be treated as if they were one type, and a single piece of code to work on all those different types equally. The virtual function allows one type to express its distinction from another, similar type, as long as they’re both derived from the same base type. This distinction is expressed through differences in behavior of the functions that you can call through the base class.
+  -->
   <para>La encapsulación crea nuevos tipos de datos combinando características y comportamientos. El control de acceso separa la interfaz de la implementación haciendo privados (<kw>private</kw>) los detalles. Este tipo de organización mecánica resulta fácil de entender para cualquiera que venga de la programación procedimental. Pero las funciones virtuales se ocupan del desacoplamiento en términos de <emphasis>tipos</emphasis>. En el Capítulo 14, usted vio cómo la herencia permitía tratar a un objeto como su propio tipo <emphasis>o</emphasis> como su tipo base. Esta capacidad es crucial porque permite que muchos tipos (derivados del mismo tipo base) sean tratados como si fueran un único tipo, y que un único fragmento de código funcione indistintamente con todos ellos. Las funciones virtuales permiten a un tipo expresar sus diferencias con respecto a otro similar, siempre que ambos deriven del mismo tipo base. Esta distinción se expresa mediante diferencias en el comportamiento de las funciones a las que se puede llamar a través de la clase base.</para>
 
+  <!--
+  In this chapter, you’ll learn about virtual functions, starting from the basics with simple examples that strip away everything but the “virtualness” of the program.
+  -->
   <para>En este capítulo aprenderá sobre las funciones virtuales, empezando por lo básico con ejemplos sencillos en los que se ha eliminado todo salvo lo <quote>virtual</quote> del programa.</para>
 
   <sect1>
+    <!-- Evolution of C++ programmers -->
     <title>Evolución de los programadores de C++</title>
 
+    <!--
+    C programmers seem to acquire C++ in three steps. First, as simply a “better C,” because C++ forces you to declare all functions before using them and is much pickier about how variables are used. You can often find the errors in a C program simply by compiling it with a C++ compiler.
+    -->
     <para>Los programadores de C parecen conseguir pasarse a C++ en tres pasos. Primero, simplemente como un <quote>C mejorado</quote>, debido a que C++ le obliga a declarar todas las funciones antes de usarlas y a que es mucho más exigente con la forma de usar las variables. A menudo se pueden encontrar errores en un programa C simplemente recompilándolo con un compilador de C++.</para>
 
+    <!--
+    The second step is “object-based” C++. This means that you easily see the code organization benefits of grouping a data structure together with the functions that act upon it, the value of constructors and destructors, and perhaps some simple inheritance. Most programmers who have been working with C for a while quickly see the usefulness of this because, whenever they create a library, this is exactly what they try to do. With C++, you have the aid of the compiler.
+    -->
     <para>El segundo paso es el C++ <quote>basado en objetos</quote>, lo que significa que se pueden ver fácilmente los beneficios de la organización del código al agrupar estructuras de datos junto con las funciones que las manejan, la potencia de los constructores y los destructores, y quizás algo de herencia simple. La mayoría de los programadores que han trabajado durante un tiempo con C ven rápidamente la utilidad de esto porque es exactamente lo que intentan hacer cada vez que crean una librería. Con C++ usted recibe la ayuda del compilador.</para>
 
+    <!--
+    You can get stuck at the object-based level because you can quickly get there and you get a lot of benefit without much mental effort. It’s also easy to feel like you’re creating data types – you make classes and objects, you send messages to those objects, and everything is nice and neat.
+    -->
     <para>Usted se puede quedar atascado en el nivel <quote>basado en objetos</quote> porque se llega a él rápidamente y se obtienen muchos beneficios sin demasiado esfuerzo mental. También es fácil tener la sensación de que está creando tipos de datos - usted hace clases y objetos, envía mensajes a esos objetos, y todo es bonito y pulcro.</para>
 
+    <!--
+    But don’t be fooled. If you stop here, you’re missing out on the greatest part of the language, which is the jump to true object-oriented programming. You can do this only with virtual functions.
+    -->
     <para>Pero no se deje engañar. Si se para aquí, se está perdiendo la mejor parte del lenguaje, que es el salto a la verdadera programación orientada a objetos. Y esto se consigue únicamente con las funciones virtuales.</para>
 
+    <!--
+    Virtual functions enhance the concept of type instead of just encapsulating code inside structures and behind walls, so they are without a doubt the most difficult concept for the new C++ programmer to fathom. However, they’re also the turning point in the understanding of object-oriented programming. If you don’t use virtual functions, you don’t understand OOP yet.
+    -->
     <para>Las funciones virtuales realzan el concepto de tipo en lugar de simplemente encapsular código dentro de estructuras y dejarlo detrás de un muro, por lo que son, sin lugar a dudas, el concepto más difícil de desentrañar para los nuevos programadores de C++. Sin embargo, son también el punto decisivo para comprender la programación orientada a objetos. Si no usa funciones virtuales, todavía no entiende la POO.</para>
 
+    <!--
+    Because the virtual function is intimately bound with the concept of type, and type is at the core of object-oriented programming, there is no analog to the virtual function in a traditional procedural language. As a procedural programmer, you have no referent with which to think about virtual functions, as you do with almost every other feature in the language. Features in a procedural language can be understood on an algorithmic level, but virtual functions can be understood only from a design viewpoint.
+    -->
     <para>Debido a que las funciones virtuales están íntimamente unidas al concepto de tipo, y los tipos son el núcleo de la programación orientada a objetos, no existe nada análogo a las funciones virtuales en los lenguajes procedurales tradicionales. Como programador procedural, usted no tiene ningún referente con el que pensar en las funciones virtuales, como sí lo tiene con casi todas las demás características del lenguaje. Las características de un lenguaje procedural pueden entenderse en un nivel algorítmico, pero las funciones virtuales sólo pueden entenderse desde el punto de vista del diseño.</para>
   </sect1>
 
   <sect1>
+    <!-- Upcasting -->
     <title>Upcasting</title>
 
+    <!--
+    In Chapter 14 you saw how an object can be used as its own type or as an object of its base type. In addition, it can be manipulated through an address of the base type. Taking the address of an object (either a pointer or a reference) and treating it as the address of the base type is called upcasting because of the way inheritance trees are drawn with the base class at the top.
+    -->
     <para>En el Capítulo 14 se vio cómo un objeto puede ser usado como un objeto de su propio tipo o como un objeto de su tipo base. Además el objeto puede ser manejado a través de una dirección del tipo base. Tomar la dirección de un objeto (ya sea un puntero o una referencia) y tratarlo como la dirección de su tipo base se conoce como <foreignphrase>upcasting</foreignphrase> <footnote><para>N del T: Por desgracia <literal>upcasting</literal> es otro de los términos a los que no he encontrado una traducción convincente (¿¿amoldar hacia arriba??) y tiene el agravante de que deriva de una expresión ampliamente usada por los programadores de C (¿Quién no ha hecho nunca un <literal>cast a void*</literal> ;-) ?. Se aceptan sugerencias.</para></footnote> debido a la forma en que se dibujan los árboles de herencia, con la clase base en la parte superior.</para>
 
+    <!--
+    You also saw a problem arise, which is embodied in the following code:
+    -->
     <para>También se vio surgir un problema, que se plasma en el siguiente código:</para>
 
 
 //: V1C15:Instrument2.cpp
 
 
+    <!--
+    The function tune( ) accepts (by reference) an Instrument, but also without complaint anything derived from Instrument. In main( ), you can see this happening as a Wind object is passed to tune( ), with no cast necessary. This is acceptable; the interface in Instrument must exist in Wind, because Wind is publicly inherited from Instrument. Upcasting from Wind to Instrument may “narrow” that interface, but never less than the full interface to Instrument.
+    -->
     <para>La función <function>tune()</function> acepta (por referencia) un <classname>Instrument</classname>, pero también acepta sin quejarse cualquier cosa que derive de <classname>Instrument</classname>. En el <function>main()</function>, se puede ver este comportamiento cuando se pasa un objeto <classname>Wind</classname> a <function>tune()</function> sin que se necesite ningún molde. Esto es aceptable; la interfaz de <classname>Instrument</classname> tiene que existir en <classname>Wind</classname>, porque <classname>Wind</classname> hereda públicamente de <classname>Instrument</classname>. El <foreignphrase>upcasting</foreignphrase> de <classname>Wind</classname> a <classname>Instrument</classname> puede <quote>estrechar</quote> esa interfaz, pero nunca por debajo de la interfaz completa de <classname>Instrument</classname>.</para>
 
+    <!--
+    The same arguments are true when dealing with pointers; the only difference is that the user must explicitly take the addresses of objects as they are passed into the function.
+    -->
     <para>Los mismos argumentos son válidos cuando se trabaja con punteros; la única diferencia es que el usuario debe tomar la dirección de los objetos de forma explícita cuando se pasan a la función.</para>
   </sect1>
 
 
   <sect1>
+    <!-- The problem -->
     <title>El problema</title>
 
+    <!--
+    The problem with Instrument2.cpp can be seen by running the program. The output is Instrument::play. This is clearly not the desired output, because you happen to know that the object is actually a Wind and not just an Instrument. The call should produce Wind::play. For that matter, any object of a class derived from Instrument should have its version of play( ) used, regardless of the situation.
+    -->
     <para>El problema con <filename>Instrument2.cpp</filename> puede verse al ejecutar el programa. La salida es <computeroutput>Instrument::play</computeroutput>. Claramente, ésta no es la salida deseada, porque se sabe que el objeto es en realidad un <classname>Wind</classname> y no sólo un <classname>Instrument</classname>. La llamada debería producir un <computeroutput>Wind::play</computeroutput>. Del mismo modo, para cualquier objeto de una clase que derive de la clase <classname>Instrument </classname> debería usarse su propia versión de <function>play()</function>, independientemente de la situación.</para>
 
+    <!--
+    The behavior of Instrument2.cpp is not surprising, given C’s approach to functions. To understand the issues, you need to be aware of the concept of binding.
+    -->
     <para>El comportamiento de <filename>Instrument2.cpp</filename> no es sorprendente dado el enfoque de C respecto a las funciones. Para entender el resultado es necesario comprender el concepto de <foreignphrase>binding</foreignphrase> (ligadura).</para>
 
     <sect2>
+      <!-- Function call binding -->
       <title>Ligadura de las llamadas a funciones</title>
 
+      <!--
+      Connecting a function call to a function body is called binding. When binding is performed before the program is run (by the compiler and linker), it’s called early binding. You may not have heard the term before because it’s never been an option with procedural languages: C compilers have only one kind of function call, and that’s early binding.
+      -->
       <para>Conectar una llamada a una función al cuerpo de la función se conoce como <foreignphrase>binding</foreignphrase> (ligadura). Cuando la ligadura se realiza antes de ejecutar el programa (por el compilador y el enlazador), se la conoce como <foreignphrase>early binding</foreignphrase> (ligadura temprana). Puede que no haya oído antes este término porque nunca ha sido una opción en los lenguajes procedurales: los compiladores de C sólo tienen un tipo de llamada a función, que es la ligadura temprana.</para>
 
+      <!--
+      The problem in the program above is caused by early binding because the compiler cannot know the correct function to call when it has only an Instrument address.
+      -->
       <para>El problema en el programa anterior está causado por la ligadura temprana, porque el compilador no puede saber cuál es la función correcta a la que llamar cuando sólo tiene una dirección de <classname>Instrument</classname>.</para>
 
+      <!--
+      The solution is called late binding, which means the binding occurs at runtime, based on the type of the object. Late binding is also called dynamic binding or runtime binding. When a language implements late binding, there must be some mechanism to determine the type of the object at runtime and call the appropriate member function. In the case of a compiled language, the compiler still doesn’t know the actual object type, but it inserts code that finds out and calls the correct function body. The late-binding mechanism varies from language to language, but you can imagine that some sort of type information must be installed in the objects. You’ll see how this works later.
+      -->
       <para>La solución se conoce como ligadura tardía (<foreignphrase>late binding</foreignphrase>), que significa que la ligadura se produce en tiempo de ejecución basándose en el tipo de objeto. También es conocida como <emphasis>ligadura dinámica</emphasis> o <emphasis>ligadura en tiempo de ejecución</emphasis>. Cuando un lenguaje implementa la ligadura dinámica debe existir algún tipo de mecanismo para determinar el tipo del objeto en tiempo de ejecución y llamar a la función miembro apropiada. En el caso de un lenguaje compilado, el compilador sigue sin conocer el tipo real del objeto, pero inserta código que lo averigua y llama al cuerpo correcto de la función. El mecanismo de la ligadura dinámica varía de un lenguaje a otro, pero se puede imaginar que algún tipo de información debe ser introducida en los objetos. Más adelante se verá cómo funciona.</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- virtual functions -->
     <title>Funciones virtuales</title>
+    <!--
+    To cause late binding to occur for a particular function, C++ requires that you use the virtual keyword when declaring the function in the base class. Late binding occurs only with virtual functions, and only when you’re using an address of the base class where those virtual functions exist, although they may also be defined in an earlier base class.
+    -->
     <para>Para que la ligadura dinámica tenga efecto en una función particular, C++ necesita que se use la palabra reservada <kw>virtual</kw> cuando se declara la función en la clase base. La ligadura en tiempo de ejecución funciona únicamente con las funciones <kw>virtual</kw>es, y sólo cuando se está usando una dirección de la clase base donde existan esas funciones <kw>virtual</kw>es, aunque también pueden estar definidas en una clase base anterior.</para>
 
+    <!--
+    To create a member function as virtual, you simply precede the declaration of the function with the keyword virtual. Only the declaration needs the virtual keyword, not the definition. If a function is declared as virtual in the base class, it is virtual in all the derived classes. The redefinition of a virtual function in a derived class is usually called overriding.
+    -->
     <para>Para crear una función miembro como <kw>virtual</kw>, simplemente hay que preceder a la declaración de la función con la palabra reservada <kw>virtual</kw>. Sólo la declaración necesita la palabra reservada <kw>virtual</kw>, y no la definición. Si una función es declarada como <kw>virtual</kw> en la clase base, será entonces <kw>virtual</kw> en todas las clases derivadas. La redefinición de una función <kw>virtual</kw> en una clase derivada se conoce como <foreignphrase>overriding</foreignphrase>.</para>
 
+    <!--
+    Notice that you are only required to declare a function virtual in the base class. All derived-class functions that match the signature of the base-class declaration will be called using the virtual mechanism. You can use the virtual keyword in the derived-class declarations (it does no harm to do so), but it is redundant and can be confusing.
+    -->
     <para>Hay que hacer notar que sólo es necesario declarar la función como <kw>virtual</kw> en la clase base. Todas las funciones de las clases derivadas que coincidan con el prototipo de la declaración de la clase base serán llamadas usando el mecanismo virtual. Se <emphasis>puede</emphasis> usar la palabra reservada <kw>virtual</kw> en las declaraciones de las clases derivadas (no hace ningún mal), pero es redundante y puede causar confusión.</para>
 
+    <!--
+    To get the desired behavior from Instrument2.cpp, simply add the virtual keyword in the base class before play( ):
+    -->
     <para>Para conseguir el comportamiento deseado de <filename>Instrument2.cpp</filename>, simplemente hay que añadir la palabra reservada <kw>virtual</kw> en la clase base antes de <function>play()</function>.</para>
 
 
 //: V1C15:Instrument3.cpp
 
 
+    <!--
+    This file is identical to Instrument2.cpp except for the addition of the virtual keyword, and yet the behavior is significantly different: Now the output is Wind::play.
+    -->
     <para>Este fichero es idéntico a <filename>Instrument2.cpp</filename> excepto por la adición de la palabra reservada <kw>virtual</kw> y, sin embargo, el comportamiento es significativamente diferente: ahora la salida es <computeroutput>Wind::play</computeroutput>.</para>
 
     <sect2>
+      <!-- Extensibility -->
       <title>Extensibilidad</title>
 
+      <!--
+      With play( ) defined as virtual in the base class, you can add as many new types as you want without changing the tune( ) function. In a well-designed OOP program, most or all of your functions will follow the model of tune( ) and communicate only with the base-class interface. Such a program is extensible because you can add new functionality by inheriting new data types from the common base class. The functions that manipulate the base-class interface will not need to be changed at all to accommodate the new classes.
+      -->
       <para>Con <function>play()</function> definido como <kw>virtual</kw> en la clase base, se pueden añadir tantos nuevos tipos como se quiera sin cambiar la función <function>tune()</function>. En un programa orientado a objetos bien diseñado, la mayoría de las funciones, o todas, seguirán el modelo de <function>tune()</function> y se comunicarán únicamente a través de la interfaz de la clase base. Un programa así es extensible porque se puede añadir nueva funcionalidad heredando nuevos tipos de datos de la clase base común. Las funciones que manipulan la interfaz de la clase base no necesitarán ningún cambio para dar cabida a las nuevas clases.</para>
 
+      <!--
+      Here’s the instrument example with more virtual functions and a number of new classes, all of which work correctly with the old, unchanged tune( ) function:
+      -->
       <para>Aquí está el ejemplo de los instrumentos con más funciones virtuales y varias clases nuevas, todas las cuales funcionan correctamente con la antigua función <function>tune()</function>, sin modificar:</para>
 
 
@@ -108,25 +193,50 @@
 
 
 
+      <!--
+      You can see that another inheritance level has been added beneath Wind, but the virtual mechanism works correctly no matter how many levels there are. The adjust( ) function is not overridden for Brass and Woodwind. When this happens, the “closest” definition in the inheritance hierarchy is automatically used – the compiler guarantees there’s always some definition for a virtual function, so you’ll never end up with a call that doesn’t bind to a function body. (That would be disastrous.)
+      -->
       <para>Se puede ver que se ha añadido otro nivel de herencia debajo de <classname>Wind</classname>, pero el mecanismo <kw>virtual</kw> funciona correctamente sin importar cuántos niveles haya. La función <function>adjust()</function> <emphasis>no</emphasis> está redefinida (<foreignphrase>override</foreignphrase>) en <classname>Brass</classname> ni en <classname>Woodwind</classname>. Cuando esto ocurre, se usa automáticamente la definición más <quote>cercana</quote> en la jerarquía de herencia - el compilador garantiza que exista <emphasis>alguna</emphasis> definición para una función virtual, por lo que nunca acabará en una llamada que no esté enlazada con el cuerpo de una función (lo cual sería desastroso).</para>
 
+      <!--
+      The array A[ ] contains pointers to the base class Instrument, so upcasting occurs during the process of array initialization. This array and the function f( ) will be used in later discussions.
+      -->
       <para>El array <literal>A[]</literal> contiene punteros a la clase base <classname>Instrument</classname>, lo que implica que durante el proceso de inicialización del array habrá <foreignphrase>upcasting</foreignphrase>. Este array y la función <function>f()</function> serán usados en posteriores discusiones.</para>
 
+      <!--
+      In the call to tune( ), upcasting is performed on each different type of object, yet the desired behavior always takes place. This can be described as “sending a message to an object and letting the object worry about what to do with it.” The virtual function is the lens to use when you’re trying to analyze a project: Where should the base classes occur, and how might you want to extend the program? However, even if you don’t discover the proper base class interfaces and virtual functions at the initial creation of the program, you’ll often discover them later, even much later, when you set out to extend or otherwise maintain the program. This is not an analysis or design error; it simply means you didn’t or couldn’t know all the information the first time. Because of the tight class modularization in C++, it isn’t a large problem when this occurs because changes you make in one part of a system tend not to propagate to other parts of the system as they do in C.
+      -->
       <para>En la llamada a <function>tune()</function>, el <foreignphrase>upcasting</foreignphrase> se realiza en cada tipo de objeto distinto y, aun así, siempre se obtiene el comportamiento deseado. Se puede describir como <quote>enviar un mensaje a un objeto y dejar que el objeto se preocupe de qué hacer con él</quote>. La función <kw>virtual</kw> es la lente que hay que usar cuando se está analizando un proyecto: ¿Dónde deben estar las clases base y cómo se desea <emphasis>extender</emphasis> el programa? Sin embargo, incluso si no se descubre la interfaz apropiada para la clase base y las funciones virtuales durante la creación del programa, a menudo se descubrirán más tarde, incluso mucho más tarde cuando se desee ampliar o se vaya a hacer funciones de mantenimiento en el programa. Esto no implica un error de análisis o de diseño; simplemente significa que no se conocía o no se podía conocer toda la información al principio. Debido a la fuerte modularización de C++, no es mucho problema que esto suceda porque los cambios que se hagan en una parte del sistema no tienden a propagarse a otras partes como sucede en C.</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- How C++ implements late binding -->
     <title>Cómo implementa C++ la ligadura dinámica</title>
 
+    <!--
+    How can late binding happen? All the work goes on behind the scenes by the compiler, which installs the necessary late-binding mechanism when you ask it to (you ask by creating virtual functions). Because programmers often benefit from understanding the mechanism of virtual functions in C++, this section will elaborate on the way the compiler implements this mechanism.
+    -->
     <para>¿Cómo funciona la ligadura dinámica? Todo el trabajo se realiza detrás del telón gracias al compilador, que instala los mecanismos necesarios de la ligadura dinámica cuando se le pide (y se le pide creando funciones virtuales). Debido a que los programadores se suelen beneficiar de la comprensión del mecanismo de las funciones virtuales en C++, esta sección mostrará la forma en que el compilador implementa este mecanismo.</para>
 
+    <!--
+    The keyword virtual tells the compiler it should not perform early binding. Instead, it should automatically install all the mechanisms necessary to perform late binding. This means that if you call play( ) for a Brass object through an address for the base-class Instrument, you’ll get the proper function.
+    -->
     <para>La palabra reservada <kw>virtual</kw> le dice al compilador que no debe realizar ligadura estática. Al contrario, debe instalar automáticamente todos los mecanismos necesarios para realizar la ligadura dinámica. Esto significa que si se llama a <function>play()</function> para un objeto <classname>Brass</classname> <emphasis>a través de una dirección de la clase base</emphasis> <classname>Instrument</classname>, se usará la función apropiada.</para>
 
+    <!--
+    To accomplish this, the typical compiler[54] creates a single table (called the VTABLE) for each class that contains virtual functions. The compiler places the addresses of the virtual functions for that particular class in the VTABLE. In each class with virtual functions, it secretly places a pointer, called the vpointer (abbreviated as VPTR), which points to the VTABLE for that object. When you make a virtual function call through a base-class pointer (that is, when you make a polymorphic call), the compiler quietly inserts code to fetch the VPTR and look up the function address in the VTABLE, thus calling the correct function and causing late binding to take place.
+
+    [54] Compilers may implement virtual behavior any way they want, but the way it’s described here is an almost universal approach.
+    -->
     <para>Para que funcione, el compilador típico <footnote><para>Los compiladores pueden implementar el comportamiento virtual como quieran, pero el modo aquí descrito es un enfoque casi universal.</para></footnote> crea una única tabla (llamada VTABLE) por cada clase que contenga funciones virtuales. El compilador coloca las direcciones de las funciones virtuales de esa clase en concreto en la VTABLE. En cada clase con funciones virtuales el compilador coloca de forma secreta un puntero llamado <literal>vpointer</literal> (de forma abreviada VPTR), que apunta a la VTABLE de ese objeto. Cuando se hace una llamada a una función virtual a través de un puntero a la clase base (es decir, cuando se hace una llamada usando el polimorfismo), el compilador silenciosamente añade código para buscar el VPTR y así conseguir la dirección de la función en la VTABLE, con lo que se llama a la función correcta y tiene lugar la ligadura dinámica.</para>
 
+    <!--
+    All of this – setting up the VTABLE for each class, initializing the VPTR, inserting the code for the virtual function call – happens automatically, so you don’t have to worry about it. With virtual functions, the proper function gets called for an object, even if the compiler cannot know the specific type of the object.
+    -->
     <para>Todo esto - establecer la VTABLE para cada clase, inicializar el VPTR, insertar código para la llamada a la función virtual - sucede automáticamente sin que haya que preocuparse por ello. Con las funciones virtuales, se llama a la función apropiada de un objeto, incluso aunque el compilador no pueda saber el tipo exacto del objeto.</para>
 
+    <!-- The following sections go into this process in more detail. -->
     <para>En las siguientes secciones se explica este proceso con más detalle.</para>
 
 <!--
@@ -136,23 +246,39 @@
 -->
 
     <sect2>
+      <!-- Storing type information -->
       <title>Almacenamiento de información de tipo</title>
 
+      <!--
+      You can see that there is no explicit type information stored in any of the classes. But the previous examples, and simple logic, tell you that there must be some sort of type information stored in the objects; otherwise the type could not be established at runtime. This is true, but the type information is hidden. To see it, here’s an example to examine the sizes of classes that use virtual functions compared with those that don’t:
+      -->
       <para>Se puede ver que no hay almacenada información de tipo de forma explícita en ninguna de las clases. Pero los ejemplos anteriores, y la simple lógica, dicen que debe existir algún tipo de información almacenada en los objetos; de otra forma el tipo no podría ser establecido en tiempo de ejecución. Es verdad, pero la información de tipo está oculta. Para verlo, he aquí un ejemplo que examina el tamaño de las clases que usan funciones virtuales comparado con el de aquellas que no las usan:</para>
 
 
 //: V1C15:Sizes.cpp
 
 
+      <!--
+      With no virtual functions, the size of the object is exactly what you’d expect: the size of a single[55] int. With a single virtual function in OneVirtual, the size of the object is the size of NoVirtual plus the size of a void pointer. It turns out that the compiler inserts a single pointer (the VPTR) into the structure if you have one or more virtual functions. There is no size difference between OneVirtual and TwoVirtuals. That’s because the VPTR points to a table of function addresses. You need only one table because all the virtual function addresses are contained in that single table.
+
+      [55] Some compilers might have size issues here but it will be rare.
+      -->
       <para>Sin funciones virtuales el tamaño del objeto es exactamente el que se espera: el tamaño de un único <footnote><para>Algunos compiladores pueden aumentar el tamaño pero sería raro.</para></footnote> <type>int</type>. Con una única función virtual en <classname>OneVirtual</classname>, el tamaño del objeto es el tamaño de <classname>NoVirtual</classname> más el tamaño de un puntero a <type>void</type>. Resulta que el compilador añade un único puntero (el VPTR) en la estructura si se tiene una <emphasis>o más</emphasis> funciones virtuales. No hay diferencia de tamaño entre <classname>OneVirtual</classname> y <classname>TwoVirtuals</classname>. Esto es porque el VPTR apunta a una tabla con direcciones de funciones. Se necesita sólo una tabla porque todas las direcciones de las funciones virtuales están contenidas en esta tabla.</para>
 
+      <!--
+      This example required at least one data member. If there had been no data members, the C++ compiler would have forced the objects to be a nonzero size because each object must have a distinct address. If you imagine indexing into an array of zero-sized objects, you’ll understand. A “dummy” member is inserted into objects that would otherwise be zero-sized. When the type information is inserted because of the virtual keyword, this takes the place of the “dummy” member. Try commenting out the int a in all the classes in the example above to see this.
+      -->
       <para>Este ejemplo requiere como mínimo un atributo. Si no hubiera atributos, el compilador de C++ hubiera forzado a los objetos a ser de tamaño no nulo porque cada objeto debe tener una dirección distinta (¿se imagina cómo indexar un array de objetos de tamaño nulo?). Por esto se inserta un miembro <quote>ficticio</quote> en los objetos que de otra forma tendrían un tamaño nulo. Cuando se inserta la información de tipo gracias a la palabra reservada <kw>virtual</kw>, ésta ocupa el lugar del miembro <quote>ficticio</quote>. Intente comentar el <literal>int a</literal> en todas las clases del ejemplo anterior para comprobarlo.</para>
     </sect2>
 
 
     <sect2>
+      <!-- Picturing virtual functions -->
       <title>Pintar funciones virtuales</title>
 
+      <!--
+      To understand exactly what’s going on when you use a virtual function, it’s helpful to visualize the activities going on behind the curtain. Here’s a drawing of the array of pointers A[ ] in Instrument4.cpp:
+      -->
       <para>Para entender exactamente qué está pasando cuando se usan funciones virtuales, es útil ver la actividad que hay detrás del telón. Aquí se muestra un dibujo del array de punteros <literal>A[]</literal> de <filename>Instrument4.cpp</filename>:</para>
 
       <figure>
@@ -167,10 +293,21 @@
 	</mediaobject>
       </figure>
 
+      <!--
+      The array of Instrument pointers has no specific type information; they each point to an object of type Instrument. Wind, Percussion, Stringed, and Brass all fit into this category because they are derived from Instrument (and thus have the same interface as Instrument, and can respond to the same messages), so their addresses can also be placed into the array. However, the compiler doesn’t know that they are anything more than Instrument objects, so left to its own devices it would normally call the base-class versions of all the functions. But in this case, all those functions have been declared with the virtual keyword, so something different happens.
+
+      Each time you create a class that contains virtual functions, or you derive from a class that contains virtual functions, the compiler creates a unique VTABLE for that class, seen on the right of the diagram. In that table it places the addresses of all the functions that are declared virtual in this class or in the base class. If you don’t override a function that was declared virtual in the base class, the compiler uses the address of the base-class version in the derived class. (You can see this in the adjust entry in the Brass VTABLE.) Then it places the VPTR (discovered in Sizes.cpp) into the class. There is only one VPTR for each object when using simple inheritance like this. The VPTR must be initialized to point to the starting address of the appropriate VTABLE. (This happens in the constructor, which you’ll see later in more detail.)
+      -->
       <para>El array de punteros a <classname>Instrument</classname>s no tiene información específica de tipo; cada uno de ellos apunta a un objeto de tipo <classname>Instrument</classname>. <classname>Wind</classname>, <classname>Percussion</classname>, <classname>Stringed</classname>, y <classname>Brass</classname> encajan en esta categoría porque derivan de <classname>Instrument</classname> (esto hace que tengan la misma interfaz que <classname>Instrument</classname>, y puedan responder a los mismos mensajes), por lo que sus direcciones también pueden colocarse en el array. Sin embargo, el compilador no sabe que sean otra cosa que objetos de tipo <classname>Instrument</classname>, por lo que, si se le dejara actuar por su cuenta, normalmente llamaría a las versiones de la clase base de todas las funciones. Pero en este caso, todas esas funciones han sido declaradas con la palabra reservada <kw>virtual</kw>, por lo que ocurre algo diferente. Cada vez que se crea una clase que contiene funciones virtuales, o se deriva de una clase que contiene funciones virtuales, el compilador crea una VTABLE única para esa clase, que se puede ver a la derecha en el diagrama. En esa tabla se colocan las direcciones de todas las funciones que son declaradas virtuales en la clase o en la clase base. Si no se redefine una función que ha sido declarada como virtual en la clase base, el compilador usa en la clase derivada la dirección de la versión de la clase base (esto se puede ver en la entrada <literal>adjust</literal> de la VTABLE de <classname>Brass</classname>). Después, se coloca el VPTR (descubierto en <filename>Sizes.cpp</filename>) en la clase. Hay un único VPTR por cada objeto cuando se usa herencia simple como es el caso. El VPTR debe estar inicializado para que apunte a la dirección inicial de la VTABLE apropiada (esto sucede en el constructor, como se verá más adelante con mayor detalle).</para>
 
+      <!--
+      Once the VPTR is initialized to the proper VTABLE, the object in effect “knows” what type it is. But this self-knowledge is worthless unless it is used at the point a virtual function is called.
+      -->
       <para>Una vez que el VPTR ha sido inicializado a la VTABLE apropiada, el objeto, en efecto, <quote>sabe</quote> de qué tipo es. Pero este autoconocimiento no tiene valor a menos que sea usado en el momento en que se llama a la función virtual.</para>
 
+      <!--
+      When you call a virtual function through a base class address (the situation when the compiler doesn’t have all the information necessary to perform early binding), something special happens. Instead of performing a typical function call, which is simply an assembly-language CALL to a particular address, the compiler generates different code to perform the function call. Here’s what a call to adjust( ) for a Brass object looks like, if made through an Instrument pointer (An Instrument reference produces the same result):
+      -->
       <para>Cuando se llama a una función virtual a través de una dirección de la clase base (la situación que se da cuando el compilador no tiene toda la información necesaria para realizar la ligadura estática), ocurre algo especial. En vez de realizarse la típica llamada a función, que en lenguaje ensamblador es simplemente un <literal>CALL</literal> a una dirección en concreto, el compilador genera código diferente para ejecutar la llamada a la función. Éste es el aspecto de una llamada a <function>adjust()</function> para un objeto <function>Brass</function>, si se hace a través de un puntero a <classname>Instrument</classname> (una referencia a <classname>Instrument</classname> produce el mismo efecto):</para>
 
       <figure>
@@ -185,18 +322,26 @@
 	</mediaobject>
       </figure>
 
+      <!--
+      The compiler begins with the Instrument pointer, which points to the starting address of the object. All Instrument objects or objects derived from Instrument have their VPTR in the same place (often at the beginning of the object), so the compiler can pick the VPTR out of the object. The VPTR points to the starting address of the VTABLE. All the VTABLE function addresses are laid out in the same order, regardless of the specific type of the object. play( ) is first, what( ) is second, and adjust( ) is third. The compiler knows that regardless of the specific object type, the adjust( ) function is at the location VPTR+2. Thus, instead of saying, “Call the function at the absolute location Instrument::adjust” (early binding; the wrong action), it generates code that says, in effect, “Call the function at VPTR+2.” Because the fetching of the VPTR and the determination of the actual function address occur at runtime, you get the desired late binding. You send a message to the object, and the object figures out what to do with it.
+      -->
       <para>El compilador empieza con el puntero a <classname>Instrument</classname>, que apunta a la dirección inicial del objeto. Todos los objetos <classname>Instrument</classname> o los objetos derivados de <classname>Instrument</classname> tienen su VPTR en el mismo lugar (a menudo al principio del objeto), de tal forma que el compilador puede conseguir el VPTR del objeto. El VPTR apunta a la dirección inicial de la VTABLE. Todas las direcciones de funciones de las VTABLE están dispuestas en el mismo orden, independientemente del tipo específico del objeto. <function>play()</function> es el primero, <function>what()</function> es el segundo y <function>adjust()</function> es el tercero. El compilador sabe que, independientemente del tipo específico del objeto, la función <function>adjust()</function> se encuentra localizada en VPTR+2. Debido a esto, en vez de decir <quote>Llama a la función en la dirección absoluta <function>Instrument::adjust()</function></quote> (ligadura estática y acción equivocada), se genera código que dice, en efecto, <quote>Llama a la función que se encuentre en VPTR+2</quote>. Como la búsqueda del VPTR y la determinación de la dirección real de la función ocurren en tiempo de ejecución, se consigue la deseada ligadura dinámica. Se envía un mensaje al objeto, y el objeto averigua qué debe hacer con él.</para>
     </sect2>
 
     <sect2>
+      <!-- Under the hood -->
       <title>Detrás del telón</title>
 
+      <!--
+      It can be helpful to see the assembly-language code generated by a virtual function call, so you can see that late-binding is indeed taking place. Here’s the output from one compiler for the call
+      -->
       <para>Puede ser útil ver el código ensamblador que se genera con la llamada a una función virtual, para comprobar que efectivamente se produce la ligadura dinámica. Aquí está la salida de un compilador para la llamada</para>
 
 <programlisting>
 i.adjust(1);
 </programlisting>
 
+      <!-- inside the function f(Instrument& i): -->
       <para>dentro de la función <literal>f(Instrument&amp; i)</literal>:</para>
 
 <programlisting>
@@ -207,60 +352,115 @@ call word ptr [bx+4]
 add  sp, 4
 </programlisting>
 
+      <!--
+      The arguments of a C++ function call, like a C function call, are pushed on the stack from right to left (this order is required to support C’s variable argument lists), so the argument 1 is pushed on the stack first. At this point in the function, the register si (part of the Intel X86 processor architecture) contains the address of i. This is also pushed on the stack because it is the starting address of the object of interest. Remember that the starting address corresponds to the value of this, and this is quietly pushed on the stack as an argument before every member function call, so the member function knows which particular object it is working on. So you’ll always see one more than the number of arguments pushed on the stack before a member function call (except for static member functions, which have no this).
+      -->
       <para>Los argumentos de una llamada a una función C++, como los de una llamada a una función C, son colocados en la pila de derecha a izquierda (este orden es necesario para poder soportar las listas de argumentos variables de C), por lo que el argumento <constant>1</constant> se pone primero en la pila. En este punto de la función, el registro <varname>si</varname> (que es parte de la arquitectura del procesador <trademark>Intel</trademark> <productname>X86</productname>) contiene la dirección de <varname>i</varname>. También se introduce en la pila porque es la dirección de comienzo del objeto de interés. Hay que recordar que la dirección del comienzo del objeto corresponde al valor de <literal>this</literal>, y <literal>this</literal> es introducido en la pila de manera oculta como argumento antes de cada llamada a una función miembro, por lo que la función miembro sabe sobre qué objeto en concreto está trabajando. Debido a esto, antes de una llamada a una función miembro siempre se verá que se introduce en la pila un argumento más de los que tiene la llamada (excepto para las funciones miembro <kw>static</kw>, que no tienen <literal>this</literal>).</para>
 
+      <!--
+      Now the actual virtual function call must be performed. First, the VPTR must be produced, so the VTABLE can be found. For this compiler the VPTR is inserted at the beginning of the object, so the contents of this correspond to the VPTR. The line
+      -->
       <para>Ahora hay que realizar la llamada propiamente dicha a la función virtual. Primero hay que obtener el VPTR para poder encontrar la VTABLE. En este compilador el VPTR se inserta al principio del objeto, por lo que el contenido de <literal>this</literal> corresponde al VPTR. La línea</para>
 
 <programlisting>
 mov bx, word ptr [si]
 </programlisting>
 
+      <!--
+      fetches the word that si (that is, this) points to, which is the VPTR. It places the VPTR into the register bx.
+      -->
       <para>obtiene la palabra <emphasis>(word)</emphasis> a la que apunta <varname>si</varname> (es decir, <literal>this</literal>), que es el VPTR, y lo coloca dentro del registro <varname>bx</varname>.</para>
 
+      <!--
+      The VPTR contained in bx points to the starting address of the VTABLE, but the function pointer to call isn’t at location zero of the VTABLE, but instead at location two (because it’s the third function in the list). For this memory model each function pointer is two bytes long, so the compiler adds four to the VPTR to calculate where the address of the proper function is. Note that this is a constant value, established at compile time, so the only thing that matters is that the function pointer at location number two is the one for adjust( ). Fortunately, the compiler takes care of all the bookkeeping for you and ensures that all the function pointers in all the VTABLEs of a particular class hierarchy occur in the same order, regardless of the order that you may override them in derived classes.
+      -->
       <para>El VPTR contenido en <varname>bx</varname> apunta a la dirección inicial de la VTABLE, pero el puntero de la función a llamar no se encuentra en la posición cero de la VTABLE, sino en la posición dos (debido a que es la tercera función en la lista). Con este modelo de memoria cada puntero a función ocupa dos bytes, por lo que el compilador suma cuatro al VPTR para calcular dónde está la dirección de la función apropiada. Hay que hacer notar que éste es un valor constante establecido en tiempo de compilación, por lo que lo único que importa es que el puntero a función que está en la posición dos sea el de <function>adjust()</function>. Afortunadamente, el compilador se encarga de todo y se asegura de que todos los punteros a funciones en todas las VTABLEs de una jerarquía particular se creen con el mismo orden, independientemente del orden en que se hayan redefinido las funciones en las clases derivadas.</para>
 
+      <!--
+      Once the address of the proper function pointer in the VTABLE is calculated, that function is called. So the address is fetched and called all at once in the statement
+      -->
       <para>Una vez se ha calculado en la VTABLE la dirección del puntero apropiado, se llama a la función a la que apunta el puntero. Esto es, se busca la dirección y se llama de una sola vez con la sentencia:</para>
 
 <programlisting>
 call word ptr [bx+4]
 </programlisting>
 
+      <!--
+      Finally, the stack pointer is moved back up to clean off the arguments that were pushed before the call. In C and C++ assembly code you’ll often see the caller clean off the arguments but this may vary depending on processors and compiler implementations.
+      -->
       <para>Finalmente, se retrocede el puntero de la pila para limpiar los argumentos que se pusieron antes de la llamada. En código ensamblador de C y de C++ se ve a menudo que es la función que hace la llamada quien limpia los argumentos, pero esto puede variar dependiendo del procesador o de la implementación del compilador.</para>
     </sect2>
 
     <sect2>
+      <!-- Installing the vpointer -->
       <title>Instalar el vpointer</title>
 
+      <!--
+      Because the VPTR determines the virtual function behavior of the object, you can see how it’s critical that the VPTR always be pointing to the proper VTABLE. You don’t ever want to be able to make a call to a virtual function before the VPTR is properly initialized. Of course, the place where initialization can be guaranteed is in the constructor, but none of the Instrument examples has a constructor.
+      -->
       <para>Debido a que el VPTR determina el comportamiento virtual de las funciones en un objeto, es crítico que el VPTR siempre esté apuntando a la VTABLE apropiada. No debería ser posible hacer una llamada a una función virtual antes de que el VPTR esté inicializado correctamente. Por supuesto, el lugar donde se puede garantizar esta inicialización es en el constructor, pero ninguno de los ejemplos <classname>Instrument</classname> tiene constructor.</para>
 
+      <!--
+      This is where creation of the default constructor is essential. In the Instrument examples, the compiler creates a default constructor that does nothing except initialize the VPTR. This constructor, of course, is automatically called for all Instrument objects before you can do anything with them, so you know that it’s always safe to call virtual functions.
+      -->
       <para>Aquí es donde la creación del constructor por defecto es esencial. En los ejemplos <classname>Instrument</classname>, el compilador crea un constructor por defecto que no hace nada más que inicializar el VPTR. Este constructor se llama, obviamente, de forma automática para todos los objetos <classname>Instrument</classname> antes de que se pueda hacer nada con ellos, de modo que llamar a funciones virtuales es siempre seguro.</para>
 
+      <!--
+      The implications of the automatic initialization of the VPTR inside the constructor are discussed in a later section.
+      -->
       <para>Las implicaciones de la inicialización automática del VPTR dentro de un constructor se discuten en una sección posterior.</para>
     </sect2>
 
     <sect2>
+      <!-- Objects are different -->
       <title>Los objetos son diferentes</title>
 
+      <!--
+      It’s important to realize that upcasting deals only with addresses. If the compiler has an object, it knows the exact type and therefore (in C++) will not use late binding for any function calls – or at least, the compiler doesn’t need to use late binding. For efficiency’s sake, most compilers will perform early binding when they are making a call to a virtual function for an object because they know the exact type. Here’s an example:
+      -->
       <para>Es importante darse cuenta de que el <foreignphrase>upcasting</foreignphrase> sólo maneja direcciones. Si el compilador tiene un objeto, sabe su tipo concreto y por tanto (en C++) no usará la ligadura dinámica para ninguna de las llamadas a funciones - o como mínimo el compilador no <emphasis>necesitará</emphasis> usar la ligadura dinámica. Por cuestiones de eficiencia, la mayoría de los compiladores usarán la ligadura estática cuando estén haciendo una llamada a una función virtual de un objeto porque saben su tipo concreto. Aquí hay un ejemplo:</para>
 
 
 //: V1C15:Early.cpp
 
 
+      <!--
+      In p1–>speak( ) and p2.speak( ), addresses are used, which means the information is incomplete: p1 and p2 can represent the address of a Pet or something derived from Pet, so the virtual mechanism must be used. When calling p3.speak( ) there’s no ambiguity. The compiler knows the exact type and that it’s an object, so it can’t possibly be an object derived from Pet – it’s exactly a Pet. Thus, early binding is probably used. However, if the compiler doesn’t want to work so hard, it can still use late binding and the same behavior will occur.
+      -->
       <para>En <literal>p1->speak()</literal> y en <literal>p2.speak()</literal>, se usan direcciones, lo que significa que la información es incompleta: <varname>p1</varname> y <varname>p2</varname> pueden representar la dirección de una <classname>Pet</classname> o algo que derive de una <classname>Pet</classname>, por lo que debe usarse el mecanismo virtual. Cuando se llama a <literal>p3.speak</literal> no existe ambigüedad. El compilador conoce el tipo exacto y sabe que es un objeto, por lo que es imposible que sea un objeto derivado de <classname>Pet</classname> - es <emphasis>exactamente</emphasis> una <classname>Pet</classname>. Por esto, probablemente se use la ligadura estática. Sin embargo, si el compilador no quiere trabajar tanto, puede seguir usando la ligadura dinámica y el comportamiento será el mismo.</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- Why virtual functions? -->
     <title>¿Por qué funciones virtuales?</title>
+    <!--
+    At this point you may have a question: “If this technique is so important, and if it makes the ‘right’ function call all the time, why is it an option? Why do I even need to know about it?”
+    -->
     <para>A estas alturas usted se puede hacer una pregunta: <quote>Si esta técnica es tan importante, y si se ejecuta la función <emphasis>correcta</emphasis> todo el tiempo, ¿por qué es una opción? ¿Por qué tengo siquiera que conocerla?</quote></para>
 
+    <!--
+    This is a good question, and the answer is part of the fundamental philosophy of C++: “Because it’s not quite as efficient.” You can see from the previous assembly-language output that instead of one simple CALL to an absolute address, there are two – more sophisticated – assembly instructions required to set up the virtual function call. This requires both code space and execution time.
+    -->
     <para>Es una buena pregunta, y la respuesta forma parte de la filosofía fundamental de C++: <quote>Porque no es igual de eficiente</quote>. Se puede ver en la salida en lenguaje ensamblador anterior que, en vez de un simple <kw>CALL</kw> a una dirección absoluta, se necesitan dos instrucciones de ensamblador, más sofisticadas, para preparar la llamada a la función virtual. Esto requiere más código y más tiempo de ejecución.</para>
 
+    <!--
+    Some object-oriented languages have taken the approach that late binding is so intrinsic to object-oriented programming that it should always take place, that it should not be an option, and the user shouldn’t have to know about it. This is a design decision when creating a language, and that particular path is appropriate for many languages.[56] However, C++ comes from the C heritage, where efficiency is critical. After all, C was created to replace assembly language for the implementation of an operating system (thereby rendering that operating system – Unix – far more portable than its predecessors). One of the main reasons for the invention of C++ was to make C programmers more efficient.[57] And the first question asked when C programmers encounter C++ is, “What kind of size and speed impact will I get?” If the answer were, “Everything’s great except for function calls when you’ll always have a little extra overhead,” many people would stick with C rather than make the change to C++. In addition, inline functions would not be possible, because virtual functions must have an address to put into the VTABLE. So the virtual function is an option, and the language defaults to nonvirtual, which is the fastest configuration. Stroustrup stated that his guideline was, “If you don’t use it, you don’t pay for it.”
+
+    [56] Smalltalk, Java, and Python, for instance, use this approach with great success.
+
+    [57] At Bell Labs, where C++ was invented, there are a lot of C programmers. Making them all more efficient, even just a bit, saves the company many millions.
+    -->
     <para>Algunos lenguajes orientados a objetos han adoptado el enfoque de que la ligadura dinámica es tan intrínseca a la programación orientada a objetos que siempre debe tener lugar, que no debe ser opcional, y que el usuario no tiene por qué conocerla. Ésta es una decisión de diseño cuando se crea un lenguaje, y ese camino concreto es adecuado para muchos lenguajes<footnote><para>Smalltalk, Java y Python, por ejemplo, usan este enfoque con gran éxito.</para></footnote>. Sin embargo, C++ procede de la herencia de C, donde la eficiencia es crítica. Después de todo, C fue creado para sustituir al lenguaje ensamblador para la implementación de un sistema operativo (haciendo a este sistema operativo - Unix - mucho más portable que sus antecesores). Y una de las principales razones para la invención de C++ fue hacer más eficientes a los programadores de C<footnote><para>En los laboratorios Bell, donde se inventó C++, hay <emphasis>un montón</emphasis> de programadores de C. Hacerlos a todos más eficientes, aunque sea sólo un poco, ahorra a la compañía muchos millones.</para></footnote>. Y la primera pregunta que se hacen los programadores de C cuando se encuentran con C++ es: <quote>¿Cómo me afectará en tamaño y velocidad?</quote> Si la respuesta fuera <quote>Todo es magnífico excepto en las llamadas a funciones, donde siempre tendrá una pequeña sobrecarga extra</quote>, mucha gente seguiría con C en lugar de hacer el cambio a C++. Además las funciones inline no serían posibles, porque las funciones virtuales deben tener una dirección para meter en la VTABLE. Por lo tanto las funciones virtuales son opcionales, <emphasis>y</emphasis> por defecto el lenguaje no es <kw>virtual</kw>, porque es la configuración más rápida. Stroustrup expuso que su directriz era: <quote>Si no lo usa, no lo paga</quote>.</para>
 
+    <!--
+    Thus, the virtual keyword is provided for efficiency tuning. When designing your classes, however, you shouldn’t be worrying about efficiency tuning. If you’re going to use polymorphism, use virtual functions everywhere. You only need to look for functions that can be made non-virtual when searching for ways to speed up your code (and there are usually much bigger gains to be had in other areas – a good profiler will do a better job of finding bottlenecks than you will by making guesses).
+    -->
     <para>Así pues, la palabra reservada <kw>virtual</kw> se proporciona para afinar la eficiencia. Cuando se diseñan las clases, sin embargo, no hay que preocuparse por afinar la eficiencia. Si va a usar el polimorfismo, use funciones virtuales en todas partes. Sólo es necesario buscar funciones que se puedan hacer no virtuales cuando se estén buscando modos de acelerar el código (y normalmente hay mucho más que ganar en otras áreas - un buen perfilador encontrará los cuellos de botella mucho mejor que usted intentando adivinarlos).</para>
 
+    <!--
+    Anecdotal evidence suggests that the size and speed impacts of going to C++ are within 10 percent of the size and speed of C, and often much closer to the same. The reason you might get better size and speed efficiency is because you may design a C++ program in a smaller, faster way than you would using C.
+    -->
     <para>La experiencia práctica sugiere que el impacto en tamaño y velocidad de pasarse a C++ no supera el 10 por ciento con respecto al tamaño y la velocidad de C, y que a menudo ambos están mucho más cerca de ser parejos. La razón por la que se podría obtener una mayor eficiencia en tamaño y velocidad es que un programa en C++ se puede diseñar de una forma más pequeña y rápida de lo que se haría en C.</para>
   </sect1>
 
@@ -269,10 +469,19 @@ call word ptr [bx+4]
     <!-- Abstract base classes and pure virtual functions -->
     <title>Clases base abstractas y funciones virtuales puras</title>
 
+    <!--
+    Often in a design, you want the base class to present only an interface for its derived classes. That is, you don’t want anyone to actually create an object of the base class, only to upcast to it so that its interface can be used. This is accomplished by making that class abstract, which happens if you give it at least one pure virtual function. You can recognize a pure virtual function because it uses the virtual keyword and is followed by = 0. If anyone tries to make an object of an abstract class, the compiler prevents them. This is a tool that allows you to enforce a particular design.
+    -->
     <para>A menudo, en un diseño, se quiere que la clase base presente <emphasis>sólo</emphasis> una interfaz para sus clases derivadas. Es decir, no se quiere que nadie cree realmente un objeto de la clase base, sino sólo que se haga <foreignphrase>upcast</foreignphrase> hacia ella para poder usar su interfaz. Se consigue haciendo que la clase sea abstracta (<foreignphrase>abstract</foreignphrase>), lo que ocurre si se le pone como mínimo una <emphasis>función virtual pura</emphasis>. Se puede reconocer una función virtual pura porque usa la palabra reservada <kw>virtual</kw> y va seguida de <literal>=0</literal>. Si alguien intenta hacer un objeto de una clase abstracta, el compilador lo impide. Es una herramienta que permite imponer un diseño concreto.</para>
 
+    <!--
+    When an abstract class is inherited, all pure virtual functions must be implemented, or the inherited class becomes abstract as well. Creating a pure virtual function allows you to put a member function in an interface without being forced to provide a possibly meaningless body of code for that member function. At the same time, a pure virtual function forces inherited classes to provide a definition for it.
+    -->
     <para>Cuando se hereda una clase abstracta, hay que implementar todas las funciones virtuales puras, o la clase que hereda se convierte también en abstracta. Crear una función virtual pura permite poner una función miembro en una interfaz sin verse obligado a proporcionar un cuerpo de código posiblemente sin sentido para esa función miembro. Al mismo tiempo, una función virtual pura obliga a las clases que heredan a proporcionar una definición para ella.</para>
 
+    <!--
+    In all of the instrument examples, the functions in the base class Instrument were always “dummy” functions. If these functions are ever called, something is wrong. That’s because the intent of Instrument is to create a common interface for all of the classes derived from it.
+    -->
     <para>En todos los ejemplos de los instrumentos, las funciones en la clase base <classname>Instrument</classname> eran siempre funciones <quote>ficticias</quote>. Si alguna vez se llama a esas funciones, es que algo va mal. Esto es porque la intención de la clase <classname>Instrument</classname> es crear una interfaz común para todas las clases que deriven de ella.</para>
 
     <figure>
@@ -287,59 +496,105 @@ call word ptr [bx+4]
       </mediaobject>
     </figure>
 
+    <!--
+    The only reason to establish the common interface is so it can be expressed differently for each different subtype. It creates a basic form that determines what’s in common with all of the derived classes – nothing else. So Instrument is an appropriate candidate to be an abstract class. You create an abstract class when you only want to manipulate a set of classes through a common interface, but the common interface doesn’t need to have an implementation (or at least, a full implementation).
+    -->
     <para>La única razón para establecer una interfaz común es que después se pueda expresar de forma diferente en cada subtipo. Se crea una forma básica que determina lo que tienen en común todas las clases derivadas y nada más. Por esto, <classname>Instrument</classname> es un candidato adecuado para ser una clase abstracta. Se crea una clase abstracta cuando sólo se quiere manipular un conjunto de clases a través de una interfaz común, pero la interfaz común no necesita tener una implementación (o al menos, no necesita una implementación completa).</para>
 
+    <!--
+    If you have a concept like Instrument that works as an abstract class, objects of that class almost always have no meaning. That is, Instrument is meant to express only the interface, and not a particular implementation, so creating an object that is only an Instrument makes no sense, and you’ll probably want to prevent the user from doing it. This can be accomplished by making all the virtual functions in Instrument print error messages, but that delays the appearance of the error information until runtime and it requires reliable exhaustive testing on the part of the user. It is much better to catch the problem at compile time.
+    -->
     <para>Si se tiene un concepto como <classname>Instrument</classname> que funciona como clase abstracta, los objetos de esa clase casi nunca tendrán sentido. Es decir, <classname>Instrument</classname> sirve solamente para expresar la interfaz, y no una implementación particular, por lo que crear un objeto que sea únicamente un <classname>Instrument</classname> no tiene sentido, y probablemente se quiera impedir que el usuario lo haga. Se puede conseguir haciendo que todas las funciones virtuales de <classname>Instrument</classname> muestren mensajes de error, pero eso retrasa la aparición de la información del error hasta el tiempo de ejecución y requiere que el usuario realice pruebas exhaustivas y fiables. Es mucho mejor cazar el problema en tiempo de compilación.</para>
 
+    <!-- Here is the syntax used for a pure virtual declaration: -->
     <para>Ésta es la sintaxis usada para declarar una función virtual pura:</para>
 
 <programlisting>
 virtual void f() = 0;
 </programlisting>
 
+    <!--
+    By doing this, you tell the compiler to reserve a slot for a function in the VTABLE, but not to put an address in that particular slot. Even if only one function in a class is declared as pure virtual, the VTABLE is incomplete.
+    -->
     <para>Haciendo esto, se indica al compilador que reserve un hueco para una función en la VTABLE, pero que no ponga una dirección en ese hueco. Incluso aunque sólo una función en una clase sea declarada como virtual pura, la VTABLE estará incompleta.</para>
 
+    <!--
+    If the VTABLE for a class is incomplete, what is the compiler supposed to do when someone tries to make an object of that class? It cannot safely create an object of an abstract class, so you get an error message from the compiler. Thus, the compiler guarantees the purity of the abstract class. By making a class abstract, you ensure that the client programmer cannot misuse it.
+    -->
     <para>Si la VTABLE de una clase está incompleta, ¿qué se supone que debe hacer el compilador cuando alguien intente crear un objeto de esa clase? No puede crear de forma segura un objeto de una clase abstracta, por lo que se obtiene un mensaje de error del compilador. Así, el compilador garantiza la pureza de una clase abstracta. Hacer clases abstractas asegura que el programador cliente no pueda hacer mal uso de ellas.</para>
 
+    <!--
+    Here’s Instrument4.cpp modified to use pure virtual functions. Because the class has nothing but pure virtual functions, we call it a pure abstract class:
+    -->
     <para>He aquí <filename>Instrument4.cpp</filename> modificado para usar funciones virtuales puras. Debido a que la clase no tiene más que funciones virtuales puras, se la llama <emphasis>clase abstracta pura</emphasis>:</para>
 
 
 //: V1C15:Instrument5.cpp
 
 
+    <!--
+    Pure virtual functions are helpful because they make explicit the abstractness of a class and tell both the user and the compiler how it was intended to be used.
+    -->
     <para>Las funciones virtuales puras son útiles porque hacen explícita la abstracción de una clase e indican al usuario y al compilador cómo se pretendía que se usara.</para>
 
+    <!--
+    Note that pure virtual functions prevent an abstract class from being passed into a function by value. Thus, it is also a way to prevent object slicing (which will be described shortly). By making a class abstract, you can ensure that a pointer or reference is always used during upcasting to that class.
+    -->
     <para>Hay que hacer notar que las funciones virtuales puras impiden que una clase abstracta se pase a una función <emphasis>por valor</emphasis>, por lo que son también una manera de evitar el truncado de objetos (<foreignphrase>object slicing</foreignphrase>), que se describirá en breve. Convertir una clase en abstracta también permite garantizar que se use siempre un puntero o una referencia cuando se haga <foreignphrase>upcasting</foreignphrase> a esa clase.</para>
 
+    <!--
+    Just because one pure virtual function prevents the VTABLE from being completed doesn’t mean that you don’t want function bodies for some of the others. Often you will want to call a base-class version of a function, even if it is virtual. It’s always a good idea to put common code as close as possible to the root of your hierarchy. Not only does this save code space, it allows easy propagation of changes.
+    -->
     <para>El hecho de que una función virtual pura impida que la VTABLE esté completa no significa que no se quieran cuerpos de función para algunas de las otras funciones. A menudo se querrá llamar a la versión de la función que esté en la clase base, incluso aunque ésta sea virtual. Es una buena idea poner siempre el código común tan cerca como sea posible de la raíz de la jerarquía. No sólo ahorra código, sino que permite fácilmente la propagación de cambios.</para>
 
     <sect2>
+      <!-- Pure virtual definitions -->
       <title>Definiciones virtuales puras</title>
 
+      <!--
+      It’s possible to provide a definition for a pure virtual function in the base class. You’re still telling the compiler not to allow objects of that abstract base class, and the pure virtual functions must still be defined in derived classes in order to create objects. However, there may be a common piece of code that you want some or all of the derived class definitions to call rather than duplicating that code in every function.
+      -->
       <para>Es posible proporcionar una definición para una función virtual pura en la clase base. Se le sigue diciendo al compilador que no permita crear objetos de esa clase base abstracta, y las funciones virtuales puras siguen teniendo que definirse en las clases derivadas para poder crear objetos. Sin embargo, puede haber un fragmento de código común al que se quiera llamar desde algunas o todas las definiciones de las clases derivadas en vez de duplicar ese código en cada función.</para>
 
+      <!-- Here’s what a pure virtual definition looks like: -->
       <para>Éste es el aspecto de una definición virtual pura:</para>
 
 
 //: V1C15:PureVirtualDefinitions.cpp
 
 
+      <!--
+      The slot in the Pet VTABLE is still empty, but there happens to be a function by that name that you can call in the derived class.
+      -->
       <para>El hueco en la VTABLE de <classname>Pet</classname> todavía está vacío, pero resulta que hay una función con ese nombre a la que se puede llamar desde la clase derivada.</para>
 
+      <!--
+      The other benefit to this feature is that it allows you to change from an ordinary virtual to a pure virtual without disturbing the existing code. (This is a way for you to locate classes that don’t override that virtual function.)
+      -->
       <para>Otra ventaja de esta característica es que permite cambiar de una función virtual corriente a una virtual pura sin alterar el código existente (es una forma de localizar las clases que no redefinen esa función virtual).</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- Inheritance and the VTABLE -->
     <title>Herencia y la VTABLE</title>
+    <!--
+    You can imagine what happens when you perform inheritance and override some of the virtual functions. The compiler creates a new VTABLE for your new class, and it inserts your new function addresses using the base-class function addresses for any virtual functions you don’t override. One way or another, for every object that can be created (that is, its class has no pure virtuals) there’s always a full set of function addresses in the VTABLE, so you’ll never be able to make a call to an address that isn’t there (which would be disastrous).
+    -->
     <para>Es fácil imaginar lo que sucede cuando hay herencia y se redefinen algunas de las funciones virtuales. El compilador crea una nueva VTABLE para la nueva clase, e inserta las nuevas direcciones de las funciones usando además las direcciones de las funciones de la clase base para aquellas funciones virtuales que no se hayan redefinido. De un modo u otro, para todos los objetos que se puedan crear (es decir, aquellos cuya clase no tenga funciones virtuales puras) existe un conjunto completo de direcciones de funciones en la VTABLE, por lo que será imposible hacer llamadas a una dirección que no esté en la VTABLE (lo cual sería desastroso).</para>
 
+    <!--
+    But what happens when you inherit and add new virtual functions in the derived class? Here’s a simple example:
+    -->
     <para>Pero ¿qué ocurre cuando se hereda y se añaden nuevas funciones virtuales en la clase derivada? Aquí hay un sencillo ejemplo:</para>
 
 
 //: V1C15:AddingVirtuals.cpp
 
 
+    <!--
+    The class Pet contains a two virtual functions: speak( ) and name( ). Dog adds a third virtual function called sit( ), as well as overriding the meaning of speak( ). A diagram will help you visualize what’s happening. Here are the VTABLEs created by the compiler for Pet and Dog:
+    -->
     <para>La clase <classname>Pet</classname> tiene dos funciones virtuales: <function>speak()</function> y <function>name()</function>. <classname>Dog</classname> añade una tercera función virtual llamada <function>sit()</function>, y redefine el significado de <function>speak()</function>. Un diagrama ayuda a visualizar qué está ocurriendo. Se muestran las VTABLEs creadas por el compilador para <classname>Pet</classname> y <classname>Dog</classname>:</para>
 
     <figure>
@@ -354,35 +609,68 @@ virtual void f() = 0;
       </mediaobject>
     </figure>
 
+    <!--
+    Notice that the compiler maps the location of the speak( ) address into exactly the same spot in the Dog VTABLE as it is in the Pet VTABLE. Similarly, if a class Pug is inherited from Dog, its version of sit( ) would be placed in its VTABLE in exactly the same spot as it is in Dog. This is because (as you saw with the assembly-language example) the compiler generates code that uses a simple numerical offset into the VTABLE to select the virtual function. Regardless of the specific subtype the object belongs to, its VTABLE is laid out the same way, so calls to the virtual functions will always be made the same way.
+    -->
     <para>Hay que hacer notar que el compilador coloca la dirección de <function>speak()</function> en exactamente el mismo lugar tanto en la VTABLE de <classname>Dog</classname> como en la de <classname>Pet</classname>. De igual forma, si una clase <classname>Pug</classname> heredara de <classname>Dog</classname>, su versión de <function>sit()</function> ocuparía su lugar en la VTABLE en la misma posición que en <classname>Dog</classname>. Esto es debido a que el compilador genera un código que usa un simple desplazamiento numérico en la VTABLE para seleccionar una función virtual, como se vio con el ejemplo en lenguaje ensamblador. Sea cual sea el subtipo concreto al que pertenezca el objeto, su VTABLE tiene la misma disposición, por lo que las llamadas a las funciones virtuales se harán siempre del mismo modo.</para>
 
+    <!--
+    In this case, however, the compiler is working only with a pointer to a base-class object. The base class has only the speak( ) and name( ) functions, so those is the only functions the compiler will allow you to call. How could it possibly know that you are working with a Dog object, if it has only a pointer to a base-class object? That pointer might point to some other type, which doesn’t have a sit( ) function. It may or may not have some other function address at that point in the VTABLE, but in either case, making a virtual call to that VTABLE address is not what you want to do. So the compiler is doing its job by protecting you from making virtual calls to functions that exist only in derived classes.
+    -->
     <para>En este caso, sin embargo, el compilador está trabajando sólo con un puntero a un objeto de la clase base. La clase base tiene únicamente las funciones <function>speak()</function> y <function>name()</function>, por lo que son las únicas funciones a las que el compilador permitirá llamar. ¿Cómo podría saber que se está trabajando con un objeto <classname>Dog</classname> si sólo tiene un puntero a un objeto de la clase base? El puntero podría apuntar a algún otro tipo, que no tenga una función <function>sit()</function>. Puede que tenga o no otra dirección de función en esa posición de la VTABLE, pero en cualquiera de los casos, hacer una llamada virtual a esa dirección de la VTABLE no es lo que se desea hacer. De modo que el compilador hace su trabajo impidiendo hacer llamadas virtuales a funciones que sólo existen en las clases derivadas.</para>
 
+    <!--
+    There are some less-common cases in which you may know that the pointer actually points to an object of a specific subclass. If you want to call a function that only exists in that subclass, then you must cast the pointer. You can remove the error message produced by the previous program like this:
+    -->
     <para>Hay algunos casos poco comunes en los cuales se sabe que el puntero apunta realmente a un objeto de una subclase específica. Si se quiere hacer una llamada a una función que sólo exista en esa subclase, entonces hay que hacer un molde (<foreignphrase>cast</foreignphrase>) del puntero. Se puede quitar el mensaje de error producido por el anterior programa con:</para>
 
 <programlisting>
 ((Dog *) p[1])->sit()
 </programlisting>
 
+    <!--
+    Here, you happen to know that p[1] points to a Dog object, but in general you don’t know that. If your problem is set up so that you must know the exact types of all objects, you should rethink it, because you’re probably not using virtual functions properly. However, there are some situations in which the design works best (or you have no choice) if you know the exact type of all objects kept in a generic container. This is the problem of run-time type identification (RTTI).
+    -->
     <para>Aquí se da la circunstancia de que se sabe que <literal>p[1]</literal> apunta a un objeto <classname>Dog</classname>, pero en general no se sabe. Si el problema está planteado de forma que hay que conocer el tipo exacto de todos los objetos, habría que replantearlo, porque probablemente no se estén usando las funciones virtuales de forma apropiada. Sin embargo, hay algunas situaciones en las cuales el diseño funciona mejor (o no hay otra elección) si se conoce el tipo exacto de todos los objetos guardados en un contenedor genérico. Éste es el problema de la <foreignphrase>run time type identification</foreignphrase> o RTTI (identificación de tipos en tiempo de ejecución).</para>
 
+    <!--
+    RTTI is all about casting base-class pointers down to derived-class pointers (“up” and “down” are relative to a typical class diagram, with the base class at the top). Casting up happens automatically, with no coercion, because it’s completely safe. Casting down is unsafe because there’s no compile time information about the actual types, so you must know exactly what type the object is. If you cast it into the wrong type, you’ll be in trouble.
+    -->
     <para>RTTI sirve para moldear un puntero de una clase base y <quote>bajarlo</quote> a un puntero de una clase derivada (<quote>arriba</quote> y <quote>abajo</quote>, en inglés <quote>up</quote> y <quote>down</quote> respectivamente, se refieren al típico diagrama de clases, con la clase base arriba). Hacer el molde hacia arriba (<foreignphrase>upcast</foreignphrase>) funciona de forma automática, sin coacciones, debido a que es completamente seguro. Hacer el molde en sentido descendente (<foreignphrase>downcast</foreignphrase>) es inseguro porque no hay información en tiempo de compilación sobre los tipos reales, por lo que hay que saber exactamente de qué tipo es el objeto. Si se hace un molde al tipo equivocado habrá problemas.</para>
 
+    <!--
+    RTTI is described later in this chapter, and Volume 2 of this book has a chapter devoted to the subject.
+    -->
     <para>RTTI se describe posteriormente en este capítulo, y el Volumen 2 de este libro tiene un capítulo dedicado al tema.</para>
 
     <sect2>
+      <!-- Object slicing -->
       <title>Truncado de objetos (<foreignphrase>object slicing</foreignphrase>)</title>
 
+      <!--
+      There is a distinct difference between passing the addresses of objects and passing objects by value when using polymorphism. All the examples you’ve seen here, and virtually all the examples you should see, pass addresses and not values. This is because addresses all have the same size[58], so passing the address of an object of a derived type (which is usually a bigger object) is the same as passing the address of an object of the base type (which is usually a smaller object). As explained before, this is the goal when using polymorphism – code that manipulates a base type can transparently manipulate derived-type objects as well.
+
+      [58] Actually, not all pointers are the same size on all machines. In the context of this discussion, however, they can be considered to be the same.
+      -->
       <para>Existe una gran diferencia entre pasar las direcciones de los objetos y pasar los objetos por valor cuando se usa el polimorfismo. Todos los ejemplos que se han visto, y prácticamente todos los ejemplos que se verán, pasan direcciones y no valores. Esto se debe a que todas las direcciones tienen el mismo tamaño<footnote><para>En realidad, no todos los punteros tienen el mismo tamaño en todas las máquinas. Sin embargo, en el contexto de esta discusión se pueden considerar iguales.</para></footnote>, por lo que pasar la dirección de un objeto de un tipo derivado (que normalmente será un objeto más grande) es lo mismo que pasar la dirección de un objeto del tipo base (que es normalmente más pequeño). Como se explicó anteriormente, éste es el objetivo cuando se usa el polimorfismo - el código que maneja un tipo base puede también manejar objetos derivados de forma transparente.</para>
 
+      <!--
+      If you upcast to an object instead of a pointer or reference, something will happen that may surprise you: the object is “sliced” until all that remains is the subobject that corresponds to the destination type of your cast. In the following example you can see what happens when an object is sliced:
+      -->
       <para>Si se hace un <foreignphrase>upcast</foreignphrase> a un objeto en vez de a un puntero o una referencia, pasará algo que puede resultar sorprendente: el objeto es <quote>truncado</quote>, recortado, hasta que lo único que queda es el subobjeto que corresponde al tipo destino del molde. En el siguiente ejemplo se puede ver qué ocurre cuando un objeto es truncado (<foreignphrase>object slicing</foreignphrase>):</para>
 
 
 //: V1C15:ObjectSlicing.cpp
 
 
+      <!--
+      The function describe( ) is passed an object of type Pet by value. It then calls the virtual function description( ) for the Pet object. In main( ), you might expect the first call to produce “This is Alfred,” and the second to produce “Fluffy likes to sleep.” In fact, both calls use the base-class version of description( ).
+      -->
       <para>La función <function>describe()</function> recibe un objeto de tipo <classname>Pet</classname> <emphasis>por valor</emphasis>. Después llama a la función virtual <function>description()</function> del objeto <classname>Pet</classname>. En el <function>main()</function>, se puede esperar que la primera llamada produzca <quote>This is Alfred</quote>, y que la segunda produzca <quote>Fluffy likes to sleep</quote>. En realidad, ambas usan la versión de <function>description()</function> de la clase base.</para>
 
+      <!--
+      Two things are happening in this program. First, because describe( ) accepts a Pet object (rather than a pointer or reference), any calls to describe( ) will cause an object the size of Pet to be pushed on the stack and cleaned up after the call. This means that if an object of a class inherited from Pet is passed to describe( ), the compiler accepts it, but it copies only the Pet portion of the object. It slices the derived portion off of the object, like this:
+      -->
       <para>En este programa están sucediendo dos cosas. Primero, debido a que <function>describe()</function> acepta un objeto <classname>Pet</classname> (en vez de un puntero o una referencia), cualquier llamada a <function>describe()</function> creará un objeto del tamaño de <classname>Pet</classname> que será puesto en la pila y posteriormente limpiado cuando acabe la llamada. Esto significa que si se pasa a <function>describe()</function> un objeto de una clase heredada de <classname>Pet</classname>, el compilador lo acepta, pero copia únicamente el fragmento del objeto que corresponda a una <classname>Pet</classname>. Se desecha el fragmento derivado del objeto:</para>
 
       <figure>
@@ -397,10 +685,19 @@ virtual void f() = 0;
 	</mediaobject>
       </figure>
 
+      <!--
+      Now you may wonder about the virtual function call. Dog::description( ) makes use of portions of both Pet (which still exists) and Dog, which no longer exists because it was sliced off! So what happens when the virtual function is called?
+      -->
       <para>Ahora queda la cuestión de la llamada a la función virtual. <function>Dog::description()</function> hace uso de trozos de <classname>Pet</classname> (que todavía existe) y de <classname>Dog</classname>, ¡que ya no existe porque fue truncado! Entonces, ¿qué ocurre cuando se llama a la función virtual?</para>
 
+      <!--
+      You’re saved from disaster because the object is being passed by value. Because of this, the compiler knows the precise type of the object because the derived object has been forced to become a base object. When passing by value, the copy-constructor for a Pet object is used, which initializes the VPTR to the Pet VTABLE and copies only the Pet parts of the object. There’s no explicit copy-constructor here, so the compiler synthesizes one. Under all interpretations, the object truly becomes a Pet during slicing.
+      -->
       <para>Se evita el desastre porque el objeto se pasa por valor. Debido a esto, el compilador conoce el tipo exacto del objeto porque el objeto derivado ha sido forzado a transformarse en un objeto de la clase base. Cuando se pasa por valor, se usa el constructor de copia del objeto <classname>Pet</classname>, que se encarga de inicializar el VPTR a la VTABLE de <classname>Pet</classname> y copia sólo las partes del objeto que correspondan a <classname>Pet</classname>. En el ejemplo no hay un constructor de copia explícito por lo que el compilador genera uno. Se mire como se mire, el objeto se convierte realmente en una <classname>Pet</classname> durante el truncado.</para>
 
+      <!--
+      Object slicing actually removes part of the existing object as it copies it into the new object, rather than simply changing the meaning of an address as when using a pointer or reference. Because of this, upcasting into an object is not done often; in fact, it’s usually something to watch out for and prevent. Note that, in this example, if description( ) were made into a pure virtual function in the base class (which is not unreasonable, since it doesn’t really do anything in the base class), then the compiler would prevent object slicing because that wouldn’t allow you to “create” an object of the base type (which is what happens when you upcast by value). This could be the most important value of pure virtual functions: to prevent object slicing by generating a compile-time error message if someone tries to do it.
+      -->
       <para>El truncado de objetos elimina realmente parte del objeto existente al copiarlo en el nuevo objeto, en vez de simplemente cambiar el significado de una dirección como ocurre cuando se usa un puntero o una referencia. Debido a esto, el <foreignphrase>upcasting</foreignphrase> a un objeto no se usa a menudo; de hecho, normalmente es algo que hay que vigilar y evitar. Hay que resaltar que en este ejemplo, si <function>description()</function> fuera una función virtual pura en la clase base (lo cual es bastante razonable debido a que realmente no hace nada en la clase base), entonces el compilador impediría el truncado de objetos, debido a que no permitiría <quote>crear</quote> un objeto del tipo base (que es lo que sucede cuando se hace un upcast por valor). Éste podría ser el valor más importante de las funciones virtuales puras: evitar el truncado de objetos generando un mensaje de error en tiempo de compilación si alguien lo intenta hacer.</para>
     </sect2>
   </sect1>
@@ -417,112 +714,218 @@ virtual void f() = 0;
   -->
 
   <sect1>
+    <!-- Overloading & overriding -->
     <title>Sobrecargar y redefinir</title>
 
+    <!--
+    In Chapter 14, you saw that redefining an overloaded function in the base class hides all of the other base-class versions of that function. When virtual functions are involved the behavior is a little different. Consider a modified version of the NameHiding.cpp example from Chapter 14:
+    -->
     <para>En el Capítulo 14 se vio que redefinir una función sobrecargada en la clase base oculta todas las demás versiones de esa función de la clase base. Cuando hay funciones virtuales de por medio, el comportamiento es un poco diferente. Considere una versión modificada del ejemplo <filename>NameHiding.cpp</filename> del Capítulo 14:</para>
 
 
 //: V1C15:NameHiding2.cpp
 
 
+    <!--
+    The first thing to notice is that in Derived3, the compiler will not allow you to change the return type of an overridden function (it will allow it if f( ) is not virtual). This is an important restriction because the compiler must guarantee that you can polymorphically call the function through the base class, and if the base class is expecting an int to be returned from f( ), then the derived-class version of f( ) must keep that contract or else things will break.
+    -->
     <para>Lo primero que hay que resaltar es que en <classname>Derived3</classname>, el compilador no permitirá cambiar el tipo de retorno de una función redefinida (lo permitiría si <function>f()</function> no fuera virtual). Ésta es una restricción importante porque el compilador debe garantizar que se pueda llamar de forma polimórfica a la función a través de la clase base, y si la clase base está esperando que <function>f()</function> devuelva un <type>int</type>, entonces la versión de <function>f()</function> de la clase derivada debe mantener ese contrato o si no algo fallará.</para>
 
+    <!--
+    The rule shown in Chapter 14 still works: if you override one of the overloaded member functions in the base class, the other overloaded versions become hidden in the derived class. In main( ) the code that tests Derived4 shows that this happens even if the new version of f( ) isn’t actually overriding an existing virtual function interface – both of the base-class versions of f( ) are hidden by f(int). However, if you upcast d4 to Base, then only the base-class versions are available (because that’s what the base-class contract promises) and the derived-class version is not available (because it isn’t specified in the base class).
+    -->
     <para>La regla que se enseñó en el Capítulo 14 todavía funciona: si se redefine una de las funciones miembro sobrecargadas de la clase base, las otras versiones sobrecargadas estarán ocultas en la clase derivada. En el <function>main()</function>, el código que prueba <classname>Derived4</classname> muestra que esto ocurre incluso si la nueva versión de <function>f()</function> no está realmente redefiniendo la interfaz de una función virtual existente - ambas versiones de <function>f()</function> de la clase base están ocultas por <function>f(int)</function>. Sin embargo, si se hace un upcast de <varname>d4</varname> a <classname>Base</classname>, entonces únicamente las versiones de la clase base estarán disponibles (porque es lo que promete el contrato de la clase base) y la versión de la clase derivada no está disponible (debido a que no está especificada en la clase base).</para>
 
     <sect2>
+      <!-- Variant return type -->
       <title>Tipo de retorno variante</title>
 
+      <!--
+      The Derived3 class above suggests that you cannot modify the return type of a virtual function during overriding. This is generally true, but there is a special case in which you can slightly modify the return type. If you’re returning a pointer or a reference to a base class, then the overridden version of the function may return a pointer or reference to a class derived from what the base returns. For example:
+      -->
       <para>La clase <classname>Derived3</classname> de arriba viene a sugerir que no se puede modificar el tipo de retorno de una función virtual cuando es redefinida. En general es verdad, pero hay un caso especial en el que se puede modificar ligeramente el tipo de retorno. Si se está devolviendo un puntero o una referencia a una clase base, entonces la versión redefinida de la función puede devolver un puntero o una referencia a una clase derivada de la que devuelve la base. Por ejemplo:</para>
 
 
 //: V1C15:VariantReturn.cpp
 
 
+      <!--
+      The Pet::eats( ) member function returns a pointer to a PetFood. In Bird, this member function is overloaded exactly as in the base class, including the return type. That is, Bird::eats( ) upcasts the BirdFood to a PetFood.
+      -->
       <para>La función miembro <function>Pet::eats()</function> devuelve un puntero a <classname>PetFood</classname>. En <classname>Bird</classname>, esta función miembro es redefinida exactamente como en la clase base, incluyendo el tipo de retorno. Esto es, <function>Bird::eats()</function> hace un <foreignphrase>upcast</foreignphrase> de <classname>BirdFood</classname> a <classname>PetFood</classname> en el retorno de la función.</para>
 
+      <!--
+      But in Cat, the return type of eats( ) is a pointer to CatFood, a type derived from PetFood. The fact that the return type is inherited from the return type of the base-class function is the only reason this compiles. That way, the contract is still fulfilled; eats( ) always returns a PetFood pointer.
+      -->
       <para>Pero en <classname>Cat</classname>, el tipo devuelto por <function>eats()</function> es un puntero a <classname>CatFood</classname>, que es un tipo derivado de <classname>PetFood</classname>. El hecho de que el tipo de retorno esté heredado del tipo de retorno de la función de la clase base es la única razón que hace que esto compile. De esta forma el contrato se sigue cumpliendo: <function>eats()</function> siempre devuelve un puntero a <classname>PetFood</classname>.</para>
 
+      <!--
+      If you think polymorphically, this doesn’t seem necessary. Why not just upcast all the return types to PetFood*, just as Bird::eats( ) did? This is typically a good solution, but at the end of main( ), you see the difference: Cat::eats( ) can return the exact type of PetFood, whereas the return value of Bird::eats( ) must be downcast to the exact type.
+      -->
       <para>Si se piensa de forma polimórfica lo anterior no parece necesario. ¿Por qué no hacer simplemente upcast de todos los tipos de retorno a <type>PetFood*</type>, como hace <function>Bird::eats()</function>? Normalmente ésa es una buena solución, pero al final del <function>main()</function> se puede ver la diferencia: <function>Cat::eats()</function> puede devolver el tipo exacto de <classname>PetFood</classname>, mientras que al valor retornado por <function>Bird::eats()</function> hay que hacerle un <foreignphrase>downcast</foreignphrase> al tipo exacto.</para>
 
+      <!--
+      So being able to return the exact type is a little more general, and doesn’t lose the specific type information by automatically upcasting. However, returning the base type will generally solve your problems so this is a rather specialized feature.
+      -->
       <para>Así pues, poder devolver el tipo exacto es un poco más general y no se pierde la información específica de tipo por el upcast automático. Sin embargo, devolver el tipo base generalmente resuelve los problemas, por lo que ésta es una característica bastante especializada.</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- virtual functions & constructors -->
     <title>Funciones virtuales y constructores</title>
 
+    <!--
+    When an object containing virtual functions is created, its VPTR must be initialized to point to the proper VTABLE. This must be done before there’s any possibility of calling a virtual function. As you might guess, because the constructor has the job of bringing an object into existence, it is also the constructor’s job to set up the VPTR. The compiler secretly inserts code into the beginning of the constructor that initializes the VPTR. And as described in Chapter 14, if you don’t explicitly create a constructor for a class, the compiler will synthesize one for you. If the class has virtual functions, the synthesized constructor will include the proper VPTR initialization code. This has several implications.
+    -->
     <para>Cuando se crea un objeto que contiene funciones virtuales, su VPTR debe ser inicializado para apuntar a la VTABLE correcta. Esto debe hacerse antes de que exista la posibilidad de llamar a una función virtual. Como se puede adivinar, debido a que el constructor tiene el trabajo de dar existencia al objeto, también será trabajo del constructor inicializar el VPTR. El compilador de forma secreta añade código al principio del constructor para inicializar el VPTR. Y como se describe en el Capítulo 14, si no se crea un constructor de una clase de forma explícita, el compilador genera uno de forma automática. Si la clase tiene funciones virtuales, el constructor generado incluirá el código apropiado para la inicialización del VPTR. Esto tiene varias consecuencias.</para>
 
+    <!--
+    The first concerns efficiency. The reason for inline functions is to reduce the calling overhead for small functions. If C++ didn’t provide inline functions, the preprocessor might be used to create these “macros.” However, the preprocessor has no concept of access or classes, and therefore couldn’t be used to create member function macros. In addition, with constructors that must have hidden code inserted by the compiler, a preprocessor macro wouldn’t work at all.
+    -->
     <para>La primera concierne a la eficiencia. La razón de que existan funciones <kw>inline</kw> es reducir la sobrecarga que produce llamar a funciones pequeñas. Si C++ no proporcionara funciones <kw>inline</kw>, se podría usar el preprocesador para crear esas <quote>macros</quote>. Sin embargo, el preprocesador no tiene el concepto de acceso ni el de clase, y por tanto no podría usarse para crear macros de funciones miembro. Además, con los constructores que deben tener código oculto insertado por el compilador, una macro del preprocesador no funcionaría en absoluto.</para>
 
+    <!--
+    You must be aware when hunting for efficiency holes that the compiler is inserting hidden code into your constructor function. Not only must it initialize the VPTR, it must also check the value of this (in case the operator new returns zero) and call base-class constructors. Taken together, this code can impact what you thought was a tiny inline function call. In particular, the size of the constructor may overwhelm the savings you get from reduced function-call overhead. If you make a lot of inline constructor calls, your code size can grow without any benefits in speed.
+    -->
     <para>Cuando se estén buscando agujeros de eficiencia, hay que tener en cuenta que el compilador está insertando código oculto en el constructor. No sólo debe inicializar el VPTR, sino que también debe comprobar el valor de <literal>this</literal> (por si el operador <kw>new</kw> devuelve cero) y llamar a los constructores de la clase base. En conjunto, este código puede tener cierto impacto en lo que se pensaba que era una pequeña llamada a una función <kw>inline</kw>. En particular, el tamaño del constructor puede superar el ahorro que se consigue al reducir la sobrecarga en las llamadas. Si se hacen un montón de llamadas a constructores inline, el tamaño del código puede crecer sin ningún beneficio en la velocidad.</para>
 
+    <!--
+    Of course, you probably won’t make all tiny constructors non-inline right away, because they’re much easier to write as inlines. But when you’re tuning your code, remember to consider removing the inline constructors.
+    -->
     <para>Por supuesto, probablemente no convertirá de inmediato todos los constructores pequeños en funciones no inline, porque es mucho más fácil escribirlos inline. Pero cuando esté afinando el código, recuerde considerar la posibilidad de quitar los constructores inline.</para>
 
     <sect2>
+      <!-- Order of constructor calls -->
       <title>Orden de las llamadas a los constructores</title>
 
+      <!--
+      The second interesting facet of constructors and virtual functions concerns the order of constructor calls and the way virtual calls are made within constructors.
+      -->
       <para>La segunda faceta interesante de los constructores y las funciones virtuales tiene que ver con el orden de las llamadas a los constructores y el modo en que las llamadas virtuales se hacen dentro de los constructores.</para>
 
+      <!--
+      All base-class constructors are always called in the constructor for an inherited class. This makes sense because the constructor has a special job: to see that the object is built properly. A derived class has access only to its own members, and not those of the base class. Only the base-class constructor can properly initialize its own elements. Therefore it’s essential that all constructors get called; otherwise the entire object wouldn’t be constructed properly. That’s why the compiler enforces a constructor call for every portion of a derived class. It will call the default constructor if you don’t explicitly call a base-class constructor in the constructor initializer list. If there is no default constructor, the compiler will complain.
+      -->
       <para>Siempre se llama a todos los constructores de la clase base en el constructor de una clase heredada. Esto tiene sentido porque el constructor tiene un trabajo especial: asegurarse de que el objeto se construye de forma apropiada. Una clase derivada sólo tiene acceso a sus propios miembros, y no a los de la clase base. Únicamente el constructor de la clase base puede inicializar de forma adecuada sus propios elementos. Por lo tanto es esencial que se llame a todos los constructores; de otra forma el objeto completo no estaría construido de forma adecuada. Por eso el compilador obliga a hacer una llamada a un constructor por cada parte de una clase derivada. Se llamará al constructor por defecto si no se hace una llamada explícita a un constructor de la clase base en la lista de inicialización del constructor. Si no existe constructor por defecto, el compilador se quejará.</para>
 
+      <!--
+      The order of the constructor calls is important. When you inherit, you know all about the base class and can access any public and protected members of the base class. This means you must be able to assume that all the members of the base class are valid when you’re in the derived class. In a normal member function, construction has already taken place, so all the members of all parts of the object have been built. Inside the constructor, however, you must be able to assume that all members that you use have been built. The only way to guarantee this is for the base-class constructor to be called first. Then when you’re in the derived-class constructor, all the members you can access in the base class have been initialized. “Knowing all members are valid” inside the constructor is also the reason that, whenever possible, you should initialize all member objects (that is, objects placed in the class using composition) in the constructor initializer list. If you follow this practice, you can assume that all base class members and member objects of the current object have been initialized.
+      -->
       <para>El orden de las llamadas al constructor es importante. Cuando se hereda, se sabe todo sobre la clase base y se puede acceder a todos los miembros públicos y protegidos (<kw>public</kw> y <kw>protected</kw>) de la clase base. Esto significa que se debe poder asumir que todos los miembros de la clase base son válidos cuando se está en la clase derivada. En una función miembro normal, la construcción ya ha ocurrido, por lo que todos los miembros de todas las partes del objeto ya han sido construidos. Dentro del constructor, sin embargo, hay que poder asumir que todos los miembros que se usen han sido construidos. La única manera de garantizarlo es llamando primero al constructor de la clase base. Entonces, cuando se esté en el constructor de la clase derivada, todos los miembros a los que se pueda acceder en la clase base ya habrán sido inicializados. <quote>Saber que todos los miembros son válidos</quote> dentro del constructor es también la razón por la que, siempre que sea posible, se deben inicializar todos los objetos miembro (es decir, los objetos puestos en la clase mediante composición) en la lista de inicialización del constructor. Si se sigue esta práctica, se puede asumir que todos los miembros de la clase base y los objetos miembro del objeto actual han sido inicializados.</para>
     </sect2>
 
     <sect2>
+      <!-- Behavior of virtual functions inside constructors -->
       <title>Comportamiento de las funciones virtuales dentro de los
       constructores</title>
 
+      <!--
+      The hierarchy of constructor calls brings up an interesting dilemma. What happens if you’re inside a constructor and you call a virtual function? Inside an ordinary member function you can imagine what will happen – the virtual call is resolved at runtime because the object cannot know whether it belongs to the class the member function is in, or some class derived from it. For consistency, you might think this is what should happen inside constructors.
+      -->
       <para>La jerarquía de las llamadas a los constructores plantea un interesante dilema. ¿Qué ocurre si se está dentro de un constructor y se llama a una función virtual? Dentro de una función miembro ordinaria se puede imaginar qué ocurrirá - la llamada virtual es resuelta en tiempo de ejecución porque el objeto no puede saber si pertenece a la clase en la que está la función miembro o a alguna clase derivada de ella. Por coherencia, se podría pensar que también es lo que debería ocurrir dentro de los constructores.</para>
 
+      <!--
+      This is not the case. If you call a virtual function inside a constructor, only the local version of the function is used. That is, the virtual mechanism doesn’t work within the constructor.
+      -->
       <para>No es el caso. Si se llama a una función virtual dentro de un constructor, sólo se usa la versión local de la función. Es decir, el mecanismo virtual no funciona dentro del constructor.</para>
 
+      <!--
+      This behavior makes sense for two reasons. Conceptually, the constructor’s job is to bring the object into existence (which is hardly an ordinary feat). Inside any constructor, the object may only be partially formed – you can only know that the base-class objects have been initialized, but you cannot know which classes are inherited from you. A virtual function call, however, reaches “forward” or “outward” into the inheritance hierarchy. It calls a function in a derived class. If you could do this inside a constructor, you’d be calling a function that might manipulate members that hadn’t been initialized yet, a sure recipe for disaster.
+      -->
       <para>Este comportamiento tiene sentido por dos motivos. Conceptualmente, el trabajo del constructor es dar al objeto una <emphasis>existencia</emphasis> (lo cual no es precisamente una hazaña corriente). Dentro de cualquier constructor, el objeto puede estar formado sólo parcialmente - se puede saber sólo que los objetos de la clase base han sido inicializados, pero no se puede saber qué clases heredan de ésta. Una llamada a una función virtual, sin embargo, llega <quote>hacia delante</quote> o <quote>hacia fuera</quote> dentro de la jerarquía de herencia. Llama a una función de una clase derivada. Si se pudiera hacer esto dentro de un constructor, se estaría llamando a una función que podría manipular miembros que todavía no han sido inicializados, una receta segura para el desastre.</para>
 
+      <!--
+      The second reason is a mechanical one. When a constructor is called, one of the first things it does is initialize its VPTR. However, it can only know that it is of the “current” type – the type the constructor was written for. The constructor code is completely ignorant of whether or not the object is in the base of another class. When the compiler generates code for that constructor, it generates code for a constructor of that class, not a base class and not a class derived from it (because a class can’t know who inherits it). So the VPTR it uses must be for the VTABLE of that class. The VPTR remains initialized to that VTABLE for the rest of the object’s lifetime unless this isn’t the last constructor call. If a more-derived constructor is called afterwards, that constructor sets the VPTR to its VTABLE, and so on, until the last constructor finishes. The state of the VPTR is determined by the constructor that is called last. This is another reason why the constructors are called in order from base to most-derived.
+      -->
       <para>El segundo motivo es mecánico. Cuando se llama a un constructor, una de las primeras cosas que hace es inicializar su VPTR. Sin embargo, sólo puede saber que es del tipo <quote>actual</quote> - el tipo para el que se ha escrito el constructor. El código del constructor ignora completamente si el objeto está en la base de otra clase. Cuando el compilador genera código para ese constructor, se genera código para un constructor de esa clase, no para la clase base, ni para una clase derivada (debido a que una clase no puede saber quién la hereda). Por eso, el VPTR que use debe apuntar a la VTABLE de <emphasis>esa</emphasis> clase. El VPTR permanece inicializado a esa VTABLE durante el resto de la vida del objeto, a menos que ésta no sea la última llamada a un constructor. Si posteriormente se llama a un constructor de una clase más derivada, ese constructor pone el VPTR a <emphasis>su</emphasis> VTABLE, y así hasta que el último constructor termine. El estado del VPTR es determinado por el constructor que sea llamado en último lugar. Ésta es otra razón por la que los constructores son llamados en orden desde la base al más derivado.</para>
 
+      <!--
+      But while all this series of constructor calls is taking place, each constructor has set the VPTR to its own VTABLE. If it uses the virtual mechanism for function calls, it will produce only a call through its own VTABLE, not the most-derived VTABLE (as would be the case after all the constructors were called). In addition, many compilers recognize that a virtual function call is being made inside a constructor, and perform early binding because they know that late-binding will produce a call only to the local function. In either event, you won’t get the results you might initially expect from a virtual function call inside a constructor.
+      -->
       <para>Pero mientras que toda esta serie de llamadas al constructor tiene lugar, cada constructor ha puesto el VPTR a su propia VTABLE. Si se usa el mecanismo virtual para llamar a funciones, producirá sólo una llamada a través de su propia VTABLE, y no de la VTABLE del más derivado (como debería suceder después de que todos los constructores hayan sido llamados). Además, muchos compiladores reconocen cuándo se hace una llamada a una función virtual dentro de un constructor, y realizan una ligadura estática porque saben que la ligadura dinámica sólo producirá una llamada a la función local. En cualquier caso, no se conseguirán los resultados que se podían esperar inicialmente de la llamada a una función virtual dentro de un constructor.</para>
     </sect2>
 
     <sect2>
+      <!-- Destructors and virtual destructors -->
       <title>Destructores y destructores virtuales</title>
 
+      <!--
+      You cannot use the virtual keyword with constructors, but destructors can and often must be virtual.
+      -->
       <para>No se puede usar la palabra reservada <kw>virtual</kw> con los constructores, pero los destructores pueden, y a menudo deben, ser virtuales.</para>
 
+      <!--
+      The constructor has the special job of putting an object together piece-by-piece, first by calling the base constructor, then the more derived constructors in order of inheritance (it must also call member-object constructors along the way). Similarly, the destructor has a special job: it must disassemble an object that may belong to a hierarchy of classes. To do this, the compiler generates code that calls all the destructors, but in the reverse order that they are called by the constructor. That is, the destructor starts at the most-derived class and works its way down to the base class. This is the safe and desirable thing to do because the current destructor can always know that the base-class members are alive and active. If you need to call a base-class member function inside your destructor, it is safe to do so. Thus, the destructor can perform its own cleanup, then call the next-down destructor, which will perform its own cleanup, etc. Each destructor knows what its class is derived from, but not what is derived from it.
+      -->
       <para>El constructor tiene el trabajo especial de montar un objeto pieza a pieza, primero llamando al constructor base y después a los constructores más derivados en el orden de la herencia (también debe llamar por el camino a los constructores de los objetos miembro). De manera similar, el destructor tiene otro trabajo especial: desmontar un objeto, el cual puede pertenecer a una jerarquía de clases. Para hacerlo, el compilador genera código que llama a todos los destructores, pero en el orden <emphasis>inverso</emphasis> a aquel en que los llama el constructor. Es decir, el destructor empieza en la clase más derivada y termina en la clase base. Ésta es la opción deseable y segura debido a que el destructor actual siempre sabe que los miembros de la clase base están vivos y activos. Si se necesita llamar a una función miembro de la clase base dentro del destructor, será seguro hacerlo. De esta forma, el destructor puede realizar su propia limpieza, y entonces llamar al siguiente destructor, el cual hará <emphasis>su</emphasis> propia limpieza, etc. Cada destructor sabe de qué clase deriva su clase, pero no qué clases derivan de ella.</para>
 
+      <!--
+      You should keep in mind that constructors and destructors are the only places where this hierarchy of calls must happen (and thus the proper hierarchy is automatically generated by the compiler). In all other functions, only that function will be called (and not base-class versions), whether it’s virtual or not. The only way for base-class versions of the same function to be called in ordinary functions (virtual or not) is if you explicitly call that function.
+      -->
       <para>Hay que tener en cuenta que los constructores y los destructores son los únicos lugares donde tiene que producirse esta jerarquía de llamadas (y por eso el compilador genera automáticamente la jerarquía adecuada). En el resto de las funciones, sólo esa función, sea o no virtual, será llamada (y no las versiones de la clase base). La única forma de que se llame a las versiones de la clase base de la misma función en las funciones ordinarias (virtuales o no) consiste en llamar de forma <emphasis>explícita</emphasis> a esa función.</para>
 
+      <!--
+      Normally, the action of the destructor is quite adequate. But what happens if you want to manipulate an object through a pointer to its base class (that is, manipulate the object through its generic interface)? This activity is a major objective in object-oriented programming. The problem occurs when you want to delete a pointer of this type for an object that has been created on the heap with new. If the pointer is to the base class, the compiler can only know to call the base-class version of the destructor during delete. Sound familiar? This is the same problem that virtual functions were created to solve for the general case. Fortunately, virtual functions work for destructors as they do for all other functions except constructors.
+      -->
       <para>Normalmente, la acción del destructor es adecuada. Pero ¿qué ocurre si se quiere manipular un objeto a través de un puntero a su clase base (es decir, manipular al objeto a través de su interfaz genérica)? Este tipo de actividad es uno de los objetivos principales de la programación orientada a objetos. El problema viene cuando se quiere hacer un <kw>delete</kw> (eliminar) de un puntero de este tipo a un objeto que ha sido creado en el <emphasis>montículo</emphasis> (<foreignphrase>heap</foreignphrase>) con <kw>new</kw>. Si el puntero apunta a la clase base, el compilador sólo puede saber que debe llamar a la versión del destructor de la clase base durante el <kw>delete</kw>. ¿Le suena? Es el mismo problema que las funciones virtuales se crearon para resolver en el caso general. Afortunadamente, las funciones virtuales funcionan con los destructores igual que con todas las demás funciones, excepto los constructores.</para>
 
 
 //: V1C15:VirtualDestructors.cpp
 
 
+      <!--
+      When you run the program, you’ll see that delete bp only calls the base-class destructor, while delete b2p calls the derived-class destructor followed by the base-class destructor, which is the behavior we desire. Forgetting to make a destructor virtual is an insidious bug because it often doesn’t directly affect the behavior of your program, but it can quietly introduce a memory leak. Also, the fact that some destruction is occurring can further mask the problem.
+      -->
       <para>Cuando se ejecuta el programa, se ve que <literal>delete bp</literal> sólo llama al destructor de la clase base, mientras que <literal>delete b2p</literal> llama al destructor de la clase derivada seguido por el destructor de la clase base, que es el comportamiento deseado. Olvidar hacer <kw>virtual</kw> un destructor es un error insidioso porque a menudo no afecta directamente al comportamiento del programa, pero puede introducir de forma silenciosa fugas de memoria. Además, el hecho de que <emphasis>alguna</emphasis> destrucción esté teniendo lugar puede enmascarar aún más el problema.</para>
 
+      <!--
+      Even though the destructor, like the constructor, is an “exceptional” function, it is possible for the destructor to be virtual because the object already knows what type it is (whereas it doesn’t during construction). Once an object has been constructed, its VPTR is initialized, so virtual function calls can take place.
+      -->
       <para>Aunque el destructor, como el constructor, es una función <quote>excepcional</quote>, es posible que el destructor sea virtual porque el objeto ya sabe de qué tipo es (mientras que no lo sabe durante la construcción). Una vez que el objeto ha sido construido, su VPTR está inicializado, por lo que pueden producirse llamadas a funciones virtuales.</para>
     </sect2>
 
     <sect2>
+      <!-- Pure virtual destructors -->
       <title>Destructores virtuales puros</title>
 
+      <!--
+      While pure virtual destructors are legal in Standard C++, there is an added constraint when using them: you must provide a function body for the pure virtual destructor. This seems counterintuitive; how can a virtual function be “pure” if it needs a function body? But if you keep in mind that constructors and destructors are special operations it makes more sense, especially if you remember that all destructors in a class hierarchy are always called. If you could leave off the definition for a pure virtual destructor, what function body would be called during destruction? Thus, it’s absolutely necessary that the compiler and linker enforce the existence of a function body for a pure virtual destructor.
+      -->
       <para>Aunque los destructores virtuales puros son legales en C++ Estándar, hay una restricción añadida cuando se usan: hay que proporcionar un cuerpo de función para el destructor virtual puro. Esto parece antinatural; ¿cómo puede una función virtual ser <quote>pura</quote> si necesita el cuerpo de una función? Pero si se tiene en cuenta que los constructores y los destructores son operaciones especiales tiene más sentido, especialmente si se recuerda que todos los destructores en una jerarquía de clases son llamados siempre. Si se pudiera omitir la definición de un destructor virtual puro, ¿a qué cuerpo de función se llamaría durante la destrucción? Por esto, es absolutamente necesario que el compilador y el enlazador exijan la existencia del cuerpo de una función para un destructor virtual puro.</para>
 
+      <!--
+      If it’s pure, but it has to have a function body, what’s the value of it? The only difference you’ll see between the pure and non-pure virtual destructor is that the pure virtual destructor does cause the base class to be abstract, so you cannot create an object of the base class (although this would also be true if any other member function of the base class were pure virtual).
+      -->
       <para>Si es puro, pero tiene que tener cuerpo, ¿qué valor tiene? La única diferencia que se verá entre el destructor virtual puro y el no-puro es que el destructor virtual puro convierte a la clase base en abstracta, por lo que no se puede crear un objeto de la clase base (aunque esto también sería verdad si cualquier otra función miembro de esa clase base fuera virtual pura).</para>
 
+      <!--
+      Things are a bit confusing, however, when you inherit a class from one that contains a pure virtual destructor. Unlike every other pure virtual function, you are not required to provide a definition of a pure virtual destructor in the derived class. The fact that the following compiles and links is the proof:
+      -->
       <para>Sin embargo, las cosas son un poco confusas cuando se hereda una clase de otra que contenga un destructor virtual puro. Al contrario que en el resto de las funciones virtuales puras, <emphasis>no</emphasis> es necesario dar una definición de un destructor virtual puro en la clase derivada. El hecho de que el siguiente código compile y enlace es la prueba:</para>
 
 
 //: V1C15:UnAbstract.cpp
 
 
+      <!--
+      Normally, a pure virtual function in a base class would cause the derived class to be abstract unless it (and all other pure virtual functions) is given a definition. But here, this seems not to be the case. However, remember that the compiler automatically creates a destructor definition for every class if you don’t create one. That’s what’s happening here – the base class destructor is being quietly overridden, and thus the definition is being provided by the compiler and Derived is not actually abstract.
+      -->
       <para>Normalmente, una función virtual pura en una clase base haría que la clase derivada fuera abstracta a menos que se le diera una definición a ella (y a todas las demás funciones virtuales puras). Pero aquí no parece ser el caso. Sin embargo, hay que recordar que el compilador crea <emphasis>automáticamente</emphasis> una definición del destructor en todas las clases si no se crea una de forma explícita. Esto es lo que sucede aquí - el destructor de la clase base se está redefiniendo de forma silenciosa, por lo que es el compilador quien proporciona la definición y <classname>Derived</classname> no es realmente abstracta.</para>
 
+      <!--
+      This brings up an interesting question: What is the point of a pure virtual destructor? Unlike an ordinary pure virtual function, you must give it a function body. In a derived class, you aren’t forced to provide a definition since the compiler synthesizes the destructor for you. So what’s the difference between a regular virtual destructor and a pure virtual destructor?
+      -->
       <para>Esto plantea una cuestión interesante: ¿cuál es el sentido de un destructor virtual puro? A diferencia de una función virtual pura ordinaria, hay que <emphasis>darle</emphasis> un cuerpo de función. En una clase derivada, no se está obligado a proporcionar una definición, ya que el compilador genera automáticamente el destructor. Entonces, ¿cuál es la diferencia entre un destructor virtual normal y un destructor virtual puro?</para>
 
+      <!--
+      The only distinction occurs when you have a class that only has a single pure virtual function: the destructor. In this case, the only effect of the purity of the destructor is to prevent the instantiation of the base class. If there were any other pure virtual functions, they would prevent the instantiation of the base class, but if there are no others, then the pure virtual destructor will do it. So, while the addition of a virtual destructor is essential, whether it’s pure or not isn’t so important.
+      -->
       <para>La única diferencia aparece cuando se tiene una clase que sólo tiene una función virtual pura: el destructor. En este caso, el único efecto de la <emphasis>pureza</emphasis> del destructor es impedir la instanciación de la clase base. Si hubiera otras funciones virtuales puras, éstas impedirían la instanciación de la clase base, pero si no las hay, será el destructor virtual puro el que lo haga. Por esto, mientras que añadir un destructor virtual es esencial, el hecho de que sea puro o no lo sea no es tan importante.</para>
 
+      <!--
+      When you run the following example, you can see that the pure virtual function body is called after the derived class version, just as with any other destructor:
+      -->
       <para>Cuando se ejecuta el siguiente ejemplo, se puede ver que se llama al cuerpo de la función virtual pura después de la versión que está en la clase derivada, igual que con cualquier otro destructor:</para>
 
 
@@ -531,12 +934,19 @@ virtual void f() = 0;
 
 
 
+      <!--
+      As a guideline, any time you have a virtual function in a class, you should immediately add a virtual destructor (even if it does nothing). This way, you ensure against any surprises later.
+      -->
       <para>Como guía, cada vez que se tenga una función virtual en una clase, se debería añadir inmediatamente un destructor virtual (aunque no haga nada). De esta forma se evitan posteriores sorpresas.</para>
     </sect2>
 
     <sect2>
+      <!-- Virtuals in destructors -->
       <title>Mecanismo virtual en los destructores</title>
 
+      <!--
+      There’s something that happens during destruction that you might not immediately expect. If you’re inside an ordinary member function and you call a virtual function, that function is called using the late-binding mechanism. This is not true with destructors, virtual or not. Inside a destructor, only the “local” version of the member function is called; the virtual mechanism is ignored.
+      -->
       <para>Hay algo que sucede durante la destrucción que quizá no se espere de entrada. Si se está dentro de una función miembro ordinaria y se llama a una función virtual, esa función es ejecutada usando el mecanismo de la ligadura dinámica. Esto no es verdad con los destructores, virtuales o no. Dentro de un destructor, sólo se llama a la versión <quote>local</quote> de la función miembro; el mecanismo virtual es ignorado.</para>
 
 
@@ -544,208 +954,395 @@ virtual void f() = 0;
 
 
 
+      <!--
+      During the destructor call, Derived::f( ) is not called, even though f( ) is virtual.
+      -->
       <para>Durante la llamada al destructor, no se llama a <function>Derived::f()</function>, aunque <function>f()</function> sea virtual.</para>
 
+      <!--
+      Why is this? Suppose the virtual mechanism were used inside the destructor. Then it would be possible for the virtual call to resolve to a function that was “farther out” (more derived) on the inheritance hierarchy than the current destructor. But destructors are called from the “outside in” (from the most-derived destructor down to the base destructor), so the actual function called would rely on portions of an object that have already been destroyed! Instead, the compiler resolves the calls at compile-time and calls only the “local” version of the function. Notice that the same is true for the constructor (as described earlier), but in the constructor’s case the type information wasn’t available, whereas in the destructor the information (that is, the VPTR) is there, but is isn’t reliable.
+      -->
       <para>¿A qué se debe esto? Suponga que se usara el mecanismo virtual dentro del destructor. Entonces sería posible que la llamada virtual se resolviera en una función que estuviera <quote>más lejos</quote> (más derivada) en la jerarquía de herencia que el destructor actual. Pero los destructores son llamados <quote>de fuera hacia dentro</quote> (desde el destructor más derivado hacia el destructor de la clase base), por lo que la función a la que realmente se llamara dependería de fragmentos de un objeto que <emphasis>¡ya ha sido destruido!</emphasis> En vez de eso, el compilador resuelve la llamada en tiempo de compilación y llama sólo a la versión <quote>local</quote> de la función. Hay que resaltar que lo mismo es también verdad para el constructor (como se explicó anteriormente), pero en el caso del constructor la información de tipo no estaba disponible, mientras que en el destructor la información está ahí (es decir, el VPTR) pero no es fiable.</para>
     </sect2>
 
     <sect2>
+      <!-- Creating an object-based hierarchy -->
       <title>Creación de una jerarquía basada en objetos</title>
 
+      <!--
+      An issue that has been recurring throughout this book during the demonstration of the container classes Stack and Stash is the “ownership problem.” The “owner” refers to who or what is responsible for calling delete for objects that have been created dynamically (using new). The problem when using containers is that they need to be flexible enough to hold different types of objects. To do this, the containers have held void pointers and so they haven’t known the type of object they’ve held. Deleting a void pointer doesn’t call the destructor, so the container couldn’t be responsible for cleaning up its objects.
+      -->
       <para>Un asunto que ha aparecido de forma recurrente a lo largo de todo el libro cuando se usaban las clases contenedoras <classname>Stack</classname> y <classname>Stash</classname> es el <quote>problema de la propiedad</quote>. El <quote>propietario</quote> se refiere a quién o qué es responsable de llamar a <kw>delete</kw> para aquellos objetos que hayan sido creados dinámicamente (usando <kw>new</kw>). El problema cuando se usan contenedores es que tienen que ser lo suficientemente flexibles para contener distintos tipos de objetos. Para conseguirlo, los contenedores manejaban punteros a <type>void</type> por lo que no sabían el tipo del objeto que contenían. Borrar un puntero a <type>void</type> no llama al destructor, por lo que el contenedor no podía ser responsable de limpiar sus objetos.</para>
 
+      <!--
+      One solution was presented in the example C14:InheritStack.cpp, in which the Stack was inherited into a new class that accepted and produced only string pointers. Since it knew that it could hold only pointers to string objects, it could properly delete them. This was a nice solution, but it requires you to inherit a new container class for each type that you want to hold in the container. (Although this seems tedious now, it will actually work quite well in Chapter 16, when templates are introduced.)
+      -->
       <para>Una solución fue presentada en el ejemplo <filename>C14:InheritStack.cpp</filename>, en el que <classname>Stack</classname> era heredado en una nueva clase que aceptaba y producía únicamente punteros a <type>string</type>. Como sabía que sólo podía contener punteros a objetos <type>string</type>, podía borrarlos de manera adecuada. Era una buena solución pero requería heredar una nueva clase contenedora por cada tipo que se quisiera manejar en el contenedor. (Aunque suene un poco tedioso funciona bastante bien como se verá en el Capítulo 16 cuando se introduzcan las plantillas).</para>
 
+      <!--
+      The problem is that you want the container to hold more than one type, but you don’t want to use void pointers. Another solution is to use polymorphism by forcing all the objects held in the container to be inherited from the same base class. That is, the container holds the objects of the base class, and then you can call virtual functions – in particular, you can call virtual destructors to solve the ownership problem.
+      -->
       <para>El problema es que se quiere que el contenedor maneje más de un tipo, pero no se quieren usar punteros a <type>void</type>. Otra solución es usar polimorfismo forzando a todos los objetos incluidos en el contenedor a ser heredados de la misma clase base. Es decir, el contenedor maneja los objetos de la clase base, y entonces se puede llamar a funciones virtuales - en particular, se puede llamar a destructores virtuales para solucionar el problema de la propiedad.</para>
 
+      <!--
+      This solution uses what is referred to as a singly-rooted hierarchy or an object-based hierarchy (because the root class of the hierarchy is usually named “Object”). It turns out that there are many other benefits to using a singly-rooted hierarchy; in fact, every other object-oriented language but C++ enforces the use of such a hierarchy – when you create a class, you are automatically inheriting it directly or indirectly from a common base class, a base class that was established by the creators of the language. In C++, it was thought that the enforced use of this common base class would cause too much overhead, so it was left out. However, you can choose to use a common base class in your own projects, and this subject will be examined further in Volume 2 of this book.
+      -->
       <para>Esta solución usa lo que se conoce como <quote>jerarquía de raíz única</quote> (<foreignphrase>singly-rooted hierarchy</foreignphrase>) o <quote>jerarquía basada en objetos</quote> (<foreignphrase>object-based hierarchy</foreignphrase>), siendo el último nombre debido a que la clase raíz de la jerarquía suele llamarse <quote>Object</quote>. Resulta que usar una jerarquía de raíz única tiene muchas otras ventajas: de hecho, todos los demás lenguajes orientados a objetos salvo C++ obligan a usar una jerarquía así - cuando se crea una clase se hereda automáticamente de forma directa o indirecta de una clase base común, una clase base que fue establecida por los creadores del lenguaje. En C++, se pensó que forzar a tener una clase base común crearía demasiada sobrecarga, por lo que se desestimó. Sin embargo, se puede elegir usar una clase base común en los propios proyectos, y esta materia será tratada con más detalle en el segundo volumen de este libro.</para>
 
+      <!--
+      To solve the ownership problem, we can create an extremely simple Object for the base class, which contains only a virtual destructor. The Stack can then hold classes inherited from Object:
+      -->
       <para>Para solucionar el problema de la propiedad, se puede crear una clase base <classname>Object</classname> extremadamente simple, que sólo tiene un destructor virtual. De esta forma <classname>Stack</classname> puede manejar objetos que hereden de <classname>Object</classname>:</para>
 
 
 //: V1C15:OStack.h
 
 
+      <!--
+      To simplify things by keeping everything in the header file, the (required) definition for the pure virtual destructor is inlined into the header file, and pop( ) (which might be considered too large for inlining) is also inlined.
+      -->
       <para>Para simplificar las cosas manteniendo todo en el fichero de cabecera, la definición (obligatoria) del destructor virtual puro es introducida en línea en el fichero de cabecera, y <function>pop()</function> también está en línea aunque podría ser considerado como demasiado largo para ser incluido así.</para>
 
+      <!--
+      Link objects now hold pointers to Object rather than void pointers, and the Stack will only accept and return Object pointers. Now Stack is much more flexible, since it will hold lots of different types but will also destroy any objects that are left on the Stack. The new limitation (which will be finally removed when templates are applied to the problem in Chapter 16) is that anything that is placed on the Stack must be inherited from Object. That’s fine if you are starting your class from scratch, but what if you already have a class such as string that you want to be able to put onto the Stack? In this case, the new class must be both a string and an Object, which means it must be inherited from both classes. This is called multiple inheritance and it is the subject of an entire chapter in Volume 2 of this book (downloadable from www.BruceEckel.com). When you read that chapter, you’ll see that multiple inheritance can be fraught with complexity, and is a feature you should use sparingly. In this situation, however, everything is simple enough that we don’t trip across any multiple inheritance pitfalls:
+      -->
       <para>Los objetos <classname>Link</classname> (enlace) ahora manejan punteros a <classname>Object</classname> en vez de punteros a <type>void</type>, y la <classname>Stack</classname> (pila) sólo aceptará y devolverá punteros a <classname>Object</classname>. Ahora <classname>Stack</classname> es mucho más flexible, ya que puede manejar un montón de tipos diferentes pero además destruirá cualquier objeto que quede en la pila. La nueva limitación (que será finalmente eliminada cuando las plantillas se apliquen al problema en el Capítulo 16) es que todo lo que se ponga en la pila debe ser heredado de <classname>Object</classname>. Esto está bien si se crea una clase desde la nada, pero ¿qué pasa si ya se tiene una clase como <classname>string</classname> y se quiere ser capaz de meterla en la pila? En este caso, la nueva clase debe ser al mismo tiempo un <classname>string</classname> y un <classname>Object</classname>, lo que significa que debe heredar de ambas clases. Esto se conoce como <emphasis>herencia múltiple</emphasis> y es materia para un capítulo entero en el Volumen 2 de este libro (se puede bajar de www.BruceEckel.com). Cuando se lea ese capítulo, se verá que la herencia múltiple puede generar mucha complejidad, y que es una característica que hay que usar con cuentagotas. Sin embargo, esta situación es lo suficientemente simple como para no caer en ninguna de las trampas de la herencia múltiple:</para>
 
 
 //: V1C15:OStackTest.cpp
 
 
+      <!--
+      Although this is similar to the previous version of the test program for Stack, you’ll notice that only 10 elements are popped from the stack, which means there are probably some objects remaining. Because the Stack knows that it holds Objects, the destructor can properly clean things up, and you’ll see this in the output of the program, since the MyString objects print messages as they are destroyed.
+      -->
       <para>Aunque es similar a la versión anterior del programa de pruebas de <classname>Stack</classname>, se puede ver que sólo se han sacado 10 elementos de la pila, lo que implica que probablemente quede algún elemento. Como la pila sabe que contiene <classname>Object</classname>s, el destructor puede limpiarlos de forma adecuada, como se puede ver en la salida del programa gracias a que los objetos <classname>MyString</classname> muestran un mensaje cuando son destruidos.</para>
 
+      <!--
+      Creating containers that hold Objects is not an unreasonable approach – if you have a singly-rooted hierarchy (enforced either by the language or by the requirement that every class inherit from Object). In that case, everything is guaranteed to be an Object and so it’s not very complicated to use the containers. In C++, however, you cannot expect this from every class, so you’re bound to trip over multiple inheritance if you take this approach. You’ll see in Chapter 16 that templates solve the problem in a much simpler and more elegant fashion.
+      -->
       <para>Crear contenedores que manejen <classname>Object</classname>s es un enfoque razonable - si se tiene una jerarquía de raíz única (impuesta por el lenguaje o por algún requisito que obligue a que todas las clases hereden de <classname>Object</classname>). En este caso, está garantizado que todo es un <classname>Object</classname> y no es muy complicado usar los contenedores. Sin embargo, en C++ no se puede esperar esto de todas las clases, por lo que se está abocado a tropezar con la herencia múltiple si se adopta este enfoque. Se verá en el Capítulo 16 que las plantillas solucionan este problema de una forma más simple y elegante.</para>
     </sect2>
   </sect1>
 
   <sect1>
+    <!-- Operator overloading -->
     <title>Sobrecarga de operadores</title>
 
+    <!--
+    You can make operators virtual just like other member functions. Implementing virtual operators often becomes confusing, however, because you may be operating on two objects, both with unknown types. This is usually the case with mathematical components (for which you often overload operators). For example, consider a system that deals with matrices, vectors and scalar values, all three of which are derived from class Math:
+    -->
     <para>Se pueden crear operadores <kw>virtual</kw>es de forma análoga a otras funciones miembro. Sin embargo implementar operadores <kw>virtual</kw>es se vuelve a menudo confuso porque puede que se esté operando sobre dos objetos, ambos de tipo desconocido. Éste suele ser el caso de los componentes matemáticos (para los cuales se suele usar la sobrecarga de operadores). Por ejemplo, considere un sistema que usa matrices, vectores y valores escalares, todos ellos heredados de la clase <classname>Math</classname>:</para>
 
 
 //: V1C15:OperatorPolymorphism.cpp
 
 
+    <!--
+    For simplicity, only the operator* has been overloaded. The goal is to be able to multiply any two Math objects and produce the desired result – and note that multiplying a matrix by a vector is a very different operation than multiplying a vector by a matrix.
+    -->
     <para>Para simplificar sólo se ha sobrecargado el <type>operator*</type>. El objetivo es ser capaz de multiplicar dos objetos <classname>Math</classname> cualquiera y producir el resultado deseado - hay que darse cuenta de que multiplicar una matriz por un vector es una operación totalmente distinta a la de multiplicar un vector por una matriz.</para>
 
+    <!--
+    The problem is that, in main( ), the expression m1 * m2 contains two upcast Math references, and thus two objects of unknown type. A virtual function is only capable of making a single dispatch – that is, determining the type of one unknown object. To determine both types a technique called multiple dispatching is used in this example, whereby what appears to be a single virtual function call results in a second virtual call. By the time this second call is made, you’ve determined both types of object, and can perform the proper activity. It’s not transparent at first, but if you stare at the example for awhile it should begin to make sense. This topic is explored in more depth in the Design Patterns chapter in Volume 2, which you can download at www.BruceEckel.com.
+    -->
     <para>El problema es que, en el <function>main()</function>, la expresión <literal>m1 * m2</literal> contiene dos referencias <classname>Math</classname> a las que se ha hecho upcast, y por tanto dos objetos de tipo desconocido. Una función virtual sólo es capaz de hacer un despachado simple - es decir, determinar el tipo de un único objeto desconocido. Para determinar ambos tipos en este ejemplo se usa una técnica conocida como despachado múltiple (<foreignphrase>multiple dispatching</foreignphrase>), donde lo que parece ser una única llamada a una función virtual da lugar a una segunda llamada virtual. Cuando se hace esta segunda llamada, ya se han determinado ambos tipos de objetos y se puede ejecutar la acción correcta. En un principio no es transparente, pero después de un rato mirando el código empieza a cobrar sentido. Esta materia es tratada con más profundidad en el capítulo de los patrones de diseño en el Volumen 2 que se puede bajar de <ulink url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.</para>
   </sect1>
 
   <sect1>
+    <!-- Downcasting -->
     <title>Downcasting</title>
 
+    <!--
+    As you might guess, since there’s such a thing as upcasting – moving up an inheritance hierarchy – there should also be downcasting to move down a hierarchy. But upcasting is easy since as you move up an inheritance hierarchy the classes always converge to more general classes. That is, when you upcast you are always clearly derived from an ancestor class (typically only one, except in the case of multiple inheritance) but when you downcast there are usually several possibilities that you could cast to. More specifically, a Circle is a type of Shape (that’s the upcast), but if you try to downcast a Shape it could be a Circle, Square, Triangle, etc. So the dilemma is figuring out a way to safely downcast. (But an even more important issue is asking yourself why you’re downcasting in the first place instead of just using polymorphism to automatically figure out the correct type. The avoidance of downcasting is covered in Volume 2 of this book.)
+    -->
     <para>Como se puede adivinar, desde el momento que existe algo conocido como upcasting - mover en sentido ascendente por una jerarquía de herencia - debe existir el <foreignphrase>downcasting</foreignphrase> para mover en sentido descendente en una jerarquía. Pero el upcasting es sencillo porque al moverse en sentido ascendente en una jerarquía de herencia las clases siempre convergen en clases más generales. Es decir, cuando se hace un upcast siempre se está en una clase claramente derivada de una clase antecesora (normalmente sólo una, excepto en el caso de herencia múltiple) pero cuando se hace downcast hay normalmente varias posibilidades a las que amoldarse. Más concretamente, un <classname>Circle</classname> es un tipo de <classname>Shape</classname> (que sería su <foreignphrase>upcast</foreignphrase>), pero si se intenta hacer un <foreignphrase>downcast</foreignphrase> de un <classname>Shape</classname> podría ser un <classname>Circle</classname>, un <classname>Square</classname>, un <classname>Triangle</classname>, etc. El problema es encontrar un modo seguro de hacer <foreignphrase>downcast</foreignphrase> (aunque es incluso más importante preguntarse por qué se está usando <foreignphrase>downcasting</foreignphrase> en vez de usar el polimorfismo para que averigüe automáticamente el tipo correcto. En el Volumen 2 de este libro se trata cómo evitar el <foreignphrase>downcasting</foreignphrase>).</para>
 
+    <!--
+    C++ provides a special explicit cast (introduced in Chapter 3) called dynamic_cast that is a type-safe downcast operation. When you use dynamic_cast to try to cast down to a particular type, the return value will be a pointer to the desired type only if the cast is proper and successful, otherwise it will return zero to indicate that this was not the correct type. Here’s a minimal example:
+    -->
     <para>C++ proporciona un molde explícito especial (introducido en el Capítulo 3) llamado <kw>dynamic_cast</kw> que es una operación de downcast segura respecto al tipo. Cuando se usa <kw>dynamic_cast</kw> para intentar hacer un molde hacia abajo a un tipo en concreto, el valor de retorno será un puntero al tipo deseado sólo si el molde es adecuado y tiene éxito; de otra forma devuelve cero para indicar que no es del tipo correcto. He aquí un ejemplo mínimo:</para>
 
 
 //: V1C15:DynamicCast.cpp
 
 
+    <!--
+    When you use dynamic_cast, you must be working with a true polymorphic hierarchy – one with virtual functions – because dynamic_cast uses information stored in the VTABLE to determine the actual type. Here, the base class contains a virtual destructor and that suffices. In main( ), a Cat pointer is upcast to a Pet, and then a downcast is attempted to both a Dog pointer and a Cat pointer. Both pointers are printed, and you’ll see when you run the program that the incorrect downcast produces a zero result. Of course, whenever you downcast you are responsible for checking to make sure that the result of the cast is nonzero. Also, you should not assume that the pointer will be exactly the same, because sometimes pointer adjustments take place during upcasting and downcasting (in particular, with multiple inheritance).
+    -->
     <para>Cuando se use <kw>dynamic_cast</kw>, hay que trabajar con una jerarquía polimórfica real - con funciones virtuales - debido a que <kw>dynamic_cast</kw> usa información almacenada en la VTABLE para determinar el tipo real. Aquí, la clase base contiene un destructor virtual y esto es suficiente. En el <function>main()</function>, se hace upcast de un puntero a <classname>Cat</classname> a <classname>Pet</classname>, y después se intenta hacer un downcast tanto a un puntero a <classname>Dog</classname> como a un puntero a <classname>Cat</classname>. Se imprimen ambos punteros, y se puede observar que cuando se ejecuta el programa el <foreignphrase>downcast</foreignphrase> incorrecto produce el valor cero. Por supuesto, cada vez que se haga un downcast, es responsabilidad del programador comprobar que el resultado del molde no es cero. Además no hay que asumir que el puntero será exactamente el mismo, porque a veces se realizan ajustes de punteros durante el <foreignphrase>upcasting</foreignphrase> y el <foreignphrase>downcasting</foreignphrase> (en particular, con la herencia múltiple).</para>
 
+    <!--
+    A dynamic_cast requires a little bit of extra overhead to run; not much, but if you’re doing a lot of dynamic_casting (in which case you should be seriously questioning your program design) this may become a performance issue. In some cases you may know something special during downcasting that allows you to say for sure what type you’re dealing with, in which case the extra overhead of the dynamic_cast becomes unnecessary, and you can use a static_cast instead. Here’s how it might work:
+    -->
     <para>Un <kw>dynamic_cast</kw> requiere un poco de sobrecarga extra en ejecución; no mucha, pero si se está haciendo mucho <kw>dynamic_cast</kw> (en cuyo caso debería ser cuestionado seriamente el diseño del programa) puede convertirse en un problema de rendimiento. En algunos casos se puede tener alguna información especial durante el downcasting que permita saber con seguridad el tipo que se está manejando, con lo que la sobrecarga extra del <kw>dynamic_cast</kw> se vuelve innecesaria, y se puede usar en su lugar un <kw>static_cast</kw>. Así es como podría funcionar:</para>
 
 
 //: V1C15:StaticHierarchyNavigation.cpp
 
 
+    <!--
+    In this program, a new feature is used that is not fully described until Volume 2 of this book, where a chapter is given to the topic: C++’s run-time type information (RTTI) mechanism. RTTI allows you to discover type information that has been lost by upcasting. The dynamic_cast is actually one form of RTTI. Here, the typeid keyword (declared in the header file <typeinfo>) is used to detect the types of the pointers. You can see that the type of the upcast Shape pointer is successively compared to a Circle pointer and a Square pointer to see if there’s a match. There’s more to RTTI than typeid, and you can also imagine that it would be fairly easy to implement your own type information system using a virtual function.
+    -->
     <para>En este programa, se usa una nueva característica que no será completamente descrita hasta el Volumen 2 de este libro, donde hay un capítulo que cubre este tema: <emphasis>Información de tipo en tiempo de ejecución en C++</emphasis> o mecanismo RTTI (<foreignphrase>run time type information</foreignphrase>). RTTI permite descubrir información de tipo que ha sido perdida en el upcasting. <kw>dynamic_cast</kw> es en realidad una forma de RTTI. Aquí se usa la palabra reservada <kw>typeid</kw> (declarada en el fichero de cabecera <filename>typeinfo</filename>) para detectar el tipo de los punteros. Se puede ver que el tipo del puntero a <classname>Shape</classname> al que se ha hecho upcast es comparado de forma sucesiva con un puntero a <classname>Circle</classname> y con un puntero a <classname>Square</classname> para ver si existe alguna coincidencia. RTTI es algo más que <kw>typeid</kw>, y también se puede imaginar que sería bastante fácil implementar un sistema propio de información de tipos usando una función virtual.</para>
 
+    <!--
+    A Circle object is created and the address is upcast to a Shape pointer; the second version of the expression shows how you can use static_cast to be more explicit about the upcast. However, since an upcast is always safe and it’s a common thing to do, I consider an explicit cast for upcasting to be cluttering and unnecessary.
+    -->
     <para>Se crea un objeto <classname>Circle</classname> y se hace upcast de su dirección a un puntero a <classname>Shape</classname>; la segunda versión de la expresión muestra cómo se puede usar <kw>static_cast</kw> para ser más explícito con el upcast. Sin embargo, desde el momento que un upcast siempre es seguro y es una cosa que se hace comúnmente, considero que un molde explícito para hacer upcast ensucia el código y es innecesario.</para>
 
+    <!--
+    RTTI is used to determine the type, and then static_cast is used to perform the downcast. But notice that in this design the process is effectively the same as using dynamic_cast, and the client programmer must do some testing to discover the cast that was actually successful. You’ll typically want a situation that’s more deterministic than in the example above before using static_cast rather than dynamic_cast (and, again, you want to carefully examine your design before using dynamic_cast).
+    -->
     <para>Para determinar el tipo se usa RTTI, y se usa <kw>static_cast</kw> para realizar el downcast. Pero hay que resaltar que, efectivamente, en este diseño el proceso es el mismo que usar <kw>dynamic_cast</kw>, y el programador cliente debe hacer alguna comprobación para descubrir qué molde tuvo éxito realmente. Normalmente se querrá una situación más determinista que la del ejemplo anterior antes de usar <kw>static_cast</kw> en lugar de <kw>dynamic_cast</kw> (y, de nuevo, hay que examinar detenidamente el diseño antes de usar <kw>dynamic_cast</kw>).</para>
 
+    <!--
+    If a class hierarchy has no virtual functions (which is a questionable design) or if you have other information that allows you to safely downcast, it’s a tiny bit faster to do the downcast statically than with dynamic_cast. In addition, static_cast won’t allow you to cast out of the hierarchy, as the traditional cast will, so it’s safer. However, statically navigating class hierarchies is always risky and you should use dynamic_cast unless you have a special situation.
+    -->
     <para>Si una jerarquía de clases no tiene funciones <kw>virtual</kw>es (que es un diseño cuestionable) o si hay otra información que permite hacer un downcast seguro, es un poco más rápido hacer el downcast de forma estática que con <kw>dynamic_cast</kw>. Además, <kw>static_cast</kw> no permitirá realizar un molde fuera de la jerarquía, como sí permitiría el molde tradicional, por lo que es más seguro. Sin embargo, navegar de forma estática por la jerarquía de clases es siempre arriesgado por lo que hay que usar <kw>dynamic_cast</kw> a menos que se trate de una situación especial.</para>
   </sect1>
 
   <sect1>
+    <!-- Summary -->
     <title>Resumen</title>
 
+    <!--
+    Polymorphism – implemented in C++ with virtual functions – means “different forms.” In object-oriented programming, you have the same face (the common interface in the base class) and different forms using that face: the different versions of the virtual functions.
+    -->
     <para>El polimorfismo - implementado en C++ con las funciones virtuales - significa <quote>formas diferentes</quote>. En la programación orientada a objetos, se tiene la misma cara (la interfaz común en la clase base) y diferentes formas que usan esa cara: las diferentes versiones de las funciones virtuales.</para>
 
+    <!--
+    You’ve seen in this chapter that it’s impossible to understand, or even create, an example of polymorphism without using data abstraction and inheritance. Polymorphism is a feature that cannot be viewed in isolation (like const or a switch statement, for example), but instead works only in concert, as part of a “big picture” of class relationships. People are often confused by other, non-object-oriented features of C++, like overloading and default arguments, which are sometimes presented as object-oriented. Don’t be fooled; if it isn’t late binding, it isn’t polymorphism.
+    -->
     <para>Se ha visto en este capítulo que es imposible entender, o incluso crear, un ejemplo de polimorfismo sin usar la abstracción de datos y la herencia. El polimorfismo es una característica que no puede ser vista de forma aislada (como sí ocurre, por ejemplo, con <kw>const</kw> o con la sentencia <kw>switch</kw>), sino que funciona únicamente de forma conjunta, como una parte de una <quote>visión de conjunto</quote> de relaciones entre clases. A menudo la gente se confunde con otras características de C++ no orientadas a objetos, como la sobrecarga y los argumentos por defecto, que a veces se presentan como orientadas a objetos. No se deje engañar; si no hay ligadura dinámica, no hay polimorfismo.</para>
 
+    <!--
+    To use polymorphism – and thus, object-oriented techniques – effectively in your programs you must expand your view of programming to include not just members and messages of an individual class, but also the commonality among classes and their relationships with each other. Although this requires significant effort, it’s a worthy struggle, because the results are faster program development, better code organization, extensible programs, and easier code maintenance.
+    -->
     <para>Para usar el polimorfismo - y por lo tanto, técnicas orientadas a objetos - de forma eficaz en los programas hay que ampliar la visión de la programación para incluir no sólo los miembros y mensajes de una clase individual, sino también lo que tienen en común las clases y las relaciones entre ellas. Aunque requiere un esfuerzo significativo, merece la pena, porque se consigue mayor velocidad en el desarrollo, mejor organización de código, programas extensibles, y mayor facilidad de mantenimiento.</para>
 
+    <!--
+    Polymorphism completes the object-oriented features of the language, but there are two more major features in C++: templates (which are introduced in Chapter 16 and covered in much more detail in Volume 2), and exception handling (which is covered in Volume 2). These features provide you as much increase in programming power as each of the object-oriented features: abstract data typing, inheritance, and polymorphism.
+    -->
     <para>El polimorfismo completa las características de orientación a objetos del lenguaje, pero hay dos características fundamentales más en C++: plantillas (introducidas en el Capítulo 16 y cubiertas en mayor detalle en el segundo volumen de este libro), y gestión de excepciones (cubierta en el Volumen 2). Estas características proporcionan un incremento de la potencia de programación comparable al de cada una de las características de la orientación a objetos: tipado abstracto de datos, herencia, y polimorfismo.</para>
   </sect1>
 
   <sect1>
+    <!-- Exercises -->
     <title>Ejercicios</title>
 
     <xi:include parse="xml" href="./ejercicios.xml"/>
 
     <orderedlist>
       <listitem>
+	<!--
+	Create a simple “shape” hierarchy: a base class called Shape and derived classes called Circle, Square, and Triangle. In the base class, make a virtual function called draw( ), and override this in the derived classes. Make an array of pointers to Shape objects that you create on the heap (and thus perform upcasting of the pointers), and call draw( ) through the base-class pointers, to verify the behavior of the virtual function. If your debugger supports it, single-step through the code.
+	-->
 	<para>Cree una jerarquía simple de <quote>figuras</quote>: una clase base llamada <classname>Shape</classname> y unas clases derivadas llamadas <classname>Circle</classname>, <classname>Square</classname>, y <classname>Triangle</classname>. En la clase base, cree una función virtual llamada <function>draw()</function>, y redefínala en las clases derivadas. Cree un array de punteros a objetos <classname>Shape</classname> creados en el montículo (y, por tanto, haga upcasting de los punteros), y llame a <function>draw()</function> a través de los punteros a la clase base para verificar el comportamiento de la función virtual. Si su depurador lo permite, ejecute el código paso a paso.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify Exercise 1 so draw( ) is a pure virtual function. Try creating an object of type Shape. Try to call the pure virtual function inside the constructor and see what happens. Leaving it as a pure virtual, give draw( ) a definition.
+	-->
 	<para>Modifique el Ejercicio 1 de tal forma que <function>draw()</function> sea una función virtual pura. Intente crear un objeto de tipo <classname>Shape</classname>. Intente llamar a la función virtual pura dentro del constructor y mire lo que ocurre. Dejándola como una función virtual pura, dé una definición para <function>draw()</function>.</para>
       </listitem>
       <listitem>
+	<!--
+	Expanding on Exercise 2, create a function that takes a Shape object by value and try to upcast a derived object in as an argument. See what happens. Fix the function by taking a reference to the Shape object.
+	-->
 	<para>Ampliando el Ejercicio 2, cree una función que reciba un objeto <classname>Shape</classname> <emphasis>por valor</emphasis> e intente hacer un upcast de un objeto derivado pasándolo como argumento. Vea lo que ocurre. Arregle la función haciendo que reciba una referencia al objeto <classname>Shape</classname>.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify C14:Combined.cpp so that f( ) is virtual in the base class. Change main( ) to perform an upcast and a virtual call.
+	-->
 	<para>Modifique <filename>C14:Combined.cpp</filename> para que <function>f()</function> sea <kw>virtual</kw> en la clase base. Cambie el <function>main()</function> para que se haga un <foreignphrase>upcast</foreignphrase> y una llamada virtual.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify Instrument3.cpp by adding a virtual prepare( ) function. Call prepare( ) inside tune( ).
+	-->
 	<para>Modifique <filename>Instrument3.cpp</filename> añadiendo una función virtual <function>prepare()</function>. Llame a <function>prepare()</function> dentro de <function>tune()</function>.</para>
       </listitem>
       <listitem>
+	<!--
+	Create an inheritance hierarchy of Rodent: Mouse, Gerbil, Hamster, etc. In the base class, provide methods that are common to all Rodents, and redefine these in the derived classes to perform different behaviors depending on the specific type of Rodent. Create an array of pointers to Rodent, fill it with different specific types of Rodents, and call your base-class methods to see what happens.
+	-->
 	<para>Cree una jerarquía de herencia de <classname>Rodent</classname> (roedores): <classname>Mouse</classname>, <classname>Gerbil</classname>, <classname>Hamster</classname>, etc. En la clase base, proporcione los métodos que son comunes a todos los roedores, y redefínalos en las clases derivadas para que tengan diferentes comportamientos dependiendo del tipo específico de roedor. Cree un array de punteros a <classname>Rodent</classname>, rellénelo con distintos tipos de roedores y llame a los métodos de la clase base para ver lo que ocurre.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify Exercise 6 so that you use a vector<Rodent*> instead of an array of pointers. Make sure that memory is cleaned up properly.
+	-->
 	<para>Modifique el Ejercicio 6 para que use un <literal>vector&lt;Rodent*&gt;</literal> en vez de un array de punteros. Asegúrese de que la memoria se limpia correctamente.</para>
       </listitem>
       <listitem>
+	<!--
+	Starting with the previous Rodent hierarchy, inherit BlueHamster from Hamster (yes, there is such a thing; I had one when I was a kid), override the base-class methods, and show that the code that calls the base-class methods doesn’t need to change in order to accommodate the new type.
+	-->
 	<para>Empezando con la jerarquía anterior de <classname>Rodent</classname>, herede un <classname>BlueHamster</classname> de <classname>Hamster</classname> (sí, existe algo así, tuve uno cuando era niño), redefina los métodos de la clase base y muestre que el código que llama a los métodos de la clase base no necesita cambiar para adaptarse al nuevo tipo.</para>
       </listitem>
       <listitem>
+	<!--
+	Starting with the previous Rodent hierarchy, add a non virtual destructor, create an object of class Hamster using new, upcast the pointer to a Rodent*, and delete the pointer to show that it doesn’t call all the destructors in the hierarchy. Change the destructor to be virtual and demonstrate that the behavior is now correct.
+	-->
 	<para>A partir de la jerarquía <classname>Rodent</classname> anterior, añada un destructor no virtual, cree un objeto de la clase <classname>Hamster</classname> usando <kw>new</kw>, haga un upcast del puntero a <type>Rodent*</type>, y borre el puntero con <kw>delete</kw> para mostrar que no se llama a todos los destructores de la jerarquía. Cambie el destructor a <kw>virtual</kw> y demuestre que el comportamiento es ahora correcto.</para>
       </listitem>
       <listitem>
+	<!--
+	Starting with the previous Rodent hierarchy, modify Rodent so it is a pure abstract base class.
+	-->
 	<para>A partir de la jerarquía <classname>Rodent</classname> anterior, modifique <classname>Rodent</classname> para convertirla en una clase base abstracta pura.</para>
       </listitem>
       <listitem>
+	<!--
+	Create an air-traffic control system with base-class Aircraft and various derived types. Create a Tower class with a vector<Aircraft*> that sends the appropriate messages to the various aircraft under its control.
+	-->
 	<para>Cree un sistema de control aéreo con la clase base <classname>Aircraft</classname> y varios tipos derivados. Cree una clase <classname>Tower</classname> con un <literal>vector&lt;Aircraft*&gt;</literal> que envíe los mensajes adecuados a los distintos aviones que están bajo su control.</para>
       </listitem>
       <listitem>
+	<!--
+	Create a model of a greenhouse by inheriting various types of Plant and building mechanisms into your greenhouse that take care of the plants.
+	-->
 	<para>Cree un modelo de invernadero heredando varios tipos de <classname>Plant</classname> (planta) y construyendo mecanismos en el invernadero que se ocupen de las plantas.</para>
       </listitem>
       <listitem>
+	<!-- In Early.cpp, make Pet a pure abstract base class. -->
 	<para>En <filename>Early.cpp</filename>, convierta <classname>Pet</classname> en una clase base abstracta pura.</para>
       </listitem>
       <listitem>
+	<!--
+	In AddingVirtuals.cpp, make all the member functions of Pet pure virtuals, but provide a definition for name( ). Fix Dog as necessary, using the base-class definition of name( ).
+	-->
 	<para>En <filename>AddingVirtuals.cpp</filename>, haga que todas las funciones miembro de <classname>Pet</classname> sean virtuales puras, pero proporcione una definición para <function>name()</function>. Arregle <classname>Dog</classname> como sea necesario, usando la definición de <function>name()</function> que se encuentra en la clase base.</para>
       </listitem>
       <listitem>
+	<!--
+	Write a small program to show the difference between calling a virtual function inside a normal member function and calling a virtual function inside a constructor. The program should prove that the two calls produce different results.
+	-->
 	<para>Escriba un pequeño programa para mostrar la diferencia entre llamar a una función virtual dentro de una función miembro normal y llamar a una función virtual dentro de un constructor. El programa debe probar que las dos llamadas producen diferentes resultados.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify VirtualsInDestructors.cpp by inheriting a class from Derived and overriding f( ) and the destructor. In main( ), create and upcast an object of your new type, then delete it.
+	-->
 	<para>Modifique <filename>VirtualsInDestructors.cpp</filename> heredando una clase de <classname>Derived</classname> y redefiniendo <function>f()</function> y el destructor. En <function>main()</function>, cree y haga un upcast de un objeto de su nuevo tipo, después bórrelo.</para>
       </listitem>
       <listitem>
+	<!--
+	Take Exercise 16 and add calls to f( ) in each destructor. Explain what happens.
+	-->
 	<para>Use el Ejercicio 16 y añada llamadas a <function>f()</function> en cada destructor. Explique qué ocurre.</para>
       </listitem>
       <listitem>
+	<!--
+	Create a class that has a data member and a derived class that adds another data member. Write a non-member function that takes an object of the base class by value and prints out the size of that object using sizeof. In main( ) create an object of the derived class, print out its size, and then call your function. Explain what happens.
+	-->
 	<para>Cree una clase que tenga un atributo y una clase derivada que añada otro atributo. Escriba una función no miembro que reciba un objeto de la clase base <emphasis>por valor</emphasis> e imprima el tamaño del objeto usando <oper>sizeof</oper>. En el <function>main()</function> cree un objeto de la clase derivada, imprima su tamaño, y después llame a su función. Explique lo que ocurre.</para>
       </listitem>
       <listitem>
+	<!--
+	Create a simple example of a virtual function call and generate assembly output. Locate the assembly code for the virtual call and trace and explain the code.
+	-->
 	<para>Cree un ejemplo sencillo de una llamada a una función virtual y genere su salida en ensamblador. Localice el código en ensamblador para la llamada a la función virtual, sígalo y explíquelo.</para>
       </listitem>
       <listitem>
+	<!--
+	Write a class with one virtual function and one non-virtual function. Inherit a new class, make an object of this class, and upcast to a pointer of the base-class type. Use the clock( ) function found in <ctime> (you’ll need to look this up in your local C library guide) to measure the difference between a virtual call and non-virtual call. You’ll need to make multiple calls to each function inside your timing loop in order to see the difference.
+	-->
 	<para>Escriba una clase con una función virtual y una función no virtual. Herede una nueva clase, haga un objeto de esa clase, y un upcast a un puntero del tipo de la clase base. Use la función <function>clock()</function> que se encuentra en <filename>&lt;ctime&gt;</filename> (necesitará consultarla en la guía de su librería C) para medir la diferencia entre una llamada virtual y una llamada no virtual. Será necesario realizar múltiples llamadas a cada función dentro de su bucle de medición para poder ver la diferencia.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify C14:Order.cpp by adding a virtual function in the base class of the CLASS macro (have it print something) and by making the destructor virtual. Make objects of the various subclasses and upcast them to the base class. Verify that the virtual behavior works and that proper construction and destruction takes place.
+	-->
 	<para>Modifique <filename>C14:Order.cpp </filename> añadiendo una función virtual en la clase base de la macro <literal>CLASS</literal> (que imprima algo) y haciendo el destructor virtual. Cree objetos de las distintas subclases y hágales un upcast a la clase base. Verifique que el comportamiento virtual funciona y que se realiza de forma correcta la construcción y la destrucción del objeto.</para>
       </listitem>
       <listitem>
+	<!--
+	Write a class with three overloaded virtual functions. Inherit a new class from this and override one of the functions. Create an object of your derived class. Can you call all the base class functions through the derived-class object? Upcast the address of the object to the base. Can you call all three functions through the base? Remove the overridden definition in the derived class. Now can you call all the base class functions through the derived-class object?
+	-->
 	<para>Escriba una clase con tres funciones virtuales sobrecargadas. Herede una nueva clase y redefina una de las funciones. Cree un objeto de la clase derivada. ¿Se puede llamar a todas las funciones de la clase base a través del objeto derivado? Haga un <foreignphrase>upcast</foreignphrase> de la dirección del objeto a la base. ¿Se puede llamar a las tres funciones a través de la base? Elimine la definición redefinida en la clase derivada. Ahora, ¿se puede llamar a todas las funciones de la clase base a través del objeto derivado?</para>
       </listitem>
       <listitem>
+	<!--
+	Modify VariantReturn.cpp to show that its behavior works with references as well as pointers.
+	-->
 	<para>Modifique <filename>VariantReturn.cpp</filename> para que muestre que su comportamiento funciona con referencias igual que con punteros.</para>
       </listitem>
       <listitem>
+	<!--
+	In Early.cpp, how can you tell whether the compiler makes the call using early or late binding? Determine the case for your own compiler.
+	-->
 	<para>En <filename>Early.cpp</filename>, ¿cómo se puede saber si el compilador hace la llamada usando ligadura estática o ligadura dinámica? Determine el caso para su propio compilador.</para>
       </listitem>
       <listitem>
+	<!--
+	Create a base class containing a clone( ) function that returns a pointer to a copy of the current object. Derive two subclasses that override clone( ) to return copies of their specific types. In main( ), create and upcast objects of your two derived types, then call clone( ) for each and verify that the cloned copies are the correct subtypes. Experiment with your clone( ) function so that you return the base type, then try returning the exact derived type. Can you think of situations in which the latter approach is necessary?
+	-->
 	<para>Cree una clase base que contenga una función <function>clone()</function> que devuelva un puntero a una <emphasis>copia</emphasis> del objeto actual. Derive dos subclases que redefinan <function>clone()</function> para devolver copias de sus tipos específicos. En el <function>main()</function>, cree objetos de sus dos tipos derivados y haga <foreignphrase>upcast</foreignphrase> de ellos, después llame a <function>clone()</function> para cada uno y verifique que las copias clonadas son de los subtipos correctos. Experimente con su función <function>clone()</function> de modo que devuelva el tipo base, y después intente devolver el tipo derivado exacto. ¿Se le ocurre alguna situación en la que sea necesario este último enfoque?</para>
       </listitem>
       <listitem>
+	<!--
+	Modify OStackTest.cpp by creating your own class, then multiply-inheriting it with Object to create something that can be placed into the Stack. Test your class in main( ).
+	-->
 	<para>Modifique <filename>OStackTest.cpp</filename> creando su propia clase y haciendo que herede también (herencia múltiple) de <classname>Object</classname> para crear algo que pueda ser introducido en la pila. Pruebe su clase en el <function>main()</function>.</para>
       </listitem>
       <listitem>
+	<!-- Add a type called Tensor to OperatorPolymorphism.cpp. -->
 	<para>Añada un tipo llamado <classname>Tensor</classname> a <filename>OperatorPolymorphism.cpp</filename>.</para>
       </listitem>
       <listitem>
+	<!--
+	(Intermediate) Create a base class X with no data members and no constructor, but with a virtual function. Create a class Y that inherits from X, but without an explicit constructor. Generate assembly code and examine it to determine if a constructor is created and called for X, and if so, what the code does. Explain what you discover. X has no default constructor, so why doesn’t the compiler complain?
+	-->
 	<para>(Intermedio) Cree una clase base <classname>X</classname> sin atributos y sin constructor, pero con una función virtual. Cree una clase <classname>Y</classname> que herede de <classname>X</classname>, pero sin un constructor explícito. Genere código ensamblador y examínelo para determinar si se crea y se llama un constructor de <classname>X</classname> y, si eso ocurre, qué hace ese código. Explique lo que haya descubierto. <classname>X</classname> no tiene constructor por defecto, entonces ¿por qué no se queja el compilador?</para>
       </listitem>
       <listitem>
+	<!--
+	(Intermediate) Modify Exercise 28 by writing constructors for both classes so that each constructor calls a virtual function. Generate assembly code. Determine where the VPTR is being assigned inside each constructor. Is the virtual mechanism being used by your compiler inside the constructor? Establish why the local version of the function is still being called.
+	-->
 	<para>(Intermedio) Modifique el Ejercicio 28 escribiendo constructores para ambas clases de tal forma que cada constructor llame a una función virtual. Genere el código ensamblador. Determine dónde se asigna el VPTR dentro de cada constructor. ¿El compilador está usando el mecanismo virtual dentro del constructor? Explique por qué se sigue usando la versión local de la función.</para>
       </listitem>
       <listitem>
+	<!--
+	(Advanced) If function calls to an object passed by value weren’t early-bound, a virtual call might access parts that didn’t exist. Is this possible? Write some code to force a virtual call, and see if this causes a crash. To explain the behavior, examine what happens when you pass an object by value.
+	-->
 	<para>(Avanzado) Si las llamadas a funciones de un objeto pasado por valor no usaran ligadura estática, una llamada virtual podría acceder a partes que no existen. ¿Es posible? Escriba un código para forzar una llamada virtual y vea si se produce un cuelgue de la aplicación. Para explicar el comportamiento, observe qué ocurre si se pasa un objeto por valor.</para>
       </listitem>
       <listitem>
+	<!--
+	(Advanced) Find out exactly how much more time is required for a virtual function call by going to your processor’s assembly-language information or other technical manual and finding out the number of clock states required for a simple call versus the number required for the virtual function instructions.
+	-->
 	<para>(Avanzado) Encuentre exactamente cuánto tiempo más es necesario para una llamada a una función virtual buscando en la información del lenguaje ensamblador de su procesador o cualquier otro manual técnico y averiguando los ciclos de reloj necesarios para una llamada simple frente a los necesarios para las instrucciones de las funciones virtuales.</para>
       </listitem>
       <listitem>
+	<!--
+	Determine the sizeof the VPTR for your implementation. Now multiply-inherit two classes that contain virtual functions. Did you get one VPTR or two in the derived class?
+	-->
 	<para>Determine el tamaño del VPTR (usando <oper>sizeof</oper>) en su implementación. Ahora herede de dos clases (herencia múltiple) que contengan funciones virtuales. ¿Ha obtenido uno o dos VPTR en la clase derivada?</para>
       </listitem>
       <listitem>
+	<!--
+	Create a class with data members and virtual functions. Write a function that looks at the memory in an object of your class and prints out the various pieces of it. To do this you will need to experiment and iteratively discover where the VPTR is located in the object.
+	-->
 	<para>Cree una clase con atributos y funciones virtuales. Escriba una función que mire en la memoria de un objeto de su clase y que imprima sus distintos fragmentos. Para hacer esto será necesario experimentar y de forma iterativa descubrir dónde se encuentra alojado el VPTR del objeto.</para>
       </listitem>
       <listitem>
+	<!--
+	Pretend that virtual functions don’t exist, and modify Instrument4.cpp so that it uses dynamic_cast to make the equivalent of the virtual calls. Explain why this is a bad idea.
+	-->
 	<para>Imagine que las funciones virtuales no existen, y modifique <filename>Instrument4.cpp</filename> para que use <kw>dynamic_cast</kw> para hacer el equivalente de las llamadas virtuales. Explique por qué es una mala idea.</para>
       </listitem>
       <listitem>
+	<!--
+	Modify StaticHierarchyNavigation.cpp so that instead of using C++ RTTI you create your own RTTI via a virtual function in the base class called whatAmI( ) and an enum type { Circles, Squares };.
+	-->
 	<para>Modifique <filename>StaticHierarchyNavigation.cpp</filename> para que en vez de usar el RTTI de C++ use su propio RTTI vía una función virtual en la clase base llamada <function>whatAmI()</function> y un <literal>enum type { Circles, Squares };</literal>.</para>
       </listitem>
       <listitem>
+	<!--
+	Start with PointerToMemberOperator.cpp from Chapter 12 and show that polymorphism still works with pointers-to-members, even if operator->* is overloaded.
+	-->
 	<para>Comience con <filename>PointerToMemberOperator.cpp </filename> del Capítulo 12 y demuestre que el polimorfismo todavía funciona con punteros a miembros, incluso si <literal>operator-&gt;*</literal> está sobrecargado.</para>
       </listitem>
     </orderedlist>
