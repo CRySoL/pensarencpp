@@ -86,7 +86,10 @@ está incluido.
   notas y la figura redibujada en SVG (`images/V2_12.svg`). Ya está incluido
   en el maestro. Las dos salidas de programa pasan de `<programlisting>` a
   `<screen>`.
-- **C05 (Plantillas):** ocho secciones. Necesita el glosario ya cerrado.
+- **C05 (Plantillas) (hecho el 29/10/2026):** traducido entero, con sus 35
+  notas y la fórmula de Fibonacci redibujada en SVG (`images/V2_11.svg`).
+  Se restauran tres `sect3` cuyos encabezados estaban pegados al texto o
+  convertidos en párrafo, y los términos de plantillas pasan al glosario.
 - **C06 (Algoritmos):** aquí el inglés está **copiado dentro de los
   `<para>`**, así que hay que sustituirlo en lugar de añadir texto. «Un
   catálogo de algoritmos STL» tiene 10.300 palabras y conviene dividirlo por
@@ -98,12 +101,9 @@ está incluido.
 
 - **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
   títulos de los libros se quedan en inglés.
-- **Figuras del volumen 2:** las de C04, C08, C09 y C10 ya están en SVG
-  (`images/V2_07.svg` a `V2_10.svg`, `V2_12.svg` a `V2_21.svg`). Queda la
-  de C05 (`image011`); las GIF originales están en
-  `images/image0NN.gif`. Al traducir cada capítulo hay que redibujarlas en
-  SVG (`images/V2_NN.svg`, con el número de la GIF), traduciendo el texto
-  que no sea código según las normas de [TRADUCCION](TRADUCCION).
+- **Figuras del volumen 2:** hechas. Todas están en SVG
+  (`images/V2_07.svg` a `V2_21.svg`), redibujadas a partir de las GIF del
+  original (`images/image0NN.gif`).
 - **Repaso final:**
   - pasar `aspell-es` a todo el volumen;
   - actualizar la sección del volumen 2 en [README.rst](README.rst), que
