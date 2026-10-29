@@ -69,10 +69,10 @@ estado actual, y por supuesto lo puedes consultar y descargar:
 Volumen 2
 ---------
 
-Hace poco que hemos empezado a traducir el segundo volumen del libro, pero vamos a buen
-ritmo. Si quieres colaborar, tu ayuda es muy bien recibida y cualquier aportación es
-valiosa (mira en la sección «Cómo participar»). Aquí tienes montado lo que llevamos, en
-formatos HTML y PDF.
+La traducción del segundo volumen está terminada, pero la revisión NO: varios capítulos
+se han traducido hace poco y todavía pueden tener errores y partes sin pulir. Si quieres
+colaborar, tu ayuda es muy bien recibida y cualquier aportación es valiosa (mira en la
+sección «Cómo participar»). Aquí lo tienes montado, en formatos HTML y PDF.
 
 - HTML2_1_ - en una única página (útil para buscar).
 - HTML2_sec_ - en una página por sección.
@@ -208,6 +208,7 @@ Volumen 2
 - Ferrán Ferri
 - Ignacio Díez Arias
 - Cleto Martín Angelina
+- Claude (Anthropic)
 
 Revisores y «beta-testers»
 --------------------------

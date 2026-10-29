@@ -103,18 +103,28 @@ está incluido.
   final del capítulo los cinco párrafos de la introducción de la tercera
   parte, que ya están en el `<partintro>` del maestro.
 
-## Fase 4: apéndices y cierre (unas 1.400 palabras)
+## Fase 4: apéndices y cierre (hecha el 29/10/2026)
 
-- **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
-  títulos de los libros se quedan en inglés.
+- **ApenA y ApenB:** traducidos e incluidos en el maestro, dentro de una
+  `<part>` «Apéndices» (si no, dblatex los sube a nivel de parte y
+  numera mal sus secciones). En ApenA los títulos de los libros se quedan en
+  inglés.
 - **Figuras del volumen 2:** hechas. Todas están en SVG
   (`images/V2_07.svg` a `V2_21.svg`), redibujadas a partir de las GIF del
   original (`images/image0NN.gif`).
 - **Repaso final:**
-  - pasar `aspell-es` a todo el volumen;
-  - actualizar la sección del volumen 2 en [README.rst](README.rst), que
-    todavía dice «hace poco que hemos empezado»;
-  - actualizar [STATUS](STATUS).
+  - ortografía del volumen 2 revisada con aspell mediante
+    `utils/spellcheck.py`, que solo mira el texto castellano y admite los
+    términos de `utils/spellcheck.words`: unas 290 erratas corregidas,
+    sobre todo tildes y letras cambiadas en los capítulos traducidos hace
+    años;
+  - la sección del volumen 2 de [README.rst](README.rst) ya dice que la
+    traducción está terminada y pendiente de revisión;
+  - [STATUS](STATUS) actualizado, con una nota que remite a `make status`.
+
+Queda pendiente una revisión de estilo del volumen 2: en los capítulos
+traducidos hace años hay frases poco naturales y anglicismos («checkear»
+ya se ha corregido, pero no se ha hecho una lectura completa).
 
 ## Cómo se trabaja cada sección
 
