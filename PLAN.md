@@ -90,10 +90,13 @@ está incluido.
   notas y la fórmula de Fibonacci redibujada en SVG (`images/V2_11.svg`).
   Se restauran tres `sect3` cuyos encabezados estaban pegados al texto o
   convertidos en párrafo, y los términos de plantillas pasan al glosario.
-- **C06 (Algoritmos):** aquí el inglés está **copiado dentro de los
-  `<para>`**, así que hay que sustituirlo en lugar de añadir texto. «Un
-  catálogo de algoritmos STL» tiene 10.300 palabras y conviene dividirlo por
-  `sect2`.
+- **C06 (Algoritmos) (hecho el 29/10/2026):** traducido el inglés que estaba
+  copiado en los `<para>` y revisada la parte que ya estaba traducida
+  («functor» pasa a «objeto función», erratas, notas). Además: la tabla de
+  objetos función estándar pasa a `<informaltable>`, los prototipos y los
+  datos de los ejercicios que estaban troceados en comentarios van en
+  `<programlisting>` o `<screen>`, se restauran dos `sect3` y se recupera
+  el primer párrafo de «Eliminación de elementos», que faltaba.
 - **C07 (Contenedores):** el más largo. Va después de C06 para mantener la
   misma terminología. Al terminarlo se descomenta en el maestro.
 
@@ -152,6 +155,11 @@ Cada unidad de trabajo es un `sect1`, o un `sect2` si la sección pasa de
    capítulo.
 
 ## Fuera de este plan
+
+Original comentado del volumen 1 (hecho el 29/10/2026): V1-C15, V1-C16 y
+V1-ApenC no tenían el original en inglés, y a otros capítulos les faltaba
+en algunos títulos y párrafos. `utils/add_original.py` lo añade a partir
+del HTML del MIT (https://web.mit.edu/merolish/ticpp/).
 
 La tarea pendiente del volumen 1 que figura en [TODO](TODO): traducir los
 comentarios de los listados. Es una tarea de revisión, no de traducción. (El
