@@ -284,8 +284,7 @@
     <para>
       Hay que hacer notar que sólo es necesario declarar la función como
       <kw>virtual</kw> en la clase base. Todas las funciones
-      de las clases derivadas que coincidan con la firma de la
-      declaración de la clase base serán llamadas usando el mecanismo
+      de las clases derivadas que coincidan con el prototipo de la declaración de la clase base serán llamadas usando el mecanismo
       virtual. Se
       <emphasis>puede</emphasis> usar la palabra reservada
       <kw>virtual</kw> en las declaraciones de las clases
@@ -420,8 +419,8 @@
 	<footnote>
 	  <para>
 	    Los compiladores pueden implementar el comportamiento
-	    virtual como quieran, pero el modo aquí descrito es una
-	    aproximación casi universal.
+	    virtual como quieran, pero el modo aquí descrito es un
+	    enfoque casi universal.
 	  </para>
 	</footnote>
 	crea una única tabla (llamada VTABLE) por cada clase que
@@ -1343,12 +1342,12 @@ virtual void f() = 0;
     <title>Sobrecargar y redefinir</title>
 
     <para>
-      En el capítulo 14 se vio que redefinir una función sobrecargada en
+      En el Capítulo 14 se vio que redefinir una función sobrecargada en
       la clase base oculta todas las demás versiones de esa función de
       la clase base. Cuando hay funciones virtuales de por medio, el
       comportamiento es un poco diferente. Considere una versión
       modificada del ejemplo <filename>NameHiding.cpp</filename> del
-      capítulo 14:
+      Capítulo 14:
     </para>
 
 
@@ -1369,7 +1368,7 @@ virtual void f() = 0;
     </para>
 
     <para>
-      La regla que se enseñó en el capítulo 14 todavía funciona: si se
+      La regla que se enseñó en el Capítulo 14 todavía funciona: si se
       redefine una de las funciones miembro sobrecargadas de la
       clase base, las otras versiones sobrecargadas estarán ocultas en
       la clase derivada. En el <function>main()</function>, el código
@@ -1462,7 +1461,7 @@ virtual void f() = 0;
       también será trabajo del constructor inicializar el VPTR. El
       compilador de forma secreta añade código al principio del
       constructor para inicializar el VPTR. Y como se describe en el
-      capítulo 14, si no se crea un constructor de una clase de forma
+      Capítulo 14, si no se crea un constructor de una clase de forma
       explícita, el compilador genera uno de forma automática. Si la
       clase tiene funciones virtuales, el constructor generado incluirá
       el código apropiado para la inicialización del VPTR. Esto tiene
@@ -1687,7 +1686,7 @@ virtual void f() = 0;
 	objetivos principales de la programación orientada a objetos. El
 	problema viene cuando se quiere hacer un <kw>delete</kw>
 	(eliminar) de un puntero de este tipo a un objeto que ha sido
-	creado en el <emphasis>montón</emphasis>
+	creado en el <emphasis>montículo</emphasis>
 	(<foreignphrase>heap</foreignphrase>) con
 	<kw>new</kw>. Si el puntero apunta a la clase base, el
 	compilador sólo puede saber que debe llamar a la versión del
@@ -1828,13 +1827,13 @@ virtual void f() = 0;
       <title>Mecanismo virtual en los destructores</title>
 
       <para>
-	Hay algo que sucede durante la destrucción que no se espera de
-	manera intuitiva. Si se está dentro de una función miembro y se
-	llama a una función virtual, esa función es ejecutada usando el
-	mecanismo de la ligadura dinámica. Esto no es verdad con los
+	Hay algo que sucede durante la destrucción que quizá no se espere
+	de entrada. Si se está dentro de una función miembro ordinaria y
+	se llama a una función virtual, esa función es ejecutada usando
+	el mecanismo de la ligadura dinámica. Esto no es verdad con los
 	destructores, virtuales o no. Dentro de un destructor, sólo se
-	llama a la función miembro "local"; el mecanismo virtual es
-	ignorado.
+	llama a la versión <quote>local</quote> de la función miembro; el
+	mecanismo virtual es ignorado.
       </para>
 
 
@@ -1843,94 +1842,98 @@ virtual void f() = 0;
 
 
       <para>
-	Durante la llamada al destructor virtual, no se llama a
-	<function>Derived::f()</function>, incluso aunque
-	<function>f()</function> es virtual.
+	Durante la llamada al destructor, no se llama a
+	<function>Derived::f()</function>, aunque
+	<function>f()</function> sea virtual.
       </para>
 
       <para>
-	¿A qué es debido ésto? Supongamos que fuera usado el mecanismo
-	virtual dentro del destructor. Entonces sería posible para la
-	llamada virtual resolver una función que está "lejana" (más
-	derivada) en la jerarquía de herencia que el destructor
-	actual. Pero los destructores son llamados de "afuera a dentro"
-	(desde el destructor más derivado hacia el destructor de la
-	clase base), por lo que la llamada actual a la función puede
-	intentar acceder a fragmentos de un objeto que <emphasis>¡ya ha
-	sido destruido!</emphasis> En vez de eso, el compilador resuelve
+	¿A qué se debe esto? Suponga que se usara el mecanismo
+	virtual dentro del destructor. Entonces sería posible que la
+	llamada virtual se resolviera en una función que estuviera
+	<quote>más lejos</quote> (más derivada) en la jerarquía de
+	herencia que el destructor actual. Pero los destructores son
+	llamados <quote>de fuera hacia dentro</quote> (desde el
+	destructor más derivado hacia el destructor de la clase base),
+	por lo que la función a la que realmente se llamara dependería
+	de fragmentos de un objeto que <emphasis>¡ya ha sido
+	destruido!</emphasis> En vez de eso, el compilador resuelve
 	la llamada en tiempo de compilación y llama sólo a la versión
-	local de la función. Hay que resaltar que lo mismo es también
-	verdad para el constructor (como se explicó anteriormente), pero
-	en el caso del constructor el tipo de información no estaba
-	disponible, mientras que en el destructor la información está
-	ahí (es decir, el VPTR) pero no es accesible.
+	<quote>local</quote> de la función. Hay que resaltar que lo mismo
+	es también verdad para el constructor (como se explicó
+	anteriormente), pero en el caso del constructor la información de
+	tipo no estaba disponible, mientras que en el destructor la
+	información está ahí (es decir, el VPTR) pero no es fiable.
       </para>
     </sect2>
 
     <sect2>
-      <title>Creación una jerarquía basada en objetos</title>
+      <title>Creación de una jerarquía basada en objetos</title>
 
       <para>
 	Un asunto que ha aparecido de forma recurrente a lo largo de
-	todo el libro cuando se usaban las clases
+	todo el libro cuando se usaban las clases contenedoras
 	<classname>Stack</classname> y <classname>Stash</classname> es
-	el "problema de la propiedad". El "propietario" se refiere a
-	quien o al que sea responsable de llamar al
-	<kw>delete</kw> de aquellos objetos que hayan sido
-	creados dinámicamente (usando <kw>new</kw>). El
-	problema cuando se usan contenedores es que es necesario ser lo
-	suficientemente flexible para manejar distintos tipos de
-	objetos. Para conseguirlo, los contenedores manejan punteros a
-	<type>void</type> por lo que no pueden saber el tipo del
-	objeto que están manejando. Borrar un puntero a
-	<type>void</type> no llama al destructor, por lo que el
-	contenedor no puede ser responsable de borrar sus objetos.
+	el <quote>problema de la propiedad</quote>. El
+	<quote>propietario</quote> se refiere a quién o qué es
+	responsable de llamar a <kw>delete</kw> para aquellos objetos
+	que hayan sido creados dinámicamente (usando <kw>new</kw>). El
+	problema cuando se usan contenedores es que tienen que ser lo
+	suficientemente flexibles para contener distintos tipos de
+	objetos. Para conseguirlo, los contenedores manejaban punteros a
+	<type>void</type> por lo que no sabían el tipo del objeto que
+	contenían. Borrar un puntero a <type>void</type> no llama al
+	destructor, por lo que el contenedor no podía ser responsable de
+	limpiar sus objetos.
       </para>
 
       <para>
 	Una solución fue presentada en el ejemplo
 	<filename>C14:InheritStack.cpp</filename>, en el que
 	<classname>Stack</classname> era heredado en una nueva clase que
-	aceptaba y producía únicamente objetos
-	<type>string</type>, por lo que se les podía borrar de
-	manera adecuada. Era una buena solución pero requería heredar
+	aceptaba y producía únicamente punteros a
+	<type>string</type>. Como sabía que sólo podía contener punteros
+	a objetos <type>string</type>, podía borrarlos de manera
+	adecuada. Era una buena solución pero requería heredar
 	una nueva clase contenedora por cada tipo que se quisiera
 	manejar en el contenedor. (Aunque suene un poco tedioso funciona
-	bastante bien como se verá en el capítulo 16 cuando se
+	bastante bien como se verá en el Capítulo 16 cuando se
 	introduzcan las plantillas).
       </para>
 
       <para>
 	El problema es que se quiere que el contenedor maneje más de un
-	tipo, pero sólo se quieren usar punteros a
+	tipo, pero no se quieren usar punteros a
 	<type>void</type>. Otra solución es usar polimorfismo
 	forzando a todos los objetos incluidos en el contenedor a ser
 	heredados de la misma clase base. Es decir, el contenedor maneja
-	los objetos de la clase base, y sólo hay que usar funciones
-	virtuales - en particular, se pueden llamar a destructores
-	virtuales para solucionar el problema de pertenencia.
+	los objetos de la clase base, y entonces se puede llamar a
+	funciones virtuales - en particular, se puede llamar a
+	destructores virtuales para solucionar el problema de la
+	propiedad.
       </para>
 
       <para>
-	Esta solución usa lo que se conoce como "jerarquía de raíz
-	única" (<foreignphrase>singly-rooted hierarchy</foreignphrase>)
-	o "jerarquía basada en objetos" (<foreignphrase>object-based
-	hierarchy</foreignphrase>), siendo el último nombre debido a que la
-	clase raíz de la jerarquía suele ser llamada "Objeto". Además,
-	el usar jerarquía de raíz única, tiene como resultado otros
-	beneficios: de hecho, cualquier otro lenguaje orientado a
-	objetos que no sea el C++ obliga a usar una jerarquía - cuando
-	se crea una clase se hereda automáticamente de forma directa o
-	indirecta de una clase base común, una clase base que fue
-	establecida por los creadores del lenguaje. En C++, se pensó que
-	forzar a tener una base clase común crearía demasiada
-	sobrecarga, por lo que se desestimó. Sin embargo, se puede
-	elegir usar en nuestros proyectos una clase base común, y esta
-	materia será tratada en el segundo volumen de este libro.
+	Esta solución usa lo que se conoce como <quote>jerarquía de raíz
+	única</quote> (<foreignphrase>singly-rooted hierarchy</foreignphrase>)
+	o <quote>jerarquía basada en objetos</quote>
+	(<foreignphrase>object-based hierarchy</foreignphrase>), siendo
+	el último nombre debido a que la clase raíz de la jerarquía suele
+	llamarse <quote>Object</quote>. Resulta que usar una jerarquía de
+	raíz única tiene muchas otras ventajas: de hecho, todos los demás
+	lenguajes orientados a objetos salvo C++ obligan a usar una
+	jerarquía así - cuando se crea una clase se hereda
+	automáticamente de forma directa o indirecta de una clase base
+	común, una clase base que fue establecida por los creadores del
+	lenguaje. En C++, se pensó que forzar a tener una clase base
+	común crearía demasiada sobrecarga, por lo que se desestimó. Sin
+	embargo, se puede elegir usar una clase base común en los propios
+	proyectos, y esta materia será tratada con más detalle en el
+	segundo volumen de este libro.
       </para>
 
       <para>
-	Para solucionar el problema de pertenencia, se puede crear una
+	Para solucionar el problema de la propiedad, se puede crear una
 	clase base <classname>Object</classname> extremadamente simple,
 	que sólo tiene un destructor virtual. De esta forma
 	<classname>Stack</classname> puede manejar objetos que hereden
@@ -1938,42 +1941,42 @@ virtual void f() = 0;
       </para>
 
 
-//: V1C15:OStack.h"/>
+//: V1C15:OStack.h
 
 
       <para>
-	Para simplificar las cosas se crea todo en el fichero cabecera,
-	la definición (requerida) del destructor virtual puro es
-	introducida en línea en el fichero cabecera, y
+	Para simplificar las cosas manteniendo todo en el fichero de
+	cabecera, la definición (obligatoria) del destructor virtual puro
+	es introducida en línea en el fichero de cabecera, y
 	<function>pop()</function> también está en línea aunque podría
 	ser considerado como demasiado largo para ser incluido así.
       </para>
 
       <para>
-	Los objetos <classname>Link</classname> (lista) ahora manejan
+	Los objetos <classname>Link</classname> (enlace) ahora manejan
 	punteros a <classname>Object</classname> en vez de punteros a
 	<type>void</type>, y la <classname>Stack</classname> (pila) sólo
 	aceptará y devolverá punteros a
 	<classname>Object</classname>. Ahora
 	<classname>Stack</classname> es mucho más flexible, ya que puede
-	manejar un montón de tipos diferentes pero además es capaz de
-	destruirá cualquier objeto dejado en la pila. La nueva
+	manejar un montón de tipos diferentes pero además destruirá
+	cualquier objeto que quede en la pila. La nueva
 	limitación (que será finalmente eliminada cuando las plantillas
-	se apliquen al problema en el capítulo 16) es que todo lo que se
+	se apliquen al problema en el Capítulo 16) es que todo lo que se
 	ponga en la pila debe ser heredado de
 	<classname>Object</classname>. Esto está bien si se crea una clase
-	desde la nada, pero ¿qué pasa si se tiene una clase como
+	desde la nada, pero ¿qué pasa si ya se tiene una clase como
 	<classname>string</classname> y se quiere ser capaz de meterla en
 	la pila? En este caso, la nueva clase debe ser al mismo tiempo
 	un <classname>string</classname> y un <classname>Object</classname>, lo
 	que significa que debe heredar de ambas clases. Esto se conoce
 	como <emphasis>herencia múltiple</emphasis> y es materia para un
 	capítulo entero en el Volumen 2 de este libro (se puede bajar de
-	www.BruceEckel.com). cuando se lea este capítulo, se verá que la
-	herencia múltiple genera un montón de complejidad, y que es una
+	www.BruceEckel.com). Cuando se lea ese capítulo, se verá que la
+	herencia múltiple puede generar mucha complejidad, y que es una
 	característica que hay que usar con cuentagotas. Sin embargo,
-	ésta situación es lo suficientemente simple como para no tener
-	problemas al usar herencia múltiple:
+	esta situación es lo suficientemente simple como para no caer en
+	ninguna de las trampas de la herencia múltiple:
       </para>
 
 
@@ -1984,7 +1987,7 @@ virtual void f() = 0;
 	Aunque es similar a la versión anterior del programa de pruebas
 	de <classname>Stack</classname>, se puede ver que sólo se han
 	sacado 10 elementos de la pila, lo que implica que probablemente
-	quede algún elemento. Como la pila ahora maneja
+	quede algún elemento. Como la pila sabe que contiene
 	<classname>Object</classname>s, el destructor puede limpiarlos
 	de forma adecuada, como se puede ver en la salida del programa
 	gracias a que los objetos <classname>MyString</classname>
@@ -1993,15 +1996,15 @@ virtual void f() = 0;
 
       <para>
 	Crear contenedores que manejen <classname>Object</classname>s es
-	una aproximación razonable - si se tiene una jerarquía de raíz
-	única (debido al lenguaje o por algún requisito que obligue
+	un enfoque razonable - si se tiene una jerarquía de raíz
+	única (impuesta por el lenguaje o por algún requisito que obligue
 	a que todas las clases hereden de
 	<classname>Object</classname>). En este caso, está garantizado
 	que todo es un <classname>Object</classname> y no es muy
-	complicado usar contenedores. Sin embargo, en C++ no se puede
-	esperar este comportamiento de todas las clases, por lo que se
-	está abocado a usar herencia múltiple si se quiere usar esta
-	aproximación. Se verá en el capítulo 16 que las plantillas
+	complicado usar los contenedores. Sin embargo, en C++ no se puede
+	esperar esto de todas las clases, por lo que se está abocado a
+	tropezar con la herencia múltiple si se adopta este
+	enfoque. Se verá en el Capítulo 16 que las plantillas
 	solucionan este problema de una forma más simple y elegante.
       </para>
     </sect2>
@@ -2014,8 +2017,8 @@ virtual void f() = 0;
       Se pueden crear operadores <kw>virtual</kw>es de forma
       análoga a otras funciones miembro. Sin embargo implementar
       operadores <kw>virtual</kw>es se vuelve a menudo confuso
-      porque se está operando sobre dos objetos, ambos sin tipos
-      conocidos. Esto suele ser el caso de los componentes matemáticos
+      porque puede que se esté operando sobre dos objetos, ambos de
+      tipo desconocido. Éste suele ser el caso de los componentes matemáticos
       (para los cuales se suele usar la sobrecarga de operadores). Por
       ejemplo, considere un sistema que usa matrices, vectores y valores
       escalares, todos ellos heredados de la clase
@@ -2030,7 +2033,7 @@ virtual void f() = 0;
       Para simplificar sólo se ha sobrecargado el
       <type>operator*</type>. El objetivo es ser capaz de
       multiplicar dos objetos <classname>Math</classname> cualquiera y
-      producir el resultado deseado - hay que darse cuenta que
+      producir el resultado deseado - hay que darse cuenta de que
       multiplicar una matriz por un vector es una operación totalmente
       distinta a la de multiplicar un vector por una matriz.
     </para>
@@ -2038,21 +2041,21 @@ virtual void f() = 0;
     <para>
       El problema es que, en el <function>main()</function>, la
       expresión <literal>m1 * m2</literal> contiene dos referencias
-      <classname>Math</classname>, y son dos objetos de tipo
-      desconocido. Una función virtual es sólo capaz de hacer una única
-      llamada - es decir, determinar el tipo de un único objeto. Para
-      determinar ambos tipos en este ejemplo se usa una técnica conocida
-      como despachado múltiple (<foreignphrase>multiple
-      dispatching</foreignphrase>), donde lo que parece ser una única
-      llamada a una función virtual se convierte en una segunda llamada
-      a una función virtual. Cuando la segunda llamada se ha ejecutado,
-      ya se han determinado ambos tipos de objetos y se puede ejecutar
-      la actividad de forma correcta. En un principio no es
+      <classname>Math</classname> a las que se ha hecho upcast, y por
+      tanto dos objetos de tipo desconocido. Una función virtual sólo
+      es capaz de hacer un despachado simple - es decir, determinar el
+      tipo de un único objeto desconocido. Para determinar ambos tipos
+      en este ejemplo se usa una técnica conocida como despachado
+      múltiple (<foreignphrase>multiple dispatching</foreignphrase>),
+      donde lo que parece ser una única llamada a una función virtual
+      da lugar a una segunda llamada virtual. Cuando se hace esta
+      segunda llamada, ya se han determinado ambos tipos de objetos y
+      se puede ejecutar la acción correcta. En un principio no es
       transparente, pero después de un rato mirando el código empieza a
       cobrar sentido. Esta materia es tratada con más profundidad en el
       capítulo de los patrones de diseño en el Volumen 2 que se puede
       bajar de <ulink
-      url="http://www.bruceeckel.com">>www.BruceEckel.com</ulink>.
+      url="http://www.bruceeckel.com">www.BruceEckel.com</ulink>.
     </para>
   </sect1>
 
@@ -2065,37 +2068,37 @@ virtual void f() = 0;
       herencia - debe existir el
       <foreignphrase>downcasting</foreignphrase> para mover en sentido
       descendente en una jerarquía. Pero el upcasting es sencillo porque
-      al movernos en sentido ascendente en la jerarquía de clases
-      siempre convergemos en clases más generales. Es decir, cuando se
-      hace un upcast siempre se está en una clase claramente derivada de
-      un ascendente (normalmente solo uno, excepto en el caso de
-      herencia múltiple) pero cuando se hace downcast hay normalmente
-      varias posibilidades a las que amoldarse. Mas concretamente, un
-      <classname>Circulo</classname> es un tipo de
-      <classname>Figura</classname> (que sería su
+      al moverse en sentido ascendente en una jerarquía de herencia las
+      clases siempre convergen en clases más generales. Es decir, cuando
+      se hace un upcast siempre se está en una clase claramente derivada
+      de una clase antecesora (normalmente sólo una, excepto en el caso
+      de herencia múltiple) pero cuando se hace downcast hay normalmente
+      varias posibilidades a las que amoldarse. Más concretamente, un
+      <classname>Circle</classname> es un tipo de
+      <classname>Shape</classname> (que sería su
       <foreignphrase>upcast</foreignphrase>), pero si se intenta hacer
-      un <foreignphrase>downcast</foreignphrase> de una
-      <classname>Figura</classname> podría ser un
-      <classname>Circulo</classname>, un
-      <classname>Cuadrado</classname>, un
-      <classname>Triángulo</classname>, etc. El problema es encontrar un
+      un <foreignphrase>downcast</foreignphrase> de un
+      <classname>Shape</classname> podría ser un
+      <classname>Circle</classname>, un
+      <classname>Square</classname>, un
+      <classname>Triangle</classname>, etc. El problema es encontrar un
       modo seguro de hacer <foreignphrase>downcast</foreignphrase>
       (aunque es incluso más importante preguntarse por qué se está
       usando <foreignphrase>downcasting</foreignphrase> en vez de usar
-      el polimorfismo para que adivine automáticamente el tipo
-      correcto. En el Volumen 2 de este libro se trata como evitar el
-      <foreignphrase>downcasting</foreignphrase>.
+      el polimorfismo para que averigüe automáticamente el tipo
+      correcto. En el Volumen 2 de este libro se trata cómo evitar el
+      <foreignphrase>downcasting</foreignphrase>).
     </para>
 
     <para>
-      C++ proporciona un moldeado explícito especial (introducido en el
-      capítulo 3) llamado "moldeado dinámico"
-      (<foreignphrase>dynamic_cast</foreignphrase>) que es una operación
-      segura. Cuando se usa <emphasis>moldeado dinámico</emphasis> para
-      intentar hacer un molde a un tipo en concreto, el valor de retorno
-      será un puntero al tipo deseado sólo si el molde es adecuado y
-      tiene éxito, de otra forma devuelve cero para indicar que no es
-      del tipo correcto. Aquí tenemos un ejemplo mínimo:
+      C++ proporciona un molde explícito especial (introducido en el
+      Capítulo 3) llamado <kw>dynamic_cast</kw> que es una operación de
+      downcast segura respecto al tipo. Cuando se usa
+      <kw>dynamic_cast</kw> para intentar hacer un molde hacia abajo a
+      un tipo en concreto, el valor de retorno será un puntero al tipo
+      deseado sólo si el molde es adecuado y tiene éxito; de otra forma
+      devuelve cero para indicar que no es del tipo correcto. He aquí un
+      ejemplo mínimo:
     </para>
 
 
@@ -2103,39 +2106,38 @@ virtual void f() = 0;
 
 
     <para>
-      Cuando se use <emphasis>moldeado dinámico</emphasis>, hay que
+      Cuando se use <kw>dynamic_cast</kw>, hay que
       trabajar con una jerarquía polimórfica real - con funciones
-      virtuales - debido a que el <emphasis>moldeado dinámico</emphasis>
+      virtuales - debido a que <kw>dynamic_cast</kw>
       usa información almacenada en la VTABLE para determinar el tipo
-      actual. Aquí, la clase base contiene un destructor virtual y esto
-      es suficiente. En el <function>main()</function>, un puntero a
-      <classname>Cat</classname> es elevado a
-      <classname>Pet</classname>, y después se hace un downcast tanto a
-      puntero <classname>Dog</classname> como a puntero a
-      <classname>Cat</classname>. Ambos punteros son imprimidos, y se
+      real. Aquí, la clase base contiene un destructor virtual y esto
+      es suficiente. En el <function>main()</function>, se hace upcast
+      de un puntero a <classname>Cat</classname> a
+      <classname>Pet</classname>, y después se intenta hacer un downcast
+      tanto a un puntero a <classname>Dog</classname> como a un puntero a
+      <classname>Cat</classname>. Se imprimen ambos punteros, y se
       puede observar que cuando se ejecuta el programa el
       <foreignphrase>downcast</foreignphrase> incorrecto produce el
-      valor cero. Por supuesto somos los responsables de comprobar que
-      el resultado del cast no es cero cada vez que se haga un
-      downcast. Además no hay que asumir que el puntero será exactamente
-      el mismo, porque a veces se realizan ajustes de punteros durante
-      el <foreignphrase>upcasting</foreignphrase> y el
+      valor cero. Por supuesto, cada vez que se haga un downcast, es
+      responsabilidad del programador comprobar que el resultado del
+      molde no es cero. Además no hay que asumir que el puntero será
+      exactamente el mismo, porque a veces se realizan ajustes de
+      punteros durante el <foreignphrase>upcasting</foreignphrase> y el
       <foreignphrase>downcasting</foreignphrase> (en particular, con la
       herencia múltiple).
     </para>
 
     <para>
-      Un <emphasis>moldeado dinámico</emphasis> requiere un poco de
+      Un <kw>dynamic_cast</kw> requiere un poco de
       sobrecarga extra en ejecución; no mucha, pero si se está haciendo
-      mucho <emphasis>moldeado dinámico</emphasis> (en cuyo caso debería
-      ser cuestionado seriamente el diseño del programa) se convierte en
-      un lastre en el rendimiento. En algunos casos se puede tener
-      alguna información especial durante el downcasting que permita
-      conocer el tipo que se está manejando, con lo que la sobrecarga
-      extra del <emphasis>moldeado dinámico</emphasis> se vuelve
-      innecesario, y se puede usar de manera alternativa un
-      <emphasis>moldeado estático</emphasis>. Aquí se muestra como
-      funciona:
+      mucho <kw>dynamic_cast</kw> (en cuyo caso debería
+      ser cuestionado seriamente el diseño del programa) puede
+      convertirse en un problema de rendimiento. En algunos casos se
+      puede tener alguna información especial durante el downcasting
+      que permita saber con seguridad el tipo que se está manejando,
+      con lo que la sobrecarga extra del <kw>dynamic_cast</kw> se
+      vuelve innecesaria, y se puede usar en su lugar un
+      <kw>static_cast</kw>. Así es como podría funcionar:
     </para>
 
 
@@ -2149,55 +2151,55 @@ virtual void f() = 0;
       tiempo de ejecución en C++</emphasis> o mecanismo RTTI
       (<foreignphrase>run time type information</foreignphrase>). RTTI
       permite descubrir información de tipo que ha sido perdida en el
-      upcasting. El <emphasis>moldeado dinámico</emphasis> es
-      actualmente una forma de RTTI. Aquí se usa la palabra reservada
-      <kw>typeid</kw> (declarada en el fichero cabecera
+      upcasting. <kw>dynamic_cast</kw> es en realidad una forma de
+      RTTI. Aquí se usa la palabra reservada
+      <kw>typeid</kw> (declarada en el fichero de cabecera
       <filename>typeinfo</filename>) para detectar el tipo de los
       punteros. Se puede ver que el tipo del puntero a
-      <classname>Figura</classname> es comparado de forma sucesiva con
-      un puntero a <classname>Circulo</classname> y con un
-      <classname>Cuadrado</classname> para ver si existe alguna
-      coincidencia. Hay más RTTI que el <kw>typeid</kw>, y se
-      puede imaginar que es fácilmente implementable un sistema de
-      información de tipos usando una función virtual.
+      <classname>Shape</classname> al que se ha hecho upcast es
+      comparado de forma sucesiva con un puntero a
+      <classname>Circle</classname> y con un puntero a
+      <classname>Square</classname> para ver si existe alguna
+      coincidencia. RTTI es algo más que <kw>typeid</kw>, y también se
+      puede imaginar que sería bastante fácil implementar un sistema
+      propio de información de tipos usando una función virtual.
     </para>
 
     <para>
-      Se crea un objeto <classname>Circulo</classname> y la dirección es
-      elevada a un puntero a <classname>Figura</classname>; la segunda
-      versión de la expresión muestra como se puede usar
-      <emphasis>moldeado estático</emphasis> para ser más explícito con el
+      Se crea un objeto <classname>Circle</classname> y se hace upcast
+      de su dirección a un puntero a <classname>Shape</classname>; la
+      segunda versión de la expresión muestra cómo se puede usar
+      <kw>static_cast</kw> para ser más explícito con el
       upcast. Sin embargo, desde el momento que un upcast siempre es
-      seguro y es una cosa que se hace comúnmente, considero que un cast
-      explícito para hacer upcast ensucia el código y es innecesario.
+      seguro y es una cosa que se hace comúnmente, considero que un
+      molde explícito para hacer upcast ensucia el código y es
+      innecesario.
     </para>
 
     <para>
-      Para determinar el tipo se usa RTTI, y se usa <emphasis>modelado
-	estático</emphasis> para realizar el downcast. Pero hay que
+      Para determinar el tipo se usa RTTI, y se usa
+      <kw>static_cast</kw> para realizar el downcast. Pero hay que
 	resaltar que, efectivamente, en este diseño el proceso es el
-	mismo que usar el <emphasis>moldeado dinámico</emphasis>, y el
-	programador cliente debe hacer algún test para descubrir si el
-	cast tuvo éxito. Normalmente se prefiere una situación más
-	determinista que la del ejemplo anterior para usar el
-	<emphasis>moldeado estático</emphasis> antes que el
-	<emphasis>moldeado dinámico</emphasis> (y hay que examinar
-	detenidamente el diseño antes de usar
-	<emphasis>moldeado dinámico</emphasis>).
+	mismo que usar <kw>dynamic_cast</kw>, y el programador cliente
+	debe hacer alguna comprobación para descubrir qué molde tuvo
+	éxito realmente. Normalmente se querrá una situación más
+	determinista que la del ejemplo anterior antes de usar
+	<kw>static_cast</kw> en lugar de <kw>dynamic_cast</kw> (y, de
+	nuevo, hay que examinar detenidamente el diseño antes de usar
+	<kw>dynamic_cast</kw>).
     </para>
 
     <para>
       Si una jerarquía de clases no tiene funciones
       <kw>virtual</kw>es (que es un diseño cuestionable) o si
       hay otra información que permite hacer un downcast seguro, es un
-      poco más rápido hacer el downcast de forma estática que con el
-      <emphasis>moldeado dinámico</emphasis>. Además, <emphasis>moldeado
-      estático</emphasis> no permitirá realizar un cast fuera de la
-      jerarquía, como un cast tradicional permitiría, por lo que es más
-      seguro. Sin embargo, navegar de forma estática por la jerarquía de
-      clases es siempre arriesgado por lo que hay que usar
-      <emphasis>moldeado dinámico</emphasis> a menos que sea una
-      situación especial.
+      poco más rápido hacer el downcast de forma estática que con
+      <kw>dynamic_cast</kw>. Además, <kw>static_cast</kw> no permitirá
+      realizar un molde fuera de la jerarquía, como sí permitiría el
+      molde tradicional, por lo que es más seguro. Sin embargo, navegar
+      de forma estática por la jerarquía de clases es siempre
+      arriesgado por lo que hay que usar <kw>dynamic_cast</kw> a menos
+      que se trate de una situación especial.
     </para>
   </sect1>
 
@@ -2205,47 +2207,48 @@ virtual void f() = 0;
     <title>Resumen</title>
 
     <para>
-      Polimorfismo - implementado en C++ con las funciones virtuales -
-      significa "formas diferentes". En la programación orientada a
-      objetos, se tiene la misma vista (la interfaz común en la clase
-      base) y diferentes formas de usarla: las diferentes versiones de
-      las funciones virtuales.
+      El polimorfismo - implementado en C++ con las funciones virtuales -
+      significa <quote>formas diferentes</quote>. En la programación
+      orientada a objetos, se tiene la misma cara (la interfaz común en
+      la clase base) y diferentes formas que usan esa cara: las
+      diferentes versiones de las funciones virtuales.
     </para>
 
     <para>
-      Se ha visto en este capítulo que es imposible entender, ni
-      siquiera crear, un ejemplo de polimorfismo sin usar la abstracción
+      Se ha visto en este capítulo que es imposible entender, o incluso
+      crear, un ejemplo de polimorfismo sin usar la abstracción
       de datos y la herencia. El polimorfismo es una característica que
-      no puede ser vista de forma aislada (como por ejemplo las
-      sentencias <kw>const</kw> y <kw>switch</kw>),
-      pero sin embargo funciona únicamente de forma conjunta, como una
-      parte de un "gran cuadro" de relaciones entre clases. La gente se
-      vuelve a menudo confusa con otras características no orientadas a
-      objetos de C++ como es la sobrecarga y los argumentos por defecto,
-      los cuales son presentados a veces como orientado a objetos. No
-      nos liemos; si no hay ligadura dinámica, no hay polimorfismo.
+      no puede ser vista de forma aislada (como sí ocurre, por ejemplo,
+      con <kw>const</kw> o con la sentencia <kw>switch</kw>),
+      sino que funciona únicamente de forma conjunta, como una parte de
+      una <quote>visión de conjunto</quote> de relaciones entre clases. A
+      menudo la gente se confunde con otras características de C++ no
+      orientadas a objetos, como la sobrecarga y los argumentos por
+      defecto, que a veces se presentan como orientadas a objetos. No se
+      deje engañar; si no hay ligadura dinámica, no hay polimorfismo.
     </para>
 
     <para>
       Para usar el polimorfismo - y por lo tanto, técnicas orientadas a
-      objetos - en los programas hay que ampliar la visión de la
-      programación para incluir no solo miembros y mensajes entre clases
-      individuales, si no también sus puntos en común y las relaciones
-      entre ellas. Aunque requiere un esfuerzo significativo, es
-      recompensado gracias a que se consigue mayor velocidad en el
-      desarrollo, mejor organización de código, programas extensibles, y
-      mayor mantenibilidad.
+      objetos - de forma eficaz en los programas hay que ampliar la
+      visión de la programación para incluir no sólo los miembros y
+      mensajes de una clase individual, sino también lo que tienen en
+      común las clases y las relaciones entre ellas. Aunque requiere un
+      esfuerzo significativo, merece la pena, porque se consigue mayor
+      velocidad en el desarrollo, mejor organización de código,
+      programas extensibles, y mayor facilidad de mantenimiento.
     </para>
 
     <para>
       El polimorfismo completa las características de orientación a
       objetos del lenguaje, pero hay dos características fundamentales
-      más en C++: plantillas (introducidas en el capítulo 16 y cubiertas
-      en mayor detalle en el segundo volumen de este libro), y manejo de
-      excepciones (cubierto en el Volumen 2). Estas características nos
-      proporcionan un incremento de poder de cada una de las
-      características de la orientación a objetos: tipado abstracto de
-      datos, herencia, y polimorfismo.
+      más en C++: plantillas (introducidas en el Capítulo 16 y cubiertas
+      en mayor detalle en el segundo volumen de este libro), y gestión de
+      excepciones (cubierta en el Volumen 2). Estas características
+      proporcionan un incremento de la potencia de programación
+      comparable al de cada una de las características de la
+      orientación a objetos: tipado abstracto de datos, herencia, y
+      polimorfismo.
     </para>
   </sect1>
 
@@ -2257,39 +2260,39 @@ virtual void f() = 0;
     <orderedlist>
       <listitem>
 	<para>
-	  Cree una jerarquía simple "figura": una clase base llamada
-	  <classname>Figura</classname> y una clases derivadas llamadas
-	  <classname>Circulo</classname>,
-	  <classname>Cuadrado</classname>, y
-	  <classname>Triangulo</classname>. En la clase base, hay que
-	  hacer una función virtual llamada
-	  <function>dibujar()</function>, y redefinirla en las
-	  clases derivadas. Hacer un array de punteros a objetos
-	  <classname>Figura</classname> que se creen en el montón (heap)
-	  y que obligue a realizar upcasting de los punteros, y llamar a
-	  <function>dibujar()</function> a través de la clase base para
-	  verificar el comportamiento de las funciones virtuales. Si el
-	  depurador lo soporta, intente ver el programa paso a paso.
+	  Cree una jerarquía simple de <quote>figuras</quote>: una clase
+	  base llamada <classname>Shape</classname> y unas clases
+	  derivadas llamadas <classname>Circle</classname>,
+	  <classname>Square</classname>, y
+	  <classname>Triangle</classname>. En la clase base, cree una
+	  función virtual llamada <function>draw()</function>, y
+	  redefínala en las clases derivadas. Cree un array de punteros a
+	  objetos <classname>Shape</classname> creados en el montículo (y,
+	  por tanto, haga upcasting de los punteros), y llame a
+	  <function>draw()</function> a través de los punteros a la
+	  clase base para verificar el comportamiento de la función
+	  virtual. Si su depurador lo permite, ejecute el código paso a
+	  paso.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Modifique el Ejercicio 1 de tal forma que
-	  <function>dibujar()</function> sea una función virtual
+	  <function>draw()</function> sea una función virtual
 	  pura. Intente crear un objeto de tipo
-	  <classname>Figura</classname>. Intente llamar a la función
+	  <classname>Shape</classname>. Intente llamar a la función
 	  virtual pura dentro del constructor y mire lo que
-	  ocurre. Dejándolo como una función virtual pura cree una
-	  definición para <function>dibujar()</function>.
+	  ocurre. Dejándola como una función virtual pura, dé una
+	  definición para <function>draw()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Aumentando el Ejercicio 2, cree una función que use un objeto
-	  <classname>Figura</classname> <emphasis>por valor</emphasis> e
-	  intente hacer un upcast de un objeto derivado como
-	  argumento. Vea lo que ocurre. Arregle la función usando una
-	  referencia a un objeto <classname>Figura</classname>.
+	  Ampliando el Ejercicio 2, cree una función que reciba un objeto
+	  <classname>Shape</classname> <emphasis>por valor</emphasis> e
+	  intente hacer un upcast de un objeto derivado pasándolo como
+	  argumento. Vea lo que ocurre. Arregle la función haciendo que
+	  reciba una referencia al objeto <classname>Shape</classname>.
 	</para>
       </listitem>
       <listitem>
@@ -2303,21 +2306,21 @@ virtual void f() = 0;
       <listitem>
 	<para>
 	  Modifique <filename>Instrument3.cpp</filename> añadiendo una
-	  función virtual <function>preparar()</function>. Llame a
-	  <function>preparar()</function> dentro de
+	  función virtual <function>prepare()</function>. Llame a
+	  <function>prepare()</function> dentro de
 	  <function>tune()</function>.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Cree una jerarquía de herencia de
-	  <classname>Roedor</classname>es: <classname>Raton</classname>,
-	  <classname>Gerbo</classname>, <classname>Hamster</classname>,
-	  etc. En la clase base, proporcione los métodos que son comunes
-	  a todos los roedores, y redefina aquellos en las clases
+	  <classname>Rodent</classname> (roedores):
+	  <classname>Mouse</classname>, <classname>Gerbil</classname>,
+	  <classname>Hamster</classname>, etc. En la clase base, proporcione los métodos que son comunes
+	  a todos los roedores, y redefínalos en las clases
 	  derivadas para que tengan diferentes comportamientos
 	  dependiendo del tipo específico de roedor. Cree un array de
-	  punteros a <classname>Roedor</classname>, rellénelo con distintos
+	  punteros a <classname>Rodent</classname>, rellénelo con distintos
 	  tipos de roedores y llame a los métodos de la clase base para
 	  ver lo que ocurre.
 	</para>
@@ -2325,46 +2328,47 @@ virtual void f() = 0;
       <listitem>
 	<para>
 	  Modifique el Ejercicio 6 para que use un
-	  <literal>vector&lt;Roedor*&gt; </literal> en vez de un array
-	  de punteros. Asegúrese que se hace un limpiado correcto de la
-	  memoria.
+	  <literal>vector&lt;Rodent*&gt;</literal> en vez de un array
+	  de punteros. Asegúrese de que la memoria se limpia
+	  correctamente.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Empezando con la jerarquía anterior de
-	  <classname>Roedor</classname>, herede un
-	  <classname>HamsterAzul</classname> de
-	  <classname>Hamster</classname> (si, existe algo así, tuve uno
+	  <classname>Rodent</classname>, herede un
+	  <classname>BlueHamster</classname> de
+	  <classname>Hamster</classname> (sí, existe algo así, tuve uno
 	  cuando era niño), redefina los métodos de la clase base y
-	  muestre que el código que llama a los métodos de clase base no
-	  necesitan cambiar para adecuarse el nuevo tipo.
+	  muestre que el código que llama a los métodos de la clase base
+	  no necesita cambiar para adaptarse al nuevo tipo.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  A partir de la jerarquía <classname>Roedor</classname> anterior,
-	  añada un destructor no virtual, cree un objeto de la
+	  A partir de la jerarquía <classname>Rodent</classname> anterior,
+	  añada un destructor no virtual, cree un objeto de la clase
 	  <classname>Hamster</classname> usando <kw>new</kw>,
-	  haga un upcast del puntero a <type>Roedor*</type>, y
-	  borre el puntero con <kw>delete</kw> para ver si no
-	  se llama a los destructores en la jerarquía. Cambie el
+	  haga un upcast del puntero a <type>Rodent*</type>, y
+	  borre el puntero con <kw>delete</kw> para mostrar que no
+	  se llama a todos los destructores de la jerarquía. Cambie el
 	  destructor a <kw>virtual</kw> y demuestre que el
 	  comportamiento es ahora correcto.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Modifique <classname>Roedor</classname> para convertirlo en una
-	  clase base pura abstracta.
+	  A partir de la jerarquía <classname>Rodent</classname> anterior,
+	  modifique <classname>Rodent</classname> para convertirla en una
+	  clase base abstracta pura.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Cree un sistema de control aéreo con la clase base
-	  <classname>Avion</classname> y varios tipos derivados. Cree
-	  una clase <classname>Torre</classname> con un
-	  <literal>vector&lt;Avion*&gt; </literal> que envíe los
+	  <classname>Aircraft</classname> y varios tipos derivados. Cree
+	  una clase <classname>Tower</classname> con un
+	  <literal>vector&lt;Aircraft*&gt;</literal> que envíe los
 	  mensajes adecuados a los distintos aviones que están bajo su
 	  control.
 	</para>
@@ -2372,20 +2376,20 @@ virtual void f() = 0;
       <listitem>
 	<para>
 	  Cree un modelo de invernadero heredando varios tipos de
-	  <classname>Planta</classname>s y construyendo mecanismos en el
+	  <classname>Plant</classname> (planta) y construyendo mecanismos en el
 	  invernadero que se ocupen de las plantas.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  En <filename>Early.cpp</filename>, haga a
-	  <classname>Pet</classname> una clase base abstracta pura.
+	  En <filename>Early.cpp</filename>, convierta
+	  <classname>Pet</classname> en una clase base abstracta pura.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  En <filename>AddingVirtuals.cpp</filename>, haga a todas las
-	  funciones miembro de <classname>Pet</classname> virtuales
+	  En <filename>AddingVirtuals.cpp</filename>, haga que todas las
+	  funciones miembro de <classname>Pet</classname> sean virtuales
 	  puras, pero proporcione una definición para
 	  <function>name()</function>. Arregle <classname>Dog</classname>
 	  como sea necesario, usando la definición de
@@ -2397,13 +2401,13 @@ virtual void f() = 0;
 	  Escriba un pequeño programa para mostrar la diferencia entre
 	  llamar a una función virtual dentro de una función miembro
 	  normal y llamar a una función virtual dentro de un
-	  constructor. El programa de probar que las dos llamadas
+	  constructor. El programa debe probar que las dos llamadas
 	  producen diferentes resultados.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Modifique <filename>VirtualsInDestructors.cpp</filename> por
+	  Modifique <filename>VirtualsInDestructors.cpp</filename>
 	  heredando una clase de <classname>Derived</classname> y
 	  redefiniendo <function>f()</function> y el destructor. En
 	  <function>main()</function>, cree y haga un upcast de un objeto
@@ -2413,26 +2417,26 @@ virtual void f() = 0;
       <listitem>
 	<para>
 	  Use el Ejercicio 16 y añada llamadas a <function>f()</function>
-	  en cada destructor. Explique que ocurre.
+	  en cada destructor. Explique qué ocurre.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Cree una clase que tenga un atributo y una clase derivada
 	  que añada otro atributo. Escriba una función no miembro
-	  que use un objeto de la clase base <emphasis>por
+	  que reciba un objeto de la clase base <emphasis>por
 	  valor</emphasis> e imprima el tamaño del objeto usando
 	  <oper>sizeof</oper>. En el <function>main()</function>
 	  cree un objeto de la clase derivada, imprima su tamaño, y
-	  llame a su función. Explique lo que ocurre.
+	  después llame a su función. Explique lo que ocurre.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Cree un ejemplo sencillo de una llamada a una función virtual
-	  y genere su salida en ensamblador. Localize el código en
-	  ensamblador para la llamada a la función virtual y explique el
-	  código.
+	  y genere su salida en ensamblador. Localice el código en
+	  ensamblador para la llamada a la función virtual, sígalo y
+	  explíquelo.
 	</para>
       </listitem>
       <listitem>
@@ -2441,18 +2445,18 @@ virtual void f() = 0;
 	  virtual. Herede una nueva clase, haga un objeto de esa clase,
 	  y un upcast a un puntero del tipo de la clase base. Use la
 	  función <function>clock()</function> que se encuentra en
-	  <filename>&lt;ctime&gt;</filename> (necesitará echar un vistazo
-	  a su librería C) para medir la diferencia entre una llamada
-	  virtual y una llamada no virtual. Será necesario realizar
-	  multiples llamadas a cada función para poder ver la
-	  diferencia.
+	  <filename>&lt;ctime&gt;</filename> (necesitará consultarla en
+	  la guía de su librería C) para medir la diferencia entre una
+	  llamada virtual y una llamada no virtual. Será necesario
+	  realizar múltiples llamadas a cada función dentro de su bucle
+	  de medición para poder ver la diferencia.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Modifique <filename>C14:Order.cpp </filename> añadiendo una
 	  función virtual en la clase base de la macro
-	  <literal>CLASS</literal> (que pinte algo) y haciendo el
+	  <literal>CLASS</literal> (que imprima algo) y haciendo el
 	  destructor virtual. Cree objetos de las distintas subclases y
 	  hágales un upcast a la clase base. Verifique que el
 	  comportamiento virtual funciona y que se realiza de forma
@@ -2466,11 +2470,11 @@ virtual void f() = 0;
 	  las funciones. Cree un objeto de la clase derivada. ¿Se puede
 	  llamar a todas las funciones de la clase base a través del
 	  objeto derivado? Haga un <foreignphrase>upcast</foreignphrase>
-	  de la dirección del objeto a la base. ¿Se pueden llamar a las
+	  de la dirección del objeto a la base. ¿Se puede llamar a las
 	  tres funciones a través de la base? Elimine la definición
-	  redefinida en la clase derivada. Ahora ¿Se puede llamar a
+	  redefinida en la clase derivada. Ahora, ¿se puede llamar a
 	  todas las funciones de la clase base a través del objeto
-	  derivado?.
+	  derivado?
 	</para>
       </listitem>
       <listitem>
@@ -2482,8 +2486,8 @@ virtual void f() = 0;
       </listitem>
       <listitem>
 	<para>
-	  En <filename>Early.cpp</filename>, ¿Cómo se le puede indicar
-	  al compilador que haga la llamada usando ligadura estática o
+	  En <filename>Early.cpp</filename>, ¿cómo se puede saber si el
+	  compilador hace la llamada usando ligadura estática o
 	  ligadura dinámica? Determine el caso para su propio
 	  compilador.
 	</para>
@@ -2495,22 +2499,22 @@ virtual void f() = 0;
 	  <emphasis>copia</emphasis> del objeto actual. Derive dos
 	  subclases que redefinan <function>clone()</function> para
 	  devolver copias de sus tipos específicos. En el
-	  <function>main()</function>, cree y haga
-	  <foreignphrase>upcast</foreignphrase> de sus dos tipos
-	  derivados, y llame a <function>clone()</function> para cada
+	  <function>main()</function>, cree objetos de sus dos tipos
+	  derivados y haga <foreignphrase>upcast</foreignphrase> de
+	  ellos, después llame a <function>clone()</function> para cada
 	  uno y verifique que las copias clonadas son de los subtipos
 	  correctos. Experimente con su función
-	  <function>clone()</function> para que se pueda ir al tipo
-	  base, y después intente regresar al tipo exacto derivado. ¿Se
-	  le ocurre alguna situación en la que sea necesario esta
-	  aproximación?
+	  <function>clone()</function> de modo que devuelva el tipo
+	  base, y después intente devolver el tipo derivado exacto. ¿Se
+	  le ocurre alguna situación en la que sea necesario este último
+	  enfoque?
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Modifique <filename>OStackTest.cpp</filename> creando su
-	  propia clase, después haga multiple herencia con
-	  <classname>Object</classname> para crear algo que pueda ser
+	  propia clase y haciendo que herede también (herencia múltiple)
+	  de <classname>Object</classname> para crear algo que pueda ser
 	  introducido en la pila. Pruebe su clase en el
 	  <function>main()</function>.
 	</para>
@@ -2518,19 +2522,19 @@ virtual void f() = 0;
       <listitem>
 	<para>
 	  Añada un tipo llamado <classname>Tensor</classname> a
-	  <filename>OperartorPolymorphism.cpp</filename>.
+	  <filename>OperatorPolymorphism.cpp</filename>.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  (Intermedio) Cree una clase base <classname>X</classname> sin
 	  atributos y sin constructor, pero con una función
-	  virtual. Cree una <classname>Y</classname> que herede de
+	  virtual. Cree una clase <classname>Y</classname> que herede de
 	  <classname>X</classname>, pero sin un constructor
 	  explícito. Genere código ensamblador y examínelo para
 	  determinar si se crea y se llama un constructor de
-	  <classname>X</classname> y, si eso ocurre, qué código lo
-	  hace. Explique lo que haya
+	  <classname>X</classname> y, si eso ocurre, qué hace ese
+	  código. Explique lo que haya
 	  descubierto. <classname>X</classname> no tiene constructor por
 	  defecto, entonces ¿por qué no se queja el compilador?
 	</para>
@@ -2540,30 +2544,30 @@ virtual void f() = 0;
 	  (Intermedio) Modifique el Ejercicio 28 escribiendo
 	  constructores para ambas clases de tal forma que cada
 	  constructor llame a una función virtual. Genere el código
-	  ensamblador. Determine donde se encuentra asignado el VPTR
-	  dentro del constructor. ¿El compilador está usando el
+	  ensamblador. Determine dónde se asigna el VPTR
+	  dentro de cada constructor. ¿El compilador está usando el
 	  mecanismo virtual dentro del constructor? Explique por qué se
-	  sigue usando la version local de la función.
+	  sigue usando la versión local de la función.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  (Avanzado) Si una función llama a un objeto pasado por valor
-	  si ligadura estática, una llamada virtual accede a partes que
-	  no existen. ¿Es posible? Escriba un código para forzar una
-	  llamada virtual y vea si se produce un cuelgue de la
-	  aplicación. Para explicar el comportamiento, observe que
+	  (Avanzado) Si las llamadas a funciones de un objeto pasado por
+	  valor no usaran ligadura estática, una llamada virtual podría
+	  acceder a partes que no existen. ¿Es posible? Escriba un código
+	  para forzar una llamada virtual y vea si se produce un cuelgue
+	  de la aplicación. Para explicar el comportamiento, observe qué
 	  ocurre si se pasa un objeto por valor.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  (Avanzado) Encuentre exactamente cuanto tiempo más es
+	  (Avanzado) Encuentre exactamente cuánto tiempo más es
 	  necesario para una llamada a una función virtual buscando en
 	  la información del lenguaje ensamblador de su procesador o
-	  cualquier otro manual técnico y encontrando los pulsos de
-	  reloj necesarios para una simple llamada frente al número
-	  necesario de las instrucciones de las funciones virtuales.
+	  cualquier otro manual técnico y averiguando los ciclos de
+	  reloj necesarios para una llamada simple frente a los
+	  necesarios para las instrucciones de las funciones virtuales.
 	</para>
       </listitem>
       <listitem>
@@ -2571,7 +2575,7 @@ virtual void f() = 0;
 	  Determine el tamaño del VPTR (usando
 	  <oper>sizeof</oper>) en su implementación. Ahora herede
 	  de dos clases (herencia múltiple) que contengan funciones
-	  virtuales. ¿Se tiene una o dos VPTR en la clase derivada?
+	  virtuales. ¿Ha obtenido uno o dos VPTR en la clase derivada?
 	</para>
       </listitem>
       <listitem>
@@ -2580,7 +2584,7 @@ virtual void f() = 0;
 	  virtuales. Escriba una función que mire en la memoria de un
 	  objeto de su clase y que imprima sus distintos
 	  fragmentos. Para hacer esto será necesario experimentar y de
-	  forma iterativa descubrir donde se encuentra alojado el VPTR
+	  forma iterativa descubrir dónde se encuentra alojado el VPTR
 	  del objeto.
 	</para>
       </listitem>
@@ -2588,24 +2592,24 @@ virtual void f() = 0;
 	<para>
 	  Imagine que las funciones virtuales no existen, y modifique
 	  <filename>Instrument4.cpp</filename> para que use
-	  <emphasis>moldeado dinámico</emphasis> para hacer el
-	  equivalente de las llamadas virtuales. Esplique porque es una
+	  <kw>dynamic_cast</kw> para hacer el
+	  equivalente de las llamadas virtuales. Explique por qué es una
 	  mala idea.
 	</para>
       </listitem>
       <listitem>
 	<para>
-	  Modifique <filename>StaicHierarchyNavigation.cpp</filename>
-	  para que en vez de usar el RTTI de C++ use su propio RTTI via
+	  Modifique <filename>StaticHierarchyNavigation.cpp</filename>
+	  para que en vez de usar el RTTI de C++ use su propio RTTI vía
 	  una función virtual en la clase base llamada
 	  <function>whatAmI()</function> y un <literal>enum type {
-	  Circulos, Cuadrados };</literal>.
+	  Circles, Squares };</literal>.
 	</para>
       </listitem>
       <listitem>
 	<para>
 	  Comience con <filename>PointerToMemberOperator.cpp </filename>
-	  del capítulo 12 y demuestre que el polimorfismo todavía
+	  del Capítulo 12 y demuestre que el polimorfismo todavía
 	  funciona con punteros a miembros, incluso si
 	  <literal>operator-&gt;*</literal> está sobrecargado.
 	</para>

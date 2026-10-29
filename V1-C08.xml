@@ -166,8 +166,8 @@ const int bufsize = 100;
       Puede colocar <varname>bufsize</varname> en cualquier lugar
       donde se necesite conocer el valor en tiempo de compilación. El
       compilador utiliza <varname>bufsize</varname> para hacer
-      <emphasis>propagación de constantes</emphasis><footnote>
-      <para>N. del T.: del inglés <foreignphrase>constant
+      <emphasis>plegado de constantes</emphasis><footnote>
+      <para>(N. del T.) Del inglés <foreignphrase>constant
       folding</foreignphrase></para></footnote>, que significa que el
       compilador reduce una expresión constante complicada a un valor
       simple realizando los cálculos necesarios en tiempo de
@@ -189,17 +189,18 @@ char buf[bufsize];
     -->
     <para>
       Puede usar <kw>const</kw> con todos los tipos
-      básicos(<type>char</type>, <type>int</type>, <type>float</type>
-      y <type>double</type>) y sus variantes (así como clases y todo
-      lo que verá después en este capítulo). Debido a los problemas
-      que introduce el preprocesador deberá utilizar siempre
+      predefinidos (<type>char</type>, <type>int</type>, <type>float</type>
+      y <type>double</type>) y sus variantes (así como con objetos de
+      clase, como verá más adelante en este capítulo). Debido a los
+      errores sutiles que puede introducir el preprocesador, deberá
+      utilizar siempre
       <kw>const</kw> en lugar de <kw>#define</kw> para la sustitución
       de valores.
     </para>
 
     <sect2>
       <!-- : const in header files -->
-      <title><kw>const</kw> en archivos de cabecera</title>
+      <title><kw>const</kw> en ficheros de cabecera</title>
 
       <!--
       To use const instead of #define, you must be able to place const
@@ -214,14 +215,15 @@ char buf[bufsize];
       <para>
 	Para poder usar <kw>const</kw> en lugar de <kw>#define</kw>,
 	debe ser posible colocar las definiciones <kw>const</kw> en
-	los archivos de cabecera como se hacía con los
+	los ficheros de cabecera como se hacía con los
 	<kw>#define</kw>.  De este modo, puede colocar la definición
 	de una constante en un único lugar y distribuirla incluyendo
-	el archivo de cabecera en las unidades del programa que la
-	necesiten.  Una constante en C++ utiliza <emphasis>enlazado
-	interno</emphasis>, es decir, es visible sólo desde el archivo
-	donde se define y no puede verse en tiempo de enlazado por
-	otros módulos. Deberá asignar siempre un valor a las
+	el fichero de cabecera en las unidades de traducción que la
+	necesiten.  Una constante en C++ utiliza por defecto
+	<emphasis>enlazado interno</emphasis>, es decir, es visible
+	sólo desde el fichero donde se define y no puede verse en
+	tiempo de enlazado desde otras unidades de traducción. Deberá
+	asignar siempre un valor a las
 	constantes cuando las defina, excepto cuando explícitamente
 	use la declaración <kw>extern</kw>:
       </para>
@@ -243,15 +245,15 @@ extern const int bufsize;
       -->
       <para>
 	Normalmente el compilador de C++ evita la asignación de
-	memoria para las constantes, pero en su lugar ocupa una
-	entrada en la tabla de símbolos.  Cuando se utiliza
+	memoria para las constantes y, en su lugar, guarda la
+	definición en su tabla de símbolos.  Cuando se utiliza
 	<kw>extern</kw> con una constante, se fuerza el alojamiento en
 	memoria (esto también ocurre en otros casos, como cuando se
-	solicita la dirección de una constante). El uso de la memoria
-	debe hacerse porque <kw>extern</kw> dice <quote>usa enlazado
-	externo</quote>, es decir, que varios módulos deben ser
-	capaces de hacer referencia al elemento, algo que requiere su
-	almacenamiento en memoria.
+	solicita la dirección de una constante). Es necesario reservar
+	memoria porque <kw>extern</kw> dice <quote>usa enlazado
+	externo</quote>, es decir, que varias unidades de traducción
+	deben ser capaces de hacer referencia al elemento, algo que
+	requiere su almacenamiento en memoria.
       </para>
 
       <!--
@@ -261,7 +263,7 @@ extern const int bufsize;
       -->
       <para>
 	Por lo general, cuando <kw>extern</kw> no forma parte de
-	la definición, no se pide memoria. Cuando la constante se utiliza
+	la definición, no se pide memoria. Cuando la constante se utiliza,
 	simplemente se incorpora en tiempo de compilación.
       </para>
 
@@ -277,8 +279,8 @@ extern const int bufsize;
 	El objetivo de no almacenar en memoria las constantes tampoco
 	se cumple con estructuras complicadas. Cuando el compilador se
 	ve obligado a pedir memoria no puede realizar
-	<emphasis>propagación de constantes</emphasis> (ya que el
-	compilador no tiene forma de conocer con seguridad que valor
+	<emphasis>plegado de constantes</emphasis> (ya que el
+	compilador no tiene forma de conocer con seguridad qué valor
 	debe almacenar; si lo conociese, no necesitaría pedir
 	memoria).
       </para>
@@ -302,25 +304,27 @@ extern const int bufsize;
       -->
       <para>
 	Como el compilador no siempre puede impedir el almacenamiento
-	para una constante, las definiciones de constantes utilizan
-	enlace interno, es decir, se enlazan sólo con el módulo en que
-	se definen. En caso contrario, los errores de enlace podrían
-	ocurrir con las expresiones constantes complicadas ya que
-	causarían petición de almacenamiento en diferentes
-	módulos. Entonces, el enlazador vería la misma definición en
-	múltiples archivos objeto, lo que causaría un error en el
-	enlace. Como las constantes utilizan enlace interno, el
-	enlazador no intenta enlazar esas definiciones a través de los
-	módulos, y así no hay colisiones.  Con los tipos básicos, que
-	son los se ven involucrados en la mayoría de los casos, el
-	compilador siempre realiza propagación de constantes.
+	para una constante, las definiciones de constantes deben
+	utilizar por defecto enlazado interno, es decir, se enlazan sólo
+	dentro de la unidad de traducción en que se definen. En caso
+	contrario, se producirían errores de enlace con las constantes
+	complicadas, ya que causarían petición de almacenamiento en
+	varios ficheros cpp. Entonces, el enlazador vería la misma
+	definición en múltiples ficheros objeto, lo que causaría un
+	error en el enlace. Como las constantes utilizan por defecto
+	enlazado interno, el enlazador no intenta enlazar esas
+	definiciones entre unidades de traducción, y así no hay
+	colisiones.  Con los tipos predefinidos, que son los que se ven
+	involucrados en la mayoría de los casos de expresiones
+	constantes, el compilador siempre puede realizar plegado de
+	constantes.
       </para>
     </sect2>
 
 
     <sect2>
       <!-- : Safety consts -->
-      <title>constantes seguras</title>
+      <title>Constantes seguras</title>
 
       <!--
       The use of const is not limited to replacing #defines in constant
@@ -331,8 +335,8 @@ extern const int bufsize;
       accidentally try to change it. Here's an example:
       -->
       <para>
-        El uso de las constantes no está limitado a la sustitución de
-        los <kw>#define</kw> por expresiones constantes. Si inicializa
+        El uso de las constantes no se limita a sustituir los
+        <kw>#define</kw> en expresiones constantes. Si inicializa
         una variable con un valor que se produce en tiempo de ejecución
         y sabe que no cambiará durante la
 	<!-- [PAG:357] --> vida de la variable, es una buena práctica
@@ -356,21 +360,21 @@ extern const int bufsize;
       storage was allocated to hold that value at some point in the program.
       -->
       <para>
-        Puede ver que <constant>i</constant> es una constante en
-        tiempo de compilación, pero <constant>j</constant> se calcula
-        a partir de <constant>i</constant>. Sin embargo, como
-        <constant>i</constant> es una constante, el valor calculado
-        para <constant>j</constant> es una expresión constante y es en
-        si mismo otra constante en tiempo de compilación. En la
-        siguiente línea se necesita la dirección de
-        <constant>j</constant> y por lo tanto el compilador se ve
+        Puede ver que <varname>i</varname> es una constante en
+        tiempo de compilación, pero <varname>j</varname> se calcula
+        a partir de <varname>i</varname>. Sin embargo, como
+        <varname>i</varname> es una constante, el valor calculado
+        para <varname>j</varname> sigue procediendo de una expresión
+        constante y es en sí mismo otra constante en tiempo de
+        compilación. En la siguiente línea se necesita la dirección de
+        <varname>j</varname> y por lo tanto el compilador se ve
         obligado a pedir almacenamiento para
-        <constant>j</constant>. Ni siquiera eso impide el uso de
-        <constant>j</constant> para determinar el tamaño de
+        <varname>j</varname>. Aun así, eso no impide el uso de
+        <varname>j</varname> para determinar el tamaño de
         <varname>buf</varname> porque el compilador sabe que
-        <constant>j</constant> es una constante y que su valor es
-        válido aunque se asigne almacenamiento, ya que eso se hace
-        para mantener el valor en algún punto en el programa.
+        <varname>j</varname> es una constante y que su valor es
+        válido aunque en algún punto del programa se haya asignado
+        almacenamiento para guardarlo.
       </para>
 
 
@@ -387,15 +391,15 @@ extern const int bufsize;
       -->
       <para>
         En <function>main()</function>, aparece un tipo diferente de
-        constante en el identificador <constant>c</constant>, porque el
+        constante en el identificador <varname>c</varname>, porque el
         valor no puede ser conocido en tiempo de compilación. Eso
         significa que se requiere almacenamiento, y por eso el
         compilador no intenta mantener nada en la tabla de símbolos (el
         mismo comportamiento que en C). La inicialización debe ocurrir,
-        aún así, en el punto de la definición, y una vez que ocurre la
+        aun así, en el punto de la definición, y una vez que ocurre la
         inicialización, el valor ya no puede ser cambiado. Puede ver que
-        <constant>c2</constant> se calcula a partir de
-        <constant>c</constant> y además las reglas de ámbito funcionan
+        <varname>c2</varname> se calcula a partir de
+        <varname>c</varname> y además las reglas de ámbito funcionan
         para las constantes igual que para cualquier otro tipo, otra
         ventaja respecto al uso de <kw>#define</kw>.
       </para>
@@ -408,9 +412,9 @@ extern const int bufsize;
       efficient code by eliminating storage and memory reads.
       -->
       <para>
-	En la práctica, si piensa que una variable no debería cambiar,
+	En la práctica, si piensa que un valor no debería cambiar,
 	debería hacer que fuese una constante. Esto no sólo da seguridad
-	contra cambios inadvertidos, también permite al compilador
+	contra cambios inadvertidos, sino que también permite al compilador
 	generar código más eficiente ahorrando espacio de almacenamiento
 	y lecturas de memoria en la ejecución del programa.
       </para>
@@ -418,7 +422,7 @@ extern const int bufsize;
 
     <sect2>
       <!-- : Aggregates -->
-      <title>Arrays</title>
+      <title>Agregados</title>
 
       <!--
       It's possible to use const for aggregates, but you're virtually
@@ -431,17 +435,17 @@ extern const int bufsize;
       are illegal:
       -->
       <para>
-	Es posible usar constantes para los arrays, pero
-	prácticamente está dando por hecho que el compilador no será
-	lo suficientemente sofisticado para mantener un array en la
+	Es posible usar constantes para los agregados, pero puede
+	estar prácticamente seguro de que el compilador no será lo
+	suficientemente sofisticado para mantener un agregado en la
 	tabla de símbolos, así que le asignará espacio de
 	almacenamiento. En estas situaciones, <kw>const</kw> significa
 	<quote>un conjunto de datos en memoria que no pueden
-	modificarse</quote>. En cualquier caso, sus valores no puede
-	usarse en tiempo de compilación porque el compilador no conoce
-	en ese momento los contenidos de las variables que tienen
-	espacio asignado. En el código siguiente puede ver algunas
-	declaraciones incorrectas.
+	modificarse</quote>. En cualquier caso, sus valores no pueden
+	usarse en tiempo de compilación porque el compilador no está
+	obligado a conocer en ese momento el contenido de esa
+	memoria. En el código siguiente puede ver las sentencias
+	ilegales:
       </para>
 
 
@@ -477,8 +481,8 @@ extern const int bufsize;
       -->
       <para>
 	Las constantes se introdujeron en las primeras versiones de
-	C++ mientras la especificación del estándar C estaba siendo
-	terminada. Aunque el comité a cargo de C decidió entonces
+	C++ mientras aún se estaba terminando la especificación del
+	C estándar. Aunque el comité a cargo de C decidió entonces
 	incluir <kw>const</kw> en C, por alguna razón, vino
 	a significar para ellos <quote>una variable ordinaria que no
 	puede cambiarse</quote>. En C, una constante siempre ocupa
@@ -501,9 +505,9 @@ char buf[bufsize];
       -->
       <para>
 	aparecerá un error, aunque parezca algo
-	razonable. <constant>bufsize</constant> está guardado en algún
-	sitio y el compilador no conoce su valor en tiempo de
-	compilación. Opcionalmente puede escribir:
+	razonable. Como <varname>bufsize</varname> está guardado en
+	algún sitio, el compilador de C no puede conocer su valor en
+	tiempo de compilación. Opcionalmente puede escribir:
       </para>
 
 
@@ -521,11 +525,11 @@ const int bufsize;
       -->
       <para>
 	en C, pero no en C++, y el compilador C lo acepta como una
-	declaración que indica que se almacenará en alguna parte. Como
-	C utiliza enlace externo para las constantes, esa semántica
-	tiene sentido. C++ utiliza normalmente enlace interno, así
+	declaración que indica que el almacenamiento se ha reservado en
+	otra parte. Como C utiliza por defecto enlazado externo para las
+	constantes, esa semántica tiene sentido. C++ utiliza normalmente enlazado interno, así
 	que, si quiere hacer lo mismo en C++, debe indicar
-	expresamente que se use enlace externo usando <kw>extern</kw>.
+	expresamente que se use enlazado externo usando <kw>extern</kw>.
       </para>
 
 
@@ -558,17 +562,17 @@ extern const int bufsize;  // es declaración, no definición
         almacenamiento. En C, las constantes siempre necesitan
         almacenamiento. El hecho de que se necesite almacenamiento o no
         depende de cómo se use la constante. En general, si una
-        constante se usa simplemente para reemplazar un número por un
-        nombre (como hace <kw>#define</kw>), entonces no requiere
-        almacenamiento. Si es así (algo que depende de la complejidad
-        del tipo de dato y de lo sofisticación del compilador) los
-        valores pueden expandirse en el código para conseguir mayor
-        eficiencia después de la comprobación de los tipos, no como con
-        <kw>#define</kw>. Si de todas formas, se necesita la dirección
-        de una constante (aún desconocida, para pasarla a una función
-        como argumento por referencia) o se declara como
-        <kw>extern</kw>, entonces se requiere asignar almacenamiento
-        para la constante.
+        constante se usa simplemente para reemplazar un nombre por un
+        valor (como haría con <kw>#define</kw>), entonces no requiere
+        almacenamiento. Si no se crea almacenamiento (algo que depende
+        de la complejidad del tipo de dato y de la sofisticación del
+        compilador), los valores pueden expandirse en el código para
+        conseguir mayor eficiencia después de la comprobación de los
+        tipos, no antes, como ocurre con <kw>#define</kw>. Sin
+        embargo, si se toma la dirección de una constante (incluso sin
+        saberlo, al pasarla a una función que recibe un argumento por
+        referencia) o se define como <kw>extern</kw>, entonces se
+        crea almacenamiento para la constante.
       </para>
 
       <!--
@@ -584,19 +588,19 @@ extern const int bufsize;  // es declaración, no definición
       -->
       <para>
         En C++, una constante que esté definida fuera de todas las
-        funciones tiene ámbito de archivo (es decir, es inaccesible
-        fuera del archivo). Esto significa que usa enlace
-        interno. Esto es diferente para el resto de identificadores en
-        C++ (y que las constantes en C) que utilizan siempre enlace
-        externo. Por eso, si declara una constante con el mismo nombre
-        en dos archivos diferentes y no toma sus
+        funciones tiene ámbito de fichero (es decir, es inaccesible
+        fuera del fichero). Esto significa que usa por defecto enlazado
+        interno. Esto es muy diferente del resto de identificadores de
+        C++ (¡y de las constantes en C!), que utilizan por defecto
+        enlazado externo. Por eso, si declara una constante con el mismo
+        nombre en dos ficheros diferentes y no toma su
 	<!-- [PAG:360] -->
-        direcciones ni los define como <kw>extern</kw>, el compilador
-        C++ ideal no asignará almacenamiento para la constante,
-        simplemente la expandirá en el código. Como las constantes
-        tienen implícito el ámbito a su archivo, puede ponerlas en un
-        archivo de cabecera de C++ sin que origine conflictos en el
-        enlace.
+        dirección ni define ese nombre como <kw>extern</kw>, el
+        compilador C++ ideal no asignará almacenamiento para la
+        constante, simplemente la expandirá en el código. Como las
+        constantes tienen implícito el ámbito de fichero, puede
+        ponerlas en ficheros de cabecera de C++ sin que originen
+        conflictos en el enlace.
       </para>
 
       <!--
@@ -606,10 +610,11 @@ extern const int bufsize;  // es declaración, no definición
       another file, you must explicitly define it as extern, like this:
       -->
       <para>
-	Dado que las constante en C++ utilizan por defecto enlace
-	interno, no puede definir una constante en un archivo y
-	utilizarla desde otro. Para conseguir enlace externo para la
-	constante y así poder usarla desde otro archivo, debe
+	Dado que las constantes en C++ utilizan por defecto enlazado
+	interno, no puede definir una constante en un fichero y
+	referenciarla como <kw>extern</kw> desde otro. Para conseguir
+	enlazado externo para la constante y así poder usarla desde otro
+	fichero, debe
 	definirla explícitamente como <kw>extern</kw>, algo
 	así:
       </para>
@@ -627,10 +632,10 @@ extern const int x = 1;  // definición, no declaración
       establishes this as a definition, not a declaration. The declaration:
       -->
       <para>
-	Señalar que dado un identificador, si se dice que es
+	Fíjese en que, al darle un valor inicial y decir que es
 	<kw>extern</kw>, se fuerza el almacenamiento para la
-	constante (aunque el compilador tenga la opción de hacer la
-	expansión en ese punto). La inicialización establece que la
+	constante (aunque el compilador sigue teniendo la opción de
+	hacer el plegado de constantes en ese punto). La inicialización establece que la
 	sentencia es una definición, no una declaración. La
 	declaración:
       </para>
@@ -651,12 +656,12 @@ extern const int x;
       -->
       <para>
 	en C++ significa que la definición existe en algún sitio
-	(mientras que en C no tiene porqué ocurrir así). Ahora puede
-	ver porqué C++ requiere que las definiciones de constantes
+	(mientras que en C no tiene por qué ocurrir así). Ahora puede
+	ver por qué C++ requiere que las definiciones de constantes
 	incluyan la inicialización: la inicialización diferencia una
 	declaración de una definición (en C siempre es una definición,
-	aunque no esté inicializada). Con una declaración <kw>const
-	extern</kw>, el compilador no hace expansión de la constante
+	así que no es necesario inicializarla). Con una declaración
+	<kw>extern const</kw>, el compilador no puede hacer plegado de la constante
 	porque no conoce su valor.
       </para>
 
@@ -667,7 +672,7 @@ extern const int x;
       preprocessor.
       -->
       <para>
-	La aproximación de C a las constantes es poco útil, y si quiere
+	El enfoque de C para las constantes es poco útil, y si quiere
 	usar un valor simbólico en una expresión constante (que deba
 	evaluarse en tiempo de compilación) casi está obligado a usar
 	<kw>#define</kw>.
@@ -697,17 +702,18 @@ extern const int x;
     practice.
     -->
     <para>
-      Los punteros pueden ser constantes. El compilador pondrá más
-      esfuerzo aún para evitar el almacenamiento y hacer expansión de
+      Los punteros pueden ser constantes. El compilador seguirá
+      intentando evitar el almacenamiento y hacer plegado de
       constantes cuando se trata de punteros constantes, pero estas
       características parecen menos útiles en este caso.
       <!-- [PAG:361] -->
       Lo más importante es que el compilador le avisará si intenta
       cambiar un puntero constante, lo que representa un buen elemento
       de seguridad. Cuando se usa <kw>const</kw> con punteros tiene dos
-      opciones: se pueden aplicar a lo que apunta el puntero o a la
-      propia dirección almacenada en el puntero. La sintaxis es un poco
-      confusa al principio pero se vuelve cómodo con la práctica.
+      opciones: <kw>const</kw> se puede aplicar a aquello a lo que
+      apunta el puntero o a la propia dirección almacenada en el
+      puntero. La sintaxis es un poco confusa al principio pero se
+      vuelve cómoda con la práctica.
     </para>
 
 
@@ -724,13 +730,13 @@ extern const int x;
       you write a definition like this:
       -->
       <para>
-	El truco con la definición de un puntero, al igual que con una
-	definición complicada, es leerla empezando por el
+	El truco con la definición de un puntero, al igual que con
+	cualquier definición complicada, es leerla empezando por el
 	identificador e ir analizando la definición hacia afuera. El
 	especificador <kw>const</kw> está ligado a la cosa
-	<quote>más cercana</quote>.  Así que si se quiere impedir
-	cambios en el elemento apuntado, escribe una definición
-	parecida a esta:
+	<quote>más cercana</quote>.  Así que si quiere impedir
+	cambios en el elemento apuntado, debe escribir una definición
+	parecida a ésta:
       </para>
 
 
@@ -762,8 +768,8 @@ const int* u;
       other side of the int like this:
       -->
       <para>
-	Ahora viene la parte confusa. Podría pensar que hacer el puntero
-	inalterable en si mismo, es decir, impedir cualquier cambio en
+	Ahora viene la parte algo confusa. Podría pensar que hacer el puntero
+	inalterable en sí mismo, es decir, impedir cualquier cambio en
 	la dirección que contiene <varname>u</varname>, es tan simple
 	como mover la palabra <kw>const</kw> al otro lado de la
 	palabra <type>int</type>:
@@ -784,15 +790,16 @@ int const* v;
       your reader, you should probably stick to the first form.
       -->
       <para>
-	y pensar que esto debería leerse <quote><varname>v</varname>
-	es un puntero constante a un entero</quote>. Sin embargo, la
-	forma de leerlo es <quote><varname>v</varname> es un puntero
-	ordinario a un entero que es constante</quote>. Es decir, la
-	palabra <kw>const</kw> se refiere de nuevo al
-	<type>entero</type> y el efecto es el mismo que en la
-	definición previa.  El hecho de que estas definiciones sean
-	equivalentes es confuso, para evitar esta confusión por parte
-	del lector del código, debería ceñirse a la primera forma.
+	No es tan descabellado pensar que esto debería leerse
+	<quote><varname>v</varname> es un puntero constante a un
+	entero</quote>. Sin embargo, la forma de leerlo es
+	<quote><varname>v</varname> es un puntero ordinario a un
+	entero que es constante</quote>. Es decir, la palabra
+	<kw>const</kw> se refiere de nuevo al <type>int</type> y el
+	efecto es el mismo que en la definición previa.  El hecho de
+	que estas definiciones sean equivalentes es lo confuso; para
+	evitar esta confusión por parte del lector del código,
+	probablemente debería ceñirse a la primera forma.
       </para>
       <!-- [PAG:362] -->
     </sect2>
@@ -824,12 +831,12 @@ int * const w = &amp;d;
       by saying
       -->
       <para>
-	Ahora, se lee <quote><constant>w</constant> es un puntero
-	constate, y apunta a un <type>entero</type></quote>. Como el
+	Ahora, se lee <quote><varname>w</varname> es un puntero
+	constante, y apunta a un <type>int</type></quote>. Como el
 	puntero en sí es ahora una constante, el compilador obliga a
 	darle un valor inicial que no podrá alterarse durante la vida
-	del puntero. En cualquier caso, puede cambiar el valor de lo
-	que apunta el puntero con algo como:
+	del puntero. Sin embargo, sí puede cambiar el valor de aquello
+	a lo que apunta el puntero con algo como:
       </para>
 
 
@@ -868,15 +875,15 @@ int const* const x2 = &amp;d; // (2)
       to decide which is clearer for your particular coding style.
       -->
       <para>
-	Algunos argumentan que la segunda forma es más consistente
+	Algunos argumentan que la segunda forma es más coherente
 	porque el <kw>const</kw> se coloca siempre a la derecha de lo
-	que afecta. Debe decidir que forma resulta más clara para su
+	que afecta. Debe decidir qué forma resulta más clara para su
 	estilo de codificación particular.
       </para>
 
       <!-- Here are the above lines in a compileable file: -->
       <para>
-	Algunas líneas de un archivo susceptible de ser compilado.
+	Éstas son las líneas anteriores en un fichero compilable:
       </para>
 
 
@@ -900,8 +907,9 @@ int const* const x2 = &amp;d; // (2)
         <para>
           Este libro sigue la norma de poner sólo una definición de
           puntero por línea, e inicializar cada puntero en el punto de
-          definición siempre que sea posible. Por eso, el estilo es
-          colocar el <symbol>*</symbol> al lado del tipo:
+          definición siempre que sea posible. Por eso, es posible usar
+          el estilo de <quote>pegar</quote> el <symbol>*</symbol> al
+          tipo de dato:
         </para>
 
 
@@ -918,11 +926,11 @@ int* u = &amp;i;
         you could do this:
         -->
 	<para>
-	  como si <type>int*</type> fuese un tipo de dato básico. Esto
+	  como si <type>int*</type> fuese un tipo en sí mismo. Esto
 	  hace que el código sea más fácil de leer, pero
-	  desafortunadamente, esta no es la forma en que funciona. El
+	  desafortunadamente, ésta no es la forma en que funciona. El
 	  <quote><symbol>*</symbol></quote> se refiere al
-	  identificador no al tipo. Se puede colocar en cualquier
+	  identificador, no al tipo. Se puede colocar en cualquier
 	  sitio entre el nombre del tipo y el identificador. De modo
 	  que puede hacer esto:
 	</para>
@@ -966,13 +974,13 @@ int * u = &amp;i, v = 0;
 	y esto se extiende a la asignación de punteros. Puede asignar
 	la dirección de una variable no constante a un puntero
 	constante porque simplemente está prometiendo no cambiar algo
-	que puede cambiarse. De todos modos, no puede asignar la
+	que puede cambiarse. Sin embargo, no puede asignar la
 	dirección de una variable constante a un puntero no constante
 	porque entonces está diciendo que podría modificar la variable
 	a través del puntero. Por supuesto, siempre puede usar
 	<quote>un molde</quote> para forzar la asignación, pero eso es
 	siempre una mala práctica de programación ya que rompe la
-	consistencia de la variable además del grado de seguridad que
+	constancia de la variable además del grado de seguridad que
 	ofrece el especificador <kw>const</kw>. Por ejemplo:
       </para>
 
@@ -1001,8 +1009,8 @@ int * u = &amp;i, v = 0;
         array literals. You can say
         -->
 	<para>
-	  C++ no es tan estricto con los literales en lo referente a
-	  constantes. Puede escribir:
+	  El lugar en el que no se impone una constancia estricta es en
+	  los literales de cadena. Puede escribir:
 	</para>
 
 
@@ -1021,14 +1029,13 @@ char * cp = "howdy";
         -->
 	<para>
 	  y el compilador lo aceptará sin objeción. Técnicamente esto
-	  supone un error porque el literal de cadena
-	  (<quote><literal>howdy</literal></quote> en este caso) se crea
-	  por el compilador como un array de caracteres constante, y el
-	  resultado del array de caracteres entrecomillado es la
-	  dirección de memoria del primer elemento. Si se modifica uno
-	  de los caracteres del array en tiempo de ejecución es un
-	  error, aunque no todos los compiladores lo imponen
-	  correctamente.
+	  supone un error porque el compilador crea el literal de
+	  cadena (<quote><literal>howdy</literal></quote> en este caso)
+	  como un array de caracteres constante, y el resultado del
+	  array de caracteres entrecomillado es la dirección de memoria
+	  del primer elemento. Modificar cualquiera de los caracteres
+	  del array es un error en tiempo de ejecución, aunque no todos
+	  los compiladores lo imponen correctamente.
 	</para>
 
 
@@ -1041,12 +1048,12 @@ char * cp = "howdy";
         machines.
         -->
 	<para>
-	  Así que los literales de cadena son arrays de caracteres
-	  constantes. Por supuesto, el compilador le permite tratarlos como
-	  no constantes porque existe mucho código C que depende de ello. De
-	  todas formas, si intenta cambiar los valores de un literal, el
-	  resultado no está definido, y probablemente funcione en muchos
-	  computadores.
+	  Así que los literales de cadena son en realidad arrays de
+	  caracteres constantes. Por supuesto, el compilador le permite
+	  tratarlos como no constantes porque existe mucho código C que
+	  depende de ello. Sin embargo, si intenta cambiar los valores
+	  de un literal, el resultado no está definido, aunque
+	  probablemente funcione en muchos computadores.
 	</para>
 
         <!-- If you want to be able to modify the string, put it in an
@@ -1066,9 +1073,9 @@ char cp[] = "howdy";
         subtle.
         -->
 	<para>
-	  Como los compiladores a menudo no imponen la diferencia no
-	  tiene porqué recordar que debe usar esta la última forma y
-	  la cuestión pasa a ser algo bastante sutil.
+	  Como los compiladores a menudo no imponen la diferencia, nada
+	  le recordará que debe usar esta última forma, y la cuestión
+	  pasa a ser algo bastante sutil.
 	</para>
       </sect3>
     </sect2>
@@ -1095,11 +1102,12 @@ char cp[] = "howdy";
       de constante puede resultar confuso.  Si está pasando variables
       por valor, utilizar <kw>const</kw> no tiene significado para el
       cliente (significa que el argumento que se pasa no puede
-      modificarse en la función). Si está devolviendo una variable de
-      un tipo derivado y utiliza el especificador <kw>const</kw>,
-      significa que el valor de retorno no puede modificarse. Si pasa
-      o devuelve direcciones, <kw>const</kw> impide que el
-      destinatario de la dirección pueda modificarse.
+      modificarse en la función). Si está devolviendo por valor un
+      objeto de un tipo definido por el usuario y utiliza el
+      especificador <kw>const</kw>, significa que el valor de retorno
+      no puede modificarse. Si pasa o devuelve direcciones,
+      <kw>const</kw> es una promesa de que el destino de la dirección
+      no se modificará.
     </para>
 
     <sect2>
@@ -1112,7 +1120,7 @@ char cp[] = "howdy";
       -->
       <para>
 	Puede indicar que los argumentos de funciones son constantes
-	cuando se pasa por valor como:
+	cuando se pasan por valor, como en:
       </para>
 
 
@@ -1130,13 +1138,11 @@ void f1(const int i) {
       implicitly kept.
       -->
       <para>
-	pero, ¿qué significa esto? Está impidiendo que el valor de la
-	variable original pueda ser cambiado en la función
-	<function>f1()</function>. De todos formas, como el
-	argumento se pasa por valor, es sabido que inmediatamente se
-	hace una copia de la variable original, así que dicha
-	restricción se cumple implícitamente sin necesidad de usar
-	el especificador <kw>const</kw>.
+	pero, ¿qué significa esto? Está prometiendo que la función
+	<function>f1()</function> no cambiará el valor original de la
+	variable. Sin embargo, como el argumento se pasa por valor,
+	inmediatamente se hace una copia de la variable original, así
+	que la promesa al cliente se cumple implícitamente.
       </para>
 
       <!--
@@ -1145,8 +1151,8 @@ void f1(const int i) {
       not the caller.
       -->
       <para>
-	Dentro de la función, <kw>const</kw> si toma un significado:
-	El argumento no se puede cambiar. Así que, en realidad, es una
+	Dentro de la función, <kw>const</kw> sí toma un significado:
+	el argumento no se puede cambiar. Así que, en realidad, es una
 	herramienta para el programador de la función, no para el que
 	la usa.
       </para>
@@ -1168,7 +1174,7 @@ void f1(const int i) {
 	que el argumento sea constante dentro de la función en lugar de en
 	la lista de argumentos. Podría hacerlo con un puntero, pero la
 	sintaxis más adecuada para lograrlo es la referencia, algo que se
-	tratará en profundidad en el capítulo 11.
+	tratará en profundidad en el <link linkend="C11">Capítulo 11</link>.
       </para>
 
       <!-- FIXME -->
@@ -1176,8 +1182,8 @@ void f1(const int i) {
 	Brevemente, una referencia es como un puntero constante que
 	se dereferencia automáticamente, así que es como tener un
 	alias de la variable. Para crear una referencia, debe usar
-	el símbolo <symbol>&amp;</symbol> en la definición. De ese
-	modo se tiene una definición libre de confusiones.
+	el símbolo <symbol>&amp;</symbol> en la definición. La
+	definición de la función libre de confusiones queda así:
       </para>
 
 
@@ -1196,9 +1202,8 @@ void f2(int ic) {
       -->
       <para>
 	De nuevo, aparece un mensaje de error, pero esta vez el
-	especificador <kw>const</kw> no forma parte de la
-	cabecera de la función, solo tiene sentido en la
-	implementación de la función y por la tanto es invisible para
+	especificador <kw>const</kw> no forma parte del prototipo de la función; sólo tiene sentido en la
+	implementación de la función y por lo tanto es invisible para
 	el cliente.
       </para>
     </sect2>
@@ -1228,10 +1233,10 @@ const int g();
       the return value.
       -->
       <para>
-	está diciendo que el valor de la variable original (en el ámbito de
+	está prometiendo que el valor de la variable original (en el ámbito de
 	la función) no se modificará. Y de nuevo, como lo está devolviendo
 	por valor, es la copia lo que se retorna, de modo que el valor
-	original nunca se podrá modificar.
+	original nunca se podrá modificar a través del valor de retorno.
       </para>
 
       <!--
@@ -1240,9 +1245,9 @@ const int g();
       consts by value in this example:
       -->
       <para>
-	En principio, esto puede hacer suponer que el especificador
+	Al principio, esto puede hacer suponer que el especificador
 	<kw>const</kw> tiene poco significado. Puede ver la aparente
-	falta de sentido de devolver constantes por valor en este
+	falta de efecto de devolver constantes por valor en este
 	ejemplo:
       </para>
 
@@ -1257,10 +1262,10 @@ const int g();
       off the const when returning a built-in type by value.
       -->
       <para>
-	Para los tipos básicos, no importa si el retorno es
+	Para los tipos predefinidos, no importa si el retorno es
 	constante, así que debería evitar la confusión para el
 	programador cliente y no utilizar <kw>const</kw>
-	cuando se devuelven variables de tipos básicos por valor.
+	cuando se devuelven variables de tipos predefinidos por valor.
       </para>
 
       <!--
@@ -1274,12 +1279,9 @@ const int g();
 	Devolver por valor como constante se vuelve importante cuando
 	se trata con tipos definidos por el programador. Si una
 	función devuelve un objeto por valor como constante, el valor
-	de retorno de la función no puede ser un recipiente
-	<footnote><para>N. del T.: <quote>recipiente</quote>
-	corresponde con el término
-	<foreignphrase>lvalue</foreignphrase> que se refiere a una
-	variable que puede ser modificada o a la que se le puede
-	asignar un valor.</para></footnote>
+	de retorno de la función no puede ser un
+	<emphasis>valor izquierdo</emphasis> (es decir, no se le puede asignar
+	nada ni se puede modificar de ningún otro modo).
       </para>
 
       <para>
@@ -1300,14 +1302,15 @@ const int g();
 	<function>f5()</function> devuelve un objeto de clase
 	<classname>X</classname> no constante, mientras que
 	<function>f6()</function> devuelve un objeto de clase
-	<classname>X</classname> pero constante. Solo el valor de
-	retorno por valor no constante se puede usar como recipiente.
+	<classname>X</classname> pero constante. Sólo el valor de
+	retorno por valor no constante se puede usar como
+	<emphasis>valor izquierdo</emphasis>.
       </para>
 
       <para>
 	Por eso, es importante usar <kw>const</kw> cuando se devuelve
 	un objeto por valor si quiere impedir que se use como
-	recipiente.
+	<emphasis>valor izquierdo</emphasis>.
       </para>
 
       <!--
@@ -1319,12 +1322,12 @@ const int g();
       -->
       <para>
 	La razón por la que <kw>const</kw> no tiene sentido cuando se
-	usa para devolver por valor variables de tipos del lenguaje es
+	usa para devolver por valor variables de tipos predefinidos es
 	que el compilador impide automáticamente el uso de dichos
-	tipos como recipiente, ya que devuelve un valor, no una
-	variable. Solo cuando se devuelven objetos por valor de tipos
-	definidos por el programador esta funcionalidad toma
-	sentido.
+	tipos como <emphasis>valor izquierdo</emphasis>, ya que devuelve un
+	valor, no una variable. Sólo cuando se devuelven objetos por
+	valor de tipos definidos por el programador esta cuestión
+	toma importancia.
       </para>
 
       <!-- The function f7( ) takes its argument as a non-const
@@ -1336,14 +1339,15 @@ const int g();
       <para>
 	La función <function>f7()</function> toma como argumento una
 	referencia no constante (la referencia es una forma adicional
-	para manejar direcciones en C++ y se trata en el capítulo 11). Es parecido a tomar un puntero no
+	para manejar direcciones en C++ y se trata en el <link linkend="C11">Capítulo
+	11</link>). En la práctica es lo mismo que tomar un puntero no
 	constante, aunque la sintaxis es diferente. La razón por la
-	que no compila es por la creación de un temporario.
+	que no compila en C++ es la creación de un objeto temporal.
       </para>
 
       <sect3>
 	<!-- : Temporaries -->
-	<title>Temporarios</title>
+	<title>Objetos temporales</title>
 
         <!--
         Sometimes, during the evaluation of an expression, the compiler must
@@ -1361,17 +1365,17 @@ const int g();
         -->
 	<para>
 	  A veces, durante la evaluación de una expresión, el compilador
-	  debe crear objetos temporales (temporarios). Son objetos como
-	  cualquier otro: requieren espacio de almacenamiento y se deben
-	  construir y destruir. La diferencia es que nunca se ven, el
+	  debe crear objetos temporales. Son objetos como cualquier
+	  otro: requieren espacio de almacenamiento y se deben
+	  construir y destruir. La diferencia es que nunca se ven: el
 	  compilador es el responsable de decidir si se necesitan y los
 	  detalles de su existencia. Una particularidad importante de los
-	  temporarios es que siempre son constantes. Como normalmente no
-	  manejará objetos temporarios, hacer algo que cambie un temporario
-	  es casi seguro un error porque no será capaz de usar esa
-	  información. Para evitar esto, el compilador crea todos los
-	  temporarios como objetos constantes, de modo que le avisará si
-	  intenta modificarlos.
+	  objetos temporales es que siempre son constantes. Como
+	  normalmente no manejará objetos temporales, hacer algo que
+	  cambie un objeto temporal es casi seguro un error porque no
+	  será capaz de usar esa información. Para evitar esto, el
+	  compilador crea todos los objetos temporales como constantes,
+	  de modo que le avisará si intenta modificarlos.
 	</para>
 
         <!--
@@ -1405,34 +1409,35 @@ f7(f5());
         error message so you don't get caught by what would be a very
         difficult bug to find.  -->
 	<para>
-	  el compilador debe crear un temporario para albergar el
+	  el compilador debe crear un objeto temporal para albergar el
 	  valor de retorno de <function>f5()</function> para que pueda
 	  ser pasado a <function>f7()</function>. Esto funcionaría
 	  bien si <function>f7()</function> tomara su argumento por
-	  valor; entonces el temporario se copiaría en
-	  <function>f7()</function> y no importaría lo que se pase al
-	  temporario X.
+	  valor; entonces el objeto temporal se copiaría en
+	  <function>f7()</function> y no importaría lo que le ocurriese
+	  al <classname>X</classname> temporal.
 	</para>
 
 	<!-- FIXME -->
 	<para>
 	  Sin embargo, <function>f7()</function> toma su argumento por
-	  referencia, lo que significa que toma la dirección del
-	  temporario X. Como <function>f7()</function> no toma su
-	  argumento por referencia constante, tiene permiso para
-	  modificar el objeto temporario. Pero el compilador sabe que
-	  el temporario desaparecerá en cuanto se complete la
-	  evaluación de la expresión, y por eso cualquier modificación
-	  hecha en el temporario se perderá.  Haciendo que los objetos
-	  temporarios sean constantes automáticamente, la situación
-	  causa un error de compilación de modo que evitará cometer un
-	  error muy difícil de localizar.
+	  referencia, lo que significa que en este ejemplo toma la
+	  dirección del <classname>X</classname> temporal. Como
+	  <function>f7()</function> no toma su argumento por
+	  referencia constante, tiene permiso para modificar el objeto
+	  temporal. Pero el compilador sabe que el objeto temporal
+	  desaparecerá en cuanto se complete la evaluación de la
+	  expresión, y por eso cualquier modificación hecha en el
+	  objeto temporal se perderá.  Al hacer que todos los objetos
+	  temporales sean constantes automáticamente, esta situación
+	  provoca un error de compilación, de modo que no caerá en lo
+	  que sería un error muy difícil de localizar.
 	</para>
 
         <!-- However, notice the expressions that are legal: -->
 	<para>
-	  En cualquier caso, tenga presente que las expresiones
-	  siguientes son correctas:
+	  Sin embargo, fíjese en que las expresiones siguientes son
+	  legales:
 	</para>
 
 
@@ -1458,10 +1463,10 @@ f5().modify();
 	  problemáticas.  <function>f5()</function> devuelve un
 	  objeto de clase <classname>X</classname>, y para que el
 	  compilador pueda satisfacer las expresiones anteriores
-	  debe crear un temporario para albergar el valor de
+	  debe crear un objeto temporal para albergar el valor de
 	  retorno. De modo que en ambas expresiones el objeto
-	  temporario se modifica y tan pronto como la expresión es
-	  evaluada el temporario se elimina. Como resultado, las
+	  temporal se modifica y, tan pronto como termina la
+	  expresión, el objeto temporal se elimina. Como resultado, las
 	  modificaciones se pierden, así que probablemente este
 	  código es erróneo, aunque el compilador no diga nada al
 	  respecto. Las expresiones como éstas son suficientemente
@@ -1512,7 +1517,7 @@ f5().modify();
       function arguments and return values:
       -->
       <para>
-	La opción de devolver un puntero o referencia constante
+	La opción de devolver un puntero o referencia a constante
 	depende de lo que quiera permitir hacer al programador
 	cliente. Aquí se muestra un ejemplo que demuestra el uso de
 	punteros constantes como argumentos de funciones y valores de
@@ -1535,12 +1540,12 @@ f5().modify();
       pointer using the address stored inside a const pointer.
       -->
       <para>
-	La función <function>t()</function> toma un puntero no-constante
+	La función <function>t()</function> toma un puntero no constante
 	ordinario como argumento, y <function>u()</function> toma un
 	puntero constante. En el cuerpo de <function>u()</function>
-	puede ver un intento de modificar el valor de un puntero
-	constante, algo incorrecto, pero puede copiar su valor en una
-	variable no constante. El compilador también impide crear un
+	puede ver que intentar modificar aquello a lo que apunta el
+	puntero constante es ilegal, pero, por supuesto, puede copiar
+	esa información en una variable no constante. El compilador también impide crear un
 	puntero no constante y almacenar en él la dirección contenida en
 	un puntero constante.
       </para>
@@ -1556,12 +1561,12 @@ f5().modify();
       -->
       <para>
 	Las funciones <function>v()</function> y
-	<function>w()</function> prueban las semánticas de retorno de
-	valores. <function>v()</function> devuelve un <type>const
+	<function>w()</function> prueban la semántica de los valores
+	de retorno. <function>v()</function> devuelve un <type>const
 	char*</type> que se crea a partir de un literal de
 	cadena. Esta sentencia en realidad genera la dirección del
-	literal una vez que el compilador lo crea y almacena en área
-	de almacenamiento estática. Como se ha dicho antes,
+	literal una vez que el compilador lo crea y almacena en el
+	área de almacenamiento estático. Como se ha dicho antes,
 	técnicamente este array de caracteres es una constante, como
 	bien indica el tipo de retorno de <function>v()</function>.
       </para>
@@ -1580,14 +1585,14 @@ f5().modify();
 	El valor de retorno de <function>w()</function> requiere que
 	tanto el puntero como lo que apunta sean constantes. Como en
 	<function>v()</function>, el valor devuelto por
-	<function>w()</function> es valido una vez terminada la
-	función solo porque es estático. Nunca debe devolver un
+	<function>w()</function> es válido una vez terminada la
+	función sólo porque es estático. Nunca debe devolver un
 	puntero a una variable local pues se almacenan en la pila y al
 	terminar la función los datos de la pila desaparecen. Lo que
-	si puede hacer es devolver punteros que apuntan a datos
-	almacenados en el montón
+	sí puede hacer es devolver punteros que apuntan a datos
+	almacenados en el montículo
 	(<foreignphrase>heap</foreignphrase>), pues siguen siendo
-	validos después de terminar la función.
+	válidos después de terminar la función.
       </para>
 
 
@@ -1632,14 +1637,15 @@ f5().modify();
 	asignar el valor devuelto por <function>w()</function> a un
 	puntero ordinario, y que sí acepte un <type>const int*
 	const</type>, pero podría sorprender un poco que también
-	acepta un <type>const int*</type>, que no es exactamente el
+	acepte un <type>const int*</type>, que no es exactamente el
 	tipo de retorno declarado en la función. De nuevo, como el
 	valor (que es la dirección contenida en el puntero) se copia,
 	el requisito de que la variable original permanezca
 	inalterable se cumple automáticamente. Por eso, el segundo
 	<kw>const</kw> en la declaración <type>const int* const</type>
-	sólo se aplica cuando lo use como recipiente, en cuyo caso el
-	compilador lo impediría.
+	sólo tiene sentido cuando intenta usarlo como
+	<emphasis>valor izquierdo</emphasis>, en cuyo caso el compilador se lo
+	impide.
       </para>
 
       <sect3>
@@ -1673,21 +1679,21 @@ f5().modify();
 	  puntero<footnote><para> Algunos autores dicen que todo en C
 	  se pasa por valor, ya que cuando se pasa un puntero se hace
 	  también una copia (de modo que el puntero se pasa por
-	  valor). En cualquier caso, hacer esta precisión puede, en
-	  realidad, confundir la cuestión.</para></footnote>. Sin
+	  valor). Por muy preciso que sea esto, creo que en realidad
+	  confunde la cuestión.</para></footnote>. Sin
 	  embargo, ninguno de estos modos es el preferido en C++. En
 	  su lugar, la primera opción cuando se pasa un parámetro es
 	  hacerlo por referencia o mejor aún, por referencia
 	  constante. Para el cliente de la función, la sintaxis es
-	  idéntica que en el paso por valor, de ese modo no hay
+	  idéntica a la del paso por valor, de ese modo no hay
 	  confusión posible con los punteros, no hay que pensar en
 	  términos de punteros. Para el creador de una función, pasar
-	  una dirección es siempre más eficiente que pasar un objeto
-	  completo, y si pasa por referencia constante significa que
-	  la función no podrá cambiar lo almacenado en esa dirección,
-	  así que el efecto desde el punto de vista del programador
-	  cliente es lo mismo que el paso por valor (sin embargo es
-	  más eficiente).
+	  una dirección es casi siempre más eficiente que pasar un
+	  objeto completo, y si pasa por referencia constante significa
+	  que la función no podrá cambiar lo almacenado en esa
+	  dirección, así que el efecto desde el punto de vista del
+	  programador cliente es lo mismo que el paso por valor (sólo
+	  que más eficiente).
 	</para>
 
        <!--
@@ -1704,15 +1710,14 @@ f5().modify();
 	<para>
 	  A causa de la sintaxis de las referencias (para el cliente
 	  es igual que el paso por valor) es posible pasar un objeto
-	  temporario a una función que toma una referencia constante,
-	  mientras que nunca puede pasarse un objeto temporario a una
+	  temporal a una función que toma una referencia constante,
+	  mientras que nunca puede pasarse un objeto temporal a una
 	  función que toma un puntero (con un puntero, la dirección
-	  debe darse explícitamente). Así que con el paso por
+	  debe tomarse explícitamente). Así que con el paso por
 	  referencia se produce una nueva situación que nunca ocurre
-	  en C: un temporario, que es siempre constante, puede pasar
-	  su dirección a una función (una función puede tomar por
-	  argumento la dirección de un temporario). Esto es así
-	  porque, para permitir que los temporarios se pasen por
+	  en C: se puede pasar a una función la dirección de un
+	  objeto temporal, que siempre es constante. Por eso, para
+	  permitir que los objetos temporales se pasen por
 	  referencia, el argumento debe ser una referencia
 	  constante. El siguiente ejemplo lo demuestra:
 	</para>
@@ -1735,8 +1740,8 @@ f5().modify();
 	  cuando tome el valor de retorno y lo pase inmediatamente a
 	  otra función como en las llamadas a
 	  <function>g1()</function> y <function>g2()</function>, se
-	  crea un temporario y los temporarios son siempre
-	  constantes. Por eso, la llamada a <function>g1()</function>
+	  crea un objeto temporal, y ese objeto temporal es
+	  constante. Por eso, la llamada a <function>g1()</function>
 	  es un error pues <function>g1()</function> no acepta una
 	  referencia constante, mientras que la llamada a
 	  <function>g2()</function> sí es correcta.
@@ -1762,10 +1767,9 @@ f5().modify();
       interesante crear una constante local a una clase para usarla en
       expresiones constantes que serán evaluadas en tiempo de
       compilación. Sin embargo, el significado del especificador
-      <kw>const</kw> es diferente para las clases
-      <footnote><para>N. del T.: Esto se conoce como polisemia del
-      lenguaje</para></footnote>, de modo que debe comprender las
-      opciones adecuadas para crear miembros constantes en una clase.
+      <kw>const</kw> es diferente dentro de las clases, de modo que
+      debe comprender las opciones adecuadas para crear atributos
+      constantes en una clase.
     </para>
 
     <!--
@@ -1780,12 +1784,13 @@ f5().modify();
     <para>
       También se puede hacer que un objeto completo sea constante (y
       como se ha visto, el compilador siempre hace constantes los
-      objetos temporarios). Pero preservar la consistencia de un objeto
+      objetos temporales). Pero preservar la constancia de un objeto
       constante es más complicado. El compilador puede asegurar la
-      consistencia de las variables de los tipos del lenguaje pero no
-      puede vigilar la complejidad de una clase. Para garantizar dicha
-      consistencia se emplean las funciones miembro constantes; que son
-      las únicas que un objeto constante puede invocar.
+      constancia de las variables de los tipos predefinidos pero no
+      puede vigilar la complejidad de una clase. Para garantizar la
+      constancia de un objeto se emplean las funciones miembro
+      constantes: sólo se puede invocar una función miembro constante
+      sobre un objeto constante.
     </para>
     <!-- [PAG:373] -->
 
@@ -1815,9 +1820,8 @@ f5().modify();
 	como <varname>size</varname>, por ejemplo, se podría usar el
 	mismo nombre en otra clase sin que ocurra un conflicto. El
 	preprocesador trata todos los <kw>#define</kw> de forma global
-	a partir del punto donde se definen, algo que <kw>const</kw>
-	permite corregir de forma adecuada consiguiendo el efecto
-	deseado.
+	a partir del punto donde se definen, así que con ellos no se
+	consigue el efecto deseado.
       </para>
 
       <!--
@@ -1832,12 +1836,12 @@ f5().modify();
       <para>
 	Se podría pensar que la elección lógica es colocar una
 	constante dentro de la clase. Esto no produce el resultado
-	esperado. Dentro de una clase <kw>const</kw>
+	esperado. Dentro de una clase, <kw>const</kw>
 	recupera un poco su significado en C. Asigna espacio de
-	almacenamiento para cada variable y representa un valor que
-	es inicializado y ya no se puede cambiar. El uso de una
+	almacenamiento dentro de cada objeto y representa un valor que
+	se inicializa una vez y ya no se puede cambiar. El uso de una
 	constante dentro de una clase significa <quote>Esto es constante
-	  durante la vida del objeto</quote>. Por otra parte, en cada objeto
+	  durante la vida del objeto</quote>. Sin embargo, en cada objeto
 	la constante puede contener un valor diferente.
       </para>
 
@@ -1856,7 +1860,8 @@ f5().modify();
       <para>
 	Por eso, cuando crea una constante ordinaria (no estática) dentro
 	de una clase, no puede darle un valor inicial. Esta inicialización
-	debe ocurrir en el constructor. Como la constante se debe
+	debe ocurrir en el constructor, por supuesto, pero en un lugar
+	especial del constructor. Como la constante se debe
 	inicializar en el punto en que se crea, en el cuerpo del
 	constructor la constante debe estar ya inicializada. De otro modo,
 	le quedaría la opción de esperar hasta algún punto posterior en el
@@ -1867,7 +1872,7 @@ f5().modify();
 
       <sect3>
 	<!-- : The constructor initializer list -->
-	<title>La lista de inicialización del constructor.</title>
+	<title>La lista de inicialización del constructor</title>
 
         <!--
         The special initialization point is called the constructor initializer
@@ -1882,20 +1887,22 @@ f5().modify();
         class is shown here:
         -->
 	<para>
-	  Un punto especial de inicialización es la llamada
+	  Ese punto especial de inicialización se llama
 	    <quote>lista de inicialización del constructor</quote> y
 	    fue pensada en un principio para su uso en herencia
-	    (tratada en el capítulo 14). La lista de
+	    (tratada en el <link linkend="C14">Capítulo 14</link>). La lista de
 	    inicialización del constructor (que como su nombre indica,
 	    sólo aparece en la definición del constructor) es una
-	    lista de llamadas a constructores que aparece después de
-	    la lista de argumentos del constructor y antes de abrir la
-	    llave del cuerpo del constructor.
+	    lista de <quote>llamadas a constructores</quote> que
+	    aparece después de la lista de argumentos del constructor y
+	    de dos puntos, y antes de abrir la llave del cuerpo del
+	    constructor.
 
           <!-- [PAG:375] -->
 
-	  Se hace así para recordarle que las inicialización de la
-	  lista sucede antes de ejecutarse el constructor. Ese es el lugar
+	  Se hace así para recordarle que la inicialización de la
+	  lista sucede antes de que se ejecute el código principal del
+	  constructor. Éste es el lugar
 	  donde poner las inicializaciones de todas las constantes de la
 	  clase. El modo apropiado para colocar las constantes en una clase
 	  se muestra a continuación:
@@ -1913,14 +1920,14 @@ f5().modify();
 	<para>
 	  El aspecto de la lista de inicialización del constructor
 	  mostrada arriba puede crear confusión al principio porque no
-	  es usual tratar los tipos del lenguaje como si tuvieran
+	  es usual tratar los tipos predefinidos como si tuvieran
 	  constructores.
 	</para>
       </sect3>
 
       <sect3>
         <!-- : Constructors for built-in types -->
-	<title>Constructores para los tipos del lenguaje</title>
+	<title>Constructores para los tipos predefinidos</title>
 
         <!--
         As the language developed and more effort was put into making
@@ -1930,14 +1937,14 @@ f5().modify();
         a built-in type as if it has a constructor, like this:
         -->
 	<para>
-	  Durante el desarrollo del lenguaje se puso más esfuerzo en
-	  hacer que los tipos definidos por el programador se
-	  pareciesen a los tipos del lenguaje, pero a veces, cuando
-	  se vio útil se hizo que los tipos predefinidos
-	  (<foreignphrase>built-in</foreignphrase> se pareciesen a
+	  A medida que el lenguaje se desarrollaba y se ponía más
+	  esfuerzo en hacer que los tipos definidos por el programador
+	  se pareciesen a los tipos predefinidos, se hizo evidente que
+	  a veces era útil hacer que los tipos predefinidos
+	  (<foreignphrase>built-in</foreignphrase>) se pareciesen a
 	  los definidos por el programador. En la lista de
 	  inicialización del constructor, puede tratar a los tipos
-	  del lenguaje como si tuvieran un constructor, como aquí:
+	  predefinidos como si tuvieran un constructor, como aquí:
 	</para>
 
 
@@ -1963,11 +1970,10 @@ f5().modify();
 	  Esto es especialmente crítico cuando se inicializan
 	  atributos constantes porque se deben inicializar antes de
 	  entrar en el cuerpo de la función.  Tiene sentido extender
-	  este <quote>constructor</quote> para los tipos del lenguaje
-	  (que simplemente significan asignación) al caso general que
-	  es por lo que la definición <type>float</type> funciona en
-	  el código anterior. A menudo es útil encapsular un tipo del
-	  lenguaje en una clase para garantizar la inicialización con
+	  este <quote>constructor</quote> para los tipos predefinidos
+	  (que simplemente significa asignación) al caso general, que
+	  es por lo que la definición <code>float pi(3.14159)</code>
+	  funciona en el código anterior. A menudo es útil encapsular un tipo predefinido en una clase para garantizar la inicialización con
 	  el constructor. Por ejemplo, aquí hay una clase
 	  <classname>Integer</classname>:
 	</para>
@@ -1983,18 +1989,19 @@ f5().modify();
         process.
         -->
 	<para>
-	  El array de enteros declarado en
-	  <function>main()</function> se inicializa automáticamente a
+	  Todos los elementos del array de
+	  <classname>Integer</classname> declarado en
+	  <function>main()</function> se inicializan automáticamente a
 	  cero. Esta inicialización no es necesariamente más costosa
 	  que un bucle <kw>for</kw> o
-	  <function>memset()</function>. Muchos compiladores lo
-	  optimizan fácilmente como un proceso muy rápido.
+	  <function>memset()</function>. Muchos compiladores la
+	  optimizan fácilmente para convertirla en un proceso muy
+	  rápido.
 	</para>
       </sect3>
     </sect2>
 
 
-<!-- revisando por aquí -->
 
     <sect2>
       <!-- : Compile-time constants in classes -->
@@ -2015,15 +2022,16 @@ f5().modify();
       <para>
 	El uso anterior de <kw>const</kw> es interesante y
 	probablemente útil en muchos casos, pero no resuelve el
-	programa original de <quote>cómo hacer una constante en tiempo
+	problema original de <quote>cómo hacer una constante en tiempo
 	de compilación dentro de una clase</quote>. La respuesta
-	requiere del uso de un especificador adicional que se explicará completamente en el capítulo 10:
+	requiere el uso de una palabra reservada adicional que no se
+	explicará completamente hasta el <link linkend="C10">Capítulo 10</link>:
 	<kw>static</kw>. El especificador <kw>static</kw>, en esta
 	situación significa <quote>hay sólo una instancia a pesar de
 	que se creen varios objetos de la clase</quote> que es
 	precisamente lo que se necesita: un atributo de clase que es
 	constante, y que no cambia de un objeto a otro de la misma
-	clase. Por eso, una <kw>static const</kw> de un tipo básico se
+	clase. Por eso, una <kw>static const</kw> de un tipo predefinido se
 	puede tratar como una constante en tiempo de compilación.
       </para>
 
@@ -2036,11 +2044,11 @@ f5().modify();
       initialized in the constructor or in other member functions.
       -->
       <para>
-	Hay un característica de <kw>static const</kw> cuando se usa
+	Hay una característica de <kw>static const</kw> cuando se usa
 	dentro de clases que es un tanto inusual: se debe indicar el
 	valor inicial en el punto en que se define. Esto sólo ocurre
 	con <kw>static const</kw> y no funciona en otras situaciones
-	porque todos lo otros atributos deben inicializarse en el
+	porque todos los otros atributos deben inicializarse en el
 	constructor o en otros métodos.
       </para>
 
@@ -2053,8 +2061,8 @@ f5().modify();
 	A continuación aparece un ejemplo que muestra la creación y
 	uso de una <kw>static const</kw> llamada
 	<varname>size</varname> en una clase que representa una pila
-	de punteros a cadenas<footnote><para>Al termino de este libro,
-	no todos los compiladores permiten esta
+	de punteros a cadenas<footnote><para>En el momento de escribir
+	este libro, no todos los compiladores permitían esta
 	característica.</para></footnote>.
       </para>
 
@@ -2072,7 +2080,7 @@ f5().modify();
       -->
       <para>
 	Como <varname>size</varname> se usa para determinar el tamaño
-	del array <varname>stack</varname>, es adecuado usar una
+	del array <varname>stack</varname>, es de hecho una
 	constante en tiempo de compilación, pero que queda oculta
 	dentro de la clase.
       </para>
@@ -2092,7 +2100,7 @@ f5().modify();
 	<classname>StringStack</classname> contiene <type>const
 	string*</type>. Si no fuera así, no podría usar una
 	<classname>StringStack</classname> para contener los punteros
-	de <varname>icecream</varname>. En cualquier caso, también
+	de <varname>iceCream</varname>. Sin embargo, esto también
 	impide hacer algo que cambie los objetos contenidos en
 	<classname>StringStack</classname>. Por supuesto, no todos los
 	contenedores están diseñados con esta restricción.
@@ -2113,7 +2121,7 @@ f5().modify();
         see:
         -->
 	<para>
-	  En versiones antiguas de C++ el tipo <kw>static const</kw>
+	  En versiones antiguas de C++, <kw>static const</kw>
 	  no se permitía dentro de las clases. Esto hacía que
 	  <kw>const</kw> no pudiese usarse para expresiones constantes
 	  dentro de clases. Pero muchos programadores lo conseguían
@@ -2154,9 +2162,9 @@ enum { one = 1, two = 2, three };
         last value, so the enumerator three will get the value 3.
         -->
 	<para>
-	  utilizando tipos <type>enum</type> enteros, el compilador
+	  Con tipos <type>enum</type> enteros, el compilador
 	  continuará contando a partir del último valor, así que el
-	  símbolo <constant>three</constant> tendrá un valor 3.
+	  símbolo <constant>three</constant> tendrá el valor 3.
 	</para>
 
         <!-- In the StringStack.cpp example above, the line: -->
@@ -2188,14 +2196,14 @@ enum { size = 100 };
         was written.
         -->
 	<para>
-	  Aunque es fácil ver esta técnica en código correcto, el uso
+	  Aunque es fácil ver esta técnica en código antiguo, el uso
 	  de <kw>static const</kw> fue añadido al lenguaje
-	  precisamente para resolver este problema.  En todo caso, no
+	  precisamente para resolver este problema.  Sin embargo, no
 	  existe ninguna razón abrumadora por la que deba usar
 	  <kw>static const</kw> en lugar de <type>enum</type>, y en
 	  este libro se utiliza <type>enum</type> porque hay más
-	  compiladores que le dan soporte en el momento en el momento
-	  en que se escribió este libro.
+	  compiladores que le dan soporte en el momento en que se
+	  escribió este libro.
 	</para>
       </sect3>
     </sect2>
@@ -2220,7 +2228,7 @@ enum { size = 100 };
       -->
       <para>
 	Un objeto constante se define del mismo modo para un tipo
-	definido por el usuario que para un tipo del lenguaje. Por
+	definido por el usuario que para un tipo predefinido. Por
 	ejemplo:
       </para>
 
@@ -2243,11 +2251,11 @@ const blob b(2);
         Aquí, <varname>b</varname> es un objeto constante de tipo
         <type>blob</type>, su constructor se llama con un
         <literal>2</literal> como argumento. Para que el compilador
-        imponga que el objeto sea constante, debe asegurar que el
-        objeto no tiene atributos que vayan a cambiar durante el
-        tiempo de vida del objeto. Puede asegurar fácilmente que los
-        atributos no públicos no sean modificables, pero. ¿Cómo puede
-        saber que métodos cambiarán los atributos y cuáles son seguros
+        imponga que el objeto sea constante, debe asegurar que ningún
+        atributo del objeto cambia durante el tiempo de vida del
+        objeto. Puede asegurar fácilmente que no se modifica ningún
+        atributo público, pero ¿cómo puede saber qué métodos
+        cambiarán los atributos y cuáles son <quote>seguros</quote>
         para un objeto constante?
       </para>
 
@@ -2260,8 +2268,9 @@ const blob b(2);
       it for a const object.
       -->
       <para>
-        Si declara un método como constante, le está diciendo que la
-        función puede ser invocada por un objeto constante. Un método
+        Si declara un método como constante, le está diciendo al
+        compilador que la función puede ser invocada por un objeto
+        constante. Un método
         que no se declara constante se trata como uno que puede
         modificar los atributos del objeto, y el compilador no permitirá
         que un objeto constante lo utilice.
@@ -2283,13 +2292,12 @@ const blob b(2);
         <kw>const</kw> no garantiza que actuará del modo correcto, de
         modo que el compilador fuerza que en la definición del método
         se reitere el especificador <kw>const</kw> (la palabra
-        <kw>const</kw> se convierte en parte del nombre de la función,
-        así que tanto el compilador como el enlazador comprobarán que
-        no se viole la constancia). De este modo, si durante la
-        definición de la función se modifica algún miembro o se llama
-        algún método no constante, el compilador emitirá un mensaje de
-        error. Por eso, está garantizado que los miembros que declare
-        <kw>const</kw> se comportarán del modo esperado.
+        <kw>const</kw> se convierte en parte del prototipo de la función, así que tanto el compilador como el enlazador
+        comprobarán que no se viole la constancia). De este modo, si
+        durante la definición de la función se modifica algún miembro
+        o se llama a algún método no constante, el compilador emitirá
+        un mensaje de error. Por eso, está garantizado que los métodos
+        que declare <kw>const</kw> se comportarán del modo esperado.
       </para>
 
       <!--
@@ -2341,10 +2349,10 @@ const blob b(2);
       declared as const, so it can be used with const objects.
       -->
       <para>
-	Puede ver que un miembro constante puede llamarse tanto desde
+	Puede ver que un método constante puede llamarse tanto desde
 	objetos constantes como desde no constantes de forma
-	segura. Por ello, debe saber que esa es la forma más general
-	para un método (a causa de esto, el hecho de que los métodos
+	segura. Por ello, podría considerarse la forma más general
+	de un método (a causa de esto, el hecho de que los métodos
 	no sean <kw>const</kw> por defecto resulta desafortunado). Un
 	método que no modifica ningún atributo se debería escribir
 	como constante y así se podría usar desde objetos constantes.
@@ -2375,7 +2383,7 @@ const blob b(2);
 	Ni los constructores ni los destructores pueden ser métodos
 	constantes porque prácticamente siempre realizan alguna
 	modificación en el objeto durante la inicialización o la
-	terminación. El miembro <function>quote()</function> tampoco
+	terminación. El método <function>quote()</function> tampoco
 	puede ser constante porque modifica el atributo
 	<varname>lastquote</varname> (ver la sentencia de retorno).  Por
 	otra parte <function>lastQuote()</function> no hace
@@ -2403,17 +2411,17 @@ const blob b(2);
         -->
 	<para>
 	  ¿Qué ocurre si quiere crear un método constante, pero
-	  necesita cambiar algún atributo del objeto? Esto se aplica a
-	  veces a la diferencia entre constante binaria
+	  necesita cambiar algún atributo del objeto? Esto se conoce a
+	  veces como la diferencia entre constante binaria
 	  (<foreignphrase>bitwise</foreignphrase>) y constante lógica
-	  (llamado también constante
+	  (llamada también constante
 	  <foreignphrase>memberwise</foreignphrase>). Constante
 	  binaria significa que todos los bits del objeto son
 	  permanentes, así que la imagen binaria del objeto nunca
 	  cambia.  Constante lógica significa que, aunque el objeto
-	  completo es conceptualmente constante puede haber cambios a
-	  nivel de miembro.  Si se informa al compilador que un objeto
-	  es constante, cuidará celosamente el objeto para asegurar
+	  completo es conceptualmente constante, puede haber cambios a
+	  nivel de miembro.  Sin embargo, si se informa al compilador
+	  de que un objeto es constante, cuidará celosamente el objeto para asegurar
 	  constancia binaria. Para conseguir constancia lógica, hay
 	  dos formas de cambiar los atributos con un método constante.
 	</para>
@@ -2429,13 +2437,14 @@ const blob b(2);
         example:
         -->
 	<para>
-	  La primera solución es la tradicional y se llama constancia
-	  <foreignphrase>casting away</foreignphrase>.  Esto se hace
+	  La primera solución es la tradicional y se llama
+	  <foreignphrase>casting away constness</foreignphrase>
+	  (eliminar la constancia mediante un molde).  Esto se hace
 	  de un modo bastante raro. Se toma <varname>this</varname>
 	  (la palabra que indica la dirección del objeto actual) y se
 	  moldea el puntero a un puntero a objeto de la clase
-	  actual. Parece que <varname>this</varname> ya es un puntero
-	  válido. Sin embargo, dentro de un método constante,
+	  actual. Podría parecer que <varname>this</varname> ya es un
+	  puntero de ese tipo. Sin embargo, dentro de un método constante,
 	  <varname>this</varname> es en realidad un puntero constante,
 	  así que moldeándolo a un puntero ordinario se elimina la
 	  constancia del objeto para esta operación. Aquí hay un
@@ -2458,16 +2467,17 @@ const blob b(2);
         member may be changed inside a const object:
         -->
 	<para>
-	  Esta aproximación funciona y puede verse en código
-	  correcto, pero no es la técnica ideal. El problema es que
+	  Este enfoque funciona y puede verse en código
+	  antiguo, pero no es la técnica preferida. El problema es que
 	  esta falta de constancia está oculta en la definición de
 	  un método y no hay ningún indicio en la interfaz de la
 	  clase que haga sospechar que ese dato se modifica a menos
-	  que puede accederse al código fuente (buscando el
-	  molde). Para poner todo al descubierto se debe usar la
-	  palabra <kw>mutable</kw> en la declaración de la
-	  clase para indicar que un atributo determinado se puede
-	  cambiar aún perteneciendo a un objeto constante.
+	  que pueda acceder al código fuente (y sospeche que se está
+	  eliminando la constancia y busque el molde). Para poner todo
+	  al descubierto se debe usar la palabra reservada
+	  <kw>mutable</kw> en la declaración de la clase para indicar
+	  que un atributo determinado se puede cambiar aun
+	  perteneciendo a un objeto constante.
 	</para>
 
 
@@ -2480,7 +2490,8 @@ const blob b(2);
         -->
 	<para>
 	  De este modo el usuario de la clase puede ver en la declaración
-	  qué miembros tienen posibilidad de ser modificados por un método.
+	  qué miembros tienen posibilidad de ser modificados por un método
+	  constante.
 	</para>
       </sect3>
       <sect3>
@@ -2505,7 +2516,7 @@ const blob b(2);
 	  ser almacenado en memoria de sólo lectura (ROM), que a
 	  menudo es una consideración importante en programación de
 	  sistemas empotrados. Para conseguirlo no es suficiente con
-	  que el objeto sea constante, los requisitos son mucha más
+	  que el objeto sea constante, los requisitos son mucho más
 	  estrictos. Por supuesto, el objeto debe ser una constante
 	  binaria. Eso es fácil de comprobar si la constancia lógica
 	  se implementa mediante el uso de <kw>mutable</kw>, pero
@@ -2532,9 +2543,9 @@ const blob b(2);
         objects with user-defined constructors or destructors.
         -->
 	    <para>
-	      No pueden ser clases base (capitulo 14) u objetos
-	      miembro con constructores o destructor definidos por el
-	      usuario.
+	      No puede haber clases base (tratadas en el Capítulo 14)
+	      ni objetos miembro con constructores o destructores
+	      definidos por el usuario.
 	    </para>
 	  </listitem>
 	</itemizedlist>
@@ -2545,10 +2556,11 @@ const blob b(2);
         placed in ROM, no objects are ever required to be placed in ROM.
         -->
 	<para>
-	  El efecto de una operación de escritura en una parte del
-	  objeto constante de un tipo <type>ROMable</type> no está
-	  definido. Aunque un objeto pueda ser colocado en ROM de
-	  forma conveniente, no todos lo requieren.
+	  El efecto de una operación de escritura en cualquier parte
+	  de un objeto constante de un tipo <type>ROMable</type> no
+	  está definido. Aunque un objeto con la forma adecuada puede
+	  colocarse en ROM, nunca se exige que ningún objeto se coloque
+	  en ROM.
 	</para>
       </sect3>
     </sect2>
@@ -2572,7 +2584,7 @@ const blob b(2);
       dato puede cambiar sin que el compilador sea informado de
       ello</quote>. De algún modo, el entorno modifica el dato
       (posiblemente mediante multitarea, multihilo o interrupciones),
-      y <kw>volatile</kw> indica la compilador que no haga
+      y <kw>volatile</kw> indica al compilador que no haga
       suposiciones sobre el dato, especialmente durante la
       optimización.
     </para>
@@ -2606,12 +2618,12 @@ const blob b(2);
     -->
     <para>
       Pueden crearse objetos <kw>volatile</kw> usando la misma
-      sintaxis que se usa para crear objetos constantes. También puede
+      sintaxis que se usa para crear objetos constantes. También pueden
       crearse objetos <kw>volatile</kw> constantes que no pueden
       cambiarse por el programador cliente pero se pueden modificar
       por una entidad ajena al programa. Aquí se muestra un ejemplo
-      que representa una clase asociada con algún elemento físico de
-      comunicación.
+      que podría representar una clase asociada con algún elemento
+      físico de comunicación.
     </para>
 
 
@@ -2627,8 +2639,8 @@ const blob b(2);
     <para>
       Como ocurre con <kw>const</kw>, se puede usar <kw>volatile</kw>
       para los atributos de la clase, los métodos y para los objetos
-      en sí mismos. Sólo puede llamar a métodos <kw>volatile</kw>
-      desde objetos <kw>volatile</kw>.
+      en sí mismos. Sobre objetos <kw>volatile</kw> sólo puede
+      llamar a métodos <kw>volatile</kw>.
     </para>
 
     <!--
@@ -2640,12 +2652,12 @@ const blob b(2);
     -->
     <para>
       La razón por la que <function>isr()</function> no se puede usar
-      como una rutina de servicio de interrupción (ISR) es que en un
-      método, la dirección del objeto actual (<varname>this</varname>)
-      debe pasarse secretamente, y una ISR no requiere
-      argumentos. Para resolver este problema se puede hacer que el
+      realmente como una rutina de servicio de interrupción (ISR) es
+      que en un método, la dirección del objeto actual
+      (<varname>this</varname>) debe pasarse secretamente, y una ISR
+      normalmente no admite ningún argumento. Para resolver este problema se puede hacer que el
       método <function>isr()</function> sea un método de clase
-      (<kw>static</kw>), un asunto que se trata en el capítulo 10.
+      (<kw>static</kw>), un asunto que se trata en el <link linkend="C10">Capítulo 10</link>.
     </para>
 
     <!--
@@ -2655,8 +2667,8 @@ const blob b(2);
     -->
     <para>
       La sintaxis de <kw>volatile</kw> es idéntica a la de
-      <kw>const</kw>, así que por eso se suelen tratar juntos. Cuando
-      se usan combinados se conocen como cuantificador
+      <kw>const</kw>, así que se suelen tratar juntos. Cuando
+      se usan combinados se conocen como calificador
       <emphasis>c-v</emphasis> (const-volatile).
     </para>
   </sect1>
@@ -2677,11 +2689,11 @@ const blob b(2);
     a lifesaver for projects.
     -->
     <para>
-      La palabra <kw>const</kw> permite la posibilidad de definir
-      objetos, argumentos de función, valores de retorno y métodos
-      como constantes y elimina el uso del preprocesador para la
+      La palabra reservada <kw>const</kw> permite definir objetos,
+      argumentos de función, valores de retorno y métodos como
+      constantes, y eliminar el uso del preprocesador para la
       sustitución de valores sin perder ninguna de sus ventajas. Todo
-      ello ofrece una forma adicional de comprobación de tipos y
+      ello ofrece una importante forma adicional de comprobación de tipos y
       seguridad en la programación. El uso de la llamada
       <quote>constancia exacta</quote> (<foreignphrase>const
       correctness</foreignphrase>) es decir, el uso de <kw>const</kw>
@@ -2696,10 +2708,11 @@ const blob b(2);
     it is to use const with function arguments.
     -->
     <para>
-      Aunque ignore a <kw>const</kw> y continue usando el estilo
-      tradicional de C, <kw>const</kw> existe para ayudarle. El capítulo 11 utiliza las referencias extensamente, y se
-      verá más sobre la importancia del uso de <kw>const</kw> en los
-      argumentos de funciones.
+      Aunque ignore a <kw>const</kw> y continúe usando el estilo
+      tradicional de C, <kw>const</kw> existe para ayudarle. A partir
+      del <link linkend="C11">Capítulo 11</link> se utilizan las referencias extensamente, y se
+      verá aún más sobre la importancia del uso de <kw>const</kw> en
+      los argumentos de funciones.
     </para>
   </sect1>
 
@@ -2723,7 +2736,7 @@ const blob b(2);
 	  definición de un array. Intente compilar el mismo código
 	  en C y vea qué sucede (generalmente se puede forzar al
 	  compilador de C++ para que funcione como un compilador de
-	  C utilizando alguna opción de linea de comandos).
+	  C utilizando alguna opción de línea de comandos).
 	</para>
       </listitem>
       <listitem>
@@ -2733,7 +2746,7 @@ const blob b(2);
 	constant expression; then compile it under both C and C++.
 	-->
 	<para>
-	  Probar que los compiladores de C y C++ realmente tratan las
+	  Compruebe que los compiladores de C y C++ realmente tratan las
 	  constantes de modo diferente. Cree una constante global y
 	  úsela en una expresión global constante, compile dicho
 	  código en C y C++.
@@ -2746,8 +2759,7 @@ const blob b(2);
 	new const definitions. Make sure they compile successfully.
 	-->
 	<para>
-	  Cree definiciones constantes para todos los tipos del
-	  lenguaje y sus variantes. Úselos en expresiones con otras
+	  Cree definiciones constantes para todos los tipos predefinidos y sus variantes. Úselas en expresiones con otras
 	  constantes para hacer definiciones de constantes
 	  nuevas. Compruebe que compilan correctamente.
 	</para>
@@ -2759,8 +2771,8 @@ const blob b(2);
 	should not get any errors. Now try the same experiment with C.
 	-->
 	<para>
-	  Cree una definición de constante en un archivo de cabecera,
-	  incluya dicho archivo en dos archivos
+	  Cree una definición de constante en un fichero de cabecera,
+	  incluya dicho fichero en dos ficheros
 	  <filename>.cpp</filename>, compílelos y enlácelos con el
 	  compilador de C++. No deberían ocurrir errores. Ahora
 	  intente el mismo experimento con el compilador de C.
@@ -2776,7 +2788,7 @@ const blob b(2);
 	<para>
 	  Cree una constante cuyo valor se determine en tiempo de
 	  ejecución leyendo la hora en que comienza la ejecución del
-	  programa (puede usar <filename
+	  programa (tendrá que usar la cabecera estándar <filename
 	    class="headerfile">&lt;ctime&gt;</filename>). Después, en el
 	  programa, intente leer un segundo valor de hora,
 	  almacenarlo en la constante y vea qué sucede.
@@ -2854,8 +2866,8 @@ const blob b(2);
 	PointerAssignment.cpp to see the error that your compiler generates.
 	-->
 	<para>
-	  Elimine el comentario de la linea errónea en
-	  <filename>PointerAssignemt.cpp</filename> para ver qué
+	  Elimine el comentario de la línea errónea en
+	  <filename>PointerAssignment.cpp</filename> para ver qué
 	  mensaje de error muestra el compilador.
 	</para>
       </listitem>
@@ -2869,8 +2881,8 @@ const blob b(2);
 	<para>
 	  Cree un literal de cadena y un puntero que apunte al
 	  comienzo del literal. Ahora, use el puntero para
-	  modificar los elementos del array, ¿Informa el compilador
-	  de algún error? ¿Debería? Si no lo hace, ¿Porqué piensa
+	  modificar los elementos del array. ¿Informa el compilador
+	  de algún error? ¿Debería? Si no lo hace, ¿por qué piensa
 	  que puede ser?
 	</para>
       </listitem>
@@ -2894,8 +2906,9 @@ const blob b(2);
 	<para>
 	  Cree una función que tome un <type>float</type> por
 	  valor. Dentro de la función vincule el argumento a un
-	  <type>const float&amp;</type> y use dicha referencia para
-	  asegurar que el argumento no sea modificado
+	  <type>const float&amp;</type> y a partir de ahí use sólo
+	  dicha referencia para asegurar que el argumento no sea
+	  modificado.
 	</para>
       </listitem>
       <listitem>
@@ -2917,9 +2930,9 @@ const blob b(2);
 	generates.
 	-->
 	<para>
-	  Modifique <filename>ConsPointer.cpp</filename> eliminando
-	  los comentarios en las líneas erróneas para ver qué mensajes
-	  de error muestra el compilador.
+	  Modifique <filename>ConstPointer.cpp</filename> eliminando
+	  los comentarios en las líneas erróneas una cada vez para ver
+	  qué mensajes de error muestra el compilador.
 	</para>
       </listitem>
       <listitem>
@@ -2933,7 +2946,7 @@ const blob b(2);
 	  <filename>ConstPointer.cpp</filename> llamada
 	  <filename>ConstReference.cpp</filename> que demuestre el
 	  funcionamiento con referencias en lugar de con punteros.
-	  (quizá necesite consultar el capítulo 11).
+	  (quizá necesite consultar el <link linkend="C11">Capítulo 11</link>).
 	</para>
       </listitem>
       <listitem>
@@ -3037,7 +3050,7 @@ const blob b(2);
 	-->
 	<para>
 	  Elimine el comentario de la línea errónea en
-	  <filename>mutable.cpp</filename> para ver el mensaje de
+	  <filename>Mutable.cpp</filename> para ver el mensaje de
 	  error que muestra el compilador.
 	</para>
       </listitem>
@@ -3083,14 +3096,15 @@ const blob b(2);
 	<para>
 	  Cree una clase llamada <classname>bird</classname> que
 	  pueda ejecutar <function>fly()</function> y una clase
-	  <classname>rock</classname> que no pueda. Crear un objeto
-	  <varname>rock</varname>, tome su dirección y asigne a un
+	  <classname>rock</classname> que no pueda. Cree un objeto
+	  <varname>rock</varname>, tome su dirección y asígnela a un
 	  <type>void*</type>. Ahora tome el <type>void*</type>,
 	  asígnelo a un <type>bird*</type> (debe usar un molde) y
 	  llame a <function>fly()</function> a través de dicho
-	  puntero. ¿Esto es posible porque la característica de C que
-	  permite asignar a un <type>void*</type> (sin un molde) es
-	  un agujero del lenguaje, que no debería propagarse a C++?
+	  puntero. ¿Está claro por qué el permiso de C para asignar
+	  libremente a través de un <type>void*</type> (sin un molde)
+	  es un <quote>agujero</quote> del lenguaje, que no podía
+	  propagarse a C++?
 	</para>
       </listitem>
     </orderedlist>
