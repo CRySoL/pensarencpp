@@ -60,7 +60,7 @@ está incluido.
   normalizado la terminología del texto ya traducido según el glosario
   (sobre todo «stream», que pasa a «flujo»).
 
-## Fase 2: completar los capítulos a medias (unas 25.800 palabras)
+## Fase 2: completar los capítulos a medias (hecha el 29/10/2026)
 
 - **C11 (hecho el 29/10/2026):** el final de «Finalización de tareas», más
   «Cooperación entre hilos», «Interbloqueo», el resumen y los ejercicios.
@@ -75,8 +75,10 @@ está incluido.
 - **C09 (hecho el 29/10/2026):** desde «Herencia de implementación» hasta el
   final, con sus ocho figuras redibujadas en SVG (`images/V2_13.svg` a
   `V2_20.svg`) a partir de las GIF del original.
-- **C01:** desde «Capturar una excepción» hasta el final. Los títulos están
-  traducidos, pero los párrafos no.
+- **C01 (hecho el 29/10/2026):** desde «Capturar una excepción» hasta el
+  final. Además: los párrafos ya traducidos pasan a la terminología del
+  glosario («gestión de excepciones», «palabra reservada», «librería») y se
+  restauran 18 encabezados que estaban pegados al texto.
 
 ## Fase 3: capítulos sin empezar (unas 54.900 palabras)
 
@@ -94,7 +96,9 @@ está incluido.
 
 - **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
   títulos de los libros se quedan en inglés.
-- **Figuras del volumen 2:** las de C09 ya están en SVG. Las GIF originales
+- **Figuras del volumen 2:** las de C09 ya están en SVG. Faltan las de dos
+  capítulos ya traducidos: C04 (`image007`–`image010`, jerarquías de
+  iostreams) y C10 (`image021`, apoderado y estado). Las GIF originales
   del resto de capítulos están en `images/image0NN.gif`; al traducir cada
   capítulo hay que redibujar sus figuras en SVG (`images/V2_NN.svg`, con el
   número de la GIF), traduciendo el texto que no sea código según las

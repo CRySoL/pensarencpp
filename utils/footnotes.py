@@ -24,7 +24,9 @@ import sys
 NOTE = re.compile(r'<div id=ftn(\d+)>(.*?)</div>', re.S)
 MARK = re.compile(r'\[(\d{1,3})\]')
 COMMENT = re.compile(r'<!--.*?-->', re.S)
-LISTING = re.compile(r'<(programlisting|screen)\b.*?</\1>', re.S)
+# los corchetes de código (array[2], buf[100]) no son marcas de nota
+LISTING = re.compile(
+    r'<(programlisting|screen|varname|code|literal|function|type)\b.*?</\1>', re.S)
 
 
 def load_notes(path):
