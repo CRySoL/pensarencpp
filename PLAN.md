@@ -72,7 +72,9 @@ está incluido.
   14 «FIXME», un párrafo a medias, 55 `<kw>` aplicados a nombres de clase,
   funciones o palabras normales, y dos encabezados restaurados («Destructor
   operation» y «The inner class idiom»).
-- **C09:** desde «Herencia de implementación» hasta el final.
+- **C09 (hecho el 29/10/2026):** desde «Herencia de implementación» hasta el
+  final, con sus ocho figuras redibujadas en SVG (`images/V2_13.svg` a
+  `V2_20.svg`) a partir de las GIF del original.
 - **C01:** desde «Capturar una excepción» hasta el final. Los títulos están
   traducidos, pero los párrafos no.
 
@@ -92,9 +94,11 @@ está incluido.
 
 - **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
   títulos de los libros se quedan en inglés.
-- **Figura `V2_13` de C09:** el capítulo la referencia dos veces, pero no
-  existe en `images/`. Hay que dibujarla en SVG, traduciendo el texto según
-  las normas de [TRADUCCION](TRADUCCION).
+- **Figuras del volumen 2:** las de C09 ya están en SVG. Las GIF originales
+  del resto de capítulos están en `images/image0NN.gif`; al traducir cada
+  capítulo hay que redibujar sus figuras en SVG (`images/V2_NN.svg`, con el
+  número de la GIF), traduciendo el texto que no sea código según las
+  normas de [TRADUCCION](TRADUCCION).
 - **Repaso final:**
   - pasar `aspell-es` a todo el volumen;
   - actualizar la sección del volumen 2 en [README.rst](README.rst), que
