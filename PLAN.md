@@ -67,8 +67,11 @@ está incluido.
   Además: la parte ya traducida tuteaba al lector en las primeras secciones
   y tenía 22 «FIXME» y párrafos a medias; se han rehecho esos párrafos y se
   han restaurado cinco `<sect3>` cuyos títulos estaban pegados al texto.
-- **C10:** el resto de «Factorías», más Builder, Observador, «Despachado
-  múltiple», el resumen y los ejercicios.
+- **C10 (hecho el 29/10/2026):** el resto de «Factorías», más Builder,
+  Observador, «Despachado múltiple», el resumen y los ejercicios. Además:
+  14 «FIXME», un párrafo a medias, 55 `<kw>` aplicados a nombres de clase,
+  funciones o palabras normales, y dos encabezados restaurados («Destructor
+  operation» y «The inner class idiom»).
 - **C09:** desde «Herencia de implementación» hasta el final.
 - **C01:** desde «Capturar una excepción» hasta el final. Los títulos están
   traducidos, pero los párrafos no.
