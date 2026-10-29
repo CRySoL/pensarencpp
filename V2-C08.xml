@@ -18,50 +18,48 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985808
   id="C08">
 
   <!-- 8: Runtime Type Identification -->
-  <title> </title>
+  <title>Identificación de tipos en tiempo de ejecución</title>
 
   <!--
   Runtime type identification (RTTI) lets you find the dynamic type of an object when you have only a pointer or a reference to the base type.
   -->
-  <para>
-
-  </para>
+  <para>La identificación de tipos en tiempo de ejecución (RTTI, <foreignphrase>Runtime Type Identification</foreignphrase>) permite averiguar el tipo dinámico de un objeto cuando solo se tiene un puntero o una referencia al tipo base.</para>
 
   <!--
   This can be thought of as a “secondary” feature in C++, pragmatism to help out when you get into rare difficult situations. Normally, you’ll want to intentionally ignore the exact type of an object and let the virtual function mechanism implement the correct behavior for that type. On occasion, however, it’s useful to know the exact runtime (that is, most derived) type of an object for which you only have a base pointer. With this information, you may perform a special-case operation more efficiently or prevent a base-class interface from becoming ungainly. It happens enough that most class libraries contain virtual functions to produce runtime type information. When exception handling was added to C++, that feature required information about the runtime type of objects, so it became an easy next step to build in access to that information. This chapter explains what RTTI is for and how to use it.
   -->
-  <para>
-
-  </para>
+  <para>Se puede considerar una característica <quote>secundaria</quote> de C++, una dosis de pragmatismo para ayudar en situaciones difíciles poco frecuentes. Normalmente se ignora a propósito el tipo exacto de un objeto y se deja que el mecanismo de funciones virtuales implemente el comportamiento correcto para ese tipo. Sin embargo, en ocasiones resulta útil conocer el tipo exacto en tiempo de ejecución (es decir, el más derivado) de un objeto del que solo se tiene un puntero a la base. Con esa información se puede realizar una operación de caso especial de forma más eficiente o evitar que la interfaz de una clase base se vuelva farragosa. Ocurre con la suficiente frecuencia como para que la mayoría de las librerías de clases contengan funciones virtuales que producen información de tipos en tiempo de ejecución. Cuando se añadió la gestión de excepciones a C++, esa característica necesitaba información sobre el tipo de los objetos en tiempo de ejecución, así que el paso siguiente natural fue dar acceso a esa información. Este capítulo explica para qué sirve RTTI y cómo usarlo.</para>
 
   <sect1>
     <!-- : Runtime casts -->
-    <title> </title>
+    <title>Moldes en tiempo de ejecución</title>
 
 
     <!--
     One way to determine the runtime type of an object through a pointer or reference is to employ a runtime cast, which verifies that the attempted conversion is valid. This is useful when you need to cast a base-class pointer to a derived type. Since inheritance hierarchies are typically depicted with base classes above derived classes, such a cast is called a downcast.
     -->
-    <para>
-
-    </para>
+    <para>Una forma de determinar el tipo en tiempo de ejecución de un objeto a través de un puntero o de una referencia es usar un <emphasis>molde en tiempo de ejecución</emphasis>, que comprueba que la conversión que se intenta es válida. Es útil cuando hay que convertir un puntero a una clase base en un tipo derivado. Como las jerarquías de herencia se suelen dibujar con las clases base encima de las derivadas, este molde se llama <emphasis>downcast</emphasis>.</para>
 
     <!--
     Consider the following class hierarchy:
     -->
-    <para>
+    <para>Considere la siguiente jerarquía de clases:</para>
 
-    </para>
-<programlisting>
-
-</programlisting>
+    <figure><title></title>
+      <mediaobject>
+	<imageobject role="latex">
+	  <imagedata fileref="./images/V2_12.pdf" align="center" format="PDF"/>
+	</imageobject>
+	<imageobject role="html">
+	  <imagedata fileref="./images/V2_12.png" align="center" format="PNG"/>
+	</imageobject>
+      </mediaobject>
+    </figure>
 
     <!--
     In the code that follows, the Investment class has an extra operation that the other classes do not, so it is important to be able to know at runtime whether a Security pointer refers to a Investment object or not. To implement checked runtime casts, each class keeps an integral identifier to distinguish it from other classes in the hierarchy.
     -->
-    <para>
-
-    </para>
+    <para>En el código que sigue, la clase <classname>Investment</classname> tiene una operación adicional que las demás clases no tienen, así que es importante poder saber en tiempo de ejecución si un puntero a <classname>Security</classname> apunta a un objeto <classname>Investment</classname> o no. Para implementar moldes comprobados en tiempo de ejecución, cada clase guarda un identificador entero que la distingue de las demás clases de la jerarquía.</para>
 
 
 //: V2C08:CheckedCast.cpp
@@ -71,16 +69,12 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985808
     <!--
     The polymorphic isA( ) function checks to see if its argument is compatible with its type argument (id), which means that either id matches the object’s typeID exactly or it matches one of the object’s ancestors (hence the call to Super::isA( ) in that case). The dynacast( ) function, which is static in each class, calls isA( ) for its pointer argument to check if the cast is valid. If isA( ) returns true, the cast is valid, and a suitably cast pointer is returned. Otherwise, the null pointer is returned, which tells the caller that the cast is not valid, meaning that the original pointer is not pointing to an object compatible with (convertible to) the desired type. All this machinery is necessary to be able to check intermediate casts, such as from a Security pointer that refers to a Metal object to a Investment pointer in the previous example program.[117]
     -->
-    <para>
-
-    </para>
+    <para>La función polimórfica <function>isA()</function> comprueba si su argumento es compatible con su argumento de tipo (<varname>id</varname>), lo que significa que <varname>id</varname> coincide exactamente con el <varname>typeID</varname> del objeto o con el de alguno de sus antecesores (de ahí la llamada a <function>Super::isA()</function> en ese caso). La función <function>dynacast()</function>, que es estática en cada clase, llama a <function>isA()</function> con su argumento de tipo puntero para comprobar si el molde es válido. Si <function>isA()</function> devuelve <literal>true</literal>, el molde es válido y se devuelve un puntero moldeado adecuadamente. Si no, se devuelve el puntero nulo, lo que indica a quien llama que el molde no es válido, es decir, que el puntero original no apunta a un objeto compatible con el tipo deseado (convertible a él). Toda esta maquinaria hace falta para poder comprobar moldes intermedios, como el de un puntero a <classname>Security</classname> que apunta a un objeto <classname>Metal</classname> a un puntero a <classname>Investment</classname> en el programa de ejemplo anterior<footnote><para>Con los compiladores de Microsoft hay que activar RTTI, que está desactivado por defecto. La opción de la línea de comandos para activarlo es <literal>/GR</literal>.</para></footnote>.</para>
 
     <!--
     For most programs downcasting is unnecessary, and is actually discouraged, since everyday polymorphism solves most problems in object-oriented application programs. However, the ability to check a cast to a more derived type is important for utility programs such as debuggers, class browsers, and databases. C++ provides such a checked cast with the dynamic_cast operator. The following program is a rewrite of the previous example using dynamic_cast:
     -->
-    <para>
-
-    </para>
+    <para>En la mayoría de los programas el downcast es innecesario, y de hecho se desaconseja, porque el polimorfismo de todos los días resuelve la mayoría de los problemas de los programas orientados a objetos. Sin embargo, la posibilidad de comprobar un molde a un tipo más derivado es importante en programas de utilidad como depuradores, exploradores de clases y bases de datos. C++ ofrece ese molde comprobado con el operador <code>dynamic_cast</code>. El siguiente programa es una versión del ejemplo anterior que usa <code>dynamic_cast</code>:</para>
 
 
 //: V2C08:Security.h
@@ -95,16 +89,12 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985808
     <!--
     This example is much shorter, since most of the code in the original example was just the overhead for checking the casts. The target type of a dynamic_cast is placed in angle brackets, like the other new-style C++ casts (static_cast, and so on), and the object to cast appears as the operand. dynamic_cast requires that the types you use it with be polymorphic if you want safe downcasts.[118] This in turn requires that the class must have at least one virtual function. Fortunately, the Security base class has a virtual destructor, so we didn’t have to invent an extra function to get the job done. Because dynamic_cast does its work at runtime, using the virtual table, it tends to be more expensive than the other new-style casts.
     -->
-    <para>
-
-    </para>
+    <para>Este ejemplo es mucho más corto, porque la mayor parte del código del original no era más que la sobrecarga de comprobar los moldes. El tipo destino de un <code>dynamic_cast</code> se pone entre ángulos, como en los demás moldes del nuevo estilo de C++ (<code>static_cast</code>, etc.), y el objeto que se moldea aparece como operando. <code>dynamic_cast</code> exige que los tipos con los que se usa sean polimórficos si se quieren downcasts seguros<footnote><para>Los compiladores suelen insertar un puntero a la tabla RTTI de una clase dentro de su tabla de funciones virtuales.</para></footnote>. Esto a su vez exige que la clase tenga al menos una función virtual. Por suerte, la clase base <classname>Security</classname> tiene un destructor virtual, así que no hubo que inventar una función adicional para conseguirlo. Como <code>dynamic_cast</code> hace su trabajo en tiempo de ejecución, usando la tabla virtual, suele ser más costoso que los demás moldes del nuevo estilo.</para>
 
     <!--
     You can also use dynamic_cast with references instead of pointers, but since there is no such thing as a null reference, you need another way to know if the cast fails. That “other way” is to catch a bad_cast exception, as follows:
     -->
-    <para>
-
-    </para>
+    <para>También se puede usar <code>dynamic_cast</code> con referencias en lugar de punteros, pero como no existen las referencias nulas, hace falta otra forma de saber si el molde falla. Esa <quote>otra forma</quote> es capturar una excepción <classname>bad_cast</classname>, así:</para>
 
 
 //: V2C08:CatchBadCast.cpp
@@ -114,22 +104,18 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985808
     <!--
     The bad_cast class is defined in the <typeinfo> header, and, like most of the standard library, is declared in the std namespace.
     -->
-    <para>
-
-    </para>
+    <para>La clase <classname>bad_cast</classname> está definida en la cabecera &lt;typeinfo&gt; y, como la mayor parte de la librería estándar, está declarada en el espacio de nombres <varname>std</varname>.</para>
   </sect1>
 
   <sect1>
     <!-- : The typeid operator -->
-    <title> </title>
+    <title>El operador <kw>typeid</kw></title>
 
 
     <!--
     The other way to get runtime information for an object is through the typeid operator. This operator returns an object of class type_info, which yields information about the type of object to which it was applied. If the type is polymorphic, it gives information about the most derived type that applies (the dynamic type); otherwise it yields static type information. One use of the typeid operator is to get the name of the dynamic type of an object as a const char*, as you can see in the following example:
     -->
-    <para>
-
-    </para>
+    <para>La otra forma de obtener información de un objeto en tiempo de ejecución es el operador <kw>typeid</kw>. Este operador devuelve un objeto de la clase <classname>type_info</classname>, que proporciona información sobre el tipo del objeto al que se aplicó. Si el tipo es polimórfico, da información sobre el tipo más derivado que corresponde (el tipo dinámico); si no, da información del tipo estático. Un uso del operador <kw>typeid</kw> es obtener el nombre del tipo dinámico de un objeto como un <type>const char*</type>, como se ve en el ejemplo siguiente:</para>
 
 
 //: V2C08:TypeInfo.cpp
@@ -139,10 +125,8 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985808
     <!--
     The output from this program using one particular compiler is
     -->
-    <para>
-
-    </para>
-<programlisting>
+    <para>La salida de este programa con un compilador concreto es:</para>
+<screen>
 struct PolyBase const *
 struct PolyDer
 true
@@ -151,28 +135,22 @@ struct NonPolyBase const *
 struct NonPolyBase
 false
 int
-</programlisting>
+</screen>
 
     <!--
     The first output line just echoes the static type of ppb because it is a pointer. To get RTTI to kick in, you need to look at the pointer or reference destination object, which is illustrated in the second line. Notice that RTTI ignores top-level const and volatile qualifiers. With non-polymorphic types, you just get the static type (the type of the pointer itself). As you can see, built-in types are also supported.
     -->
-    <para>
-
-    </para>
+    <para>La primera línea de la salida se limita a mostrar el tipo estático de <varname>ppb</varname>, porque es un puntero. Para que entre en juego RTTI hay que mirar el objeto al que apunta el puntero o la referencia, como se ve en la segunda línea. Observe que RTTI ignora los calificadores <kw>const</kw> y <kw>volatile</kw> de nivel superior. Con tipos no polimórficos solo se obtiene el tipo estático (el tipo del propio puntero). Como se ve, también se admiten los tipos predefinidos.</para>
 
     <!--
     It turns out that you can’t store the result of a typeid operation in a type_info object, because there are no accessible constructors and assignment is disallowed. You must use it as we have shown. In addition, the actual string returned by type_info::name( ) is compiler dependent. For a class named C, for example, some compilers return “class C” instead of just “C.” Applying typeid to an expression that dereferences a null pointer will cause a bad_typeid exception (also defined in <typeinfo>) to be thrown.
     -->
-    <para>
-
-    </para>
+    <para>Resulta que el resultado de una operación <kw>typeid</kw> no se puede guardar en un objeto <classname>type_info</classname>, porque no hay constructores accesibles y la asignación no está permitida. Hay que usarlo como se ha mostrado. Además, la cadena concreta que devuelve <function>type_info::name()</function> depende del compilador. Para una clase llamada <classname>C</classname>, por ejemplo, algunos compiladores devuelven <quote>class C</quote> en lugar de solo <quote>C</quote>. Aplicar <kw>typeid</kw> a una expresión que dereferencia un puntero nulo provoca que se lance una excepción <classname>bad_typeid</classname> (también definida en &lt;typeinfo&gt;).</para>
 
     <!--
     The following example shows that the class name that type_info::name( ) returns is fully qualified:
     -->
-    <para>
-
-    </para>
+    <para>El siguiente ejemplo muestra que el nombre de clase que devuelve <function>type_info::name()</function> está completamente calificado:</para>
 
 
 //: V2C08:RTTIandNesting.cpp
@@ -182,16 +160,12 @@ int
     <!--
     Since Nested is a member type of the One class, the result is One::Nested.
     -->
-    <para>
-
-    </para>
+    <para>Como <classname>Nested</classname> es un tipo miembro de la clase <classname>One</classname>, el resultado es <classname>One::Nested</classname>.</para>
 
     <!--
     You can also ask a type_info object if it precedes another type_info object in the implementation-defined “collation sequence” (the native ordering rules for text), using before(type_info&), which returns true or false. When you say,
     -->
-    <para>
-
-    </para>
+    <para>También se puede preguntar a un objeto <classname>type_info</classname> si precede a otro objeto <classname>type_info</classname> en la <quote>secuencia de ordenación</quote> definida por la implementación (las reglas de ordenación nativas del texto), con <function>before(type_info&amp;)</function>, que devuelve <literal>true</literal> o <literal>false</literal>. Al escribir</para>
 <programlisting>
 if(typeid(me).before(typeid(you))) // ...
 </programlisting>
@@ -199,21 +173,17 @@ if(typeid(me).before(typeid(you))) // ...
     <!--
     you’re asking if me occurs before you in the current collation sequence. This is useful if you use type_info objects as keys.
     -->
-    <para>
-
-    </para>
+    <para>se pregunta si <varname>me</varname> va antes que <varname>you</varname> en la secuencia de ordenación actual. Es útil si se usan objetos <classname>type_info</classname> como claves.</para>
 
     <sect2>
       <!-- : Casting to intermediate levels -->
-      <title> </title>
+      <title>Moldes a niveles intermedios</title>
 
 
       <!--
       As you saw in the earlier program that used the hierarchy of Security classes, dynamic_cast can detect both exact types and, in an inheritance hierarchy with multiple levels, intermediate types. Here is another example.
       -->
-      <para>
-
-      </para>
+      <para>Como se vio en el programa anterior que usaba la jerarquía de clases <classname>Security</classname>, <code>dynamic_cast</code> puede detectar tanto los tipos exactos como, en una jerarquía de herencia de varios niveles, los tipos intermedios. Este es otro ejemplo.</para>
 
 
 //: V2C08:IntermediateCast.cpp
@@ -223,16 +193,12 @@ if(typeid(me).before(typeid(you))) // ...
       <!--
       This example has the extra complication of multiple inheritance (you’ll learn more about multiple inheritance later in this chapter, and in Chapter 9). If you create an Mi2 and upcast it to the root (in this case, one of the two possible roots is chosen), the dynamic_cast back to either of the derived levels MI or Mi2 is successful.
       -->
-      <para>
-
-      </para>
+      <para>Este ejemplo tiene la complicación adicional de la herencia múltiple (verá más sobre ella más adelante en este capítulo y en el Capítulo 9). Si se crea un <classname>Mi2</classname> y se hace upcast a la raíz (en este caso se elige una de las dos raíces posibles), el <code>dynamic_cast</code> de vuelta a cualquiera de los niveles derivados, <classname>MI</classname> o <classname>Mi2</classname>, tiene éxito.</para>
 
       <!--
       You can even cast from one root to the other:
       -->
-      <para>
-
-      </para>
+      <para>Incluso se puede moldear de una raíz a la otra:</para>
 <programlisting>
 B1* b1 = dynamic_cast&lt;B1*&gt;(b2);
 </programlisting>
@@ -240,16 +206,12 @@ B1* b1 = dynamic_cast&lt;B1*&gt;(b2);
       <!--
       This is successful because B2 is actually pointing to a Mi2 object, which contains a subobject of type B1.
       -->
-      <para>
-
-      </para>
+      <para>Tiene éxito porque <varname>B2</varname> apunta en realidad a un objeto <classname>Mi2</classname>, que contiene un subobjeto de tipo <classname>B1</classname>.</para>
 
       <!--
       Casting to intermediate levels brings up an interesting difference between dynamic_cast and typeid. The typeid operator always produces a reference to a static type_info object that describes the dynamic type of the object. Thus, it doesn’t give you intermediate-level information. In the following expression (which is true), typeid doesn’t see b2 as a pointer to the derived type, like dynamic_cast does:
       -->
-      <para>
-
-      </para>
+      <para>Los moldes a niveles intermedios ponen de manifiesto una diferencia interesante entre <code>dynamic_cast</code> y <kw>typeid</kw>. El operador <kw>typeid</kw> siempre produce una referencia a un objeto <classname>type_info</classname> estático que describe el tipo dinámico del objeto. Por tanto, no da información de los niveles intermedios. En la siguiente expresión (que es cierta), <kw>typeid</kw> no ve <varname>b2</varname> como un puntero al tipo derivado, como hace <code>dynamic_cast</code>:</para>
 <programlisting>
 typeid(b2) != typeid(Mi2*)
 </programlisting>
@@ -257,9 +219,7 @@ typeid(b2) != typeid(Mi2*)
       <!--
       The type of b2 is simply the exact type of the pointer:
       -->
-      <para>
-
-      </para>
+      <para>El tipo de <varname>b2</varname> es simplemente el tipo exacto del puntero:</para>
 <programlisting>
 typeid(b2) == typeid(B2*)
 </programlisting>
@@ -267,15 +227,13 @@ typeid(b2) == typeid(B2*)
 
     <sect2>
       <!-- : void pointers -->
-      <title> </title>
+      <title>Punteros <type>void</type></title>
 
 
       <!--
       RTTI only works for complete types, meaning that all class information must be available when typeid is used. In particular, it doesn’t work with void pointers:
       -->
-      <para>
-
-      </para>
+      <para>RTTI solo funciona con tipos completos, lo que significa que toda la información de la clase debe estar disponible cuando se usa <kw>typeid</kw>. En particular, no funciona con punteros <type>void</type>:</para>
 
 
 //: V2C08:VoidRTTI.cpp
@@ -285,22 +243,18 @@ typeid(b2) == typeid(B2*)
       <!--
       A void* truly means “no type information.”[119]
       -->
-      <para>
-
-      </para>
+      <para>Un <type>void*</type> significa realmente <quote>sin información de tipo</quote><footnote><para>Un <code>dynamic_cast&lt;void*&gt;</code> siempre devuelve la dirección del objeto completo, no la de un subobjeto. Se explicará con más detalle en el capítulo siguiente.</para></footnote>.</para>
     </sect2>
 
     <sect2>
       <!-- : Using RTTI with templates -->
-      <title> </title>
+      <title>RTTI con plantillas</title>
 
 
       <!--
       Class templates work well with RTTI, since all they do is generate classes. As usual, RTTI provides a convenient way to obtain the name of the class you’re in. The following example prints the order of constructor and destructor calls:
       -->
-      <para>
-
-      </para>
+      <para>Las plantillas de clase funcionan bien con RTTI, porque lo único que hacen es generar clases. Como de costumbre, RTTI ofrece una forma cómoda de obtener el nombre de la clase en la que se está. El siguiente ejemplo imprime el orden de las llamadas a constructores y destructores:</para>
 
 
 //: V2C08:ConstructorOrder.cpp
@@ -310,10 +264,8 @@ typeid(b2) == typeid(B2*)
       <!--
       This template uses a constant int to differentiate one class from another, but type arguments would work as well. Inside both the constructor and destructor, RTTI information produces the name of the class to print. The class X uses both inheritance and composition to create a class that has an interesting order of constructor and destructor calls. The output is
       -->
-      <para>
-
-      </para>
-<programlisting>
+      <para>Esta plantilla usa un <type>int</type> constante para distinguir una clase de otra, pero también servirían argumentos de tipo. Tanto en el constructor como en el destructor, la información de RTTI produce el nombre de la clase que se imprime. La clase <classname>X</classname> usa herencia y composición para crear una clase con un orden de llamadas a constructores y destructores interesante. La salida es:</para>
+<screen>
 Announce&lt;0&gt; constructor
 Announce&lt;1&gt; constructor
 Announce&lt;2&gt; constructor
@@ -322,28 +274,24 @@ X::~X()
 Announce&lt;2&gt; destructor
 Announce&lt;1&gt; destructor
 Announce&lt;0&gt; destructor
-</programlisting>
+</screen>
 
       <!--
       Of course, you may get different output depending on how your compiler represents its name( ) information.
       -->
-      <para>
-
-      </para>
+      <para>Por supuesto, puede obtener una salida distinta según cómo represente su compilador la información de <function>name()</function>.</para>
     </sect2>
   </sect1>
 
   <sect1>
     <!-- : Multiple inheritance -->
-    <title> </title>
+    <title>Herencia múltiple</title>
 
 
     <!--
     The RTTI mechanisms must work properly with all the complexities of multiple inheritance, including virtual base classes (discussed in depth in the next chapter—you may want to come back here after reading Chapter 9):
     -->
-    <para>
-
-    </para>
+    <para>Los mecanismos de RTTI deben funcionar correctamente con todas las complejidades de la herencia múltiple, incluidas las clases base virtuales (que se tratan a fondo en el capítulo siguiente; quizá quiera volver aquí después de leer el Capítulo 9):</para>
 
 
 //: V2C08:RTTIandMultipleInheritance.cpp
@@ -353,9 +301,7 @@ Announce&lt;0&gt; destructor
     <!--
     The typeid( ) operator properly detects the name of the actual object, even through the virtual base class pointer. The dynamic_cast also works correctly. But the compiler won’t even allow you to try to force a cast the old way:
     -->
-    <para>
-
-    </para>
+    <para>El operador <function>typeid()</function> detecta correctamente el nombre del objeto real, incluso a través del puntero a la clase base virtual. <code>dynamic_cast</code> también funciona correctamente. Pero el compilador ni siquiera le deja intentar forzar un molde a la antigua:</para>
 <programlisting>
 MI* mip = (MI*)bbp; // Compile-time error
 </programlisting>
@@ -363,55 +309,43 @@ MI* mip = (MI*)bbp; // Compile-time error
     <!--
     The compiler knows this is never the right thing to do, so it requires that you use a dynamic_cast.
     -->
-    <para>
-
-    </para>
+    <para>El compilador sabe que nunca es lo correcto, así que exige que se use un <code>dynamic_cast</code>.</para>
   </sect1>
 
   <sect1>
     <!-- : Sensible uses for RTTI -->
-    <title> </title>
+    <title>Usos razonables de RTTI</title>
 
 
     <!--
     Because you can discover type information from an anonymous polymorphic pointer, RTTI is ripe for misuse by the novice, because RTTI may make sense before virtual functions do. For many people coming from a procedural background, it’s difficult not to organize programs into sets of switch statements. They could accomplish this with RTTI and thus lose the important value of polymorphism in code development and maintenance. The intent of C++ is that you use virtual functions throughout your code and that you only use RTTI when you must.
     -->
-    <para>
-
-    </para>
+    <para>Como RTTI permite descubrir información de tipo a partir de un puntero polimórfico anónimo, se presta al mal uso por parte de los principiantes, porque RTTI puede tener sentido antes que las funciones virtuales. A muchas personas que vienen de la programación procedimental les cuesta no organizar los programas en conjuntos de sentencias <kw>switch</kw>. Podrían hacerlo con RTTI y perder así el importante valor del polimorfismo en el desarrollo y el mantenimiento del código. La intención de C++ es que se usen funciones virtuales en todo el código y que RTTI se use solo cuando sea imprescindible.</para>
 
     <!--
     However, using virtual functions as they are intended requires that you have control of the base-class definition, because at some point in the extension of your program you may discover the base class doesn’t include the virtual function you need. If the base class comes from a library or is otherwise controlled by someone else, one solution to the problem is RTTI; you can derive a new type and add your extra member function. Elsewhere in the code you can detect your particular type and call that member function. This doesn’t destroy the polymorphism and extensibility of the program, because adding a new type will not require you to hunt for switch statements. However, when you add new code in the main body that requires your new feature, you’ll have to detect your particular type.
     -->
-    <para>
-
-    </para>
+    <para>Sin embargo, usar las funciones virtuales como es debido exige controlar la definición de la clase base, porque en algún momento de la ampliación del programa puede descubrir que la clase base no incluye la función virtual que necesita. Si la clase base procede de una librería o la controla otra persona, una solución al problema es RTTI: se puede derivar un tipo nuevo y añadirle el método adicional. En otra parte del código se puede detectar ese tipo concreto y llamar a ese método. Esto no destruye el polimorfismo ni la extensibilidad del programa, porque añadir un tipo nuevo no obligará a buscar sentencias <kw>switch</kw>. Sin embargo, cuando se añada en el cuerpo principal código nuevo que necesite la nueva característica, habrá que detectar ese tipo concreto.</para>
 
     <!--
     Putting a feature in a base class might mean that, for the benefit of one particular class, all the other classes derived from that base require some meaningless stub for a pure virtual function. This makes the interface less clear and annoys those who must override pure virtual functions when they derive from that base class.
     -->
-    <para>
-
-    </para>
+    <para>Poner una característica en una clase base podría significar que, en beneficio de una clase concreta, todas las demás clases derivadas de esa base necesiten algún cuerpo vacío y sin sentido para una función virtual pura. Esto hace la interfaz menos clara y molesta a quienes tienen que redefinir funciones virtuales puras al derivar de esa clase base.</para>
 
     <!--
     Finally, RTTI will sometimes solve efficiency problems. If your code uses polymorphism in a nice way, but it turns out that one of your objects reacts to this general-purpose code in a horribly inefficient way, you can pick that type out using RTTI and write case-specific code to improve the efficiency.
     -->
-    <para>
-
-    </para>
+    <para>Por último, RTTI resuelve a veces problemas de eficiencia. Si el código usa el polimorfismo de forma elegante, pero resulta que uno de los objetos reacciona a ese código de propósito general de forma terriblemente ineficiente, se puede identificar ese tipo con RTTI y escribir código específico para mejorar la eficiencia.</para>
 
     <sect2>
       <!-- : A trash recycler -->
-      <title> </title>
+      <title>Un reciclador de basura</title>
 
 
       <!--
       To further illustrate a practical use of RTTI, the following program simulates a trash recycler. Different kinds of “trash” are inserted into a single container and then later sorted according to their dynamic types.
       -->
-      <para>
-
-      </para>
+      <para>Para ilustrar mejor un uso práctico de RTTI, el siguiente programa simula un reciclador de basura. Se meten distintos tipos de <quote>basura</quote> en un único contenedor y después se clasifican según sus tipos dinámicos.</para>
 
 
 //: V2C08:Trash.h
@@ -421,9 +355,7 @@ MI* mip = (MI*)bbp; // Compile-time error
       <!--
       The static values representing the price per unit of the trash types are defined in the implementation file:
       -->
-      <para>
-
-      </para>
+      <para>Los valores estáticos que representan el precio por unidad de los tipos de basura se definen en el fichero de implementación:</para>
 
 
 //: V2C08:Trash.cpp
@@ -433,9 +365,7 @@ MI* mip = (MI*)bbp; // Compile-time error
       <!--
       The sumValue( ) template iterates through a container, displaying and calculating results:
       -->
-      <para>
-
-      </para>
+      <para>La plantilla <function>sumValue()</function> recorre un contenedor, mostrando y calculando los resultados:</para>
 
 
 //: V2C08:Recycle.cpp
@@ -445,16 +375,12 @@ MI* mip = (MI*)bbp; // Compile-time error
       <!--
       The trash is thrown unclassified into a single bin, so the specific type information is “lost.” But later the specific type information must be recovered to properly sort the trash, and so RTTI is used.
       -->
-      <para>
-
-      </para>
+      <para>La basura se echa sin clasificar en un único cubo, así que la información concreta de tipo se <quote>pierde</quote>. Pero después hay que recuperar esa información para clasificar correctamente la basura, y para ello se usa RTTI.</para>
 
       <!--
       We can improve this solution by using a map that associates pointers to type_info objects with a vector of Trash pointers. Since a map requires an ordering predicate, we provide one named TInfoLess that calls type_info::before( ). As we insert Trash pointers into the map, they are automatically associated with their type_info key. Notice that sumValue( ) must be defined differently here:
       -->
-      <para>
-
-      </para>
+      <para>Esta solución se puede mejorar con un <classname>map</classname> que asocie punteros a objetos <classname>type_info</classname> con un <classname>vector</classname> de punteros a <classname>Trash</classname>. Como un <classname>map</classname> necesita un predicado de ordenación, se proporciona uno llamado <classname>TInfoLess</classname> que llama a <function>type_info::before()</function>. Al insertar punteros a <classname>Trash</classname> en el <classname>map</classname>, se asocian automáticamente a su clave <classname>type_info</classname>. Observe que aquí <function>sumValue()</function> se tiene que definir de otra forma:</para>
 
 
 //: V2C08:Recycle2.cpp
@@ -464,132 +390,100 @@ MI* mip = (MI*)bbp; // Compile-time error
       <!--
       We’ve modified sumValue( ) to call type_info::name( ) directly, since the type_info object is now available as the first member of the TrashMap::value_type pair. This avoids the extra call to typeid to get the name of the type of Trash being processed that was necessary in the previous version of this program.
       -->
-      <para>
-
-      </para>
+      <para>Se ha modificado <function>sumValue()</function> para que llame directamente a <function>type_info::name()</function>, ya que el objeto <classname>type_info</classname> está ahora disponible como primer miembro del par <type>TrashMap::value_type</type>. Así se evita la llamada adicional a <kw>typeid</kw> para obtener el nombre del tipo de <classname>Trash</classname> que se procesa, necesaria en la versión anterior del programa.</para>
     </sect2>
   </sect1>
 
   <sect1>
     <!-- : Mechanism and overhead of RTTI -->
-    <title> </title>
+    <title>Mecanismo y sobrecarga de RTTI</title>
 
 
     <!--
     Typically, RTTI is implemented by placing an additional pointer in a class’s virtual function table. This pointer points to the type_info structure for that particular type. The effect of a typeid( ) expression is quite simple: the virtual function table pointer fetches the type_info pointer, and a reference to the resulting type_info structure is produced. Since this is just a two-pointer dereference operation, it is a constant time operation.
     -->
-    <para>
-
-    </para>
+    <para>Normalmente, RTTI se implementa poniendo un puntero adicional en la tabla de funciones virtuales de la clase. Este puntero apunta a la estructura <classname>type_info</classname> de ese tipo concreto. El efecto de una expresión <function>typeid()</function> es muy sencillo: el puntero a la tabla de funciones virtuales obtiene el puntero a <classname>type_info</classname> y se produce una referencia a la estructura <classname>type_info</classname> resultante. Como no es más que una operación de doble indirección de punteros, es una operación de tiempo constante.</para>
 
     <!--
     For a dynamic_cast<destination*>(source_pointer), most cases are quite straightforward: source_pointer’s RTTI information is retrieved, and RTTI information for the type destination* is fetched. A library routine then determines whether source_pointer’s type is of type destination* or a base class of destination*. The pointer it returns may be adjusted because of multiple inheritance if the base type isn’t the first base of the derived class. The situation is more complicated with multiple inheritance because a base type may appear more than once in an inheritance hierarchy and virtual base classes are used.
     -->
-    <para>
-
-    </para>
+    <para>En el caso de <code>dynamic_cast&lt;destination*&gt;(source_pointer)</code>, la mayoría de las veces es muy sencillo: se obtiene la información de RTTI de <varname>source_pointer</varname> y la del tipo <type>destination*</type>. Después, una rutina de la librería determina si el tipo de <varname>source_pointer</varname> es <type>destination*</type> o una clase base de <type>destination*</type>. Es posible que haya que ajustar el puntero que devuelve, a causa de la herencia múltiple, si el tipo base no es la primera base de la clase derivada. La situación es más complicada con herencia múltiple, porque un tipo base puede aparecer más de una vez en una jerarquía de herencia y se usan clases base virtuales.</para>
 
     <!--
     Because the library routine used for dynamic_cast must check through a list of base classes, the overhead for dynamic_cast may be higher than typeid( ) (but you get different information, which may be essential to your solution), and it may take more time to discover a base class than a derived class. In addition, dynamic_cast compares any type to any other type; you aren’t restricted to comparing types within the same hierarchy. This adds extra overhead to the library routine used by dynamic_cast.
     -->
-    <para>
-
-    </para>
+    <para>Como la rutina de librería que usa <code>dynamic_cast</code> tiene que recorrer una lista de clases base, la sobrecarga de <code>dynamic_cast</code> puede ser mayor que la de <function>typeid()</function> (pero se obtiene información distinta, que puede ser esencial para la solución), y puede tardar más en descubrir una clase base que una clase derivada. Además, <code>dynamic_cast</code> compara cualquier tipo con cualquier otro; no se limita a comparar tipos de la misma jerarquía. Esto añade sobrecarga adicional a la rutina de librería que usa <code>dynamic_cast</code>.</para>
   </sect1>
 
   <sect1>
     <!-- : Summary -->
-    <title> </title>
+    <title>Resumen</title>
 
 
     <!--
     Although normally you upcast a pointer to a base class and then use the generic interface of that base class (via virtual functions), occasionally you get into a corner where things can be more effective if you know the dynamic type of the object pointed to by a base pointer, and that’s what RTTI provides. The most common misuse may come from the programmer who doesn’t understand virtual functions and uses RTTI to do type-check coding instead. The philosophy of C++ seems to be to provide you with powerful tools and guard for type violations and integrity, but if you want to deliberately misuse or get around a language feature, there’s nothing to stop you. Sometimes a slight burn is the fastest way to gain experience.
     -->
-    <para>
-
-    </para>
+    <para>Aunque normalmente se hace upcast de un puntero a una clase base y después se usa la interfaz genérica de esa clase base (mediante funciones virtuales), a veces uno se ve en un aprieto en el que las cosas pueden ser más eficaces si se conoce el tipo dinámico del objeto al que apunta un puntero a la base, y eso es lo que proporciona RTTI. El mal uso más habitual probablemente sea el del programador que no entiende las funciones virtuales y usa RTTI para escribir código que comprueba tipos. Parece que la filosofía de C++ es proporcionar herramientas potentes y protegerse de las violaciones de tipos y de integridad, pero si alguien quiere usar mal una característica del lenguaje a propósito, o saltársela, nada se lo impide. A veces quemarse un poco es la forma más rápida de adquirir experiencia.</para>
   </sect1>
 
   <sect1>
     <!-- : Exercises -->
-    <title> </title>
+    <title>Ejercicios</title>
 
 
     <!--
     Solutions to selected exercises can be found in the electronic document The Thinking in C++ Volume 2 Annotated Solution Guide, available for a small fee from www.MindView.net.
     -->
-    <para>
-
-    </para>
+    <para>Las soluciones de algunos ejercicios se encuentran en el documento electrónico <citetitle>The Thinking in C++ Volume 2 Annotated Solution Guide</citetitle>, que puede adquirirse por un precio módico en www.MindView.net.</para>
 
     <!--
     1. Create a Base class with a virtual destructor and a Derived class that inherits from Base. Create a vector of Base pointers that point to Base and Derived objects randomly. Using the contents your vector, fill a second vector with all the Derived pointers. Compare execution times between typeid( ) and dynamic_cast to see which is faster.
     -->
-    <para>
-
-    </para>
+    <para>1. Cree una clase <classname>Base</classname> con un destructor virtual y una clase <classname>Derived</classname> que herede de <classname>Base</classname>. Cree un <classname>vector</classname> de punteros a <classname>Base</classname> que apunten al azar a objetos <classname>Base</classname> y <classname>Derived</classname>. Con el contenido de ese <classname>vector</classname>, llene un segundo <classname>vector</classname> con todos los punteros a <classname>Derived</classname>. Compare los tiempos de ejecución de <function>typeid()</function> y de <code>dynamic_cast</code> para ver cuál es más rápido.</para>
 
     <!--
     2. Modify C16:AutoCounter.h in Volume 1 of this book so that it becomes a useful debugging tool. It will be used as a nested member of each class that you are interested in tracing. Turn AutoCounter into a template that takes the class name of the surrounding class as the template argument, and in all the error messages use RTTI to print the name of the class.
     -->
-    <para>
-
-    </para>
+    <para>2. Modifique <filename>C16:AutoCounter.h</filename> del Volumen 1 de este libro para que se convierta en una herramienta de depuración útil. Se usará como miembro anidado de cada clase que se quiera trazar. Convierta <classname>AutoCounter</classname> en una plantilla que reciba como argumento de plantilla el nombre de la clase que la contiene y, en todos los mensajes de error, use RTTI para imprimir el nombre de la clase.</para>
 
     <!--
     3. Use RTTI to assist in program debugging by printing out the exact name of a template using typeid( ). Instantiate the template for various types and see what the results are.
     -->
-    <para>
-
-    </para>
+    <para>3. Use RTTI para ayudar a depurar programas imprimiendo el nombre exacto de una plantilla con <function>typeid()</function>. Instancie la plantilla para varios tipos y observe los resultados.</para>
 
     <!--
     4. Modify the Instrument hierarchy from Chapter 14 of Volume 1 by first copying Wind5.cpp to a new location. Now add a virtual clearSpitValve( ) function to the Wind class, and redefine it for all the classes inherited from Wind. Instantiate a vector to hold Instrument pointers, and fill it with various types of Instrument objects created using the new operator. Now use RTTI to move through the container looking for objects in class Wind, or derived from Wind. Call the clearSpitValve( ) function for these objects. Notice that it would unpleasantly confuse the Instrument base class if it contained a clearSpitValve( ) function.
     -->
-    <para>
-
-    </para>
+    <para>4. Modifique la jerarquía <classname>Instrument</classname> del Capítulo 14 del Volumen 1, copiando primero <filename>Wind5.cpp</filename> a otro lugar. Añada una función virtual <function>clearSpitValve()</function> a la clase <classname>Wind</classname> y redefínala en todas las clases que heredan de <classname>Wind</classname>. Instancie un <classname>vector</classname> para guardar punteros a <classname>Instrument</classname> y llénelo con distintos tipos de objetos <classname>Instrument</classname> creados con el operador <kw>new</kw>. Después use RTTI para recorrer el contenedor buscando objetos de la clase <classname>Wind</classname> o derivados de ella. Llame a la función <function>clearSpitValve()</function> para esos objetos. Observe que sería desagradablemente confuso que la clase base <classname>Instrument</classname> contuviera una función <function>clearSpitValve()</function>.</para>
 
     <!--
     5. Modify the previous exercise to place a prepareInstrument( ) function in the base class, which calls appropriate functions (such as clearSpitValve( ), when it fits). Note that prepareInstrument( ) is a sensible function to place in the base class, and it eliminates the need for RTTI in the previous exercise.
     -->
-    <para>
-
-    </para>
+    <para>5. Modifique el ejercicio anterior para poner en la clase base una función <function>prepareInstrument()</function> que llame a las funciones adecuadas (como <function>clearSpitValve()</function>, cuando corresponda). Observe que <function>prepareInstrument()</function> es una función razonable para ponerla en la clase base, y que elimina la necesidad de RTTI del ejercicio anterior.</para>
 
     <!--
     6. Create a vector of pointers to 10 random Shape objects (at least Squares and Circles, for example). The draw( ) member function should be overridden in each concrete class to print the dimensions of the object being drawn (the length or the radius, whichever applies). Write a main( ) program that draws all the Squares in your container first, sorted by length, and then draws all Circles, sorted by radius.
     -->
-    <para>
-
-    </para>
+    <para>6. Cree un <classname>vector</classname> de punteros a 10 objetos <classname>Shape</classname> aleatorios (al menos <classname>Square</classname> y <classname>Circle</classname>, por ejemplo). El método <function>draw()</function> debe redefinirse en cada clase concreta para imprimir las dimensiones del objeto que se dibuja (la longitud o el radio, según corresponda). Escriba un programa <function>main()</function> que dibuje primero todos los <classname>Square</classname> del contenedor, ordenados por longitud, y después todos los <classname>Circle</classname>, ordenados por radio.</para>
 
     <!--
     7. Create a large vector of pointers to random Shape objects. Write a non-virtual draw( ) function in Shape that uses RTTI to determine the dynamic type of each object and executes the appropriate code to “draw” the object with a switch statement. Then rewrite your Shape hierarchy the “right way,” using virtual functions. Compare the code sizes and execution times of the two approaches.
     -->
-    <para>
-
-    </para>
+    <para>7. Cree un <classname>vector</classname> grande de punteros a objetos <classname>Shape</classname> aleatorios. Escriba en <classname>Shape</classname> una función <function>draw()</function> no virtual que use RTTI para determinar el tipo dinámico de cada objeto y ejecute el código adecuado para <quote>dibujar</quote> el objeto con una sentencia <kw>switch</kw>. Después reescriba la jerarquía <classname>Shape</classname> <quote>como es debido</quote>, con funciones virtuales. Compare el tamaño del código y los tiempos de ejecución de los dos enfoques.</para>
 
     <!--
     8. Create a hierarchy of Pet classes, including Dog, Cat, and Horse. Also create a hierarchy of Food classes: Beef, Fish, and Oats. The Dog class has a member function, eat( ), that takes a Beef parameter, likewise, Cat::eat( ) takes a Fish object, and Oats objects are passed to Horse::eat( ). Create a vector of pointers to random Pet objects, and visit each Pet, passing the correct type of Food object to its eat( ) function.
     -->
-    <para>
-
-    </para>
+    <para>8. Cree una jerarquía de clases <classname>Pet</classname> que incluya <classname>Dog</classname>, <classname>Cat</classname> y <classname>Horse</classname>. Cree también una jerarquía de clases <classname>Food</classname>: <classname>Beef</classname>, <classname>Fish</classname> y <classname>Oats</classname>. La clase <classname>Dog</classname> tiene un método <function>eat()</function> que recibe un parámetro <classname>Beef</classname>; del mismo modo, <function>Cat::eat()</function> recibe un objeto <classname>Fish</classname>, y a <function>Horse::eat()</function> se le pasan objetos <classname>Oats</classname>. Cree un <classname>vector</classname> de punteros a objetos <classname>Pet</classname> aleatorios y recorra cada <classname>Pet</classname>, pasando el tipo correcto de objeto <classname>Food</classname> a su función <function>eat()</function>.</para>
 
     <!--
     9. Create a global function named drawQuad( ) that takes a reference to a Shape object. It calls the draw( ) function of its Shape parameter if it has four sides (that is, if it’s a Square or Rectangle). Otherwise, it prints the message “Not a quadrilateral”. Traverse a vector of pointers to random Shapes, calling drawQuad( ) for each one. Place Squares, Rectangles, Circles and Triangles in your vector.
     -->
-    <para>
-
-    </para>
+    <para>9. Cree una función global llamada <function>drawQuad()</function> que reciba una referencia a un objeto <classname>Shape</classname>. La función llama a <function>draw()</function> de su parámetro <classname>Shape</classname> si tiene cuatro lados (es decir, si es un <classname>Square</classname> o un <classname>Rectangle</classname>). Si no, imprime el mensaje <quote>Not a quadrilateral</quote>. Recorra un <classname>vector</classname> de punteros a objetos <classname>Shape</classname> aleatorios, llamando a <function>drawQuad()</function> para cada uno. Ponga en el <classname>vector</classname> objetos <classname>Square</classname>, <classname>Rectangle</classname>, <classname>Circle</classname> y <classname>Triangle</classname>.</para>
 
     <!--
     10. Sort a vector of random Shape objects by class name. Use type_info::before( ) as the comparison function for sorting.
     -->
-    <para>
-
-    </para>
+    <para>10. Ordene un <classname>vector</classname> de objetos <classname>Shape</classname> aleatorios por el nombre de su clase. Use <function>type_info::before()</function> como función de comparación para ordenar.</para>
   </sect1>
 </chapter>
