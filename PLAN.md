@@ -96,13 +96,12 @@ está incluido.
 
 - **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
   títulos de los libros se quedan en inglés.
-- **Figuras del volumen 2:** las de C09 ya están en SVG. Faltan las de dos
-  capítulos ya traducidos: C04 (`image007`–`image010`, jerarquías de
-  iostreams) y C10 (`image021`, apoderado y estado). Las GIF originales
-  del resto de capítulos están en `images/image0NN.gif`; al traducir cada
-  capítulo hay que redibujar sus figuras en SVG (`images/V2_NN.svg`, con el
-  número de la GIF), traduciendo el texto que no sea código según las
-  normas de [TRADUCCION](TRADUCCION).
+- **Figuras del volumen 2:** las de C04, C09 y C10 ya están en SVG
+  (`images/V2_07.svg` a `V2_10.svg`, `V2_13.svg` a `V2_21.svg`). Quedan las
+  de C05 (`image011`) y C08 (`image012`); las GIF originales están en
+  `images/image0NN.gif`. Al traducir cada capítulo hay que redibujarlas en
+  SVG (`images/V2_NN.svg`, con el número de la GIF), traduciendo el texto
+  que no sea código según las normas de [TRADUCCION](TRADUCCION).
 - **Repaso final:**
   - pasar `aspell-es` a todo el volumen;
   - actualizar la sección del volumen 2 en [README.rst](README.rst), que
