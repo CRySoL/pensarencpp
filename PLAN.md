@@ -82,8 +82,10 @@ está incluido.
 
 ## Fase 3: capítulos sin empezar (unas 54.900 palabras)
 
-- **C08 (RTTI):** es corto y no depende de otros capítulos. Al terminarlo se
-  descomenta en el maestro.
+- **C08 (RTTI) (hecho el 29/10/2026):** traducido entero, con sus tres
+  notas y la figura redibujada en SVG (`images/V2_12.svg`). Ya está incluido
+  en el maestro. Las dos salidas de programa pasan de `<programlisting>` a
+  `<screen>`.
 - **C05 (Plantillas):** ocho secciones. Necesita el glosario ya cerrado.
 - **C06 (Algoritmos):** aquí el inglés está **copiado dentro de los
   `<para>`**, así que hay que sustituirlo en lugar de añadir texto. «Un
@@ -96,9 +98,9 @@ está incluido.
 
 - **ApenA y ApenB:** traducir y descomentar en el maestro. En ApenA los
   títulos de los libros se quedan en inglés.
-- **Figuras del volumen 2:** las de C04, C09 y C10 ya están en SVG
-  (`images/V2_07.svg` a `V2_10.svg`, `V2_13.svg` a `V2_21.svg`). Quedan las
-  de C05 (`image011`) y C08 (`image012`); las GIF originales están en
+- **Figuras del volumen 2:** las de C04, C08, C09 y C10 ya están en SVG
+  (`images/V2_07.svg` a `V2_10.svg`, `V2_12.svg` a `V2_21.svg`). Queda la
+  de C05 (`image011`); las GIF originales están en
   `images/image0NN.gif`. Al traducir cada capítulo hay que redibujarlas en
   SVG (`images/V2_NN.svg`, con el número de la GIF), traduciendo el texto
   que no sea código según las normas de [TRADUCCION](TRADUCCION).
