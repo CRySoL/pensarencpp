@@ -80,7 +80,7 @@ está incluido.
   glosario («gestión de excepciones», «palabra reservada», «librería») y se
   restauran 18 encabezados que estaban pegados al texto.
 
-## Fase 3: capítulos sin empezar (unas 54.900 palabras)
+## Fase 3: capítulos sin empezar (hecha el 29/10/2026)
 
 - **C08 (RTTI) (hecho el 29/10/2026):** traducido entero, con sus tres
   notas y la figura redibujada en SVG (`images/V2_12.svg`). Ya está incluido
@@ -97,8 +97,11 @@ está incluido.
   datos de los ejercicios que estaban troceados en comentarios van en
   `<programlisting>` o `<screen>`, se restauran dos `sect3` y se recupera
   el primer párrafo de «Eliminación de elementos», que faltaba.
-- **C07 (Contenedores):** el más largo. Va después de C06 para mantener la
-  misma terminología. Al terminarlo se descomenta en el maestro.
+- **C07 (Contenedores) (hecho el 29/10/2026):** traducido entero, con sus
+  18 notas, y ya incluido en el maestro. La tabla de categorías de
+  contenedores, que era un «FIXME», pasa a `<informaltable>`, y se quitan del
+  final del capítulo los cinco párrafos de la introducción de la tercera
+  parte, que ya están en el `<partintro>` del maestro.
 
 ## Fase 4: apéndices y cierre (unas 1.400 palabras)
 
