@@ -15,7 +15,8 @@ all: make_images vol1 Volumen1.pdf vol2 Volumen2.pdf
 vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	@-mkdir -p $@/images
 
-	cp images/*.png $@/images
+#	figuras de este volumen (V$*_*.png) y PNG comunes, sin las del otro volumen
+	cp $(filter-out $(wildcard images/V[0-9]_*.png),$(wildcard images/*.png)) $(wildcard images/V$*_*.png) $@/images
 	cp images/*.gif $@/images    # solo para incluir los dibujos originales
 	cp images/web/* $@/images
 
