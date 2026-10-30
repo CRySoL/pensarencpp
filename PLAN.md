@@ -136,7 +136,23 @@ está incluido.
     perdido («youre», «you?ll»), en C01, C03, C09, C10 y C11;
   - el glosario fija ahora también «despachado múltiple/doble».
 
-Lo que queda del volumen 2 es la revisión humana de David Villa.
+## Segunda pasada de estilo del volumen 2 (en curso)
+
+Lo que tradujo Claude desde cero se cotejó con el original al traducirlo y
+pasó el corrector ortográfico, pero no se ha releído para pulir el estilo.
+Falta hacerlo, con el mismo criterio que la revisión anterior y un commit
+por capítulo:
+
+- capítulos enteros: C05, C06, C07, C08, ApenA y ApenB;
+- partes de capítulos: casi todo C01; C04 desde el final de «Manipuladores
+  con argumentos»; C09 desde «Herencia de implementación»; C10 desde
+  «Constructores virtuales»; C11 desde «Comprobación de una interrupción».
+
+C02, C03 y la introducción ya se retradujeron enteros en la revisión de
+estilo, así que no entran.
+
+Después de esta pasada, lo que queda del volumen 2 es la revisión humana de
+David Villa.
 
 ## Cómo se trabaja cada sección
 
@@ -191,20 +207,29 @@ comentarios de los listados. Es una tarea de revisión, no de traducción. (El
 cambio de «template» por «plantilla» ya está hecho en la prosa del volumen 1;
 solo queda la aclaración «(o templates)» de la primera mención en C16.)
 
-## Asuntos pendientes del volumen 1
+## Revisión de estilo del volumen 1 (pendiente)
 
-Surgieron en la revisión automática del volumen 1 y requieren una decisión:
+La traducción del volumen 1 no se ha releído con el criterio que se aplicó
+al volumen 2: cotejar cada párrafo con el original, retraducir lo poco
+natural y aplicar el glosario y `misc/guiaestilo.html`. Se hará capítulo a
+capítulo, con un commit por capítulo, y aprovechando para pasar a
+`programlisting`, `screen`, `informaltable` y `orderedlist` lo que siga
+escrito como párrafos. Se empezará cuando termine la segunda pasada del
+volumen 2. Los asuntos de terminología que la bloqueaban ya están resueltos
+(sección siguiente).
 
-1. **Agradecimientos del Prólogo.** La sección «Agradecimientos» de
-   [V1-Prologo.xml](V1-Prologo.xml) publica literalmente «Por hacer: LuCAS,
-   spanglish@uma.es, docbook-ayuda@es.tldp.org». Falta escribir el texto.
-2. ***Redefining* frente a *overriding*.** El glosario traduce *override*
-   como «redefinir», pero Eckel distingue *redefining* (función miembro
-   ordinaria) de *overriding* (función virtual). Por ahora, la definición de
-   C14 («Ocultación de nombres») deja ambos términos en inglés, como ya hacía
-   C15, y el resto de C15 y C16 usa «redefinir». Hay que fijar un término para
-   cada uno y aplicarlo a C14, C15 y al glosario, que también rige el
-   volumen 2.
-3. ***Librarian*.** El glosario tiene «bibliotecario» en «No convencen». En
-   C02 y C03 se ha usado «gestor de librerías». Si se acepta, hay que
-   añadirlo al glosario.
+## Asuntos del volumen 1 (resueltos el 30/10/2026)
+
+Surgieron en la revisión automática del volumen 1:
+
+1. **Agradecimientos del Prólogo.** La sección de
+   [V1-Prologo.xml](V1-Prologo.xml) solo decía «Por hacer: LuCAS,
+   spanglish@uma.es, docbook-ayuda@es.tldp.org». Claude ha redactado un
+   borrador a partir de esas notas y de lo que consta en el repositorio;
+   **pendiente de que David Villa lo corrija**.
+2. ***Redefining* frente a *overriding*.** Decidido: los dos se traducen
+   «redefinir», y donde Eckel los contrasta (C14, «Ocultación de nombres», y
+   C15) se añade el término inglés entre paréntesis, como ya estaba. Anotado
+   en el glosario; no hace falta cambiar el texto.
+3. ***Librarian*.** Decidido: «gestor de librerías», como en C02 y C03.
+   Añadido al glosario y retirado «bibliotecario» de «No convencen».
