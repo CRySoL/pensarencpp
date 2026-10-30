@@ -30,7 +30,8 @@
 
   <xsl:param name="chunk.section.depth" select="2" />
   <xsl:param name="chunker.output.indent" select="'yes'" />
-  <xsl:param name="chunker.output.encoding" select="'ISO-8859-1'"/>
+  <!-- GitHub Pages sirve los HTML con «charset=utf-8» en la cabecera HTTP -->
+  <xsl:param name="chunker.output.encoding" select="'UTF-8'"/>
 
   <xsl:param name="navig.showtitles" select="1" />
   <xsl:param name="navig.graphics" select="1" />

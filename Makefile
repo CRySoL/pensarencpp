@@ -86,6 +86,7 @@ pensar_en_cpp-vol%.tar.bz2: vol%
 
 products: pensar_en_cpp-vol1.tar.bz2 vol1 Volumen1.pdf # pensar_en_cpp-vol1.rst
 products: pensar_en_cpp-vol2.tar.bz2 vol2 Volumen2.pdf # pensar_en_cpp-vol2.rst
+products: web/index.html    # portada de la web
 products:
 	$(RM) vol1/*.css vol2/*.css
 	cp stylesheets/*.css vol1/

@@ -4,7 +4,7 @@ import subprocess
 import sys
 
 # Los HTML generados por los XSL usan 'chunker.output.encoding'
-# (ISO-8859-1). Se trabaja con latin-1 porque es transparente a nivel de
+# (UTF-8). Se trabaja con latin-1 porque es transparente a nivel de
 # byte: cualquier secuencia se lee y se reescribe sin alterarla, sea cual
 # sea la codificación real del fichero.
 ENCODING = 'iso-8859-1'
