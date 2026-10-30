@@ -122,9 +122,21 @@ está incluido.
     traducción está terminada y pendiente de revisión;
   - [STATUS](STATUS) actualizado, con una nota que remite a `make status`.
 
-Queda pendiente una revisión de estilo del volumen 2: en los capítulos
-traducidos hace años hay frases poco naturales y anglicismos («checkear»
-ya se ha corregido, pero no se ha hecho una lectura completa).
+- **Revisión de estilo:** hecha en todo lo que se tradujo hace años
+  (introducción, C02, C03, la primera parte de C04, la primera mitad de C10,
+  la parte antigua de C11 y los restos de C01 y C09). Los párrafos se han
+  retraducido con el estilo del volumen 1 y el glosario; de paso:
+  - código y salidas que estaban en párrafos pasan a `programlisting` y
+    `screen`, las tablas escritas como párrafos a `informaltable` y las
+    listas numeradas a mano a `orderedlist`;
+  - se han recuperado notas al pie y frases que faltaban, y corregido
+    errores de sentido (en C11, «even» se había traducido como «constante»);
+  - `utils/restore_original.py` ha restaurado la tipografía del original
+    (apóstrofos, comillas, rayas) en los comentarios en inglés que la habían
+    perdido («youre», «you?ll»), en C01, C03, C09, C10 y C11;
+  - el glosario fija ahora también «despachado múltiple/doble».
+
+Lo que queda del volumen 2 es la revisión humana de David Villa.
 
 ## Cómo se trabaja cada sección
 
