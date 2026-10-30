@@ -31,7 +31,7 @@ vol%: tagged-Volumen%.xml make_images stylesheets/highlight.css
 	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@/$@.html $(SINGLE_XSL) $<
 	xsltproc  --xinclude $(XSL_COMMON_OPTS) --output $@ $(CHUNK_XSL) $<
 
-	grep -l BEGINCODE $@/*.html | xargs python utils/html_colorize.py
+	grep -l BEGINCODE $@/*.html | xargs python3 utils/html_colorize.py
 	$(RM) $@/*.code
 
 
@@ -44,13 +44,13 @@ stylesheets/highlight.css: code_v1/C02/Hello.cpp
 
 tagged-Volumen%.xml: Volumen%.xml
 	@echo "--- AÑADIENDO MARCAS EN LISTADOS PARA COLOREADO HTML"
-	python utils/xml_tag_codes.py $< > $@
+	python3 utils/xml_tag_codes.py $< > $@
 
 %.pdf: %.xml dblatex/pec.sty dblatex/param.xsl make_images
 	dblatex --debug --style dblatex/pecstyle $<
 
 %.ok.xml: %.xml
-	python utils/fix_includes.py $< > $@
+	python3 utils/fix_includes.py $< > $@
 
 Volumen1.xml: $(shell utils/included.sh master_Volumen1.xml)
 Volumen2.xml: $(shell utils/included.sh master_Volumen2.xml)
@@ -59,30 +59,30 @@ Volumen%.xml: master_Volumen%.xml code_v%
 	@echo "--- MONTANDO EL DOCUMENTO"
 	xsltproc --xinclude stylesheets/profile.xsl $< > fase1.xml
 #	@echo "--- RUTAS A LOS LISTADOS"
-#	python utils/fix_includes.py fase1.xml > fase2.xml
+#	python3 utils/fix_includes.py fase1.xml > fase2.xml
 #	@echo "--- INCLUYENDO LISTADOS"
 #	xsltproc --xinclude stylesheets/profile.xsl fase2.xml > join.xml
 #	@echo "--- ELIMINANDO XMLNS Y TRADUCCIÓN DE TAGS EXTRA"
 	sed -e "s/xmlns[:a-z]*\=\"[^\"]*\" //" fase1.xml > $@
 #	sed -e "s/\/\/\/:~//" |
-#	python utils/db_filter.py < join.xml > $@
+#	python3 utils/db_filter.py < join.xml > $@
 
 .PRECIOUS: code_v%
 
 code_v%: code_orig_v%
 	rm -rf $@
 	cp -r $< $@
-	python utils/patch_sources.py $@
+	python3 utils/patch_sources.py $@
 
 make_images:
 	$(MAKE) -C images
 
 pensar_en_cpp-vol%.rst: Volumen%.xml
 	echo "-*- coding:utf-8 -*-" > $@
-	python db2rst/db2rst.py $< >> $@
+	python3 db2rst/db2rst.py $< >> $@
 
 pensar_en_cpp-vol%.tar.bz2: vol%
-	tar cfj $@ $<
+	tar chfj $@ $<    # h: los CSS de vol% son enlaces a ../stylesheets
 
 products: pensar_en_cpp-vol1.tar.bz2 vol1 Volumen1.pdf # pensar_en_cpp-vol1.rst
 products: pensar_en_cpp-vol2.tar.bz2 vol2 Volumen2.pdf # pensar_en_cpp-vol2.rst
@@ -104,9 +104,9 @@ validate: Volumen1.xml Volumen2.xml
 
 # Palabras del original traducidas y pendientes por capítulo
 status:
-	@python utils/translation_status.py master_Volumen1.xml $(sort $(filter-out %.ok.xml, $(wildcard V1-*.xml)))
+	@python3 utils/translation_status.py master_Volumen1.xml $(sort $(filter-out %.ok.xml, $(wildcard V1-*.xml)))
 	@echo
-	@python utils/translation_status.py master_Volumen2.xml $(sort $(filter-out %.ok.xml, $(wildcard V2-*.xml)))
+	@python3 utils/translation_status.py master_Volumen2.xml $(sort $(filter-out %.ok.xml, $(wildcard V2-*.xml)))
 
 
 # Limpieza

@@ -1,0 +1,46 @@
+# Compila los dos volúmenes (HTML y PDF) y los publica en GitHub Pages.
+# Los productos no se guardan en el repositorio: se suben como artefacto de
+# Pages. En Settings → Pages, «Source» debe ser «GitHub Actions».
+
+name: pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Una sola publicación a la vez; no se cancela la que esté en curso
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Imagen de compilación (arco-authors + docker/Dockerfile)
+        run: docker build -t pensarencpp docker
+
+      - name: Compilar HTML y PDF
+        run: docker run --rm -v "$PWD:/host" -w /host pensarencpp make products
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: products
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
