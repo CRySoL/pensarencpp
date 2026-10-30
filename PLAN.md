@@ -136,23 +136,23 @@ está incluido.
     perdido («youre», «you?ll»), en C01, C03, C09, C10 y C11;
   - el glosario fija ahora también «despachado múltiple/doble».
 
-## Segunda pasada de estilo del volumen 2 (en curso)
+## Segunda pasada de estilo del volumen 2 (terminada el 30/10/2026)
 
-Lo que tradujo Claude desde cero se cotejó con el original al traducirlo y
-pasó el corrector ortográfico, pero no se ha releído para pulir el estilo.
-Falta hacerlo, con el mismo criterio que la revisión anterior y un commit
-por capítulo:
+Se releyó lo que Claude había traducido desde cero, con el mismo criterio
+que la revisión anterior:
 
 - capítulos enteros: C05, C06, C07, C08, ApenA y ApenB;
 - partes de capítulos: casi todo C01; C04 desde el final de «Manipuladores
   con argumentos»; C09 desde «Herencia de implementación»; C10 desde
   «Constructores virtuales»; C11 desde «Comprobación de una interrupción».
 
-C02, C03 y la introducción ya se retradujeron enteros en la revisión de
-estilo, así que no entran.
+Además de pulir frases, se pasaron a `informaltable` las listas de
+excepciones estándar de C01 y las categorías de *locale* de C04, se quitó
+de los comentarios de C01 el título de sección que repetían al principio,
+y se unificó «librería estándar» y «C++ estándar» en minúscula. C02, C03 y
+la introducción ya se habían retraducido enteros y no entraron.
 
-Después de esta pasada, lo que queda del volumen 2 es la revisión humana de
-David Villa.
+Lo que queda del volumen 2 es la revisión humana de David Villa.
 
 ## Cómo se trabaja cada sección
 
@@ -217,6 +217,17 @@ capítulo, con un commit por capítulo, y aprovechando para pasar a
 escrito como párrafos. Se empezará cuando termine la segunda pasada del
 volumen 2. Los asuntos de terminología que la bloqueaban ya están resueltos
 (sección siguiente).
+
+Al revisar cada capítulo hay que pasar a minúscula «Librería Estándar» y «C++
+Estándar» (el volumen 1 los escribe con mayúscula unas 160 veces), como ya
+están en el volumen 2 y en el glosario. Solo conserva la mayúscula el
+Estándar como documento («el Estándar de C++»).
+
+Herramientas: `utils/pairs.py` vuelca cada comentario en inglés con su
+traducción, una pareja por línea, para leer el capítulo de corrido;
+`utils/runin_titles.py` señala los comentarios que repiten el título de su
+sección (en el volumen 1 solo hay uno de verdad, «Technique one» en C10; el
+resto son falsos positivos).
 
 ## Asuntos del volumen 1 (resueltos el 30/10/2026)
 
