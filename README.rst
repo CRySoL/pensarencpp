@@ -60,10 +60,10 @@ estado actual, y por supuesto lo puedes consultar y descargar:
 - HTML1_bz2_ -  formato bzip2.
 - PDF1_
 
-.. _HTML1_1:   http://crysol.org/pensarencpp/vol1/vol1.html
-.. _HTML1_sec: http://crysol.org/pensarencpp/vol1/index.html
-.. _HTML1_bz2: http://crysol.org/pensarencpp/pensar_en_cpp-vol1.tar.bz2
-.. _PDF1:      http://crysol.org/pensarencpp/pensar_en_cpp-vol1.pdf
+.. _HTML1_1:   https://crysol.org/pensarencpp/vol1/vol1.html
+.. _HTML1_sec: https://crysol.org/pensarencpp/vol1/index.html
+.. _HTML1_bz2: https://crysol.org/pensarencpp/pensar_en_cpp-vol1.tar.bz2
+.. _PDF1:      https://crysol.org/pensarencpp/pensar_en_cpp-vol1.pdf
 
 
 Volumen 2
@@ -79,10 +79,10 @@ sección «Cómo participar»). Aquí lo tienes montado, en formatos HTML y PDF.
 - HTML2_bz2_ -  formato bzip2.
 - PDF2_
 
-.. _HTML2_1:   http://crysol.org/pensarencpp/vol2/vol2.html
-.. _HTML2_sec: http://crysol.org/pensarencpp/vol2/index.html
-.. _HTML2_bz2: http://crysol.org/pensarencpp/pensar_en_cpp-vol2.tar.bz2
-.. _PDF2:      http://crysol.org/pensarencpp/pensar_en_cpp-vol2.pdf
+.. _HTML2_1:   https://crysol.org/pensarencpp/vol2/vol2.html
+.. _HTML2_sec: https://crysol.org/pensarencpp/vol2/index.html
+.. _HTML2_bz2: https://crysol.org/pensarencpp/pensar_en_cpp-vol2.tar.bz2
+.. _PDF2:      https://crysol.org/pensarencpp/pensar_en_cpp-vol2.pdf
 
 
 Original (en inglés)
