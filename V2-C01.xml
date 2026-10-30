@@ -29,12 +29,12 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
   <para>Mejorar la recuperación de errores es una de las maneras más potentes de incrementar la robustez de su código.</para>
 
   <!--
-  Unfortunately, it's almost accepted practice to ignore error conditions, as if we're in a state of denial about errors. One reason, no doubt, is the tediousness and code bloat of checking for many errors. For example, printf( ) returns the number of characters that were successfully printed, but virtually no one checks this value. The proliferation of code alone would be disgusting, not to mention the difficulty it would add in reading the code.
+  Unfortunately, it’s almost accepted practice to ignore error conditions, as if we’re in a state of denial about errors. One reason, no doubt, is the tediousness and code bloat of checking for many errors. For example, printf( ) returns the number of characters that were successfully printed, but virtually no one checks this value. The proliferation of code alone would be disgusting, not to mention the difficulty it would add in reading the code.
   -->
   <para>Por desgracia, ignorar las condiciones de error es una práctica casi aceptada, como si estuviéramos en un estado de negación respecto a los errores. Uno de los motivos, sin duda, es lo tedioso que resulta comprobar muchos errores y lo que engorda el código. Por ejemplo, <function>printf()</function> devuelve el número de caracteres que se han impreso correctamente, pero prácticamente nadie comprueba ese valor. Solo la proliferación de código ya sería repugnante, por no hablar de lo que dificultaría su lectura.</para>
 
   <!--
-  The problem with C's approach to error handling could be thought of as coupling-the user of a function must tie the error-handling code so closely to that function that it becomes too ungainly and awkward to use.
+  The problem with C’s approach to error handling could be thought of as coupling—the user of a function must tie the error-handling code so closely to that function that it becomes too ungainly and awkward to use.
   -->
   <para>El problema del enfoque de C para la gestión de errores se podría ver como un problema de acoplamiento: el usuario de una función tiene que ligar el código de gestión de errores tan estrechamente a esa función que esta se vuelve demasiado pesada y engorrosa de usar.</para>
 
@@ -43,18 +43,23 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
   -->
   <para>Una de las principales características de C++ es la gestión de excepciones, que es una forma mejor de concebir y tratar los errores. Con la gestión de excepciones:</para>
 
-  <!--
-  1. Error-handling code is not nearly so tedious to write, and it doesn't become mixed up with your "normal" code. You write the code you want to happen; later in a separate section you write the code to cope with the problems. If you make multiple calls to a function, you handle the errors from that function once, in one place.
-  -->
-  <para>1. El código de gestión de errores no resulta tan tedioso de escribir y no se mezcla con el código <quote>normal</quote>. Se escribe el código que se quiere ejecutar y, más tarde, en una sección aparte, el código que se ocupa de los problemas. Si se hacen varias llamadas a una función, los errores de esa función se tratan una sola vez, en un solo lugar.</para>
+  <orderedlist>
+    <listitem>
+      <!--
+      1. Error-handling code is not nearly so tedious to write, and it doesn’t become mixed up with your “normal” code. You write the code you want to happen; later in a separate section you write the code to cope with the problems. If you make multiple calls to a function, you handle the errors from that function once, in one place.
+      -->
+      <para>El código de gestión de errores no resulta tan tedioso de escribir y no se mezcla con el código <quote>normal</quote>. Se escribe el código que se quiere ejecutar y, más tarde, en una sección aparte, el código que se ocupa de los problemas. Si se hacen varias llamadas a una función, los errores de esa función se tratan una sola vez, en un solo lugar.</para>
+    </listitem>
+    <listitem>
+      <!--
+      2. Errors cannot be ignored. If a function needs to send an error message to the caller of that function, it “throws” an object representing that error out of the function. If the caller doesn’t “catch” the error and handle it, it goes to the next enclosing dynamic scope, and so on until the error is either caught or the program terminates because there was no handler to catch that type of exception.
+      -->
+      <para>Los errores no se pueden ignorar. Si una función necesita enviar un mensaje de error a quien la llama, <quote>lanza</quote> fuera de la función un objeto que representa ese error. Si quien la llama no <quote>captura</quote> el error y lo trata, este pasa al siguiente ámbito dinámico que lo engloba, y así sucesivamente hasta que se captura el error o el programa termina porque no había ningún manejador que capturara ese tipo de excepción.</para>
+    </listitem>
+  </orderedlist>
 
   <!--
-  2. Errors cannot be ignored. If a function needs to send an error message to the caller of that function, it "throws" an object representing that error out of the function. If the caller doesn't "catch" the error and handle it, it goes to the next enclosing dynamic scope, and so on until the error is either caught or the program terminates because there was no handler to catch that type of exception.
-  -->
-  <para>2. Los errores no se pueden ignorar. Si una función necesita enviar un mensaje de error a quien la llama, <quote>lanza</quote> fuera de la función un objeto que representa ese error. Si quien la llama no <quote>captura</quote> el error y lo trata, este pasa al siguiente ámbito dinámico que lo engloba, y así sucesivamente hasta que se captura el error o el programa termina porque no había ningún manejador que capturara ese tipo de excepción.</para>
-
-  <!--
-  This chapter examines C's approach to error handling (such as it is), discusses why it did not work well for C, and explains why it won't work at all for C++. This chapter also covers try, throw, and catch, the C++ keywords that support exception handling.
+  This chapter examines C’s approach to error handling (such as it is), discusses why it did not work well for C, and explains why it won’t work at all for C++. This chapter also covers try, throw, and catch, the C++ keywords that support exception handling.
   -->
   <para>Este capítulo examina el enfoque de C para la gestión de errores (si se le puede llamar así), explica por qué no funcionó bien en C y por qué no funcionaría en absoluto en C++. También trata <kw>try</kw>, <kw>throw</kw> y <kw>catch</kw>, las palabras reservadas de C++ que dan soporte a la gestión de excepciones.</para>
 
@@ -63,7 +68,7 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
     <title>Gestión tradicional de errores</title>
 
     <!--
-    In most of the examples in these volumes, we use assert( ) as it was intended: for debugging during development with code that can be disabled with #define NDEBUG for the shipping product. Runtime error checking uses the require.h functions (assure( ) and require( )) developed in Chapter 9 in Volume 1 and repeated here in Appendix B. These functions are a convenient way to say, "There's a problem here you'll probably want to handle with some more sophisticated code, but you don't need to be distracted by it in this example." The require.h functions might be enough for small programs, but for complicated products you'll want to write more sophisticated error-handling code.
+    In most of the examples in these volumes, we use assert( ) as it was intended: for debugging during development with code that can be disabled with #define NDEBUG for the shipping product. Runtime error checking uses the require.h functions (assure( ) and require( )) developed in Chapter 9 in Volume 1 and repeated here in Appendix B. These functions are a convenient way to say, “There’s a problem here you’ll probably want to handle with some more sophisticated code, but you don’t need to be distracted by it in this example.” The require.h functions might be enough for small programs, but for complicated products you’ll want to write more sophisticated error-handling code.
     -->
     <para>En la mayoría de los ejemplos de estos volúmenes se usa <function>assert()</function> para lo que fue concebida: para depurar durante el desarrollo, con código que se puede desactivar con <code>#define NDEBUG</code> en el producto final. Para comprobar errores en tiempo de ejecución se usan las funciones de <filename>require.h</filename> (<function>assure()</function> y <function>require()</function>), desarrolladas en el Capítulo 9 del Volumen 1 y repetidas aquí en el Apéndice B. Estas funciones son una forma cómoda de decir: <quote>Aquí hay un problema que probablemente quiera tratar con un código más sofisticado, pero no hace falta distraerse con él en este ejemplo</quote>. Las funciones de <filename>require.h</filename> pueden bastar para programas pequeños, pero en productos complicados querrá escribir un código de gestión de errores más sofisticado.</para>
 
@@ -73,27 +78,33 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
     <para>La gestión de errores es bastante sencilla cuando se sabe exactamente qué hacer, porque se tiene toda la información necesaria en ese contexto. Basta con tratar el error en ese punto.</para>
 
     <!--
-    The problem occurs when you don't have enough information in that context, and you need to pass the error information into a different context where that information does exist. In C, you can handle this situation using three approaches:
+    The problem occurs when you don’t have enough information in that context, and you need to pass the error information into a different context where that information does exist. In C, you can handle this situation using three approaches:
     -->
     <para>El problema aparece cuando no se tiene suficiente información en ese contexto y hay que pasar la información del error a otro contexto donde esa información sí existe. En C, esta situación se puede resolver de tres formas:</para>
 
-    <!--
-    1. Return error information from the function or, if the return value cannot be used this way, set a global error condition flag. (Standard C provides errno and perror( ) to support this.) As mentioned earlier, the programmer is likely to ignore the error information because tedious and obfuscating error checking must occur with each function call. In addition, returning from a function that hits an exceptional condition might not make sense.
-    -->
-    <para>1. Devolver información de error desde la función o, si el valor de retorno no se puede usar así, activar una bandera global de condición de error. (El C Estándar ofrece <varname>errno</varname> y <function>perror()</function> para ello.) Como ya se ha dicho, es probable que el programador ignore la información de error, porque cada llamada a función tiene que ir acompañada de una comprobación de errores tediosa y que oscurece el código. Además, volver de una función que se encuentra con una condición excepcional puede no tener sentido.</para>
+    <orderedlist>
+      <listitem>
+        <!--
+        1. Return error information from the function or, if the return value cannot be used this way, set a global error condition flag. (Standard C provides errno and perror( ) to support this.) As mentioned earlier, the programmer is likely to ignore the error information because tedious and obfuscating error checking must occur with each function call. In addition, returning from a function that hits an exceptional condition might not make sense.
+        -->
+        <para>Devolver información de error desde la función o, si el valor de retorno no se puede usar así, activar una bandera global de condición de error. (El C Estándar ofrece <varname>errno</varname> y <function>perror()</function> para ello.) Como ya se ha dicho, es probable que el programador ignore la información de error, porque cada llamada a función tiene que ir acompañada de una comprobación de errores tediosa y que oscurece el código. Además, volver de una función que se encuentra con una condición excepcional puede no tener sentido.</para>
+      </listitem>
+      <listitem>
+        <!--
+        2. Use the little-known Standard C library signal-handling system, implemented with the signal( ) function (to determine what happens when the event occurs) and raise( ) (to generate an event). Again, this approach involves high coupling because it requires the user of any library that generates signals to understand and install the appropriate signal-handling mechanism. In large projects the signal numbers from different libraries might clash.
+        -->
+        <para>Usar el poco conocido sistema de gestión de señales de la librería estándar de C, implementado con la función <function>signal()</function> (para determinar qué ocurre cuando se produce el evento) y <function>raise()</function> (para generar un evento). De nuevo, este enfoque implica un alto acoplamiento, porque exige que el usuario de cualquier librería que genere señales entienda e instale el mecanismo de gestión de señales adecuado. En proyectos grandes, los números de señal de distintas librerías pueden entrar en conflicto.</para>
+      </listitem>
+      <listitem>
+        <!--
+        3. Use the nonlocal goto functions in the Standard C library: setjmp( ) and longjmp( ). With setjmp( ) you save a known good state in the program, and if you get into trouble, longjmp( ) will restore that state. Again, there is high coupling between the place where the state is stored and the place where the error occurs.
+        -->
+        <para>Usar las funciones de <kw>goto</kw> no local de la librería estándar de C: <function>setjmp()</function> y <function>longjmp()</function>. Con <function>setjmp()</function> se guarda un estado correcto conocido del programa y, si surgen problemas, <function>longjmp()</function> restaura ese estado. De nuevo, hay un alto acoplamiento entre el lugar donde se guarda el estado y el lugar donde se produce el error.</para>
+      </listitem>
+    </orderedlist>
 
     <!--
-    2. Use the little-known Standard C library signal-handling system, implemented with the signal( ) function (to determine what happens when the event occurs) and raise( ) (to generate an event). Again, this approach involves high coupling because it requires the user of any library that generates signals to understand and install the appropriate signal-handling mechanism. In large projects the signal numbers from different libraries might clash.
-    -->
-    <para>2. Usar el poco conocido sistema de gestión de señales de la librería estándar de C, implementado con la función <function>signal()</function> (para determinar qué ocurre cuando se produce el evento) y <function>raise()</function> (para generar un evento). De nuevo, este enfoque implica un alto acoplamiento, porque exige que el usuario de cualquier librería que genere señales entienda e instale el mecanismo de gestión de señales adecuado. En proyectos grandes, los números de señal de distintas librerías pueden entrar en conflicto.</para>
-
-    <!--
-    3. Use the nonlocal goto functions in the Standard C library: setjmp( ) and longjmp( ). With setjmp( ) you save a known good state in the program, and if you get into trouble, longjmp( ) will restore that state. Again, there is high coupling between the place where the state is stored and the place where the error occurs.
-    -->
-    <para>3. Usar las funciones de <kw>goto</kw> no local de la librería estándar de C: <function>setjmp()</function> y <function>longjmp()</function>. Con <function>setjmp()</function> se guarda un estado correcto conocido del programa y, si surgen problemas, <function>longjmp()</function> restaura ese estado. De nuevo, hay un alto acoplamiento entre el lugar donde se guarda el estado y el lugar donde se produce el error.</para>
-
-    <!--
-    When considering error-handling schemes with C++, there's an additional critical problem: The C techniques of signals and setjmp( )/longjmp( ) do not call destructors, so objects aren't properly cleaned up. (In fact, if longjmp( ) jumps past the end of a scope where destructors should be called, the behavior of the program is undefined.) This makes it virtually impossible to effectively recover from an exceptional condition because you'll always leave objects behind that haven't been cleaned up and that can no longer be accessed. The following example demonstrates this with setjmp/longjmp:
+    When considering error-handling schemes with C++, there’s an additional critical problem: The C techniques of signals and setjmp( )/longjmp( ) do not call destructors, so objects aren’t properly cleaned up. (In fact, if longjmp( ) jumps past the end of a scope where destructors should be called, the behavior of the program is undefined.) This makes it virtually impossible to effectively recover from an exceptional condition because you’ll always leave objects behind that haven’t been cleaned up and that can no longer be accessed. The following example demonstrates this with setjmp/longjmp:
     -->
     <para>Al considerar los esquemas de gestión de errores en C++, aparece un problema adicional crítico: las técnicas de C de las señales y de <function>setjmp()</function>/<function>longjmp()</function> no llaman a los destructores, así que los objetos no se limpian correctamente. (De hecho, si <function>longjmp()</function> salta más allá del final de un ámbito en el que se deberían llamar destructores, el comportamiento del programa es indefinido.) Esto hace prácticamente imposible recuperarse de forma eficaz de una condición excepcional, porque siempre quedan atrás objetos sin limpiar a los que ya no se puede acceder. El siguiente ejemplo lo demuestra con <function>setjmp</function>/<function>longjmp</function>:</para>
 
@@ -102,12 +113,12 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
 
 
     <!--
-    The setjmp() function is odd because if you call it directly, it stores all the relevant information about the current processor state (such as the contents of the instruction pointer and runtime stack pointer) in the jmp_buf and returns zero. In this case it behaves like an ordinary function. However, if you call longjmp( ) using the same jmp_buf, it's as if you're returning from setjmp( ) again-you pop right out the back end of the setjmp( ). This time, the value returned is the second argument to longjmp( ), so you can detect that you're actually coming back from a longjmp( ). You can imagine that with many different jmp_bufs, you could pop around to many different places in the program. The difference between a local goto (with a label) and this nonlocal goto is that you can return to any pre-determined location higher up in the runtime stack with setjmp( )/longjmp( ) (wherever you've placed a call to setjmp( )).
+    The setjmp( ) function is odd because if you call it directly, it stores all the relevant information about the current processor state (such as the contents of the instruction pointer and runtime stack pointer) in the jmp_buf and returns zero. In this case it behaves like an ordinary function. However, if you call longjmp( ) using the same jmp_buf, it’s as if you’re returning from setjmp( ) again—you pop right out the back end of the setjmp( ). This time, the value returned is the second argument to longjmp( ), so you can detect that you’re actually coming back from a longjmp( ). You can imagine that with many different jmp_bufs, you could pop around to many different places in the program. The difference between a local goto (with a label) and this nonlocal goto is that you can return to any pre-determined location higher up in the runtime stack with setjmp( )/longjmp( ) (wherever you’ve placed a call to setjmp( )).
     -->
     <para>La función <function>setjmp()</function> es curiosa porque, si se la llama directamente, guarda toda la información relevante sobre el estado actual del procesador (como el contenido del puntero de instrucción y del puntero de la pila de ejecución) en el <type>jmp_buf</type> y devuelve cero. En este caso se comporta como una función normal. Sin embargo, si se llama a <function>longjmp()</function> con el mismo <type>jmp_buf</type>, es como si se volviera a retornar de <function>setjmp()</function>: se sale de nuevo por el final de <function>setjmp()</function>. Esta vez, el valor devuelto es el segundo argumento de <function>longjmp()</function>, así que se puede detectar que en realidad se vuelve de un <function>longjmp()</function>. Como puede imaginar, con muchos <type>jmp_buf</type> distintos se podría saltar a muchos sitios distintos del programa. La diferencia entre un <kw>goto</kw> local (con una etiqueta) y este <kw>goto</kw> no local es que con <function>setjmp()</function>/<function>longjmp()</function> se puede volver a cualquier punto predeterminado más arriba en la pila de ejecución (allí donde se haya puesto una llamada a <function>setjmp()</function>).</para>
 
     <!--
-    The problem in C++ is that longjmp( ) doesn't respect objects; in particular it doesn't call destructors when it jumps out of a scope.[1] Destructor calls are essential, so this approach won't work with C++. In fact, the C++ Standard states that branching into a scope with goto (effectively bypassing constructor calls), or branching out of a scope with longjmp( ) where an object on the stack has a destructor, constitutes undefined behavior.
+    The problem in C++ is that longjmp( ) doesn’t respect objects; in particular it doesn’t call destructors when it jumps out of a scope.[1] Destructor calls are essential, so this approach won’t work with C++. In fact, the C++ Standard states that branching into a scope with goto (effectively bypassing constructor calls), or branching out of a scope with longjmp( ) where an object on the stack has a destructor, constitutes undefined behavior.
     -->
     <para>El problema en C++ es que <function>longjmp()</function> no respeta los objetos; en particular, no llama a los destructores cuando salta fuera de un ámbito<footnote><para>Quizá le sorprenda el resultado al ejecutar el ejemplo: algunos compiladores de C++ han ampliado <function>longjmp()</function> para que limpie los objetos de la pila. Este comportamiento no es portable.</para></footnote>. Las llamadas a los destructores son esenciales, así que este enfoque no sirve en C++. De hecho, el estándar de C++ establece que saltar dentro de un ámbito con <kw>goto</kw> (saltándose en la práctica las llamadas a los constructores), o salir de un ámbito con <function>longjmp()</function> cuando hay en la pila un objeto con destructor, constituye un comportamiento indefinido.</para>
 
@@ -117,7 +128,7 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
     <title>Lanzar una excepción</title>
 
     <!--
-    If you encounter an exceptional situation in your code-that is, if you don't have enough information in the current context to decide what to do-you can send information about the error into a larger context by creating an object that contains that information and "throwing" it out of your current context. This is called throwing an exception. Here's what it looks like:
+    If you encounter an exceptional situation in your code—that is, if you don’t have enough information in the current context to decide what to do—you can send information about the error into a larger context by creating an object that contains that information and “throwing” it out of your current context. This is called throwing an exception. Here’s what it looks like:
     -->
     <para>Si en el código se encuentra una situación excepcional (es decir, si no se tiene suficiente información en el contexto actual para decidir qué hacer), se puede enviar información sobre el error a un contexto más amplio creando un objeto que contenga esa información y <quote>lanzándolo</quote> fuera del contexto actual. Esto se llama <emphasis>lanzar una excepción</emphasis>. Este es su aspecto:</para>
 
@@ -126,22 +137,22 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
 
 
     <!--
-    MyError is an ordinary class, which in this case takes a char* as a constructor argument. You can use any type when you throw (including built-in types), but usually you'll create special classes for throwing exceptions.
+    MyError is an ordinary class, which in this case takes a char* as a constructor argument. You can use any type when you throw (including built-in types), but usually you’ll create special classes for throwing exceptions.
     -->
     <para><classname>MyError</classname> es una clase normal que, en este caso, recibe un <type>char*</type> como argumento del constructor. Se puede lanzar cualquier tipo (incluidos los tipos predefinidos), pero normalmente se crean clases especiales para lanzar excepciones.</para>
 
     <!--
-    The keyword throw causes a number of relatively magical things to happen. First, it creates a copy of the object you're throwing and, in effect, "returns" it from the function containing the throw expression, even though that object type isn't normally what the function is designed to return. A naive way to think about exception handling is as an alternate return mechanism (although you'll find you can get into trouble if you take that analogy too far). You can also exit from ordinary scopes by throwing an exception. In any case, a value is returned, and the function or scope exits.
+    The keyword throw causes a number of relatively magical things to happen. First, it creates a copy of the object you’re throwing and, in effect, “returns” it from the function containing the throw expression, even though that object type isn’t normally what the function is designed to return. A naive way to think about exception handling is as an alternate return mechanism (although you’ll find you can get into trouble if you take that analogy too far). You can also exit from ordinary scopes by throwing an exception. In any case, a value is returned, and the function or scope exits.
     -->
     <para>La palabra reservada <kw>throw</kw> provoca una serie de cosas relativamente mágicas. Primero, crea una copia del objeto que se lanza y, en la práctica, lo <quote>devuelve</quote> desde la función que contiene la expresión <kw>throw</kw>, aunque ese tipo de objeto no sea lo que la función está diseñada para devolver. Una forma ingenua de ver la gestión de excepciones es como un mecanismo alternativo de retorno (aunque, si lleva esa analogía demasiado lejos, se meterá en problemas). También se puede salir de ámbitos normales lanzando una excepción. En cualquier caso, se devuelve un valor y se sale de la función o del ámbito.</para>
 
     <!--
-    Any similarity to a return statement ends there because where you return is some place completely different from where a normal function call returns. (You end up in an appropriate part of the code-called an exception handler-that might be far removed from where the exception was thrown.) In addition, any local objects created by the time the exception occurs are destroyed. This automatic cleanup of local objects is often called "stack unwinding."
+    Any similarity to a return statement ends there because where you return is some place completely different from where a normal function call returns. (You end up in an appropriate part of the code—called an exception handler—that might be far removed from where the exception was thrown.) In addition, any local objects created by the time the exception occurs are destroyed. This automatic cleanup of local objects is often called “stack unwinding.”
     -->
     <para>Cualquier parecido con una sentencia <kw>return</kw> termina ahí, porque el lugar al que se vuelve no tiene nada que ver con el lugar al que vuelve una llamada normal a una función. (Se acaba en una parte adecuada del código, llamada <emphasis>manejador de excepciones</emphasis>, que puede estar muy lejos del lugar donde se lanzó la excepción.) Además, se destruyen todos los objetos locales creados hasta el momento de la excepción. Esta limpieza automática de los objetos locales se suele llamar <quote>desenrollado de la pila</quote> (<foreignphrase>stack unwinding</foreignphrase>).</para>
 
     <!--
-    In addition, you can throw as many different types of objects as you want. Typically, you'll throw a different type for each category of error. The idea is to store the information in the object and in the name of its class so that someone in a calling context can figure out what to do with your exception.
+    In addition, you can throw as many different types of objects as you want. Typically, you’ll throw a different type for each category of error. The idea is to store the information in the object and in the name of its class so that someone in a calling context can figure out what to do with your exception.
     -->
     <para>Además, se pueden lanzar tantos tipos distintos de objetos como se quiera. Normalmente se lanza un tipo distinto para cada categoría de error. La idea es guardar la información en el objeto y en el nombre de su clase, para que quien esté en el contexto que hace la llamada pueda averiguar qué hacer con la excepción.</para>
 
@@ -151,7 +162,7 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
     <title>Capturar una excepción</title>
 
     <!--
-    As mentioned earlier, one of the advantages of C++ exception handling is that you can concentrate on the problem you're trying to solve in one place, and then deal with the errors from that code in another place.
+    As mentioned earlier, one of the advantages of C++ exception handling is that you can concentrate on the problem you’re trying to solve in one place, and then deal with the errors from that code in another place.
     -->
     <para>Como se dijo antes, una de las ventajas de la gestión de excepciones de C++ es que permite concentrarse en un lugar en el problema que se intenta resolver y tratar en otro lugar los errores de ese código.</para>
 
@@ -160,7 +171,7 @@ https://web.mit.edu/merolish/ticpp/TicV2.html#_Toc53985615
       <title>El bloque <kw>try</kw></title>
 
       <!--
-      If you're inside a function and you throw an exception (or a called function throws an exception), the function exits because of the thrown exception. If you don't want a throw to leave a function, you can set up a special block within the function where you try to solve your actual programming problem (and potentially generate exceptions). This block is called the try block because you try your various function calls there. The try block is an ordinary scope, preceded by the keyword try:
+      If you’re inside a function and you throw an exception (or a called function throws an exception), the function exits because of the thrown exception. If you don’t want a throw to leave a function, you can set up a special block within the function where you try to solve your actual programming problem (and potentially generate exceptions). This block is called the try block because you try your various function calls there. The try block is an ordinary scope, preceded by the keyword try:
       -->
       <para>Si dentro de una función se lanza una excepción (o una función a la que se llama lanza una excepción), la función termina a causa de la excepción lanzada. Si no se quiere que un <kw>throw</kw> haga salir de una función, se puede preparar dentro de ella un bloque especial en el que se intenta resolver el problema de programación real (y en el que se pueden generar excepciones). Este bloque se llama <emphasis>bloque try</emphasis>, porque en él se <emphasis>intentan</emphasis> las distintas llamadas a funciones. El bloque <kw>try</kw> es un ámbito normal precedido de la palabra reservada <kw>try</kw>:</para>
 
@@ -208,7 +219,7 @@ try {
 
 
       <!--
-      The syntax of a catch clause resembles functions that take a single argument. The identifier (id1, id2, and so on) can be used inside the handler, just like a function argument, although you can omit the identifier if it's not needed in the handler. The exception type usually gives you enough information to deal with it.
+      The syntax of a catch clause resembles functions that take a single argument. The identifier (id1, id2, and so on) can be used inside the handler, just like a function argument, although you can omit the identifier if it’s not needed in the handler. The exception type usually gives you enough information to deal with it.
       -->
       <para>La sintaxis de una cláusula <kw>catch</kw> se parece a la de una función que recibe un único argumento. El identificador (<varname>id1</varname>, <varname>id2</varname>, etc.) se puede usar dentro del manejador, igual que un argumento de función, aunque se puede omitir si el manejador no lo necesita. Normalmente, el tipo de la excepción da suficiente información para tratarla.</para>
 
@@ -242,7 +253,7 @@ try {
       <title>Terminación y reanudación</title>
 
       <!--
-      There are two basic models in exception-handling theory: termination and resumption. In termination (which is what C++ supports), you assume the error is so critical that there's no way to automatically resume execution at the point where the exception occurred. In other words, whoever threw the exception decided there was no way to salvage the situation, and they don't want to come back.
+      There are two basic models in exception-handling theory: termination and resumption. In termination (which is what C++ supports), you assume the error is so critical that there’s no way to automatically resume execution at the point where the exception occurred. In other words, whoever threw the exception decided there was no way to salvage the situation, and they don’t want to come back.
       -->
       <para>Hay dos modelos básicos en la teoría de la gestión de excepciones: la <emphasis>terminación</emphasis> y la <emphasis>reanudación</emphasis>. En la terminación (que es lo que admite C++), se supone que el error es tan grave que no hay forma de reanudar automáticamente la ejecución en el punto donde se produjo la excepción. Es decir, quien lanzó la excepción decidió que no había forma de salvar la situación y no quiere volver.</para>
 
@@ -252,7 +263,7 @@ try {
       <para>El modelo alternativo de gestión de errores se llama <emphasis>reanudación</emphasis>, y lo introdujo por primera vez el lenguaje PL/I en los años sesenta<footnote><para>El lenguaje BASIC admite desde hace tiempo una forma limitada de gestión de excepciones con reanudación mediante su instrucción <literal>ON ERROR</literal>.</para></footnote>. Usar una semántica de reanudación significa que se espera que el manejador de excepciones haga algo para corregir la situación y que después se vuelva a intentar automáticamente el código que falló, suponiendo que la segunda vez funcionará. Si se quiere reanudación en C++, hay que devolver explícitamente la ejecución al código donde se produjo el error, normalmente repitiendo la llamada a la función que llevó hasta allí. No es raro poner el bloque <kw>try</kw> dentro de un bucle <literal>while</literal> que vuelve a entrar en el bloque <kw>try</kw> hasta que el resultado es satisfactorio.</para>
 
       <!--
-      Historically, programmers using operating systems that supported resumptive exception handling eventually ended up using termination-like code and skipping resumption. Although resumption sounds attractive at first, it seems it isn't quite so useful in practice. One reason may be the distance that can occur between the exception and its handler. It is one thing to terminate to a handler that's far away, but to jump to that handler and then back again may be too conceptually difficult for large systems where the exception is generated from many points.
+      Historically, programmers using operating systems that supported resumptive exception handling eventually ended up using termination-like code and skipping resumption. Although resumption sounds attractive at first, it seems it isn’t quite so useful in practice. One reason may be the distance that can occur between the exception and its handler. It is one thing to terminate to a handler that’s far away, but to jump to that handler and then back again may be too conceptually difficult for large systems where the exception is generated from many points.
       -->
       <para>Históricamente, los programadores que usaban sistemas operativos que admitían la gestión de excepciones con reanudación acababan usando código del estilo de la terminación y prescindiendo de la reanudación. Aunque la reanudación resulta atractiva al principio, parece que en la práctica no es tan útil. Un motivo puede ser la distancia que puede haber entre la excepción y su manejador. Una cosa es terminar en un manejador que está lejos, pero saltar a ese manejador y luego volver puede ser conceptualmente demasiado difícil en sistemas grandes en los que la excepción se genera desde muchos puntos.</para>
 
@@ -265,12 +276,12 @@ try {
     <title>Correspondencia de excepciones</title>
 
     <!--
-    When an exception is thrown, the exception-handling system looks through the "nearest" handlers in the order they appear in the source code. When it finds a match, the exception is considered handled and no further searching occurs.
+    When an exception is thrown, the exception-handling system looks through the “nearest” handlers in the order they appear in the source code. When it finds a match, the exception is considered handled and no further searching occurs.
     -->
     <para>Cuando se lanza una excepción, el sistema de gestión de excepciones examina los manejadores <quote>más cercanos</quote> en el orden en que aparecen en el código fuente. Cuando encuentra uno que coincide, la excepción se considera tratada y no se sigue buscando.</para>
 
     <!--
-    Matching an exception doesn't require a perfect correlation between the exception and its handler. An object or reference to a derived-class object will match a handler for the base class. (However, if the handler is for an object rather than a reference, the exception object is "sliced"-truncated to the base type-as it is passed to the handler. This does no damage, but loses all the derived-type information.) For this reason, as well as to avoid making yet another copy of the exception object, it is always better to catch an exception by reference instead of by value.[3] If a pointer is thrown, the usual standard pointer conversions are used to match the exception. However, no automatic type conversions are used to convert from one exception type to another in the process of matching. For example:
+    Matching an exception doesn’t require a perfect correlation between the exception and its handler. An object or reference to a derived-class object will match a handler for the base class. (However, if the handler is for an object rather than a reference, the exception object is “sliced”—truncated to the base type—as it is passed to the handler. This does no damage, but loses all the derived-type information.) For this reason, as well as to avoid making yet another copy of the exception object, it is always better to catch an exception by reference instead of by value.[3] If a pointer is thrown, the usual standard pointer conversions are used to match the exception. However, no automatic type conversions are used to convert from one exception type to another in the process of matching. For example:
     -->
     <para>Para que una excepción coincida con su manejador no hace falta una correspondencia perfecta entre ambos. Un objeto o una referencia a un objeto de una clase derivada coincide con un manejador de la clase base. (Sin embargo, si el manejador es para un objeto y no para una referencia, el objeto excepción se <quote>rebana</quote>, es decir, se trunca al tipo base, al pasarlo al manejador. No causa ningún daño, pero se pierde toda la información del tipo derivado.) Por este motivo, y también para evitar hacer otra copia más del objeto excepción, siempre es mejor capturar una excepción por referencia que por valor<footnote><para>Quizá le convenga especificar siempre los objetos excepción por referencia constante en los manejadores. (Es raro modificar y relanzar una excepción.) Sin embargo, no somos dogmáticos con esta práctica.</para></footnote>. Si se lanza un puntero, para que coincida con la excepción se usan las conversiones estándar habituales de punteros. Sin embargo, en el proceso de correspondencia no se usa ninguna conversión automática de tipos para convertir un tipo de excepción en otro. Por ejemplo:</para>
 
@@ -279,7 +290,7 @@ try {
 
 
     <!--
-    Even though you might think the first handler could be matched by converting an Except1 object into an Except2 using the converting constructor, the system will not perform such a conversion during exception handling, and you'll end up at the Except1 handler.
+    Even though you might think the first handler could be matched by converting an Except1 object into an Except2 using the converting constructor, the system will not perform such a conversion during exception handling, and you’ll end up at the Except1 handler.
     -->
     <para>Aunque podría pensar que el primer manejador podría coincidir convirtiendo un objeto <classname>Except1</classname> en un <classname>Except2</classname> mediante el constructor de conversión, el sistema no realiza esa conversión durante la gestión de excepciones, y se acaba en el manejador de <classname>Except1</classname>.</para>
 
@@ -298,7 +309,7 @@ try {
     <para>Aquí, el mecanismo de gestión de excepciones siempre hará corresponder un objeto <classname>Trouble</classname>, o cualquier cosa que sea un <classname>Trouble</classname> (mediante herencia pública)<footnote><para>Solo las <emphasis>clases base accesibles y no ambiguas</emphasis> pueden capturar excepciones derivadas. Esta regla minimiza la sobrecarga en tiempo de ejecución necesaria para validar las excepciones. Recuerde que las excepciones se comprueban en tiempo de ejecución, no en tiempo de compilación, así que durante la gestión de excepciones no se dispone de la abundante información que hay en tiempo de compilación.</para></footnote>, con el primer manejador. Eso significa que nunca se llama al segundo ni al tercer manejador, porque el primero lo captura todo. Tiene más sentido capturar primero los tipos derivados y poner el tipo base al final, para capturar todo lo que sea menos específico.</para>
 
     <!--
-    Notice that these examples catch exceptions by reference, although for these classes it isn't important because there are no additional members in the derived classes, and there are no argument identifiers in the handlers anyway. You'll usually want to use reference arguments rather than value arguments in your handlers to avoid slicing off information.
+    Notice that these examples catch exceptions by reference, although for these classes it isn’t important because there are no additional members in the derived classes, and there are no argument identifiers in the handlers anyway. You’ll usually want to use reference arguments rather than value arguments in your handlers to avoid slicing off information.
     -->
     <para>Observe que estos ejemplos capturan las excepciones por referencia, aunque con estas clases no importa, porque las clases derivadas no tienen miembros adicionales y, de todos modos, los manejadores no tienen identificadores de argumento. Normalmente conviene usar argumentos por referencia en lugar de por valor en los manejadores, para no perder información al rebanar el objeto.</para>
 
@@ -320,12 +331,12 @@ catch(...) {
 
 
       <!--
-      Because an ellipsis catches any exception, you'll want to put it at the end of your list of handlers to avoid pre-empting any that follow it.
+      Because an ellipsis catches any exception, you’ll want to put it at the end of your list of handlers to avoid pre-empting any that follow it.
       -->
       <para>Como los puntos suspensivos capturan cualquier excepción, conviene ponerlos al final de la lista de manejadores para no adelantarse a los que vengan detrás.</para>
 
       <!--
-      The ellipsis gives you no possibility to have an argument, so you can't know anything about the exception or its type. It's a "catchall." Such a catch clause is often used to clean up some resources and then rethrow the exception.
+      The ellipsis gives you no possibility to have an argument, so you can’t know anything about the exception or its type. It’s a “catchall.” Such a catch clause is often used to clean up some resources and then rethrow the exception.
       -->
       <para>Los puntos suspensivos no permiten tener un argumento, así que no se puede saber nada de la excepción ni de su tipo. Es un manejador para <quote>todo</quote>. Una cláusula <kw>catch</kw> así se suele usar para liberar algunos recursos y después relanzar la excepción.</para>
 
@@ -335,7 +346,7 @@ catch(...) {
       <title>Relanzar una excepción</title>
 
       <!--
-      You usually want to rethrow an exception when you have some resource that needs to be released, such as a network connection or heap memory that needs to be deallocated. (See the section "Resource Management" later in this chapter for more detail). If an exception occurs, you don't necessarily care what error caused the exception-you just want to close the connection you opened previously. After that, you'll want to let some other context closer to the user (that is, higher up in the call chain) handle the exception. In this case the ellipsis specification is just what you want. You want to catch any exception, clean up your resource, and then rethrow the exception for handling elsewhere. You rethrow an exception by using throw with no argument inside a handler:
+      You usually want to rethrow an exception when you have some resource that needs to be released, such as a network connection or heap memory that needs to be deallocated. (See the section “Resource Management” later in this chapter for more detail). If an exception occurs, you don’t necessarily care what error caused the exception—you just want to close the connection you opened previously. After that, you’ll want to let some other context closer to the user (that is, higher up in the call chain) handle the exception. In this case the ellipsis specification is just what you want. You want to catch any exception, clean up your resource, and then rethrow the exception for handling elsewhere. You rethrow an exception by using throw with no argument inside a handler:
       -->
       <para>Normalmente se relanza una excepción cuando hay algún recurso que se debe liberar, como una conexión de red o memoria del montículo. (Encontrará más detalles en la sección <quote>Gestión de recursos</quote>, más adelante en este capítulo.) Si se produce una excepción, no necesariamente importa qué error la provocó; solo se quiere cerrar la conexión que se abrió antes. Después, se quiere dejar que otro contexto más cercano al usuario (es decir, más arriba en la cadena de llamadas) trate la excepción. En este caso, la especificación con puntos suspensivos es justo lo que se necesita: capturar cualquier excepción, liberar el recurso y después relanzar la excepción para que se trate en otro sitio. Para relanzar una excepción se usa <kw>throw</kw> sin argumento dentro de un manejador:</para>
 
@@ -349,7 +360,7 @@ cout &lt;&lt; "an exception was thrown" &lt;&lt; endl;
 
 
       <!--
-      Any further catch clauses for the same try block are still ignored-the throw causes the exception to go to the exception handlers in the next-higher context. In addition, everything about the exception object is preserved, so the handler at the higher context that catches the specific exception type can extract any information the object may contain.
+      Any further catch clauses for the same try block are still ignored—the throw causes the exception to go to the exception handlers in the next-higher context. In addition, everything about the exception object is preserved, so the handler at the higher context that catches the specific exception type can extract any information the object may contain.
       -->
       <para>Las demás cláusulas <kw>catch</kw> del mismo bloque <kw>try</kw> se siguen ignorando: el <kw>throw</kw> hace que la excepción pase a los manejadores del siguiente contexto superior. Además, se conserva todo lo relativo al objeto excepción, así que el manejador del contexto superior que capture ese tipo concreto de excepción puede extraer cualquier información que contenga el objeto.</para>
 
@@ -359,7 +370,7 @@ cout &lt;&lt; "an exception was thrown" &lt;&lt; endl;
       <title>Excepciones no capturadas</title>
 
       <!--
-      As we explained in the beginning of this chapter, exception handling is considered better than the traditional return-an-error-code technique because exceptions can't be ignored, and because the error handling logic is separated from the problem at hand. If none of the exception handlers following a particular try block matches an exception, that exception moves to the next-higher context, that is, the function or try block surrounding the try block that did not catch the exception. (The location of this try block is not always obvious at first glance, since it's higher up in the call chain.) This process continues until, at some level, a handler matches the exception. At that point, the exception is considered "caught," and no further searching occurs. The terminate( ) function
+      As we explained in the beginning of this chapter, exception handling is considered better than the traditional return-an-error-code technique because exceptions can’t be ignored, and because the error handling logic is separated from the problem at hand. If none of the exception handlers following a particular try block matches an exception, that exception moves to the next-higher context, that is, the function or try block surrounding the try block that did not catch the exception. (The location of this try block is not always obvious at first glance, since it’s higher up in the call chain.) This process continues until, at some level, a handler matches the exception. At that point, the exception is considered “caught,” and no further searching occurs. The terminate( ) function
       -->
       <para>Como se explicó al principio de este capítulo, la gestión de excepciones se considera mejor que la técnica tradicional de devolver un código de error porque las excepciones no se pueden ignorar y porque la lógica de gestión de errores está separada del problema que se trata. Si ninguno de los manejadores que siguen a un bloque <kw>try</kw> concreto coincide con una excepción, esta pasa al siguiente contexto superior, es decir, a la función o al bloque <kw>try</kw> que rodea al bloque <kw>try</kw> que no capturó la excepción. (Dónde está ese bloque <kw>try</kw> no siempre es evidente a primera vista, ya que está más arriba en la cadena de llamadas.) Este proceso continúa hasta que, en algún nivel, un manejador coincide con la excepción. En ese momento, la excepción se considera <quote>capturada</quote> y no se sigue buscando.</para>
 
@@ -368,7 +379,7 @@ cout &lt;&lt; "an exception was thrown" &lt;&lt; endl;
       <title>La función <function>terminate()</function></title>
 
       <!--
-      If no handler at any level catches the exception, the special library function terminate( ) (declared in the <exception> header) is automatically called. By default, terminate( ) calls the Standard C library function abort( ) , which abruptly exits the program. On Unix systems, abort( ) also causes a core dump. When abort( ) is called, no calls to normal program termination functions occur, which means that destructors for global and static objects do not execute. The terminate( ) function also executes if a destructor for a local object throws an exception while the stack is unwinding (interrupting the exception that was in progress) or if a global or static object's constructor or destructor throws an exception. (In general, do not allow a destructor to throw an exception.) The set_terminate( ) function
+      If no handler at any level catches the exception, the special library function terminate( ) (declared in the <exception> header) is automatically called. By default, terminate( ) calls the Standard C library function abort( ) , which abruptly exits the program. On Unix systems, abort( ) also causes a core dump. When abort( ) is called, no calls to normal program termination functions occur, which means that destructors for global and static objects do not execute. The terminate( ) function also executes if a destructor for a local object throws an exception while the stack is unwinding (interrupting the exception that was in progress) or if a global or static object’s constructor or destructor throws an exception. (In general, do not allow a destructor to throw an exception.) The set_terminate( ) function
       -->
       <para>Si ningún manejador de ningún nivel captura la excepción, se llama automáticamente a la función especial de librería <function>terminate()</function> (declarada en la cabecera &lt;exception&gt;). Por defecto, <function>terminate()</function> llama a la función <function>abort()</function> de la librería estándar de C, que termina el programa bruscamente. En los sistemas Unix, <function>abort()</function> también provoca un volcado de memoria (<foreignphrase>core dump</foreignphrase>). Cuando se llama a <function>abort()</function>, no se llama a las funciones normales de terminación del programa, lo que significa que no se ejecutan los destructores de los objetos globales y estáticos. La función <function>terminate()</function> también se ejecuta si el destructor de un objeto local lanza una excepción durante el desenrollado de la pila (interrumpiendo la excepción que estaba en curso) o si el constructor o el destructor de un objeto global o estático lanza una excepción. (En general, no permita que un destructor lance una excepción.)</para>
 
@@ -393,7 +404,7 @@ cout &lt;&lt; "an exception was thrown" &lt;&lt; endl;
 
 
       <!--
-      The definition of old_terminate looks a bit confusing at first: it not only creates a pointer to a function, but it initializes that pointer to the return value of set_terminate( ). Even though you might be familiar with seeing a semicolon right after a pointer-to-function declaration, here it's just another kind of variable and can be initialized when it is defined.
+      The definition of old_terminate looks a bit confusing at first: it not only creates a pointer to a function, but it initializes that pointer to the return value of set_terminate( ). Even though you might be familiar with seeing a semicolon right after a pointer-to-function declaration, here it’s just another kind of variable and can be initialized when it is defined.
       -->
       <para>La definición de <varname>old_terminate</varname> parece algo confusa al principio: no solo crea un puntero a función, sino que inicializa ese puntero con el valor de retorno de <function>set_terminate()</function>. Aunque quizá esté acostumbrado a ver un punto y coma justo después de la declaración de un puntero a función, aquí no es más que otro tipo de variable y se puede inicializar al definirla.</para>
 
@@ -411,12 +422,12 @@ cout &lt;&lt; "an exception was thrown" &lt;&lt; endl;
     <title>Limpieza</title>
 
     <!--
-    Part of the magic of exception handling is that you can pop from normal program flow into the appropriate exception handler. Doing so wouldn't be useful, however, if things weren't cleaned up properly as the exception was thrown. C++ exception handling guarantees that as you leave a scope, all objects in that scope whose constructors have been completed will have their destructors called.
+    Part of the magic of exception handling is that you can pop from normal program flow into the appropriate exception handler. Doing so wouldn’t be useful, however, if things weren’t cleaned up properly as the exception was thrown. C++ exception handling guarantees that as you leave a scope, all objects in that scope whose constructors have been completed will have their destructors called.
     -->
     <para>Parte de la magia de la gestión de excepciones es que se puede saltar del flujo normal del programa al manejador de excepciones adecuado. Sin embargo, no serviría de nada si las cosas no se limpiaran correctamente al lanzar la excepción. La gestión de excepciones de C++ garantiza que, al salir de un ámbito, se llama a los destructores de todos los objetos de ese ámbito cuyos constructores hayan terminado.</para>
 
     <!--
-    Here's an example that demonstrates that constructors that aren't completed don't have the associated destructors called. It also shows what happens when an exception is thrown in the middle of the creation of an array of objects:
+    Here’s an example that demonstrates that constructors that aren’t completed don’t have the associated destructors called. It also shows what happens when an exception is thrown in the middle of the creation of an array of objects:
     -->
     <para>Este es un ejemplo que demuestra que no se llama a los destructores de los constructores que no han terminado. También muestra qué ocurre cuando se lanza una excepción en mitad de la creación de un array de objetos:</para>
 
@@ -457,12 +468,12 @@ caught 3
       <title>Gestión de recursos</title>
 
       <!--
-      When writing code with exceptions, it's particularly important that you always ask, "If an exception occurs, will my resources be properly cleaned up?" Most of the time you're fairly safe, but in constructors there's a particular problem: if an exception is thrown before a constructor is completed, the associated destructor will not be called for that object. Thus, you must be especially diligent while writing your constructor.
+      When writing code with exceptions, it’s particularly important that you always ask, “If an exception occurs, will my resources be properly cleaned up?” Most of the time you’re fairly safe, but in constructors there’s a particular problem: if an exception is thrown before a constructor is completed, the associated destructor will not be called for that object. Thus, you must be especially diligent while writing your constructor.
       -->
       <para>Al escribir código con excepciones, es especialmente importante preguntarse siempre: <quote>Si se produce una excepción, ¿se liberarán correctamente mis recursos?</quote>. La mayoría de las veces no hay mucho peligro, pero en los constructores hay un problema particular: si se lanza una excepción antes de que termine un constructor, no se llamará al destructor asociado de ese objeto. Por eso hay que ser especialmente cuidadoso al escribir los constructores.</para>
 
       <!--
-      The difficulty is in allocating resources in constructors. If an exception occurs in the constructor, the destructor doesn't get a chance to deallocate the resource. This problem occurs most often with "naked" pointers. For example:
+      The difficulty is in allocating resources in constructors. If an exception occurs in the constructor, the destructor doesn’t get a chance to deallocate the resource. This problem occurs most often with “naked” pointers. For example:
       -->
       <para>La dificultad está en reservar recursos en los constructores. Si se produce una excepción en el constructor, el destructor no tiene ocasión de liberar el recurso. Este problema aparece sobre todo con los punteros <quote>desnudos</quote>. Por ejemplo:</para>
 
@@ -497,17 +508,17 @@ inside handler
       <title>Convertirlo todo en objetos</title>
 
       <!--
-      To prevent such resource leaks, you must guard against these "raw" resource allocations in one of two ways:
+      To prevent such resource leaks, you must guard against these “raw” resource allocations in one of two ways:
       -->
       <para>Para evitar estas fugas de recursos, hay que protegerse de estas reservas de recursos <quote>en bruto</quote> de una de estas dos formas:</para>
 
       <!--
-      · You can catch exceptions inside the constructor and then release the resource.
+      You can catch exceptions inside the constructor and then release the resource.
       -->
       <para>Capturar las excepciones dentro del constructor y liberar después el recurso.</para>
 
       <!--
-      · You can place the allocations inside an object's constructor, and you can place the deallocations inside an object's destructor.
+      You can place the allocations inside an object’s constructor, and you can place the deallocations inside an object’s destructor.
       -->
       <para>Hacer las reservas dentro del constructor de un objeto y las liberaciones dentro del destructor de un objeto.</para>
 
@@ -526,7 +537,7 @@ inside handler
       <para>La diferencia está en el uso de la plantilla para envolver los punteros y convertirlos en objetos. Los constructores de estos objetos se llaman antes del cuerpo del constructor de <classname>UseResources</classname>, y para todos los que terminen antes de que se lance una excepción se llamará a sus destructores durante el desenrollado de la pila.</para>
 
       <!--
-      The PWrap template shows a more typical use of exceptions than you've seen so far: A nested class called RangeError is created to use in operator[ ] if its argument is out of range. Because operator[ ] returns a reference, it cannot return zero. (There are no null references.) This is a true exceptional condition-you don't know what to do in the current context and you can't return an improbable value. In this example, RangeError[5] is simple and assumes all the necessary information is in the class name, but you might also want to add a member that contains the value of the index, if that is useful.
+      The PWrap template shows a more typical use of exceptions than you’ve seen so far: A nested class called RangeError is created to use in operator[ ] if its argument is out of range. Because operator[ ] returns a reference, it cannot return zero. (There are no null references.) This is a true exceptional condition—you don’t know what to do in the current context and you can’t return an improbable value. In this example, RangeError[5] is simple and assumes all the necessary information is in the class name, but you might also want to add a member that contains the value of the index, if that is useful.
       -->
       <para>La plantilla <classname>PWrap</classname> muestra un uso de las excepciones más habitual que los vistos hasta ahora: se crea una clase anidada llamada <classname>RangeError</classname> para usarla en <function>operator[]</function> si su argumento está fuera de rango. Como <function>operator[]</function> devuelve una referencia, no puede devolver cero. (No existen las referencias nulas.) Es una verdadera condición excepcional: no se sabe qué hacer en el contexto actual y no se puede devolver un valor improbable. En este ejemplo, <classname>RangeError</classname><footnote><para>Observe que en la Librería Estándar de C++ hay una clase de excepción llamada <classname>std::out_of_range</classname>, pensada para situaciones como esta.</para></footnote> es sencilla y supone que toda la información necesaria está en el nombre de la clase, pero quizá convenga añadir un miembro que contenga el valor del índice, si resulta útil.</para>
 
@@ -561,7 +572,7 @@ inside handler
       <title><classname>auto_ptr</classname></title>
 
       <!--
-      Since dynamic memory is the most frequent resource used in a typical C++ program, the standard provides an RAII wrapper for pointers to heap memory that automatically frees the memory. The auto_ptr class template, defined in the <memory> header, has a constructor that takes a pointer to its generic type (whatever you use in your code). The auto_ptr class template also overloads the pointer operators * and -> to forward these operations to the original pointer the auto_ptr object is holding. So you can use the auto_ptr object as if it were a raw pointer. Here's how it works:
+      Since dynamic memory is the most frequent resource used in a typical C++ program, the standard provides an RAII wrapper for pointers to heap memory that automatically frees the memory. The auto_ptr class template, defined in the <memory> header, has a constructor that takes a pointer to its generic type (whatever you use in your code). The auto_ptr class template also overloads the pointer operators * and -> to forward these operations to the original pointer the auto_ptr object is holding. So you can use the auto_ptr object as if it were a raw pointer. Here’s how it works:
       -->
       <para>Como la memoria dinámica es el recurso más usado en un programa C++ típico, el estándar ofrece un envoltorio RAII para los punteros a memoria del montículo que libera automáticamente la memoria. La plantilla de clase <classname>auto_ptr</classname>, definida en la cabecera &lt;memory&gt;, tiene un constructor que recibe un puntero a su tipo genérico (el que se use en el código). La plantilla de clase <classname>auto_ptr</classname> también sobrecarga los operadores de puntero <oper>*</oper> y <oper>-&gt;</oper> para reenviar estas operaciones al puntero original que guarda el objeto <classname>auto_ptr</classname>. Así, se puede usar el objeto <classname>auto_ptr</classname> como si fuera un puntero normal. Así es como funciona:</para>
 
@@ -570,7 +581,7 @@ inside handler
 
 
       <!--
-      The TraceHeap class overloads the operator new and operator delete so you can see exactly what's happening. Notice that, like any other class template, you specify the type you're going to use in a template parameter. You don't say TraceHeap*, however-auto_ptr already knows that it will be storing a pointer to your type. The second line of main( ) verifies that auto_ptr's operator->( ) function applies the indirection to the original, underlying pointer. Most important, even though we didn't explicitly delete the original pointer, pMyObject's destructor deletes the original pointer during stack unwinding, as the following output verifies: Allocating TraceHeap object on the heap at address 8930040 5 Deleting TraceHeap object at address 8930040
+      The TraceHeap class overloads the operator new and operator delete so you can see exactly what’s happening. Notice that, like any other class template, you specify the type you’re going to use in a template parameter. You don’t say TraceHeap*, however—auto_ptr already knows that it will be storing a pointer to your type. The second line of main( ) verifies that auto_ptr’s operator->( ) function applies the indirection to the original, underlying pointer. Most important, even though we didn’t explicitly delete the original pointer, pMyObject’s destructor deletes the original pointer during stack unwinding, as the following output verifies: Allocating TraceHeap object on the heap at address 8930040 5 Deleting TraceHeap object at address 8930040
       -->
       <para>La clase <classname>TraceHeap</classname> sobrecarga <function>operator new</function> y <function>operator delete</function> para que se pueda ver exactamente qué ocurre. Observe que, como en cualquier otra plantilla de clase, el tipo que se va a usar se indica en un parámetro de plantilla. Sin embargo, no se escribe <type>TraceHeap*</type>: <classname>auto_ptr</classname> ya sabe que va a guardar un puntero al tipo indicado. La segunda línea de <function>main()</function> comprueba que la función <function>operator-&gt;()</function> de <classname>auto_ptr</classname> aplica la indirección al puntero original subyacente. Y lo más importante: aunque no se ha borrado explícitamente el puntero original, el destructor de <varname>pMyObject</varname> lo borra durante el desenrollado de la pila, como confirma la salida:</para>
 
@@ -591,7 +602,7 @@ Deleting TraceHeap object at address 8930040
       <title>Bloques <kw>try</kw> a nivel de función</title>
 
       <!--
-      Since constructors can routinely throw exceptions, you might want to handle exceptions that occur when an object's member or base subobjects are initialized. To do this, you can place the initialization of such subobjects in a function-level try block. In a departure from the usual syntax, the try block for constructor initializers is the constructor body, and the associated catch block follows the body of the constructor, as in the following example:
+      Since constructors can routinely throw exceptions, you might want to handle exceptions that occur when an object’s member or base subobjects are initialized. To do this, you can place the initialization of such subobjects in a function-level try block. In a departure from the usual syntax, the try block for constructor initializers is the constructor body, and the associated catch block follows the body of the constructor, as in the following example:
       -->
       <para>Como los constructores pueden lanzar excepciones con normalidad, quizá quiera tratar las excepciones que se producen al inicializar los subobjetos miembro o base de un objeto. Para ello, se puede poner la inicialización de esos subobjetos en un <emphasis>bloque try a nivel de función</emphasis>. A diferencia de la sintaxis habitual, el bloque <kw>try</kw> de los inicializadores del constructor es el cuerpo del constructor, y el bloque <kw>catch</kw> asociado va después del cuerpo del constructor, como en el siguiente ejemplo:</para>
 
@@ -614,7 +625,7 @@ Deleting TraceHeap object at address 8930040
 
 
       <!--
-      In this case, the catch block can return in the same manner that the function body normally returns. Using this type of function-level try block isn't much different from inserting a try-catch around the code inside of the function body.
+      In this case, the catch block can return in the same manner that the function body normally returns. Using this type of function-level try block isn’t much different from inserting a try-catch around the code inside of the function body.
       -->
       <para>En este caso, el bloque <kw>catch</kw> puede retornar de la misma forma en que retorna normalmente el cuerpo de la función. Usar este tipo de bloque <kw>try</kw> a nivel de función no es muy distinto de poner un <kw>try</kw>-<kw>catch</kw> alrededor del código del cuerpo de la función.</para>
 
@@ -625,7 +636,7 @@ Deleting TraceHeap object at address 8930040
     <title>Excepciones estándar</title>
 
     <!--
-    The exceptions used with the Standard C++ library are also available for your use. Generally it's easier and faster to start with a standard exception class than to try to define your own. If the standard class doesn't do exactly what you need, you can derive from it.
+    The exceptions used with the Standard C++ library are also available for your use. Generally it’s easier and faster to start with a standard exception class than to try to define your own. If the standard class doesn’t do exactly what you need, you can derive from it.
     -->
     <para>Las excepciones que usa la Librería Estándar de C++ también están a su disposición. Por lo general, es más fácil y rápido partir de una clase de excepción estándar que intentar definir una propia. Si la clase estándar no hace exactamente lo que necesita, puede derivar de ella.</para>
 
@@ -639,7 +650,7 @@ Deleting TraceHeap object at address 8930040
 
 
     <!--
-    Although the runtime_error constructor inserts the message into its std::exception subobject, std::exception does not provide a constructor that takes a std::string argument. You'll usually want to derive your exception classes from either runtime_error or logic_error (or one of their derivatives), and not from std::exception.
+    Although the runtime_error constructor inserts the message into its std::exception subobject, std::exception does not provide a constructor that takes a std::string argument. You’ll usually want to derive your exception classes from either runtime_error or logic_error (or one of their derivatives), and not from std::exception.
     -->
     <para>Aunque el constructor de <classname>runtime_error</classname> inserta el mensaje en su subobjeto <classname>std::exception</classname>, <classname>std::exception</classname> no ofrece ningún constructor que reciba un argumento <classname>std::string</classname>. Normalmente conviene derivar las clases de excepción propias de <classname>runtime_error</classname> o de <classname>logic_error</classname> (o de alguna de sus derivadas), y no de <classname>std::exception</classname>.</para>
 
@@ -691,9 +702,7 @@ Derived from exception. Reports runtime errors, which can presumably be detected
     <para><classname>invalid_argument</classname>: indica que se ha pasado un argumento no válido a la función que la lanza.</para>
 
     <!--
- length_error
-
-Indicates an attempt to produce an object whose length is greater than or equal to npos (the largest representable value of context's size type, usually std::size_t).
+ length_error Indicates an attempt to produce an object whose length is greater than or equal to npos (the largest representable value of context’s size type, usually std::size_t).
     -->
     <para><classname>length_error</classname>: indica un intento de producir un objeto cuya longitud es mayor o igual que <varname>npos</varname> (el mayor valor representable del tipo de tamaño del contexto, normalmente <type>std::size_t</type>).</para>
 
@@ -740,7 +749,7 @@ Reports a null pointer p in an expression typeid(*p). (Again, a runtime type ide
     <title>Especificaciones de excepciones</title>
 
     <!--
-    You're not required to inform the people using your function what exceptions you might throw. However, failure to do so can be considered uncivilized because it means that users cannot be sure what code to write to catch all potential exceptions. If they have your source code, they can hunt through and look for throw statements, but often a library doesn't come with sources. Good documentation can help alleviate this problem, but how many software projects are well documented? C++ provides syntax to tell the user the exceptions that are thrown by this function, so the user can handle them. This is the optional exception specification, which adorns a function's declaration, appearing after the argument list.
+    You’re not required to inform the people using your function what exceptions you might throw. However, failure to do so can be considered uncivilized because it means that users cannot be sure what code to write to catch all potential exceptions. If they have your source code, they can hunt through and look for throw statements, but often a library doesn’t come with sources. Good documentation can help alleviate this problem, but how many software projects are well documented? C++ provides syntax to tell the user the exceptions that are thrown by this function, so the user can handle them. This is the optional exception specification, which adorns a function’s declaration, appearing after the argument list.
     -->
     <para>No es obligatorio informar a quienes usan una función de qué excepciones puede lanzar. Sin embargo, no hacerlo puede considerarse poco civilizado, porque significa que los usuarios no pueden estar seguros de qué código escribir para capturar todas las excepciones posibles. Si tienen el código fuente, pueden buscar las sentencias <kw>throw</kw>, pero a menudo las librerías no vienen con el código fuente. Una buena documentación puede aliviar este problema, pero ¿cuántos proyectos de software están bien documentados? C++ ofrece una sintaxis para indicar al usuario qué excepciones lanza una función, para que pueda tratarlas. Es la <emphasis>especificación de excepciones</emphasis>, opcional, que adorna la declaración de una función y va después de la lista de argumentos.</para>
 
@@ -781,7 +790,7 @@ void f() throw();
 
 
     <!--
-    no exceptions whatsoever will be thrown from the function (so you'd better be sure that no functions farther down in the call chain let any exceptions propagate up!).
+    no exceptions whatsoever will be thrown from the function (so you’d better be sure that no functions farther down in the call chain let any exceptions propagate up!).
     -->
     <para>la función no lanzará ninguna excepción (¡así que más vale estar seguro de que ninguna función más abajo en la cadena de llamadas deja que se propague hacia arriba ninguna excepción!).</para>
 
@@ -795,7 +804,7 @@ void f() throw();
     <title>La función <function>unexpected()</function></title>
 
     <!--
-    If your exception specification claims you're going to throw a certain set of exceptions and then you throw something that isn't in that set, what's the penalty? The special function unexpected( ) is called when you throw something other than what appears in the exception specification. Should this unfortunate situation occur, the default unexpected( ) calls the terminate( ) function described earlier in this chapter. The set_unexpected( ) function
+    If your exception specification claims you’re going to throw a certain set of exceptions and then you throw something that isn’t in that set, what’s the penalty? The special function unexpected( ) is called when you throw something other than what appears in the exception specification. Should this unfortunate situation occur, the default unexpected( ) calls the terminate( ) function described earlier in this chapter. The set_unexpected( ) function
     -->
     <para>Si la especificación de excepciones dice que se va a lanzar un determinado conjunto de excepciones y después se lanza algo que no está en ese conjunto, ¿cuál es la penalización? Cuando se lanza algo distinto de lo que aparece en la especificación de excepciones, se llama a la función especial <function>unexpected()</function>. Si se produce esta desafortunada situación, la función <function>unexpected()</function> por defecto llama a la función <function>terminate()</function> descrita antes en este capítulo.</para>
 
@@ -806,7 +815,7 @@ void f() throw();
     <title>La función <function>set_unexpected()</function></title>
 
     <!--
-    Like terminate(), the unexpected() mechanism installs your own function to respond to unexpected exceptions. You do so with a function called set_unexpected( ), which, like set_terminate( ), takes the address of a function with no arguments and void return value. Also, because it returns the previous value of the unexpected( ) pointer, you can save it and restore it later. To use set_unexpected( ), include the header file <exception>. Here's an example that shows a simple use of the features discussed so far in this section:
+    Like terminate( ), the unexpected( ) mechanism installs your own function to respond to unexpected exceptions. You do so with a function called set_unexpected( ), which, like set_terminate( ), takes the address of a function with no arguments and void return value. Also, because it returns the previous value of the unexpected( ) pointer, you can save it and restore it later. To use set_unexpected( ), include the header file <exception>. Here’s an example that shows a simple use of the features discussed so far in this section:
     -->
     <para>Igual que <function>terminate()</function>, el mecanismo de <function>unexpected()</function> permite instalar una función propia que responda a las excepciones inesperadas. Se hace con una función llamada <function>set_unexpected()</function> que, como <function>set_terminate()</function>, recibe la dirección de una función sin argumentos que devuelve <type>void</type>. Además, como devuelve el valor anterior del puntero a <function>unexpected()</function>, se puede guardar y restaurar más tarde. Para usar <function>set_unexpected()</function>, incluya el fichero de cabecera &lt;exception&gt;. Este es un ejemplo que muestra un uso sencillo de las características vistas hasta ahora en esta sección:</para>
 
@@ -820,12 +829,12 @@ void f() throw();
     <para>Las clases <classname>Up</classname> y <classname>Fit</classname> se crean solo para lanzarlas como excepciones. A menudo las clases de excepción son pequeñas, pero desde luego pueden contener información adicional para que los manejadores la consulten.</para>
 
     <!--
-    The f( ) function promises in its exception specification to throw only exceptions of type Up and Fit, and from looking at the function definition, this seems plausible. Version one of g( ), called by f( ), doesn't throw any exceptions, so this is true. But if someone changes g( ) so that it throws a different type of exception (like the second version in this example, which throws an int), the exception specification for f( ) is violated.
+    The f( ) function promises in its exception specification to throw only exceptions of type Up and Fit, and from looking at the function definition, this seems plausible. Version one of g( ), called by f( ), doesn’t throw any exceptions, so this is true. But if someone changes g( ) so that it throws a different type of exception (like the second version in this example, which throws an int), the exception specification for f( ) is violated.
     -->
     <para>La función <function>f()</function> promete en su especificación de excepciones lanzar solo excepciones de tipo <classname>Up</classname> y <classname>Fit</classname>, y viendo la definición de la función parece plausible. La primera versión de <function>g()</function>, a la que llama <function>f()</function>, no lanza ninguna excepción, así que es cierto. Pero si alguien cambia <function>g()</function> para que lance otro tipo de excepción (como la segunda versión de este ejemplo, que lanza un <type>int</type>), se viola la especificación de excepciones de <function>f()</function>.</para>
 
     <!--
-    The my_unexpected( ) function has no arguments or return value, following the proper form for a custom unexpected( ) function. It simply displays a message so that you can see that it was called, and then exits the program (exit(0) is used here so that the book's make process is not aborted). Your new unexpected( ) function should not have a return statement.
+    The my_unexpected( ) function has no arguments or return value, following the proper form for a custom unexpected( ) function. It simply displays a message so that you can see that it was called, and then exits the program (exit(0) is used here so that the book’s make process is not aborted). Your new unexpected( ) function should not have a return statement.
     -->
     <para>La función <function>my_unexpected()</function> no tiene argumentos ni valor de retorno, como corresponde a una función <function>unexpected()</function> propia. Se limita a mostrar un mensaje para que se vea que se ha llamado y después termina el programa (aquí se usa <code>exit(0)</code> para que no se interrumpa el proceso de <command>make</command> del libro). La nueva función <function>unexpected()</function> no debe tener sentencia <kw>return</kw>.</para>
 
@@ -850,17 +859,17 @@ void f() throw();
     <para>Un manejador de excepciones inesperadas típico registra el error y termina el programa llamando a <function>exit()</function>. Sin embargo, también puede lanzar otra excepción (o relanzar la misma) o llamar a <function>abort()</function>. Si lanza una excepción de un tipo permitido por la función cuya especificación se violó originalmente, la búsqueda continúa en la llamada a la función que tiene esa especificación de excepciones. (Este comportamiento es exclusivo de <function>unexpected()</function>.)</para>
 
     <!--
-    If the exception thrown from your unexpected handler is not allowed by the original function's specification, one of the following occurs:
+    If the exception thrown from your unexpected handler is not allowed by the original function’s specification, one of the following occurs:
     -->
     <para>Si la excepción que lanza el manejador de excepciones inesperadas no está permitida por la especificación de la función original, ocurre una de estas dos cosas:</para>
 
     <!--
-    1. If std::bad_exception (defined in <exception>) was in the function's exception specification, the exception thrown from the unexpected handler is replaced with a std::bad_exception object, and the search resumes from the function as before.
+    1. If std::bad_exception (defined in <exception>) was in the function’s exception specification, the exception thrown from the unexpected handler is replaced with a std::bad_exception object, and the search resumes from the function as before.
     -->
     <para>1. Si <classname>std::bad_exception</classname> (definida en &lt;exception&gt;) estaba en la especificación de excepciones de la función, la excepción que lanza el manejador de excepciones inesperadas se sustituye por un objeto <classname>std::bad_exception</classname> y la búsqueda continúa desde la función, como antes.</para>
 
     <!--
-    2. If the original function's specification did not include std::bad_exception, terminate( ) is called.
+    2. If the original function’s specification did not include std::bad_exception, terminate( ) is called.
     -->
     <para>2. Si la especificación de la función original no incluía <classname>std::bad_exception</classname>, se llama a <function>terminate()</function>.</para>
 
@@ -872,7 +881,7 @@ void f() throw();
 
 
     <!--
-    The my_uhandler1( ) handler throws an acceptable exception (A), so execution resumes at the first catch, which succeeds. The my_uhandler2( ) handler does not throw a valid exception (B), but since g specifies bad_exception, the B exception is replaced by a bad_exception object, and the second catch also succeeds. Since f does not include bad_exception in its specification, my_thandler( ) is called as a terminate handler. Here's the output: caught an A from f caught a bad_exception from g terminate called
+    The my_uhandler1( ) handler throws an acceptable exception (A), so execution resumes at the first catch, which succeeds. The my_uhandler2( ) handler does not throw a valid exception (B), but since g specifies bad_exception, the B exception is replaced by a bad_exception object, and the second catch also succeeds. Since f does not include bad_exception in its specification, my_thandler( ) is called as a terminate handler. Here’s the output: caught an A from f caught a bad_exception from g terminate called
     -->
     <para>El manejador <function>my_uhandler1()</function> lanza una excepción aceptable (<classname>A</classname>), así que la ejecución continúa en el primer <kw>catch</kw>, que tiene éxito. El manejador <function>my_uhandler2()</function> no lanza una excepción válida (<classname>B</classname>), pero como <varname>g</varname> especifica <classname>bad_exception</classname>, la excepción <classname>B</classname> se sustituye por un objeto <classname>bad_exception</classname> y el segundo <kw>catch</kw> también tiene éxito. Como <varname>f</varname> no incluye <classname>bad_exception</classname> en su especificación, se llama a <function>my_thandler()</function> como manejador de terminación. Esta es la salida:</para>
 
@@ -889,7 +898,7 @@ terminate called
       <title>¿Mejores especificaciones de excepciones?</title>
 
       <!--
-      You may feel that the existing exception specification rules aren't very safe, and that
+      You may feel that the existing exception specification rules aren’t very safe, and that
       -->
       <para>Quizá le parezca que las reglas actuales de especificación de excepciones no son muy seguras, y que</para>
 
@@ -913,14 +922,7 @@ void f();
 
 
       <!--
-      This would surely be an improvement because function declarations would
-      be more explicit. Unfortunately, you can't always know by looking at the
-      code in a function whether an exception will be thrown-it could happen
-      because of a memory allocation, for example. Worse, existing functions
-      written before exception handling was introduced into the language may
-      find themselves inadvertently throwing exceptions because of the
-      functions they call (which might be linked into new, exception-throwing
-      versions). Hence, the uninformative situation whereby void f();
+      This would surely be an improvement because function declarations would be more explicit. Unfortunately, you can’t always know by looking at the code in a function whether an exception will be thrown—it could happen because of a memory allocation, for example. Worse, existing functions written before exception handling was introduced into the language may find themselves inadvertently throwing exceptions because of the functions they call (which might be linked into new, exception-throwing versions). Hence, the uninformative situation whereby void f();
       -->
       <para>Sin duda sería una mejora, porque las declaraciones de las funciones serían más explícitas. Por desgracia, no siempre se puede saber, mirando el código de una función, si se lanzará una excepción: podría ocurrir, por ejemplo, por una reserva de memoria. Peor aún, las funciones existentes escritas antes de que se introdujera la gestión de excepciones en el lenguaje pueden encontrarse lanzando excepciones sin querer por culpa de las funciones a las que llaman (que podrían enlazarse con versiones nuevas que lanzan excepciones). De ahí la situación poco informativa en la que</para>
 
@@ -929,9 +931,7 @@ void f();
       </programlisting>
 
       <!--
-      means, "Maybe I'll throw an exception, maybe I won't." This ambiguity is
-      necessary to avoid hindering code evolution. If you want to specify that
-      f throws no exceptions, use the empty list, as in: void f() throw();
+      means, “Maybe I’ll throw an exception, maybe I won’t.” This ambiguity is necessary to avoid hindering code evolution. If you want to specify that f throws no exceptions, use the empty list, as in: void f() throw();
       -->
       <para>significa <quote>Quizá lance una excepción, quizá no</quote>. Esta ambigüedad es necesaria para no entorpecer la evolución del código. Si se quiere especificar que <function>f</function> no lanza ninguna excepción, se usa la lista vacía, como en:</para>
 
@@ -945,7 +945,7 @@ void f() throw();
       <title>Especificaciones de excepciones y herencia</title>
 
       <!--
-      Each public function in a class essentially forms a contract with the user; if you pass it certain arguments, it will perform certain operations and/or return a result. The same contract must hold true in derived classes; otherwise the expected "is-a" relationship between derived and base classes is violated. Since exception specifications are logically part of a function's declaration, they too must remain consistent across an inheritance hierarchy. For example, if a member function in a base class says it will only throw an exception of type A, an override of that function in a derived class must not add any other exception types to the specification list because that would break any programs that adhere to the base class interface. You can, however, specify fewer exceptions or none at all, since that doesn't require the user to do anything differently. You can also specify anything that "is-a" A in place of A in the derived function's specification. Here's an example.
+      Each public function in a class essentially forms a contract with the user; if you pass it certain arguments, it will perform certain operations and/or return a result. The same contract must hold true in derived classes; otherwise the expected “is-a” relationship between derived and base classes is violated. Since exception specifications are logically part of a function’s declaration, they too must remain consistent across an inheritance hierarchy. For example, if a member function in a base class says it will only throw an exception of type A, an override of that function in a derived class must not add any other exception types to the specification list because that would break any programs that adhere to the base class interface. You can, however, specify fewer exceptions or none at all, since that doesn’t require the user to do anything differently. You can also specify anything that “is-a” A in place of A in the derived function’s specification. Here’s an example.
       -->
       <para>Cada función pública de una clase forma en esencia un contrato con el usuario: si se le pasan ciertos argumentos, realizará ciertas operaciones o devolverá un resultado. El mismo contrato debe cumplirse en las clases derivadas; de lo contrario, se viola la relación <quote>es-un</quote> que se espera entre las clases derivadas y las base. Como las especificaciones de excepciones forman parte lógicamente de la declaración de una función, también deben mantenerse coherentes a lo largo de una jerarquía de herencia. Por ejemplo, si un método de una clase base dice que solo lanzará excepciones de tipo <classname>A</classname>, una redefinición de ese método en una clase derivada no debe añadir ningún otro tipo de excepción a la lista de la especificación, porque eso rompería cualquier programa que se ciña a la interfaz de la clase base. Sí se pueden especificar menos excepciones, o ninguna, ya que eso no obliga al usuario a hacer nada distinto. También se puede especificar cualquier cosa que <quote>sea un</quote> <classname>A</classname> en lugar de <classname>A</classname> en la especificación de la función derivada. Este es un ejemplo:</para>
 
@@ -954,7 +954,7 @@ void f() throw();
 
 
       <!--
-      A compiler should flag the override of Derived::f( ) with an error (or at least a warning) since it changes its exception specification in a way that violates the specification of Base::f( ). The specification for Derived::g( ) is acceptable because DerivedException "is-a" BaseException (not the other way around). You can think of Base/Derived and BaseException/DerivedException as parallel class hierarchies; when you are in Derived, you can replace references to BaseException in exception specifications and return values with DerivedException. This behavior is called covariance (since both sets of classes vary down their respective hierarchies together). (Reminder from Volume 1: parameter types are not covariant-you are not allowed to change the signature of an overridden virtual function.)
+      A compiler should flag the override of Derived::f( ) with an error (or at least a warning) since it changes its exception specification in a way that violates the specification of Base::f( ). The specification for Derived::g( ) is acceptable because DerivedException “is-a” BaseException (not the other way around). You can think of Base/Derived and BaseException/DerivedException as parallel class hierarchies; when you are in Derived, you can replace references to BaseException in exception specifications and return values with DerivedException. This behavior is called covariance (since both sets of classes vary down their respective hierarchies together). (Reminder from Volume 1: parameter types are not covariant—you are not allowed to change the signature of an overridden virtual function.)
       -->
       <para>Un compilador debería señalar la redefinición de <function>Derived::f()</function> con un error (o al menos con un aviso), ya que cambia su especificación de excepciones de una forma que viola la de <function>Base::f()</function>. La especificación de <function>Derived::g()</function> es aceptable porque <classname>DerivedException</classname> <quote>es un</quote> <classname>BaseException</classname> (y no al revés). Se puede pensar en <classname>Base</classname>/<classname>Derived</classname> y <classname>BaseException</classname>/<classname>DerivedException</classname> como jerarquías de clases paralelas; cuando se está en <classname>Derived</classname>, se pueden sustituir las referencias a <classname>BaseException</classname> de las especificaciones de excepciones y de los valores de retorno por <classname>DerivedException</classname>. Este comportamiento se llama <emphasis>covarianza</emphasis> (porque ambos conjuntos de clases varían juntos al bajar por sus respectivas jerarquías). (Recordatorio del Volumen 1: los tipos de los parámetros no son covariantes; no se permite cambiar la signatura de una función virtual redefinida.)</para>
 
@@ -964,7 +964,7 @@ void f() throw();
       <title>Cuándo no usar especificaciones de excepciones</title>
 
       <!--
-      If you peruse the function declarations throughout the Standard C++ library, you'll find that not a single exception specification occurs anywhere! Although this might seem strange, there is a good reason for this seeming incongruity: the library consists mainly of templates, and you never know what a generic type or function might do. For example, suppose you are developing a generic stack template and attempt to affix an exception specification to your pop function, like this:
+      If you peruse the function declarations throughout the Standard C++ library, you’ll find that not a single exception specification occurs anywhere! Although this might seem strange, there is a good reason for this seeming incongruity: the library consists mainly of templates, and you never know what a generic type or function might do. For example, suppose you are developing a generic stack template and attempt to affix an exception specification to your pop function, like this:
       -->
       <para>Si repasa las declaraciones de funciones de toda la Librería Estándar de C++, verá que ¡no aparece ni una sola especificación de excepciones! Aunque pueda parecer extraño, hay un buen motivo para esta aparente incongruencia: la librería consta sobre todo de plantillas, y nunca se sabe qué puede hacer un tipo o una función genéricos. Por ejemplo, suponga que está desarrollando una plantilla genérica de pila e intenta añadir una especificación de excepciones a su función <function>pop</function>, así:</para>
 
@@ -975,7 +975,7 @@ T pop() throw(logic_error);
 
 
       <!--
-      Since the only error you anticipate is a stack underflow, you might think it's safe to specify a logic_error or some other appropriate exception type. But type T's copy constructor could throw an exception. Then unexpected( ) would be called, and your program would terminate. You can't make unsupportable guarantees. If you don't know what exceptions might occur, don't use exception specifications. That's why template classes, which constitute the majority of the Standard C++ library, do not use exception specifications-they specify the exceptions they know about in documentation and leave the rest to you. Exception specifications are mainly for non-template classes.
+      Since the only error you anticipate is a stack underflow, you might think it’s safe to specify a logic_error or some other appropriate exception type. But type T’s copy constructor could throw an exception. Then unexpected( ) would be called, and your program would terminate. You can’t make unsupportable guarantees. If you don’t know what exceptions might occur, don’t use exception specifications. That’s why template classes, which constitute the majority of the Standard C++ library, do not use exception specifications—they specify the exceptions they know about in documentation and leave the rest to you. Exception specifications are mainly for non-template classes.
       -->
       <para>Como el único error que se prevé es el vaciado de la pila (<foreignphrase>stack underflow</foreignphrase>), podría pensar que es seguro especificar un <classname>logic_error</classname> u otro tipo de excepción adecuado. Pero el constructor de copia del tipo <type>T</type> podría lanzar una excepción. Entonces se llamaría a <function>unexpected()</function> y el programa terminaría. No se pueden dar garantías que no se pueden cumplir. Si no sabe qué excepciones pueden producirse, no use especificaciones de excepciones. Por eso las clases plantilla, que forman la mayor parte de la Librería Estándar de C++, no usan especificaciones de excepciones: especifican en la documentación las excepciones que conocen y dejan el resto al usuario. Las especificaciones de excepciones son sobre todo para clases que no son plantillas.</para>
 
@@ -986,7 +986,7 @@ T pop() throw(logic_error);
     <title>Seguridad frente a excepciones</title>
 
     <!--
-    In Chapter 7 we'll take an in-depth look at the containers in the Standard C++ library, including the stack container. One thing you'll notice is that the declaration of the pop( ) member function looks like this:
+    In Chapter 7 we’ll take an in-depth look at the containers in the Standard C++ library, including the stack container. One thing you’ll notice is that the declaration of the pop( ) member function looks like this:
     -->
     <para>En el Capítulo 7 se estudian a fondo los contenedores de la Librería Estándar de C++, incluido el contenedor <classname>stack</classname>. Una cosa que observará es que la declaración del método <function>pop()</function> es así:</para>
 
@@ -997,12 +997,12 @@ void pop();
 
 
     <!--
-    You might think it strange that pop( ) doesn't return a value. Instead, it just removes the element at the top of the stack. To retrieve the top value, call top( ) before you call pop( ). There is an important reason for this behavior, and it has to do with exception safety, a crucial consideration in library design. There are different levels of exception safety, but most importantly, and just as the name implies, exception safety is about correct semantics in the face of exceptions.
+    You might think it strange that pop( ) doesn’t return a value. Instead, it just removes the element at the top of the stack. To retrieve the top value, call top( ) before you call pop( ). There is an important reason for this behavior, and it has to do with exception safety, a crucial consideration in library design. There are different levels of exception safety, but most importantly, and just as the name implies, exception safety is about correct semantics in the face of exceptions.
     -->
     <para>Quizá le parezca raro que <function>pop()</function> no devuelva ningún valor. En lugar de eso, se limita a quitar el elemento de la cima de la pila. Para obtener el valor de la cima hay que llamar a <function>top()</function> antes de llamar a <function>pop()</function>. Hay un motivo importante para este comportamiento, y tiene que ver con la <emphasis>seguridad frente a excepciones</emphasis>, una consideración crucial en el diseño de librerías. Hay distintos niveles de seguridad frente a excepciones, pero lo más importante, como indica su nombre, es que la seguridad frente a excepciones consiste en mantener una semántica correcta cuando se producen excepciones.</para>
 
     <!--
-    Suppose you are implementing a stack with a dynamic array (we'll call it data and the counter integer count), and you try to write pop( ) so that it returns a value. The code for such a pop( ) might look something like this:
+    Suppose you are implementing a stack with a dynamic array (we’ll call it data and the counter integer count), and you try to write pop( ) so that it returns a value. The code for such a pop( ) might look something like this:
     -->
     <para>Suponga que está implementando una pila con un array dinámico (que se llamará <varname>data</varname>, con un contador entero <varname>count</varname>) e intenta escribir <function>pop()</function> de forma que devuelva un valor. El código de ese <function>pop()</function> podría ser algo así:</para>
 
@@ -1017,7 +1017,7 @@ template&lt;class T> T stack&lt;T>::pop() {
 
 
     <!--
-    What happens if the copy constructor that is called for the return value in the last line throws an exception when the value is returned? The popped element is not returned because of the exception, and yet count has already been decremented, so the top element you wanted is lost forever! The problem is that this function attempts to do two things at once: (1) return a value, and (2) change the state of the stack. It is better to separate these two actions into two separate member functions, which is exactly what the standard stack class does. (In other words, follow the design practice of cohesion-every function should do one thing well.) Exception-safe code leaves objects in a consistent state and does not leak resources.
+    What happens if the copy constructor that is called for the return value in the last line throws an exception when the value is returned? The popped element is not returned because of the exception, and yet count has already been decremented, so the top element you wanted is lost forever! The problem is that this function attempts to do two things at once: (1) return a value, and (2) change the state of the stack. It is better to separate these two actions into two separate member functions, which is exactly what the standard stack class does. (In other words, follow the design practice of cohesion—every function should do one thing well.) Exception-safe code leaves objects in a consistent state and does not leak resources.
     -->
     <para>¿Qué ocurre si el constructor de copia al que se llama para el valor de retorno en la última línea lanza una excepción al devolver el valor? El elemento sacado no se devuelve a causa de la excepción, pero <varname>count</varname> ya se ha decrementado, así que el elemento de la cima que se quería se pierde para siempre. El problema es que esta función intenta hacer dos cosas a la vez: (1) devolver un valor y (2) cambiar el estado de la pila. Es mejor separar estas dos acciones en dos métodos distintos, que es exactamente lo que hace la clase estándar <classname>stack</classname>. (Es decir, siga la práctica de diseño de la <emphasis>cohesión</emphasis>: cada función debe hacer bien una sola cosa.) El código seguro frente a excepciones deja los objetos en un estado coherente y no pierde recursos.</para>
 
@@ -1027,7 +1027,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>También hay que tener cuidado al escribir operadores de asignación propios. En el Capítulo 12 del Volumen 1 se vio que <function>operator=</function> debe seguir este patrón:</para>
 
     <!--
-    1. Make sure you're not assigning to self. If you are, go to step 6. (This is strictly an optimization.)
+    1. Make sure you’re not assigning to self. If you are, go to step 6. (This is strictly an optimization.)
     -->
     <para>1. Asegurarse de que no se asigna el objeto a sí mismo. Si es así, ir al paso 6. (Es solo una optimización.)</para>
 
@@ -1041,7 +1041,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>4. Borrar la memoria antigua.</para>
 
     <!--
-    5. Update the object's state by assigning the new heap pointers to the pointer data members.
+    5. Update the object’s state by assigning the new heap pointers to the pointer data members.
     -->
     <para>5. Actualizar el estado del objeto asignando los nuevos punteros al montículo a los atributos de tipo puntero.</para>
 
@@ -1049,7 +1049,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>6. Devolver <code>*this</code>.</para>
 
     <!--
-    It's important to not change the state of your object until all the new pieces have been safely allocated and initialized. A good technique is to move steps 2 and 3 into a separate function, often called clone( ). The following example does this for a class that has two pointer members, theString and theInts:
+    It’s important to not change the state of your object until all the new pieces have been safely allocated and initialized. A good technique is to move steps 2 and 3 into a separate function, often called clone( ). The following example does this for a class that has two pointer members, theString and theInts:
     -->
     <para>Es importante no cambiar el estado del objeto hasta que todas las piezas nuevas se hayan reservado e inicializado con seguridad. Una buena técnica es llevar los pasos 2 y 3 a una función aparte, que suele llamarse <function>clone()</function>. El siguiente ejemplo lo hace para una clase que tiene dos miembros puntero, <varname>theString</varname> y <varname>theInts</varname>:</para>
 
@@ -1058,12 +1058,12 @@ template&lt;class T> T stack&lt;T>::pop() {
 
 
     <!--
-    For convenience, HasPointers uses the MyData class as a handle to the two pointers. Whenever it's time to allocate more memory, whether during construction or assignment, the first clone function is ultimately called to do the job. If memory fails for the first call to the new operator, a bad_alloc exception is thrown automatically. If it happens on the second allocation (for theInts), we must clean up the memory for theString-hence the first try block that catches a bad_alloc exception. The second try block isn't crucial here because we're just copying ints and pointers (so no exceptions will occur), but whenever you copy objects, their assignment operators can possibly cause an exception, so everything needs to be cleaned up. In both exception handlers, notice that we rethrow the exception. That's because we're just managing resources here; the user still needs to know that something went wrong, so we let the exception propagate up the dynamic chain. Software libraries that don't silently swallow exceptions are called exception neutral. Always strive to write libraries that are both exception safe and exception neutral.[7]
+    For convenience, HasPointers uses the MyData class as a handle to the two pointers. Whenever it’s time to allocate more memory, whether during construction or assignment, the first clone function is ultimately called to do the job. If memory fails for the first call to the new operator, a bad_alloc exception is thrown automatically. If it happens on the second allocation (for theInts), we must clean up the memory for theString—hence the first try block that catches a bad_alloc exception. The second try block isn’t crucial here because we’re just copying ints and pointers (so no exceptions will occur), but whenever you copy objects, their assignment operators can possibly cause an exception, so everything needs to be cleaned up. In both exception handlers, notice that we rethrow the exception. That’s because we’re just managing resources here; the user still needs to know that something went wrong, so we let the exception propagate up the dynamic chain. Software libraries that don’t silently swallow exceptions are called exception neutral. Always strive to write libraries that are both exception safe and exception neutral.[7]
     -->
     <para>Por comodidad, <classname>HasPointers</classname> usa la clase <classname>MyData</classname> para manejar los dos punteros. Siempre que hay que reservar más memoria, ya sea durante la construcción o durante la asignación, se acaba llamando a la primera función <function>clone</function> para que haga el trabajo. Si falla la memoria en la primera llamada al operador <kw>new</kw>, se lanza automáticamente una excepción <classname>bad_alloc</classname>. Si ocurre en la segunda reserva (la de <varname>theInts</varname>), hay que liberar la memoria de <varname>theString</varname>; de ahí el primer bloque <kw>try</kw>, que captura una excepción <classname>bad_alloc</classname>. El segundo bloque <kw>try</kw> no es crucial aquí, porque solo se copian enteros y punteros (así que no se producirán excepciones), pero siempre que se copian objetos sus operadores de asignación pueden provocar una excepción, así que hay que limpiarlo todo. Observe que en ambos manejadores de excepciones se relanza la excepción. Eso se debe a que aquí solo se gestionan recursos; el usuario sigue necesitando saber que algo ha ido mal, así que se deja que la excepción se propague por la cadena dinámica. Las librerías de software que no se tragan las excepciones en silencio se llaman <emphasis>neutrales respecto a las excepciones</emphasis>. Procure siempre escribir librerías que sean a la vez seguras frente a excepciones y neutrales respecto a ellas<footnote><para>Si le interesa un análisis más profundo de los problemas de seguridad frente a excepciones, la referencia definitiva es <citetitle>Exceptional C++</citetitle>, de Herb Sutter, Addison-Wesley, 2000.</para></footnote>.</para>
 
     <!--
-    If you inspect the previous code closely, you'll notice that none of the delete operations will throw an exception. This code depends on that fact. Recall that when you call delete on an object, the object's destructor is called. It turns out to be practically impossible to design exception-safe code without assuming that destructors don't throw exceptions. Don't let destructors throw exceptions. (We're going to remind you about this once more before this chapter is done).[8]
+    If you inspect the previous code closely, you’ll notice that none of the delete operations will throw an exception. This code depends on that fact. Recall that when you call delete on an object, the object’s destructor is called. It turns out to be practically impossible to design exception-safe code without assuming that destructors don’t throw exceptions. Don’t let destructors throw exceptions. (We’re going to remind you about this once more before this chapter is done).[8]
     -->
     <para>Si examina con atención el código anterior, verá que ninguna de las operaciones <kw>delete</kw> lanza una excepción. Este código depende de ello. Recuerde que, al llamar a <kw>delete</kw> sobre un objeto, se llama al destructor del objeto. En la práctica es imposible diseñar código seguro frente a excepciones sin suponer que los destructores no lanzan excepciones. No deje que los destructores lancen excepciones. (Se lo recordaremos una vez más antes de terminar este capítulo)<footnote><para>La función de librería <function>uncaught_exception()</function> devuelve <literal>true</literal> en mitad del desenrollado de la pila, así que técnicamente se puede comprobar si <function>uncaught_exception()</function> devuelve <literal>false</literal> y dejar que una excepción escape de un destructor. Sin embargo, nunca hemos visto una situación en la que esto fuera un buen diseño, así que solo lo mencionamos en esta nota.</para></footnote>.</para>
 
@@ -1082,7 +1082,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <title>Cuándo evitar las excepciones</title>
 
       <!--
-      Exceptions aren't the answer to all problems; overuse can cause trouble. The following sections point out situations where exceptions are not warranted. The best advice for deciding when to use exceptions is to throw exceptions only when a function fails to meet its specification.
+      Exceptions aren’t the answer to all problems; overuse can cause trouble. The following sections point out situations where exceptions are not warranted. The best advice for deciding when to use exceptions is to throw exceptions only when a function fails to meet its specification.
       -->
       <para>Las excepciones no son la respuesta a todos los problemas; abusar de ellas puede causar problemas. Las secciones siguientes señalan situaciones en las que no están justificadas. El mejor consejo para decidir cuándo usar excepciones es lanzarlas solo cuando una función no cumple su especificación.</para>
 
@@ -1091,9 +1091,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Not for asynchronous events -->
       <title>No para eventos asíncronos</title>
       <!--
-      Not for asynchronous events
-
-      The Standard C signal( ) system and any similar system handle asynchronous events: events that happen outside the flow of a program, and thus events the program cannot anticipate. You cannot use C++ exceptions to handle asynchronous events because the exception and its handler are on the same call stack. That is, exceptions rely on the dynamic chain of function calls on the program's runtime stack (they have "dynamic scope"), whereas asynchronous events must be handled by completely separate code that is not part of the normal program flow (typically, interrupt service routines or event loops). Don't throw exceptions from interrupt handlers.
+      Not for asynchronous events The Standard C signal( ) system and any similar system handle asynchronous events: events that happen outside the flow of a program, and thus events the program cannot anticipate. You cannot use C++ exceptions to handle asynchronous events because the exception and its handler are on the same call stack. That is, exceptions rely on the dynamic chain of function calls on the program’s runtime stack (they have “dynamic scope”), whereas asynchronous events must be handled by completely separate code that is not part of the normal program flow (typically, interrupt service routines or event loops). Don’t throw exceptions from interrupt handlers.
       -->
       <para>El sistema <function>signal()</function> del C Estándar, y cualquier sistema similar, trata los eventos asíncronos: eventos que ocurren fuera del flujo del programa y que, por tanto, el programa no puede prever. Las excepciones de C++ no sirven para tratar eventos asíncronos, porque la excepción y su manejador están en la misma pila de llamadas. Es decir, las excepciones dependen de la cadena dinámica de llamadas a funciones de la pila de ejecución del programa (tienen <quote>ámbito dinámico</quote>), mientras que los eventos asíncronos los tiene que tratar código completamente aparte que no forma parte del flujo normal del programa (normalmente, rutinas de servicio de interrupción o bucles de eventos). No lance excepciones desde los manejadores de interrupciones.</para>
 
@@ -1109,14 +1107,12 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Not for benign error conditions -->
       <title>No para condiciones de error benignas</title>
       <!--
-      Not for benign error conditions
-
-      If you have enough information to handle an error, it's not an exception. Take care of it in the current context rather than throwing an exception to a larger context.
+      Not for benign error conditions If you have enough information to handle an error, it’s not an exception. Take care of it in the current context rather than throwing an exception to a larger context.
       -->
       <para>Si se tiene suficiente información para tratar un error, no es una excepción. Trátelo en el contexto actual en lugar de lanzar una excepción a un contexto más amplio.</para>
 
       <!--
-      Also, C++ exceptions are not thrown for machine-level events such as divide-by-zero.[9] It's assumed that some other mechanism, such as the operating system or hardware, deals with these events. In this way, C++ exceptions can be reasonably efficient, and their use is isolated to program-level exceptional conditions.
+      Also, C++ exceptions are not thrown for machine-level events such as divide-by-zero.[9] It’s assumed that some other mechanism, such as the operating system or hardware, deals with these events. In this way, C++ exceptions can be reasonably efficient, and their use is isolated to program-level exceptional conditions.
       -->
       <para>Además, las excepciones de C++ no se lanzan por eventos del nivel de la máquina, como la división por cero<footnote><para>Algunos compiladores sí lanzan excepciones en estos casos, pero normalmente ofrecen una opción de compilación para desactivar este comportamiento (poco habitual).</para></footnote>. Se supone que de esos eventos se encarga algún otro mecanismo, como el sistema operativo o el hardware. Así, las excepciones de C++ pueden ser razonablemente eficientes, y su uso se limita a las condiciones excepcionales del nivel del programa.</para>
 
@@ -1127,9 +1123,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Not for flow-of-control -->
       <title>No para controlar el flujo</title>
       <!--
-      Not for flow-of-control
-
-      An exception looks somewhat like an alternate return mechanism and somewhat like a switch statement, so you might be tempted to use an exception instead of these ordinary language mechanisms. This is a bad idea, partly because the exception-handling system is significantly less efficient than normal program execution. Exceptions are a rare event, so the normal program shouldn't pay for them. Also, exceptions from anything other than error conditions are quite confusing to the user of your class or function.
+      Not for flow–of–control An exception looks somewhat like an alternate return mechanism and somewhat like a switch statement, so you might be tempted to use an exception instead of these ordinary language mechanisms. This is a bad idea, partly because the exception-handling system is significantly less efficient than normal program execution. Exceptions are a rare event, so the normal program shouldn’t pay for them. Also, exceptions from anything other than error conditions are quite confusing to the user of your class or function.
       -->
       <para>Una excepción se parece en parte a un mecanismo alternativo de retorno y en parte a una sentencia <kw>switch</kw>, así que puede sentir la tentación de usarla en lugar de estos mecanismos normales del lenguaje. Es una mala idea, en parte porque el sistema de gestión de excepciones es bastante menos eficiente que la ejecución normal del programa. Las excepciones son un evento raro, así que el programa normal no debería pagar por ellas. Además, las excepciones que no se deben a condiciones de error resultan muy confusas para el usuario de la clase o de la función.</para>
 
@@ -1137,12 +1131,10 @@ template&lt;class T> T stack&lt;T>::pop() {
       </sect3>
 
       <sect3>
-      <!-- You're not forced to use exceptions -->
+      <!-- You’re not forced to use exceptions -->
       <title>No está obligado a usar excepciones</title>
       <!--
-      You're not forced to use exceptions
-
-      Some programs are quite simple (small utilities, for example). You might only need to take input and perform some processing. In these programs, you might attempt to allocate memory and fail, try to open a file and fail, and so on. It is acceptable in these programs to display a message and exit the program, allowing the system to clean up the mess, rather than to work hard to catch all exceptions and recover all the resources yourself. Basically, if you don't need exceptions, you're not forced to use them.
+      You’re not forced to use exceptions Some programs are quite simple (small utilities, for example). You might only need to take input and perform some processing. In these programs, you might attempt to allocate memory and fail, try to open a file and fail, and so on. It is acceptable in these programs to display a message and exit the program, allowing the system to clean up the mess, rather than to work hard to catch all exceptions and recover all the resources yourself. Basically, if you don’t need exceptions, you’re not forced to use them.
       -->
       <para>Algunos programas son bastante sencillos (pequeñas utilidades, por ejemplo). Quizá solo haya que leer una entrada y hacer algún procesamiento. En estos programas, puede que se intente reservar memoria y falle, o abrir un fichero y falle, etc. En estos programas es aceptable mostrar un mensaje y terminar, dejando que el sistema limpie el desorden, en lugar de esforzarse en capturar todas las excepciones y recuperar uno mismo todos los recursos. Básicamente, si no necesita excepciones, no está obligado a usarlas.</para>
 
@@ -1153,14 +1145,12 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- New exceptions, old code -->
       <title>Excepciones nuevas, código antiguo</title>
       <!--
-      New exceptions, old code
-
-      Another situation that arises is the modification of an existing program that doesn't use exceptions. You might introduce a library that does use exceptions and wonder if you need to modify all your code throughout the program. Assuming you have an acceptable error-handling scheme already in place, the most straightforward thing to do is surround the largest block that uses the new library (this might be all the code in main( )) with a try block, followed by a catch(...) and basic error message). You can refine this to whatever degree necessary by adding more specific handlers, but, in any case, the code you must add can be minimal. It's even better to isolate your exception-generating code in a try block and write handlers to convert the exceptions into your existing error-handling scheme.
+      New exceptions, old code Another situation that arises is the modification of an existing program that doesn’t use exceptions. You might introduce a library that does use exceptions and wonder if you need to modify all your code throughout the program. Assuming you have an acceptable error-handling scheme already in place, the most straightforward thing to do is surround the largest block that uses the new library (this might be all the code in main( )) with a try block, followed by a catch(...) and basic error message). You can refine this to whatever degree necessary by adding more specific handlers, but, in any case, the code you must add can be minimal. It’s even better to isolate your exception-generating code in a try block and write handlers to convert the exceptions into your existing error-handling scheme.
       -->
       <para>Otra situación que se presenta es la modificación de un programa existente que no usa excepciones. Quizá introduzca una librería que sí las usa y se pregunte si tiene que modificar todo el código del programa. Suponiendo que ya tiene un esquema aceptable de gestión de errores, lo más directo es rodear el bloque más grande que usa la nueva librería (puede que todo el código de <function>main()</function>) con un bloque <kw>try</kw>, seguido de un <code>catch(...)</code> y un mensaje de error básico. Se puede refinar tanto como haga falta añadiendo manejadores más específicos, pero, en cualquier caso, el código que hay que añadir puede ser mínimo. Mejor aún es aislar el código que genera excepciones en un bloque <kw>try</kw> y escribir manejadores que conviertan las excepciones al esquema de gestión de errores existente.</para>
 
       <!--
-      It's truly important to think about exceptions when you're creating a library for someone else to use, especially if you can't know how they need to respond to critical error conditions (recall the earlier discussions on exception safety and why there are no exception specifications in the Standard C++ Library).
+      It’s truly important to think about exceptions when you’re creating a library for someone else to use, especially if you can’t know how they need to respond to critical error conditions (recall the earlier discussions on exception safety and why there are no exception specifications in the Standard C++ Library).
       -->
       <para>Es muy importante pensar en las excepciones al crear una librería para que la usen otros, sobre todo si no se puede saber cómo necesitan responder a las condiciones de error críticas (recuerde lo dicho antes sobre la seguridad frente a excepciones y por qué no hay especificaciones de excepciones en la Librería Estándar de C++).</para>
 
@@ -1175,22 +1165,22 @@ template&lt;class T> T stack&lt;T>::pop() {
       <para>Use las excepciones para:</para>
 
       <!--
-      · Fix the problem and retry the function that caused the exception.
+      Fix the problem and retry the function that caused the exception.
       -->
       <para>Corregir el problema y volver a intentar la función que provocó la excepción.</para>
 
       <!--
-      · Patch things up and continue without retrying the function.
+      Patch things up and continue without retrying the function.
       -->
       <para>Arreglar las cosas y continuar sin volver a intentar la función.</para>
 
       <!--
-      · Do whatever you can in the current context and rethrow the same exception to a higher context.
+      Do whatever you can in the current context and rethrow the same exception to a higher context.
       -->
       <para>Hacer lo que se pueda en el contexto actual y relanzar la misma excepción a un contexto superior.</para>
 
       <!--
-      · Do whatever you can in the current context and throw a different exception to a higher context.
+      Do whatever you can in the current context and throw a different exception to a higher context.
       -->
       <para>Hacer lo que se pueda en el contexto actual y lanzar una excepción distinta a un contexto superior.</para>
 
@@ -1198,17 +1188,17 @@ template&lt;class T> T stack&lt;T>::pop() {
       <para>Terminar el programa.</para>
 
       <!--
-      · Wrap functions (especially C library functions) that use ordinary error schemes so they produce exceptions instead.
+      Wrap functions (especially C library functions) that use ordinary error schemes so they produce exceptions instead.
       -->
       <para>Envolver las funciones (sobre todo las de la librería de C) que usan esquemas de error normales para que produzcan excepciones en su lugar.</para>
 
       <!--
-      · Simplify. If your error handling scheme makes things more complicated, it is painful and annoying to use. Exceptions can be used to make error handling simpler and more effective.
+      Simplify. If your error handling scheme makes things more complicated, it is painful and annoying to use. Exceptions can be used to make error handling simpler and more effective.
       -->
       <para>Simplificar. Si el esquema de gestión de errores complica las cosas, resulta penoso y molesto de usar. Las excepciones pueden servir para que la gestión de errores sea más sencilla y eficaz.</para>
 
       <!--
-      · Make your library and program safer. This is a short-term investment (for debugging) and a long-term investment (for application robustness).
+      Make your library and program safer. This is a short-term investment (for debugging) and a long-term investment (for application robustness).
       -->
       <para>Hacer más seguros la librería y el programa. Es una inversión a corto plazo (para la depuración) y a largo plazo (para la robustez de la aplicación).</para>
 
@@ -1224,12 +1214,12 @@ template&lt;class T> T stack&lt;T>::pop() {
       <para>La especificación de excepciones es como un prototipo de función: indica al usuario que escriba código de gestión de excepciones y qué excepciones debe tratar. Indica al compilador las excepciones que pueden salir de la función, para que pueda detectar las violaciones en tiempo de ejecución.</para>
 
       <!--
-      You can't always look at the code and anticipate which exceptions will arise from a particular function. Sometimes, the functions it calls produce an unexpected exception, and sometimes an old function that didn't throw an exception is replaced with a new one that does, and you get a call to unexpected( ). Any time you use exception specifications or call functions that do, consider creating your own unexpected( ) function that logs a message and then either throws an exception or aborts the program.
+      You can’t always look at the code and anticipate which exceptions will arise from a particular function. Sometimes, the functions it calls produce an unexpected exception, and sometimes an old function that didn’t throw an exception is replaced with a new one that does, and you get a call to unexpected( ). Any time you use exception specifications or call functions that do, consider creating your own unexpected( ) function that logs a message and then either throws an exception or aborts the program.
       -->
       <para>No siempre se puede mirar el código y prever qué excepciones surgirán de una función concreta. A veces, las funciones a las que llama producen una excepción inesperada, y a veces una función antigua que no lanzaba excepciones se sustituye por una nueva que sí las lanza, y se produce una llamada a <function>unexpected()</function>. Siempre que use especificaciones de excepciones o llame a funciones que las usen, plantéese crear su propia función <function>unexpected()</function> que registre un mensaje y después lance una excepción o aborte el programa.</para>
 
       <!--
-      As we explained earlier, you should avoid using exception specifications in template classes, since you can't anticipate what types of exceptions the template parameter classes might throw.
+      As we explained earlier, you should avoid using exception specifications in template classes, since you can’t anticipate what types of exceptions the template parameter classes might throw.
       -->
       <para>Como se explicó antes, conviene evitar las especificaciones de excepciones en las clases plantilla, ya que no se puede prever qué tipos de excepciones pueden lanzar las clases que se usen como parámetros de la plantilla.</para>
 
@@ -1240,14 +1230,12 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Start with standard exceptions -->
       <title>Empezar por las excepciones estándar</title>
       <!--
-      Start with standard exceptions
-
-      Check out the Standard C++ library exceptions before creating your own. If a standard exception does what you need, chances are it's a lot easier for your user to understand and handle.
+      Start with standard exceptions Check out the Standard C++ library exceptions before creating your own. If a standard exception does what you need, chances are it’s a lot easier for your user to understand and handle.
       -->
       <para>Revise las excepciones de la Librería Estándar de C++ antes de crear las suyas. Si una excepción estándar hace lo que necesita, lo más probable es que al usuario le resulte mucho más fácil entenderla y tratarla.</para>
 
       <!--
-      If the exception type you want isn't part of the standard library, try to inherit one from an existing standard exception. It's nice if your users can always write their code to expect the what( ) function defined in the exception( ) class interface.
+      If the exception type you want isn’t part of the standard library, try to inherit one from an existing standard exception. It’s nice if your users can always write their code to expect the what( ) function defined in the exception( ) class interface.
       -->
       <para>Si el tipo de excepción que quiere no forma parte de la librería estándar, intente heredarlo de una excepción estándar existente. Es conveniente que los usuarios siempre puedan escribir su código contando con la función <function>what()</function> definida en la interfaz de la clase <classname>exception</classname>.</para>
 
@@ -1258,14 +1246,12 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Nest your own exceptions -->
       <title>Anidar las excepciones propias</title>
       <!--
-      Nest your own exceptions
-
-      If you create exceptions for your particular class, it's a good idea to nest the exception classes either inside your class or inside a namespace containing your class, to provide a clear message to the reader that this exception is only for your class. In addition, it prevents pollution of the global namespace.
+      Nest your own exceptions If you create exceptions for your particular class, it’s a good idea to nest the exception classes either inside your class or inside a namespace containing your class, to provide a clear message to the reader that this exception is only for your class. In addition, it prevents pollution of the global namespace.
       -->
       <para>Si crea excepciones para una clase concreta, es buena idea anidar las clases de excepción dentro de la clase o dentro de un espacio de nombres que contenga la clase, para dejar claro al lector que esa excepción es solo para esa clase. Además, así no se contamina el espacio de nombres global.</para>
 
       <!--
-      You can nest your exceptions even if you're deriving them from C++ Standard exceptions.
+      You can nest your exceptions even if you’re deriving them from C++ Standard exceptions.
       -->
       <para>Puede anidar sus excepciones aunque las derive de excepciones del C++ Estándar.</para>
 
@@ -1276,9 +1262,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Use exception hierarchies -->
       <title>Usar jerarquías de excepciones</title>
       <!--
-      Use exception hierarchies
-
-      Using exception hierarchies is a valuable way to classify the types of critical errors that might be encountered with your class or library. This gives helpful information to users, assists them in organizing their code, and gives them the option of ignoring all the specific types of exceptions and just catching the base-class type. Also, any exceptions added later by inheriting from the same base class will not force all existing code to be rewritten-the base-class handler will catch the new exception.
+      Use exception hierarchies Using exception hierarchies is a valuable way to classify the types of critical errors that might be encountered with your class or library. This gives helpful information to users, assists them in organizing their code, and gives them the option of ignoring all the specific types of exceptions and just catching the base-class type. Also, any exceptions added later by inheriting from the same base class will not force all existing code to be rewritten—the base-class handler will catch the new exception.
       -->
       <para>Usar jerarquías de excepciones es una forma valiosa de clasificar los tipos de errores críticos que pueden darse con una clase o una librería. Ofrece información útil a los usuarios, les ayuda a organizar su código y les da la opción de ignorar todos los tipos concretos de excepciones y capturar solo el tipo de la clase base. Además, las excepciones que se añadan más tarde heredando de la misma clase base no obligarán a reescribir todo el código existente: el manejador de la clase base capturará la nueva excepción.</para>
 
@@ -1294,9 +1278,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Multiple inheritance (MI) -->
       <title>Herencia múltiple (HM)</title>
       <!--
-      Multiple inheritance (MI)
-
-      As you'll read in Chapter 9, the only essential place for MI is if you need to upcast an object pointer to two different base classes-that is, if you need polymorphic behavior with both of those base classes. It turns out that exception hierarchies are useful places for multiple inheritance because a base-class handler from any of the roots of the multiply inherited exception class can handle the exception.
+      Multiple inheritance (MI) As you’ll read in Chapter 9, the only essential place for MI is if you need to upcast an object pointer to two different base classes—that is, if you need polymorphic behavior with both of those base classes. It turns out that exception hierarchies are useful places for multiple inheritance because a base-class handler from any of the roots of the multiply inherited exception class can handle the exception.
       -->
       <para>Como verá en el Capítulo 9, el único caso en que la HM es imprescindible es cuando hay que hacer upcast de un puntero a objeto a dos clases base distintas, es decir, cuando hace falta comportamiento polimórfico con ambas clases base. Resulta que las jerarquías de excepciones son un buen lugar para la herencia múltiple, porque un manejador de la clase base de cualquiera de las raíces de la clase de excepción con herencia múltiple puede tratar la excepción.</para>
 
@@ -1307,24 +1289,22 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Catch by reference, not by value -->
       <title>Capturar por referencia, no por valor</title>
       <!--
-      Catch by reference, not by value
-
-      As you saw in the section "Exception matching," you should catch exceptions by reference for two reasons:
+      Catch by reference, not by value As you saw in the section “Exception matching,” you should catch exceptions by reference for two reasons:
       -->
       <para>Como se vio en la sección <quote>Correspondencia de excepciones</quote>, conviene capturar las excepciones por referencia por dos motivos:</para>
 
       <!--
-      · To avoid making a needless copy of the exception object when it is passed to the handler.
+      To avoid making a needless copy of the exception object when it is passed to the handler.
       -->
       <para>Para evitar hacer una copia innecesaria del objeto excepción al pasarlo al manejador.</para>
 
       <!--
-      · To avoid object slicing when catching a derived exception as a base class object.
+      To avoid object slicing when catching a derived exception as a base class object.
       -->
       <para>Para evitar que se rebane el objeto al capturar una excepción derivada como un objeto de la clase base.</para>
 
       <!--
-      Although you can also throw and catch pointers, by doing so you introduce more coupling-the thrower and the catcher must agree on how the exception object is allocated and cleaned up. This is a problem because the exception itself might have occurred from heap exhaustion. If you throw exception objects, the exception-handling system takes care of all storage.
+      Although you can also throw and catch pointers, by doing so you introduce more coupling—the thrower and the catcher must agree on how the exception object is allocated and cleaned up. This is a problem because the exception itself might have occurred from heap exhaustion. If you throw exception objects, the exception-handling system takes care of all storage.
       -->
       <para>Aunque también se pueden lanzar y capturar punteros, al hacerlo se introduce más acoplamiento: quien lanza y quien captura tienen que ponerse de acuerdo sobre cómo se reserva y se libera el objeto excepción. Es un problema, porque la propia excepción podría deberse a que se ha agotado el montículo. Si se lanzan objetos excepción, el sistema de gestión de excepciones se ocupa de toda la memoria.</para>
 
@@ -1335,20 +1315,18 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Throw exceptions in constructors -->
       <title>Lanzar excepciones en los constructores</title>
       <!--
-      Throw exceptions in constructors
-
-      Because a constructor has no return value, you've previously had two ways to report an error during construction:
+      Throw exceptions in constructors Because a constructor has no return value, you’ve previously had two ways to report an error during construction:
       -->
       <para>Como un constructor no tiene valor de retorno, hasta ahora había dos formas de informar de un error durante la construcción:</para>
 
-      <!-- · Set a nonlocal flag and hope the user checks it. -->
+      <!-- Set a nonlocal flag and hope the user checks it. -->
       <para>Activar una bandera no local y esperar que el usuario la compruebe.</para>
 
-      <!-- · Return an incompletely created object and hope the user checks it. -->
+      <!-- Return an incompletely created object and hope the user checks it. -->
       <para>Devolver un objeto creado de forma incompleta y esperar que el usuario lo compruebe.</para>
 
       <!--
-      This problem is serious because C programmers expect that object creation is always successful, which is not unreasonable in C because the types are so primitive. But continuing execution after construction fails in a C++ program is a guaranteed disaster, so constructors are one of the most important places to throw exceptions-now you have a safe, effective way to handle constructor errors. However, you must also pay attention to pointers inside objects and the way cleanup occurs when an exception is thrown inside a constructor.
+      This problem is serious because C programmers expect that object creation is always successful, which is not unreasonable in C because the types are so primitive. But continuing execution after construction fails in a C++ program is a guaranteed disaster, so constructors are one of the most important places to throw exceptions—now you have a safe, effective way to handle constructor errors. However, you must also pay attention to pointers inside objects and the way cleanup occurs when an exception is thrown inside a constructor.
       -->
       <para>Este problema es grave porque los programadores de C esperan que la creación de objetos siempre tenga éxito, lo cual no es descabellado en C, porque los tipos son muy primitivos. Pero seguir ejecutando un programa C++ después de que falle una construcción es un desastre seguro, así que los constructores son uno de los lugares más importantes para lanzar excepciones: ahora se tiene una forma segura y eficaz de tratar los errores de los constructores. Sin embargo, también hay que prestar atención a los punteros dentro de los objetos y a cómo se produce la limpieza cuando se lanza una excepción dentro de un constructor.</para>
 
@@ -1356,12 +1334,10 @@ template&lt;class T> T stack&lt;T>::pop() {
       </sect3>
 
       <sect3>
-      <!-- Don't cause exceptions in destructors -->
+      <!-- Don’t cause exceptions in destructors -->
       <title>No provocar excepciones en los destructores</title>
       <!--
-      Don't cause exceptions in destructors
-
-      Because destructors are called in the process of throwing other exceptions, you'll never want to throw an exception in a destructor or cause another exception to be thrown by some action you perform in the destructor. If this happens, a new exception can be thrown before the catch-clause for an existing exception is reached, which will cause a call to terminate( ).
+      Don’t cause exceptions in destructors Because destructors are called in the process of throwing other exceptions, you’ll never want to throw an exception in a destructor or cause another exception to be thrown by some action you perform in the destructor. If this happens, a new exception can be thrown before the catch-clause for an existing exception is reached, which will cause a call to terminate( ).
       -->
       <para>Como se llama a los destructores durante el lanzamiento de otras excepciones, nunca conviene lanzar una excepción en un destructor ni provocar que se lance otra por alguna acción que se realice en él. Si ocurre, puede lanzarse una nueva excepción antes de llegar a la cláusula <kw>catch</kw> de la excepción existente, lo que provocará una llamada a <function>terminate()</function>.</para>
 
@@ -1377,9 +1353,7 @@ template&lt;class T> T stack&lt;T>::pop() {
       <!-- Avoid naked pointers -->
       <title>Evitar los punteros desnudos</title>
       <!--
-      Avoid naked pointers
-
-      See Wrapped.cpp earlier in this chapter. A naked pointer usually means vulnerability in the constructor if resources are allocated for that pointer. A pointer doesn't have a destructor, so those resources aren't released if an exception is thrown in the constructor. Use auto_ptr or other smart pointer types[10] for pointers that reference heap memory.
+      Avoid naked pointers See Wrapped.cpp earlier in this chapter. A naked pointer usually means vulnerability in the constructor if resources are allocated for that pointer. A pointer doesn’t have a destructor, so those resources aren’t released if an exception is thrown in the constructor. Use auto_ptr or other smart pointer types[10] for pointers that reference heap memory.
       -->
       <para>Vea <filename>Wrapped.cpp</filename>, antes en este capítulo. Un puntero desnudo suele suponer una vulnerabilidad en el constructor si se reservan recursos para ese puntero. Un puntero no tiene destructor, así que esos recursos no se liberan si se lanza una excepción en el constructor. Use <classname>auto_ptr</classname> u otros tipos de punteros inteligentes<footnote><para>Vea los tipos de punteros inteligentes de Boost en <ulink url="http://www.boost.org/libs/smart_ptr/index.htm">http://www.boost.org/libs/smart_ptr/index.htm</ulink>. Algunos de ellos se están considerando para incluirlos en la próxima revisión del C++ Estándar.</para></footnote> para los punteros que hacen referencia a memoria del montículo.</para>
 
@@ -1392,7 +1366,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <title>Sobrecarga</title>
 
     <!--
-    When an exception is thrown, there's considerable runtime overhead (but it's good overhead, since objects are cleaned up automatically!). For this reason, you never want to use exceptions as part of your normal flow-of-control, no matter how tempting and clever it may seem. Exceptions should occur only rarely, so the overhead is piled on the exception and not on the normally executing code. One of the important design goals for exception handling was that it could be implemented with no impact on execution speed when it wasn't used; that is, as long as you don't throw an exception, your code runs as fast as it would without exception handling. Whether this is true depends on the particular compiler implementation you're using. (See the description of the "zero-cost model" later in this section.)
+    When an exception is thrown, there’s considerable runtime overhead (but it’s good overhead, since objects are cleaned up automatically!). For this reason, you never want to use exceptions as part of your normal flow-of-control, no matter how tempting and clever it may seem. Exceptions should occur only rarely, so the overhead is piled on the exception and not on the normally executing code. One of the important design goals for exception handling was that it could be implemented with no impact on execution speed when it wasn’t used; that is, as long as you don’t throw an exception, your code runs as fast as it would without exception handling. Whether this is true depends on the particular compiler implementation you’re using. (See the description of the “zero-cost model” later in this section.)
     -->
     <para>Cuando se lanza una excepción, hay una sobrecarga considerable en tiempo de ejecución (¡pero es una sobrecarga útil, porque los objetos se limpian automáticamente!). Por eso, nunca conviene usar las excepciones como parte del flujo de control normal, por tentador e ingenioso que parezca. Las excepciones solo deben producirse rara vez, para que la sobrecarga recaiga en la excepción y no en el código que se ejecuta normalmente. Uno de los objetivos de diseño importantes de la gestión de excepciones era que se pudiera implementar sin ningún impacto en la velocidad de ejecución cuando no se usara; es decir, mientras no se lance una excepción, el código se ejecuta tan rápido como lo haría sin gestión de excepciones. Que esto sea cierto depende de la implementación concreta del compilador que se use. (Vea la descripción del <quote>modelo de coste cero</quote> más adelante en esta sección.)</para>
 
@@ -1402,12 +1376,12 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>Se puede ver una expresión <kw>throw</kw> como una llamada a una función especial del sistema que recibe el objeto excepción como argumento y retrocede por la cadena de ejecución. Para que esto funcione, el compilador tiene que poner información adicional en la pila para facilitar el desenrollado. Para entenderlo, hay que conocer la pila de ejecución.</para>
 
     <!--
-    Whenever a function is called, information about that function is pushed onto the runtime stack in an activation record instance (ARI), also called a stack frame. A typical stack frame contains the address of the calling function (so execution can return to it), a pointer to the ARI of the function's static parent (the scope that lexically contains the called function, so variables global to the function can be accessed), and a pointer to the function that called it (its dynamic parent). The path that logically results from repetitively following the dynamic parent links is the dynamic chain, or call chain, that we've mentioned previously in this chapter. This is how execution can backtrack when an exception is thrown, and it is the mechanism that makes it possible for components developed without knowledge of one another to communicate errors at runtime.
+    Whenever a function is called, information about that function is pushed onto the runtime stack in an activation record instance (ARI), also called a stack frame. A typical stack frame contains the address of the calling function (so execution can return to it), a pointer to the ARI of the function’s static parent (the scope that lexically contains the called function, so variables global to the function can be accessed), and a pointer to the function that called it (its dynamic parent). The path that logically results from repetitively following the dynamic parent links is the dynamic chain, or call chain, that we’ve mentioned previously in this chapter. This is how execution can backtrack when an exception is thrown, and it is the mechanism that makes it possible for components developed without knowledge of one another to communicate errors at runtime.
     -->
     <para>Cada vez que se llama a una función, se mete en la pila de ejecución información sobre ella en una <emphasis>instancia de registro de activación</emphasis> (ARI, <foreignphrase>activation record instance</foreignphrase>), también llamada <emphasis>marco de pila</emphasis>. Un marco de pila típico contiene la dirección de la función que llama (para que la ejecución pueda volver a ella), un puntero a la ARI del padre estático de la función (el ámbito que contiene léxicamente a la función llamada, para poder acceder a las variables que son globales para ella) y un puntero a la función que la llamó (su padre dinámico). El camino que resulta lógicamente de seguir repetidamente los enlaces a los padres dinámicos es la <emphasis>cadena dinámica</emphasis>, o cadena de llamadas, que se ha mencionado antes en este capítulo. Así es como la ejecución puede retroceder cuando se lanza una excepción, y es el mecanismo que permite que componentes desarrollados sin conocerse entre sí se comuniquen errores en tiempo de ejecución.</para>
 
     <!--
-    To enable stack unwinding for exception handling, extra exception-related information about each function needs to be available for each stack frame. This information describes which destructors need to be called (so that local objects can be cleaned up), indicates whether the current function has a try block, and lists which exceptions the associated catch clauses can handle. There is space penalty for this extra information, so programs that support exception handling can be somewhat larger than those that don't.[11] Even the compile-time size of programs using exception handling is greater, since the logic of how to generate the expanded stack frames during runtime must be generated by the compiler.
+    To enable stack unwinding for exception handling, extra exception-related information about each function needs to be available for each stack frame. This information describes which destructors need to be called (so that local objects can be cleaned up), indicates whether the current function has a try block, and lists which exceptions the associated catch clauses can handle. There is space penalty for this extra information, so programs that support exception handling can be somewhat larger than those that don’t.[11] Even the compile-time size of programs using exception handling is greater, since the logic of how to generate the expanded stack frames during runtime must be generated by the compiler.
     -->
     <para>Para que el desenrollado de la pila funcione con la gestión de excepciones, cada marco de pila necesita información adicional relacionada con las excepciones de cada función. Esta información describe a qué destructores hay que llamar (para poder limpiar los objetos locales), indica si la función actual tiene un bloque <kw>try</kw> y enumera qué excepciones pueden tratar las cláusulas <kw>catch</kw> asociadas. Esta información adicional ocupa espacio, así que los programas que admiten gestión de excepciones pueden ser algo más grandes que los que no la admiten<footnote><para>Depende de cuántas comprobaciones de códigos de retorno habría que añadir si no se usaran excepciones.</para></footnote>. Incluso el tamaño en tiempo de compilación de los programas que usan gestión de excepciones es mayor, porque el compilador tiene que generar la lógica que crea los marcos de pila ampliados en tiempo de ejecución.</para>
 
@@ -1453,7 +1427,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <!-- 680 -->
 
     <!--
-    Don't take the percentage differences between the two modes too seriously. Remember that exceptions (should) typically constitute a small part of a program, so the space overhead tends to be much smaller (usually between 5 and 15 percent).
+    Don’t take the percentage differences between the two modes too seriously. Remember that exceptions (should) typically constitute a small part of a program, so the space overhead tends to be much smaller (usually between 5 and 15 percent).
     -->
     <para>No se tome demasiado en serio la diferencia porcentual entre los dos modos. Recuerde que las excepciones (deberían) suponer normalmente una parte pequeña del programa, así que la sobrecarga de espacio suele ser mucho menor (normalmente entre el 5 y el 15 por ciento).</para>
 
@@ -1468,12 +1442,12 @@ template&lt;class T> T stack&lt;T>::pop() {
     <title>Resumen</title>
 
     <!--
-    Error recovery is a fundamental concern for every program you write. It's especially important in C++ when creating program components for others to use. To create a robust system, each component must be robust.
+    Error recovery is a fundamental concern for every program you write. It’s especially important in C++ when creating program components for others to use. To create a robust system, each component must be robust.
     -->
     <para>La recuperación de errores es una preocupación fundamental en cualquier programa. Es especialmente importante en C++ al crear componentes de programa para que los usen otros. Para crear un sistema robusto, cada componente tiene que ser robusto.</para>
 
     <!--
-    The goals for exception handling in C++ are to simplify the creation of large, reliable programs using less code than currently possible, with more confidence that your application doesn't have an unhandled error. This is accomplished with little or no performance penalty and with low impact on existing code.
+    The goals for exception handling in C++ are to simplify the creation of large, reliable programs using less code than currently possible, with more confidence that your application doesn’t have an unhandled error. This is accomplished with little or no performance penalty and with low impact on existing code.
     -->
     <para>Los objetivos de la gestión de excepciones en C++ son simplificar la creación de programas grandes y fiables, con menos código del que es posible hoy en día y con más confianza en que la aplicación no tiene errores sin tratar. Esto se consigue con una penalización de rendimiento escasa o nula y con poco impacto en el código existente.</para>
 
@@ -1498,7 +1472,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>1. Escriba tres funciones: una que devuelva un valor de error para indicar una condición de error, otra que active <varname>errno</varname> y otra que use <function>signal()</function>. Escriba código que llame a estas funciones y responda a los errores. Después escriba una cuarta función que lance una excepción. Llame a esta función y capture la excepción. Describa las diferencias entre estos cuatro enfoques y por qué la gestión de excepciones es una mejora.</para>
 
     <!--
-    2. Create a class with member functions that throw exceptions. Within this class, make a nested class to use as an exception object. It takes a single const char* as its argument; this represents a description string. Create a member function that throws this exception. (State this in the function's exception specification.) Write a try block that calls this function and a catch clause that handles the exception by displaying its description string.
+    2. Create a class with member functions that throw exceptions. Within this class, make a nested class to use as an exception object. It takes a single const char* as its argument; this represents a description string. Create a member function that throws this exception. (State this in the function’s exception specification.) Write a try block that calls this function and a catch clause that handles the exception by displaying its description string.
     -->
     <para>2. Cree una clase con métodos que lancen excepciones. Dentro de esta clase, cree una clase anidada para usarla como objeto excepción. Recibe como argumento un único <type>const char*</type>, que representa una cadena de descripción. Cree un método que lance esta excepción. (Indíquelo en la especificación de excepciones de la función.) Escriba un bloque <kw>try</kw> que llame a esta función y una cláusula <kw>catch</kw> que trate la excepción mostrando su cadena de descripción.</para>
 
@@ -1513,7 +1487,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>4. Escriba un <function>main()</function> genérico que capture todas las excepciones e informe de ellas como errores.</para>
 
     <!--
-    5. Create a class with its own operator new. This operator should allocate ten objects, and on the eleventh object "run out of memory" and throw an exception. Also add a static member function that reclaims this memory. Now create a main( ) with a try block and a catch clause that calls the memory-restoration routine. Put these inside a while loop, to demonstrate recovering from an exception and continuing execution.
+    5. Create a class with its own operator new. This operator should allocate ten objects, and on the eleventh object “run out of memory” and throw an exception. Also add a static member function that reclaims this memory. Now create a main( ) with a try block and a catch clause that calls the memory-restoration routine. Put these inside a while loop, to demonstrate recovering from an exception and continuing execution.
     -->
     <para>5. Cree una clase con su propio <function>operator new</function>. Este operador debe reservar diez objetos y, en el undécimo, <quote>quedarse sin memoria</quote> y lanzar una excepción. Añada también un método estático que recupere esta memoria. Después cree un <function>main()</function> con un bloque <kw>try</kw> y una cláusula <kw>catch</kw> que llame a la rutina de recuperación de memoria. Póngalos dentro de un bucle <literal>while</literal> para demostrar la recuperación de una excepción y la continuación de la ejecución.</para>
 
@@ -1543,7 +1517,7 @@ template&lt;class T> T stack&lt;T>::pop() {
     <para>10. Modifique la solución del ejercicio anterior para que la función lance un <type>double</type>, violando la especificación de excepciones. Capture la violación con un manejador de excepciones inesperadas propio que muestre un mensaje y termine el programa limpiamente (es decir, sin llamar a <function>abort()</function>).</para>
 
     <!--
-    11. Write a Garage class that has a Car that is having troubles with its Motor. Use a function-level try block in the Garage class constructor to catch an exception (thrown from the Motor class) when its Car object is initialized. Throw a different exception from the body of the Garage constructor's handler and catch it in main( ).
+    11. Write a Garage class that has a Car that is having troubles with its Motor. Use a function-level try block in the Garage class constructor to catch an exception (thrown from the Motor class) when its Car object is initialized. Throw a different exception from the body of the Garage constructor’s handler and catch it in main( ).
     -->
     <para>11. Escriba una clase <classname>Garage</classname> que tenga un <classname>Car</classname> con problemas en su <classname>Motor</classname>. Use un bloque <kw>try</kw> a nivel de función en el constructor de la clase <classname>Garage</classname> para capturar una excepción (lanzada desde la clase <classname>Motor</classname>) al inicializar su objeto <classname>Car</classname>. Lance otra excepción desde el cuerpo del manejador del constructor de <classname>Garage</classname> y captúrela en <function>main()</function>.</para>
   </sect1>
