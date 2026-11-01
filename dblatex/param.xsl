@@ -1,6 +1,38 @@
 <?xml version='1.0' encoding="iso-8859-1"?>
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version='1.0'>
 
+  <!-- Plantilla de dblatex para los listados: se importa aquí para poder
+       envolverla (xsl:apply-imports) en la de programlisting de más abajo.
+       La ruta es la del paquete dblatex de Debian, el de docker/Dockerfile. -->
+  <xsl:import href="/usr/share/xml/docbook/stylesheet/dblatex/xsl/verbatim.xsl"/>
+
+  <!-- Los listados de hasta 15 líneas no se parten entre dos páginas: si no
+       caben en lo que queda de página, \needspace los pasa a la siguiente.
+       Se piden dos líneas más por los márgenes del marco. -->
+  <xsl:param name="pec.listado.corto" select="15"/>
+
+  <xsl:template name="pec.needspace">
+    <!-- líneas del listado, sin contar el salto de línea que sigue a la
+         etiqueta de apertura ni los que preceden a la de cierre -->
+    <xsl:variable name="saltos"
+      select="string-length(.) - string-length(translate(., '&#10;', ''))"/>
+    <xsl:variable name="inicial" select="number(starts-with(., '&#10;'))"/>
+    <xsl:variable name="finales"
+      select="number(substring(., string-length(.)) = '&#10;')
+              + number(substring(., string-length(.) - 1, 1) = '&#10;')"/>
+    <xsl:variable name="lineas" select="$saltos - $inicial - $finales + 1"/>
+    <xsl:if test="$lineas &lt;= $pec.listado.corto">
+      <xsl:text>&#10;\needspace{</xsl:text>
+      <xsl:value-of select="$lineas + 2"/>
+      <xsl:text>\baselineskip}</xsl:text>
+    </xsl:if>
+  </xsl:template>
+
+  <xsl:template match="programlisting">
+    <xsl:call-template name="pec.needspace"/>
+    <xsl:apply-imports/>
+  </xsl:template>
+
   <!-- DB2LaTeX has its own admonition graphics -->
   <xsl:param name="figure.note">note</xsl:param>
   <xsl:param name="figure.tip">tip</xsl:param>
@@ -91,6 +123,7 @@
 -->
 
   <xsl:template match="screen">
+    <xsl:call-template name="pec.needspace"/>
     <xsl:text>&#10;\begin{listing}[style=console]</xsl:text>
     <xsl:apply-templates mode="latex.verbatim"/>
     <xsl:text>\end{listing}&#10;</xsl:text>

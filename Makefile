@@ -69,9 +69,12 @@ Volumen%.xml: master_Volumen%.xml code_v%
 
 .PRECIOUS: code_v%
 
-code_v%: code_orig_v%
+# Listados: los originales de code_orig_v% con la traducción de los
+# comentarios (code_es_v%) superpuesta
+code_v%: code_orig_v% code_es_v%
 	rm -rf $@
 	cp -r $< $@
+	cp -r code_es_v$*/. $@/
 	python3 utils/patch_sources.py $@
 
 make_images:
@@ -102,6 +105,11 @@ install: products
 validate: Volumen1.xml Volumen2.xml
 	xmllint --noout --postvalid $^
 #	xsltproc --xinclude --noout --postvalid stylesheets/profile.xsl Volumen%.xml
+
+# La traducción de los listados solo puede tocar los comentarios
+check-code:
+	python3 utils/check_code_comments.py code_orig_v1 code_es_v1
+	python3 utils/check_code_comments.py -l 70 code_orig_v2 code_es_v2
 
 # Palabras del original traducidas y pendientes por capítulo
 status:

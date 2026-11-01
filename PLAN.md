@@ -202,10 +202,27 @@ V1-ApenC no tenían el original en inglés, y a otros capítulos les faltaba
 en algunos títulos y párrafos. `utils/add_original.py` lo añade a partir
 del HTML del MIT (https://web.mit.edu/merolish/ticpp/).
 
-La tarea pendiente del volumen 1 que figura en [TODO](TODO): traducir los
-comentarios de los listados. Es una tarea de revisión, no de traducción. (El
-cambio de «template» por «plantilla» ya está hecho en la prosa del volumen 1;
-solo queda la aclaración «(o templates)» de la primera mención en C16.)
+Tareas del [TODO](TODO) (hechas el 01/11/2026):
+
+- **Comentarios de los listados.** Traducidos en los dos volúmenes (unos
+  590 ficheros) en `code_es_v1` y `code_es_v2`, que el Makefile copia encima
+  de los originales al montar el libro; los literales de cadena y la salida
+  de los programas se quedan en inglés. `make check-code` comprueba que
+  fuera de los comentarios no cambia nada. Detalles en TRADUCCION.
+- **Figuras.** Están todas las del original (21 y 15). V1_20 y V1_21 eran el
+  GIF original incrustado y se han redibujado con los rótulos traducidos;
+  V1_11 usa ahora los nombres de clase del código.
+- **Notas al pie y referencias cruzadas.** Las notas cuadran con el
+  original en todos los capítulos. 112 menciones a «Capítulo N» del mismo
+  volumen son ya enlaces, y el capítulo 3 del volumen 2 pasa a tener el
+  identificador `C03`, como los demás.
+- **Sangría de los fragmentos.** `utils/reindent_listings.py` quitó el
+  sangrado del XML que se había colado en 171 fragmentos y pasó a dos
+  espacios los que usaban cuatro.
+- **PDF.** `\raggedbottom` evita los huecos que dejaba `\flushbottom` antes de
+  las figuras y listados que pasan a la página siguiente, y `\needspace`
+  impide que se partan los listados de hasta 15 líneas.
+- «template» ya está traducido por «plantilla» en todo el libro.
 
 ## Revisión de estilo del volumen 1 (terminada el 30/10/2026)
 
