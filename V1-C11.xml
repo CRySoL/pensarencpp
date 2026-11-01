@@ -29,15 +29,15 @@
   <!--
   Although references also exist in Pascal, the C++ version was taken from the Algol language. They are essential in C++ to support the syntax of operator overloading (see Chapter 12), but they are also a general convenience to control the way arguments are passed into and out of functions.
   -->
-  <para>Aunque las referencias también existen en Pascal, la versión de C++ se tomó del lenguaje Algol. Las referencias son esenciales en C++ para ayudar en la sintaxis de los operadores sobrecargados (vea el <link linkend="C12">Capítulo 12</link>) y, además, son una buena forma para controlar la manera en que los argumentos se pasan a las funciones tanto hacia dentro como hacia fuera.</para>
+  <para>Aunque las referencias también existen en Pascal, la versión de C++ se tomó del lenguaje Algol. Son esenciales en C++ para dar soporte a la sintaxis de la sobrecarga de operadores (vea el <link linkend="C12">Capítulo 12</link>), pero además son, en general, una forma cómoda de controlar cómo se pasan los argumentos a las funciones y cómo se devuelven.</para>
 
   <!--
   This chapter will first look briefly at the differences between pointers in C and C++, then introduce references. But the bulk of the chapter will delve into a rather confusing issue for the new C++ programmer: the copy-constructor, a special constructor (requiring references) that makes a new object from an existing object of the same type. The copy-constructor is used by the compiler to pass and return objects by value into and out of functions.
   -->
-  <para>En este capítulo primero verá la diferencia entre los punteros en C y en C++, y luego se presentarán las referencias. Pero la mayor parte del capítulo ahondará en el asunto un tanto confuso para los programadores de C++ novatos: el constructor de copia, un constructor especial (que usa referencias) que construye un nuevo objeto a partir de otro ya existente del mismo tipo. El compilador utiliza el constructor de copia para pasar y retornar objetos <emphasis>por valor</emphasis> a las funciones.</para>
+  <para>Este capítulo examina primero brevemente las diferencias entre los punteros de C y los de C++, y después presenta las referencias. Pero la mayor parte del capítulo se adentra en un asunto bastante confuso para el programador novato de C++: el constructor de copia, un constructor especial (que necesita referencias) que crea un nuevo objeto a partir de otro ya existente del mismo tipo. El compilador utiliza el constructor de copia para pasar objetos <emphasis>por valor</emphasis> a las funciones y para devolverlos.</para>
 
   <!-- Finally, the somewhat obscure C++ pointer-to-member feature is illuminated. -->
-  <para>Finalmente, se hablará sobre la característica (un tanto oscura) de los <emphasis>punteros a miembro</emphasis> de C++.</para>
+  <para>Por último, se explica una característica un tanto oscura de C++: los <emphasis>punteros a miembro</emphasis>.</para>
 
 
   <sect1>
@@ -60,7 +60,7 @@ b = v;
     <!--
     Because this "feature" of C allows you to quietly treat any type like any other type, it leaves a big hole in the type system. C++ doesn't allow this; the compiler gives you an error message, and if you really want to treat one type as another, you must make it explicit, both to the compiler and to the reader, using a cast. (Chapter 3 introduced C++'s improved "explicit" casting syntax.)
     -->
-    <para>A causa de esta <quote>característica</quote> de C, puede utilizar cualquier tipo como si de otro se tratara sin ningún aviso por parte del compilador, lo que deja un gran agujero en el sistema de tipos. C++ no permite hacer esto; el compilador da un mensaje de error, y si realmente quiere utilizar un tipo como otro diferente, debe hacerlo explícitamente, tanto para el compilador como para el lector, usando un molde (<emphasis>cast</emphasis> en inglés). (En el <link linkend="C03">Capítulo 3</link> se habló sobre la sintaxis mejorada del molde <quote>explícito</quote>).</para>
+    <para>Como esta <quote>característica</quote> de C permite tratar sin ningún aviso cualquier tipo como si fuera otro, deja un gran agujero en el sistema de tipos. C++ no lo permite: el compilador da un mensaje de error y, si realmente quiere tratar un tipo como otro, debe hacerlo explícitamente, tanto para el compilador como para el lector, mediante un molde (<emphasis>cast</emphasis> en inglés). (En el <link linkend="C03">Capítulo 3</link> se presentó la sintaxis mejorada de C++ para los moldes <quote>explícitos</quote>).</para>
   </sect1>
 
   <sect1>
@@ -78,33 +78,31 @@ b = v;
     <!--
     In line (1), the compiler allocates a piece of storage, initializes it with the value 12, and ties the reference to that piece of storage. The point is that any reference must be tied to someone else's piece of storage. When you access a reference, you're accessing that storage. Thus, if you write lines like (2) and (3), then incrementing a is actually incrementing x, as is shown in main( ). Again, the easiest way to think about a reference is as a fancy pointer. One advantage of this "pointer" is that you never have to wonder whether it's been initialized (the compiler enforces it) and how to dereference it (the compiler does it).
     -->
-    <para>En la línea (1) el compilador asigna la cantidad necesaria de memoria, la inicializa con el valor 12, y liga la referencia a esa porción de memoria. Lo importante es que una referencia debe estar ligada a la memoria de <emphasis>alguien</emphasis>. Cuando se accede a una referencia, se está accediendo a esa memoria. Así pues, si escribe las líneas (2) y (3) incrementará <varname>x</varname> cuando se incremente <varname>a</varname>, tal como se muestra en el <function>main()</function>. Lo más fácil es pensar que una referencia es como un puntero de lujo. Una ventaja de este <quote>puntero</quote> es que nunca hay que preguntarse si ha sido inicializado (el compilador lo impone) ni cómo dereferenciarlo (el compilador lo hace).</para>
+    <para>En la línea (1), el compilador reserva un espacio de memoria, lo inicializa con el valor 12 y liga la referencia a ese espacio. Lo importante es que toda referencia debe estar ligada a un espacio de memoria que pertenece a <emphasis>otro</emphasis>. Cuando se accede a una referencia, se está accediendo a esa memoria. Así, si escribe líneas como (2) y (3), incrementar <varname>a</varname> equivale en realidad a incrementar <varname>x</varname>, como se muestra en <function>main()</function>. De nuevo, lo más fácil es pensar en una referencia como en un puntero sofisticado. Una ventaja de este <quote>puntero</quote> es que nunca hay que preguntarse si se ha inicializado (el compilador lo impone) ni cómo dereferenciarlo (el compilador lo hace).</para>
 
-   <!-- There are certain rules when using references: -->
-    <para>
-      Hay que seguir unas determinadas reglas cuando se utilizan
-      referencias:
+    <!-- There are certain rules when using references: -->
+    <para>Hay ciertas reglas que se deben seguir al usar referencias:</para>
+
       <orderedlist>
 	<listitem>
 	  <!--
 	  1. A reference must be initialized when it is created. (Pointers can be initialized at any time.)
 	  -->
-	  <para>La referencia debe ser inicializada cuando se crea. (Los punteros pueden inicializarse en cualquier momento).</para>
+	  <para>Una referencia debe inicializarse en el momento de crearla. (Los punteros pueden inicializarse en cualquier momento).</para>
 	</listitem>
 	<listitem>
 	  <!--
 	  2. Once a reference is initialized to an object, it cannot be changed to refer to another object. (Pointers can be pointed to another object at any time.)
 	  -->
-	  <para>Una vez que se inicializa una referencia, ligándola a un objeto, no se puede ligar a otro objeto. (Los punteros pueden apuntar a otro objeto en cualquier momento).</para>
+	  <para>Una vez que una referencia se ha inicializado con un objeto, no se puede cambiar para que se refiera a otro. (Un puntero se puede hacer apuntar a otro objeto en cualquier momento).</para>
 	</listitem>
 	<listitem>
 	  <!--
 	  3. You cannot have NULL references. You must always be able to assume that a reference is connected to a legitimate piece of storage.
 	  -->
-	  <para>No se pueden tener referencias con valor nulo. Siempre ha de suponer que una referencia está conectada a un trozo de memoria ya asignada.</para>
+	  <para>No puede haber referencias nulas (<constant>NULL</constant>). Siempre se debe poder suponer que una referencia está ligada a un espacio de memoria válido.</para>
 	</listitem>
       </orderedlist>
-    </para>
 
     <sect2>
       <!-- : References in functions -->
@@ -113,11 +111,11 @@ b = v;
       <!--
       The most common place you'll see references is as function arguments and return values. When a reference is used as a function argument, any modification to the reference inside the function will cause changes to the argument outside the function. Of course, you could do the same thing by passing a pointer, but a reference has much cleaner syntax. (You can think of a reference as nothing more than a syntax convenience, if you want.)
       -->
-      <para>El lugar más común en el que verá referencias es en los argumentos y valor de retorno de las funciones. Cuando se utiliza una referencia como un argumento de una función, cualquier cambio realizado en la referencia <emphasis>dentro</emphasis> de la función se realizará realmente sobre el argumento <emphasis>fuera</emphasis> de la función. Por supuesto que podría hacer lo mismo pasando un puntero como argumento, pero una referencia es sintácticamente más clara. (Si lo desea, puede pensar que una referencia no es más que una comodidad sintáctica).</para>
+      <para>Donde más se ven las referencias es en los argumentos y en los valores de retorno de las funciones. Cuando se utiliza una referencia como argumento de una función, cualquier cambio que se haga en la referencia <emphasis>dentro</emphasis> de la función modificará el argumento <emphasis>fuera</emphasis> de ella. Por supuesto, podría hacer lo mismo pasando un puntero, pero la sintaxis de una referencia es mucho más clara. (Si lo desea, puede pensar que una referencia no es más que una comodidad sintáctica).</para>
       <!--
       If you return a reference from a function, you must take the same care as if you return a pointer from a function. Whatever the reference is connected to shouldn't go away when the function returns, otherwise you'll be referring to unknown memory.
       -->
-      <para>Si una función retorna una referencia, ha de tener el mismo cuidado que si la función retornara un puntero. La referencia que se devuelva debe estar ligada a algo que no sea liberado cuando la función retorne. Si no, la referencia se referirá a un trozo de memoria sobre el que ya no tiene control.</para>
+      <para>Si una función devuelve una referencia, hay que tener el mismo cuidado que si devolviera un puntero: aquello a lo que esté ligada la referencia no debe desaparecer cuando la función retorne; si no, se estará haciendo referencia a memoria desconocida.</para>
 
       <!-- Here's an example: -->
       <para>He aquí un ejemplo:</para>
@@ -136,12 +134,12 @@ b = v;
 	<!--
         The reference argument in Reference.cpp works only when the argument is a non-const object. If it is a const object, the function g() will not accept the argument, which is actually a good thing, because the function does modify the outside argument. If you know the function will respect the constness of an object, making the argument a const reference will allow the function to be used in all situations. This means that, for built-in types, the function will not modify the argument, and for user-defined types, the function will call only const member functions, and won't modify any public data members.
         -->
-	<para>El argumento referencia en <filename>Reference.cpp</filename> funciona solamente en caso de que el argumento no sea un objeto constante. Si fuera un objeto constante, la función <function>g()</function> no aceptaría el argumento, lo cual es positivo porque la función <emphasis>modificaría</emphasis> el argumento que está fuera de la función. Si sabe que la función respetará la constancia de un objeto, el hecho de que el argumento sea una referencia constante permitirá que la función se pueda utilizar en cualquier situación. Esto significa que para tipos predefinidos, la función no modificará el argumento, y para tipos definidos por el usuario, la función llamará solamente a métodos constantes, y no modificará ningún atributo público.</para>
+	<para>El argumento referencia de <filename>Reference.cpp</filename> solo funciona cuando el argumento no es un objeto constante. Si fuera un objeto constante, la función <function>g()</function> no lo aceptaría, lo que en realidad es bueno, porque la función <emphasis>sí</emphasis> modifica el argumento externo. Si sabe que la función respetará la constancia de un objeto, declarar el argumento como referencia constante permitirá usar la función en cualquier situación. Esto significa que, con tipos predefinidos, la función no modificará el argumento y, con tipos definidos por el usuario, solo llamará a métodos constantes y no modificará ningún atributo público.</para>
 
         <!--
         The use of const references in function arguments is especially important because your function may receive a temporary object. This might have been created as a return value of another function or explicitly by the user of your function. Temporary objects are always const, so if you don't use a const reference, that argument won't be accepted by the compiler. As a very simple example,
         -->
-	<para>La utilización de referencias constantes en argumentos de funciones es especialmente importante porque una función puede recibir un objeto temporal. Éste podría haber sido creado como valor de retorno de otra función o explícitamente por el usuario de la función. Los objetos temporales son siempre constantes. Por eso, si no utiliza una referencia constante, el compilador se quejará. Como ejemplo muy simple:</para>
+	<para>Usar referencias constantes en los argumentos de las funciones es especialmente importante porque la función puede recibir un objeto temporal, creado como valor de retorno de otra función o explícitamente por quien la utiliza. Los objetos temporales son siempre constantes, así que, si no utiliza una referencia constante, el compilador no aceptará ese argumento. Un ejemplo muy sencillo:</para>
 
 
 //: V1C11:ConstReferenceArguments.cpp
@@ -149,7 +147,7 @@ b = v;
         <!--
         The call to f(1) causes a compile-time error because the compiler must first create a reference. It does so by allocating storage for an int, initializing it to one and producing the address to bind to the reference. The storage must be a const because changing it would make no sense - you can never get your hands on it again. With all temporary objects you must make the same assumption: that they're inaccessible. It's valuable for the compiler to tell you when you're changing such data because the result would be lost information.
         -->
-	<para>La llamada a <code>f(1)</code> provoca un error en tiempo de compilación porque el compilador debe crear primero una referencia. Lo hace asignando memoria para un <type>int</type>, inicializándolo a uno y generando la dirección de memoria para ligarla a la referencia. La memoria debe ser constante porque no tendría sentido cambiarla: nunca podrá volver a acceder a ella. Debe hacer la misma suposición para todos los objetos temporales: son inaccesibles. Es importante que el compilador le diga cuándo está intentando cambiar algo de este estilo porque podría perder información.</para>
+	<para>La llamada a <code>f(1)</code> provoca un error de compilación porque el compilador debe crear primero una referencia. Para ello reserva memoria para un <type>int</type>, la inicializa a uno y genera la dirección que se liga a la referencia. Esa memoria debe ser constante porque no tendría sentido cambiarla: nunca podrá volver a acceder a ella. Con todos los objetos temporales hay que hacer la misma suposición: son inaccesibles. Es útil que el compilador le avise cuando intenta modificar datos así, porque el resultado sería información perdida.</para>
 
       </sect3>
       <sect3>
@@ -159,7 +157,7 @@ b = v;
 	<!--
         In C, if you want to modify the contents of the pointer rather than what it points to, your function declaration looks like:
         -->
-	<para>En C, si desea modificar el <emphasis>contenido</emphasis> del puntero en sí en vez de modificar a lo que apunta, la declaración de la función sería:</para>
+	<para>En C, si desea modificar el <emphasis>contenido</emphasis> del propio puntero en lugar de aquello a lo que apunta, la declaración de la función tendría este aspecto:</para>
 
 
 <programlisting>
@@ -167,7 +165,8 @@ void f(int**);
 </programlisting>
 
 
-	<para><!-- and you'd have to take the address of the pointer when passing it in: --> y tendría que tomar la dirección del puntero cuando se llamara a la función:</para>
+	<!-- and you'd have to take the address of the pointer when passing it in: -->
+	<para>y tendría que tomar la dirección del puntero al pasarlo:</para>
 
 
 <programlisting>
@@ -179,7 +178,7 @@ f(&amp;ip);
 	<!--
         With references in C++, the syntax is cleaner. The function argument becomes a reference to a pointer, and you no longer have to take the address of that pointer. Thus,
         -->
-	<para>La sintaxis es más clara con las referencias en C++. El argumento de la función pasa a ser una referencia a un puntero, y ya no hay que tomar la dirección de ese puntero.</para>
+	<para>Con las referencias de C++, la sintaxis es más clara. El argumento de la función pasa a ser una referencia a un puntero, y ya no hay que tomar la dirección de ese puntero. Así:</para>
 
 
 //: V1C11:ReferenceToPointer.cpp
@@ -187,7 +186,7 @@ f(&amp;ip);
         <!--
         By running this program, you'll prove to yourself that the pointer is incremented, not what it points to.
         -->
-	<para>Al ejecutar este programa se observa que el puntero se incrementa en vez de incrementar a lo que apunta.</para>
+	<para>Al ejecutar este programa comprobará que lo que se incrementa es el puntero y no aquello a lo que apunta.</para>
       </sect3>
     </sect2>
 
@@ -199,17 +198,17 @@ f(&amp;ip);
       <!--
       Your normal habit when passing an argument to a function should be to pass by const reference. Although at first this may seem like only an efficiency concern (and you normally don't want to concern yourself with efficiency tuning while you're designing and assembling your program), there's more at stake: as you'll see in the remainder of the chapter, a copy-constructor is required to pass an object by value, and this isn't always available.
       -->
-      <para>Cuando se pasa un argumento a una función, lo normal debería ser pasarlo como una referencia constante. Aunque al principio puede parecer que sólo tiene ventajas en términos de eficiencia (y normalmente en diseño e implementación inicial no se tiene muy en cuenta la eficiencia), además tiene otras: como se podrá ver en el resto del capítulo, se requiere un constructor de copia para pasar un objeto por valor, y esto no siempre es posible.</para>
+      <para>Al pasar un argumento a una función, lo habitual debería ser pasarlo por referencia constante. Aunque al principio pueda parecer solo una cuestión de eficiencia (y normalmente no conviene preocuparse de ajustar la eficiencia mientras se diseña y se monta el programa), hay más en juego: como verá en el resto del capítulo, para pasar un objeto por valor hace falta un constructor de copia, y no siempre está disponible.</para>
 
       <!--
 	The efficiency savings can be substantial for such a simple habit: to pass an argument by value requires a constructor and destructor call, but if you're not going to modify the argument then passing by const reference only needs an address pushed on the stack.
 	-->
-      <para>La eficiencia puede mejorar substancialmente por este simple hábito: pasar un argumento por valor necesita una llamada a un constructor y otra a un destructor, pero si no se va a modificar el argumento, el hecho de pasarlo como una referencia constante sólo necesita poner una dirección en la pila.</para>
+      <para>Un hábito tan sencillo puede suponer un ahorro considerable: pasar un argumento por valor requiere llamar a un constructor y a un destructor, pero si no se va a modificar el argumento, pasarlo por referencia constante solo requiere poner una dirección en la pila.</para>
 
       <!--
 	In fact, virtually the only time passing an address isn't preferable is when you're going to do such damage to an object that passing by value is the only safe approach (rather than modifying the outside object, something the caller doesn't usually expect). This is the subject of the next section.
 	-->
-      <para>De hecho, prácticamente la única situación en la que no es preferible pasar la dirección, es cuando provocará tales problemas a un objeto que pasar por valor es la única alternativa segura (en vez de modificar el objeto que está fuera del ámbito de la función, algo que el que llama a la función normalmente no espera). Ése es el tema de la siguiente sección.</para>
+      <para>De hecho, prácticamente el único caso en que no es preferible pasar una dirección es cuando se va a alterar tanto el objeto que pasarlo por valor es la única opción segura (en lugar de modificar el objeto externo, algo que quien llama no suele esperar). Ese es el tema de la siguiente sección.</para>
     </sect2>
   </sect1>
 
@@ -220,7 +219,7 @@ f(&amp;ip);
     <!--
     Now that you understand the basics of the reference in C++, you're ready to tackle one of the more confusing concepts in the language: the copy-constructor, often called X(X&) ("X of X ref"). This constructor is essential to control passing and returning of user-defined types by value during function calls. It's so important, in fact, that the compiler will automatically synthesize a copy-constructor if you don't provide one yourself, as you will see.
     -->
-    <para>Ahora que entiende lo básico de las referencias en C++, está preparado para tratar uno de los conceptos más confusos del lenguaje: el constructor de copia, a menudo denominado <code>X(X&amp;)</code> (<quote>X de la referencia X</quote>). Este constructor es esencial para controlar el paso y retorno por valor de los tipos definidos por el usuario en las llamadas a funciones. De hecho es tan importante que el compilador crea automáticamente un constructor de copia en caso de que el programador no lo proporcione, como verá.</para>
+    <para>Ahora que conoce lo básico de las referencias en C++, está preparado para abordar uno de los conceptos más confusos del lenguaje: el constructor de copia, al que a menudo se llama <code>X(X&amp;)</code> (<quote>X de referencia a X</quote>). Este constructor es esencial para controlar el paso y el retorno por valor de los tipos definidos por el usuario en las llamadas a funciones. De hecho, es tan importante que, como verá, el compilador sintetiza automáticamente un constructor de copia si no se proporciona uno.</para>
 
     <sect2>
       <!-- : Passing & returning by value -->
@@ -270,7 +269,7 @@ mov  g, register a
       <!--
 	The return value of f() is placed in a register. Again, the compiler knows everything there is to know about the return value type because that type is built into the language, so the compiler can return it by placing it in a register. With the primitive data types in C, the simple act of copying the bits of the value is equivalent to copying the object.
 	-->
-      <para>El valor de retorno de <function>f()</function> se coloca en un registro. Como el compilador sabe lo que se está retornando, porque la información del tipo ya está en el lenguaje, puede retornarlo colocándolo en un registro. En C, con tipos primitivos, el simple hecho de copiar los bits del valor es equivalente a copiar el objeto.</para>
+      <para>El valor de retorno de <function>f()</function> se coloca en un registro. De nuevo, el compilador sabe todo lo necesario sobre el tipo del valor de retorno, porque es un tipo predefinido del lenguaje, así que puede devolverlo colocándolo en un registro. Con los tipos de datos primitivos de C, el simple hecho de copiar los bits del valor equivale a copiar el objeto.</para>
 
       <sect3>
 	<!-- : Passing & returning large objects -->
@@ -298,7 +297,7 @@ mov  g, register a
 	<!--
         In the previous code fragment, pushing the arguments onto the stack was all that was required before making the function call. In PassingBigStructures.cpp, however, you'll see an additional action: the address of B2 is pushed before making the call, even though it's obviously not an argument. To comprehend what's going on here, you need to understand the constraints on the compiler when it's making a function call.
         -->
-	<para>En el fragmento de código fuente anterior, lo único necesario antes de llamar a la función es colocar los argumentos en la pila. Sin embargo, en el código ensamblador de <filename>PassingBigStructures.cpp</filename> se ve una acción adicional: la dirección de <varname>B2</varname> se coloca en la pila antes de hacer la llamada a la función aunque, obviamente, no sea un argumento. Para entender qué pasa, necesita entender las restricciones del compilador cuando llama a una función.</para>
+	<para>En el fragmento de código anterior, lo único necesario antes de llamar a la función era colocar los argumentos en la pila. Sin embargo, en <filename>PassingBigStructures.cpp</filename> verá una acción adicional: la dirección de <varname>B2</varname> se coloca en la pila antes de hacer la llamada, aunque obviamente no es un argumento. Para comprender qué ocurre, hay que conocer las restricciones a las que está sometido el compilador cuando hace una llamada a función.</para>
       </sect3>
 
       <sect3>
@@ -308,7 +307,7 @@ mov  g, register a
 	<!--
         When the compiler generates code for a function call, it first pushes all the arguments on the stack, then makes the call. Inside the function, code is generated to move the stack pointer down even farther to provide storage for the function's local variables. ("Down" is relative here; your machine may increment or decrement the stack pointer during a push.) But during the assembly-language CALL, the CPU pushes the address in the program code where the function call came from, so the assembly-language RETURN can use that address to return to the calling point. This address is of course sacred, because without it your program will get completely lost. Here's what the stack frame looks like after the CALL and the allocation of local variable storage in the function:
         -->
-	<para>Cuando el compilador genera código para llamar a una función, primero coloca en la pila todos los argumentos y luego hace la llamada. Dentro de la función se genera código para mover el puntero de pila hacia abajo, y así proporciona memoria para las variables locales dentro de la función. (<quote>Hacia abajo</quote> es relativo; la máquina puede incrementar o decrementar el puntero de pila al colocar un argumento). Pero cuando se hace el <code>CALL</code> de ensamblador para llamar a la función, la CPU coloca la dirección desde la que se realiza la llamada, y en el <code>RETURN</code> de ensamblador se utiliza esa dirección para volver al punto desde donde se realizó la llamada. Esta dirección es sagrada, porque sin ella el programa se perdería por completo. He aquí el aspecto del marco de pila después de ejecutar <code>CALL</code> y reservar espacio para las variables locales de la función:</para>
+	<para>Cuando el compilador genera código para llamar a una función, primero coloca en la pila todos los argumentos y luego hace la llamada. Dentro de la función se genera código para mover el puntero de pila todavía más abajo, y así reservar espacio para las variables locales de la función. (<quote>Abajo</quote> es relativo; según la máquina, al apilar se puede incrementar o decrementar el puntero de pila). Pero durante el <code>CALL</code> de ensamblador, la CPU apila la dirección del código desde la que se hizo la llamada, para que el <code>RETURN</code> de ensamblador pueda usarla para volver al punto de llamada. Esta dirección es, por supuesto, sagrada, porque sin ella el programa se perdería por completo. Este es el aspecto del marco de pila después del <code>CALL</code> y de reservar espacio para las variables locales de la función:</para>
 
 	<figure>
 	  <title>Llamada a una función</title>
@@ -325,27 +324,27 @@ mov  g, register a
         <!--
         The code generated for the rest of the function expects the memory to be laid out exactly this way, so that it can carefully pick from the function arguments and local variables without touching the return address. I shall call this block of memory, which is everything used by a function in the process of the function call, the function frame.
         -->
-	<para>El código generado por el resto de la función espera que la memoria tenga esta disposición para que pueda utilizar los argumentos y las variables locales sin tocar la dirección de retorno. Llámese a este bloque de memoria, que es todo lo que una función necesita cuando se la llama, <emphasis>el marco de la función</emphasis> (<foreignphrase>function frame</foreignphrase>).</para>
+	<para>El código generado para el resto de la función espera que la memoria tenga exactamente esta disposición, para poder tomar los argumentos y las variables locales sin tocar la dirección de retorno. A este bloque de memoria, que es todo lo que utiliza una función durante la llamada, lo llamaré <emphasis>marco de la función</emphasis> (<foreignphrase>function frame</foreignphrase>).</para>
 
         <!--
         You might think it reasonable to try to return values on the stack. The compiler could simply push it, and the function could return an offset to indicate how far down in the stack the return value begins.
         -->
-	<para>Podría parecer razonable retornar valores mediante la utilización de la pila. El compilador simplemente los colocaría allí y la función devolvería un desplazamiento que indicara dónde empieza el valor de retorno.</para>
+	<para>Podría parecer razonable intentar devolver los valores en la pila. El compilador simplemente los apilaría, y la función devolvería un desplazamiento que indicara a qué profundidad de la pila empieza el valor de retorno.</para>
       </sect3>
 
       <sect3>
 	<!-- Re-entrancy -->
-	<title>Reentrada</title>
+	<title>Reentrancia</title>
 
 	<!--
         The problem occurs because functions in C and C++ support interrupts; that is, the languages are re-entrant. They also support recursive function calls. This means that at any point in the execution of a program an interrupt can occur without breaking the program. Of course, the person who writes the interrupt service routine (ISR) is responsible for saving and restoring all the registers that are used in the ISR, but if the ISR needs to use any memory further down on the stack, this must be a safe thing to do. (You can think of an ISR as an ordinary function with no arguments and void return value that saves and restores the CPU state. An ISR function call is triggered by some hardware event instead of an explicit call from within a program.)
         -->
-	<para>Este problema ocurre porque las funciones en C y C++ pueden sufrir interrupciones; esto es, los lenguajes han de ser (y de hecho son) <emphasis>reentrantes</emphasis>. También permiten llamadas a funciones recursivas. Esto quiere decir que en cualquier punto de la ejecución de un programa puede producirse una interrupción sin que el programa se vea afectado por ello. Obviamente la persona que escribe la rutina de servicio de interrupciones (ISR) es responsable de guardar y restaurar todos los registros que se utilicen en la ISR. Pero si la ISR necesita utilizar memoria más abajo en la pila, debe poder hacerlo con seguridad. (Piense que una ISR es como una función normal sin argumentos y con valor de retorno <type>void</type> que guarda y restaura el estado de la CPU. La ejecución de una ISR suele producirse por un evento hardware, y no con una invocación dentro del programa de forma explícita).</para>
+	<para>El problema es que las funciones de C y C++ admiten interrupciones; es decir, los lenguajes son <emphasis>reentrantes</emphasis>. También admiten llamadas recursivas. Esto significa que en cualquier punto de la ejecución de un programa puede producirse una interrupción sin que el programa falle. Por supuesto, quien escribe la rutina de servicio de interrupción (ISR) es responsable de guardar y restaurar todos los registros que utilice en ella, pero si la ISR necesita usar memoria más abajo en la pila, debe poder hacerlo con seguridad. (Puede pensar en una ISR como en una función normal sin argumentos y con valor de retorno <type>void</type> que guarda y restaura el estado de la CPU. La llamada a una ISR la desencadena un evento del hardware, no una invocación explícita desde el programa).</para>
 
 	<!--
         Now imagine what would happen if an ordinary function tried to return values on the stack. You can't touch any part of the stack that's above the return address, so the function would have to push the values below the return address. But when the assembly-language RETURN is executed, the stack pointer must be pointing to the return address (or right below it, depending on your machine), so right before the RETURN, the function must move the stack pointer up, thus clearing off all its local variables. If you're trying to return values on the stack below the return address, you become vulnerable at that moment because an interrupt could come along. The ISR would move the stack pointer down to hold its return address and its local variables and overwrite your return value.
         -->
-	<para>Ahora imagine qué pasaría si una función normal intentara retornar valores mediante la pila. No puede tocar la pila por encima de la dirección de retorno, así que la función tendría que colocar los valores de retorno debajo de la dirección de retorno. Pero cuando se ejecuta el <code>RETURN</code>, el puntero de pila debería estar apuntando a la dirección de retorno (o justo debajo, depende de la máquina), así que, justo antes del <code>RETURN</code>, la función debe subir el puntero de la pila, desechando todas las variables locales. Si intenta retornar valores usando la pila por debajo de la dirección de retorno, en ese momento es vulnerable a una interrupción. La ISR escribiría encima de los valores de retorno para colocar su dirección de retorno y sus variables locales.</para>
+	<para>Imagine ahora qué pasaría si una función normal intentara devolver valores en la pila. No se puede tocar ninguna parte de la pila que esté por encima de la dirección de retorno, así que la función tendría que apilar los valores debajo de ella. Pero cuando se ejecuta el <code>RETURN</code> de ensamblador, el puntero de pila debe apuntar a la dirección de retorno (o justo debajo, según la máquina), así que, justo antes del <code>RETURN</code>, la función debe subir el puntero de pila, con lo que descarta todas sus variables locales. Si intenta devolver valores en la pila por debajo de la dirección de retorno, en ese momento es vulnerable, porque puede llegar una interrupción. La ISR bajaría el puntero de pila para guardar su dirección de retorno y sus variables locales, y sobrescribiría el valor de retorno.</para>
 
 	<!--
         To solve this problem, the caller could be responsible for allocating the extra storage on the stack for the return values before calling the function. However, C was not designed this way, and C++ must be compatible. As you'll see shortly, the C++ compiler uses a more efficient scheme.
@@ -355,28 +354,28 @@ mov  g, register a
 	<!--
         Your next idea might be to return the value in some global data area, but this doesn't work either. Reentrancy means that any function can be an interrupt routine for any other function, including the same function you're currently inside. Thus, if you put the return value in a global area, you might return into the same function, which would overwrite that return value. The same logic applies to recursion.
         -->
-	<para>Otra idea sería retornar el valor utilizando un área de datos global, pero tampoco funcionaría. La reentrada significa que cualquier función puede ser una rutina de interrupción para otra función, <emphasis>incluida la función que se está ejecutando</emphasis>. Por lo tanto, si coloca un valor de retorno en un área global, podría retornar a la misma función, lo cual sobreescribiría el valor de retorno. La misma lógica se aplica a la recursividad.</para>
+	<para>Otra idea sería devolver el valor en algún área de datos global, pero tampoco funciona. La reentrancia significa que cualquier función puede ser una rutina de interrupción de cualquier otra, <emphasis>incluida la función en la que se está</emphasis>. Por eso, si coloca el valor de retorno en un área global, podría volver a entrar en la misma función, que sobrescribiría ese valor de retorno. La misma lógica se aplica a la recursividad.</para>
 
 	<!--
         The only safe place to return values is in the registers, so you're back to the problem of what to do when the registers aren't large enough to hold the return value. The answer is to push the address of the return value's destination on the stack as one of the function arguments, and let the function copy the return information directly into the destination. This not only solves all the problems, it's more efficient. It's also the reason that, in PassingBigStructures.cpp, the compiler pushes the address of B2 before the call to bigfun() in main(). If you look at the assembly output for bigfun(), you can see it expects this hidden argument and performs the copy to the destination inside the function.
         -->
-	<para>Los registros son el único lugar seguro para devolver valores, así que se vuelve al problema de qué hacer cuando los registros no son lo suficientemente grandes para contener el valor de retorno. La respuesta es colocar la dirección de la ubicación del valor de retorno en la pila como uno de los argumentos de la función, y dejar que la función copie la información que se devuelve directamente en esa ubicación. Esto no sólo soluciona todos los problemas, sino que además es más eficiente. Ésta es la razón por la que el compilador coloca la dirección de <varname>B2</varname> antes de llamar a <function>bigfun()</function> en la función <function>main()</function> de <filename>PassingBigStructures.cpp</filename>. Si viera el código ensamblador de <function>bigfun()</function> observaría que la función espera este argumento escondido y lo copia al destino <emphasis>dentro</emphasis> de la función.</para>
+	<para>Los registros son el único lugar seguro para devolver valores, así que se vuelve al problema de qué hacer cuando los registros no son lo suficientemente grandes para contener el valor de retorno. La respuesta es colocar la dirección de la ubicación del valor de retorno en la pila como uno de los argumentos de la función, y dejar que la función copie la información que se devuelve directamente en esa ubicación. Esto no solo soluciona todos los problemas, sino que además es más eficiente. Esta es la razón por la que el compilador coloca la dirección de <varname>B2</varname> antes de llamar a <function>bigfun()</function> en la función <function>main()</function> de <filename>PassingBigStructures.cpp</filename>. Si viera el código ensamblador de <function>bigfun()</function> observaría que la función espera este argumento escondido y lo copia al destino <emphasis>dentro</emphasis> de la función.</para>
       </sect3>
 
       <sect3>
         <!-- : Bitcopy versus initialization -->
-	<title>Copia bit a bit vs. inicialización</title>
+	<title>Copia bit a bit frente a inicialización</title>
 
 	<!--
         So far, so good. There's a workable process for passing and returning large simple structures. But notice that all you have is a way to copy the bits from one place to another, which certainly works fine for the primitive way that C looks at variables. But in C++ objects can be much more sophisticated than a patch of bits; they have meaning. This meaning may not respond well to having its bits copied.
         -->
 
-        <para>Hasta aquí, todo bien. Hay un procedimiento para pasar y retornar estructuras simples grandes. Pero note que lo único que tiene es una manera de copiar bits de un lugar a otro, lo que ciertamente funciona bien para la forma (muy primitiva) en que C trata las variables. Sin embargo, en C++ los objetos pueden ser mucho más avanzados que un puñado de bits, pues tienen significado y, por lo tanto, puede que no responda bien al ser copiado.</para>
+        <para>Hasta aquí, todo bien. Hay un procedimiento viable para pasar y devolver estructuras simples grandes. Pero fíjese en que lo único que tiene es una manera de copiar bits de un lugar a otro, lo que sin duda funciona bien con la forma primitiva en que C trata las variables. En C++, en cambio, los objetos pueden ser mucho más complejos que un puñado de bits: tienen significado, y puede que ese significado no sobreviva a una copia de sus bits.</para>
 
         <!--
         Consider a simple example: a class that knows how many objects of its type exist at any one time. From Chapter 10, you know the way to do this is by including a static data member:
         -->
-	<para>Considere un ejemplo simple: una clase que conoce cuántos objetos de su tipo existen en cualquier momento. En el <link linkend="C10">Capítulo 10</link> se vio la manera de hacerlo incluyendo un atributo estático (<kw>static</kw>):</para>
+	<para>Considere un ejemplo sencillo: una clase que sabe cuántos objetos de su tipo existen en cada momento. En el <link linkend="C10">Capítulo 10</link> se vio que la manera de hacerlo es incluir un atributo estático (<kw>static</kw>):</para>
 
 
 //: V1C11:HowMany.cpp
@@ -384,7 +383,7 @@ mov  g, register a
         <!--
         The class HowMany contains a static int objectCount and a static member function print() to report the value of that objectCount, along with an optional message argument. The constructor increments the count each time an object is created, and the destructor decrements it.
         -->
-	<para>La clase <classname>HowMany</classname> contiene un entero estático llamado <varname>objectCount</varname> y un método estático llamado <function>print()</function> para representar el valor de <varname>objectCount</varname>, junto con un argumento de mensaje opcional. El constructor incrementa <varname>objectCount</varname> cada vez que se crea un objeto, y el destructor lo disminuye.</para>
+	<para>La clase <classname>HowMany</classname> contiene un <type>int</type> estático, <varname>objectCount</varname>, y un método estático, <function>print()</function>, que muestra el valor de <varname>objectCount</varname> junto con un argumento opcional de mensaje. El constructor incrementa el contador cada vez que se crea un objeto, y el destructor lo decrementa.</para>
 
 	<!-- The output, however, is not what you would expect: -->
 	<para>Sin embargo la salida no es la que cabría esperar:</para>
@@ -401,12 +400,12 @@ after call to f(): objectCount = 0
         <!--
         After h is created, the object count is one, which is fine. But after the call to f() you would expect to have an object count of two, because h2 is now in scope as well. Instead, the count is zero, which indicates something has gone horribly wrong. This is confirmed by the fact that the two destructors at the end make the object count go negative, something that should never happen.
         -->
-	  <para>Después de crear <varname>h</varname>, el contador es uno, lo cual está bien. Pero después de la llamada a <function>f()</function> se esperaría que el contador estuviera a dos, porque <varname>h2</varname> está ahora también dentro de ámbito. Sin embargo, el contador es cero, lo cual indica que algo ha ido muy mal. Esto se confirma por el hecho de que los dos destructores, llamados al final de <function>main()</function>, hacen que el contador pase a ser negativo, algo que no debería ocurrir nunca.</para>
+	  <para>Después de crear <varname>h</varname>, el contador vale uno, lo cual es correcto. Pero después de la llamada a <function>f()</function> cabría esperar que valiera dos, porque ahora <varname>h2</varname> también está en ámbito. Sin embargo, vale cero, lo que indica que algo ha ido terriblemente mal. Lo confirma el hecho de que los dos destructores del final hacen que el contador pase a ser negativo, algo que no debería ocurrir nunca.</para>
 
 	<!--
         Look at the point inside f(), which occurs after the argument is passed by value. This means the original object h exists outside the function frame, and there's an additional object inside the function frame, which is the copy that has been passed by value. However, the argument has been passed using C's primitive notion of bitcopying, whereas the C++ HowMany class requires true initialization to maintain its integrity, so the default bitcopy fails to produce the desired effect.
         -->
-	<para>Mire lo que ocurre dentro de <function>f()</function> después de que el argumento se pase por valor. Esto quiere decir que el objeto original <varname>h</varname> existe fuera del marco de la función y, por otro lado, hay un objeto de más <emphasis>dentro</emphasis> del marco de la función, que es copia del objeto que se pasó por valor. El argumento que se pasó utiliza el primitivo concepto de copia bit a bit de C, pero la clase C++ <classname>HowMany</classname> necesita inicializarse correctamente para mantener su integridad. Por lo tanto, se demuestra que la copia bit a bit no logra el efecto deseado.</para>
+	<para>Fíjese en el punto de <function>f()</function> que se alcanza después de pasar el argumento por valor. El objeto original <varname>h</varname> existe fuera del marco de la función y, además, hay otro objeto <emphasis>dentro</emphasis> del marco: la copia que se ha pasado por valor. Pero el argumento se ha pasado con la noción primitiva de copia bit a bit de C, mientras que la clase <classname>HowMany</classname> de C++ necesita una auténtica inicialización para mantener su integridad, así que la copia bit a bit por defecto no produce el efecto deseado.</para>
 
 	<!--
 	  When the local object goes out of scope at the end of the call to f( ), the destructor is called, which decrements objectCount, so outside the function, objectCount is zero. The creation of h2 is also performed using a bitcopy, so the constructor isn't called there either, and when h and h2 go out of scope, their destructors cause the negative values of objectCount.
@@ -421,7 +420,7 @@ after call to f(): objectCount = 0
       <!--
       The problem occurs because the compiler makes an assumption about how to create a new object from an existing object. When you pass an object by value, you create a new object, the passed object inside the function frame, from an existing object, the original object outside the function frame. This is also often true when returning an object from a function. In the expression
       -->
-      <para>El problema se produce debido a que el compilador hace una suposición sobre cómo crear <emphasis>un nuevo objeto a partir de otro existente</emphasis>. Cuando se pasa un objeto por valor, se crea un nuevo objeto, que estará dentro del marco de la función, a partir del objeto original existente fuera del marco de la función. Esto también se puede aplicar a menudo cuando una función retorna un objeto. En la expresión</para>
+      <para>El problema se produce porque el compilador hace una suposición sobre cómo crear <emphasis>un nuevo objeto a partir de otro existente</emphasis>. Cuando se pasa un objeto por valor, se crea un nuevo objeto (el objeto pasado, dentro del marco de la función) a partir de otro existente (el objeto original, fuera del marco de la función). Lo mismo suele ocurrir cuando una función devuelve un objeto. En la expresión</para>
 
 <programlisting>
 HowMany h2 = f(h);
@@ -435,17 +434,17 @@ HowMany h2 = f(h);
       <!--
 	The compiler's assumption is that you want to perform this creation using a bitcopy, and in many cases this may work fine, but in HowMany it doesn't fly because the meaning of initialization goes beyond simply copying. Another common example occurs if the class contains pointers - what do they point to, and should you copy them or should they be connected to some new piece of memory?
       -->
-      <para>El compilador supone que la creación ha de hacerse con una copia bit a bit, lo que en muchos casos funciona bien, pero en <classname>HowMany</classname> no funciona porque la inicialización va más allá de una simple copia. Otro ejemplo muy común ocurre cuando la clase contiene punteros pues, ¿a qué deben apuntar? ¿Debería copiar sólo los punteros o debería asignar memoria nueva y que apuntaran a ella?</para>
+      <para>El compilador supone que se quiere hacer esta creación con una copia bit a bit, y en muchos casos eso funciona bien, pero en <classname>HowMany</classname> no sirve, porque el significado de la inicialización va más allá de una simple copia. Otro ejemplo habitual se da cuando la clase contiene punteros: ¿a qué apuntan? ¿Hay que copiarlos o hay que ligarlos a un nuevo espacio de memoria?</para>
 
       <!--
 	Fortunately, you can intervene in this process and prevent the compiler from doing a bitcopy. You do this by defining your own function to be used whenever the compiler needs to make a new object from an existing object. Logically enough, you're making a new object, so this function is a constructor, and also logically enough, the single argument to this constructor has to do with the object you're constructing from. But that object can't be passed into the constructor by value because you're trying to define the function that handles passing by value, and syntactically it doesn't make sense to pass a pointer because, after all, you're creating the new object from an existing object. Here, references come to the rescue, so you take the reference of the source object. This function is called the copy-constructor and is often referred to as X(X&), which is its appearance for a class called X.
 	-->
-      <para>Afortunadamente, puede intervenir en este proceso e impedir que el compilador haga una copia bit a bit. Se soluciona definiendo su propia función, que se utilizará siempre que el compilador necesite crear un nuevo objeto a partir de otro. Lógicamente, está creando un nuevo objeto, por lo que esta función es un constructor, y el único argumento del constructor tiene que ver con el objeto del que se pretende partir para crear el nuevo. Pero no puede pasar ese objeto por valor al constructor porque está intentando <emphasis>definir</emphasis> la función que maneja el paso por valor, y, por otro lado, sintácticamente no tiene sentido pasar un puntero porque, después de todo, está creando un objeto a partir de otro. Aquí es cuando las referencias vienen al rescate, y puede utilizar la referencia del objeto origen. Esta función se llama <emphasis>constructor de copia</emphasis>, y a menudo se la denomina <function>X(X&amp;)</function>, que es su aspecto para una clase llamada <classname>X</classname>.</para>
+      <para>Afortunadamente, puede intervenir en este proceso e impedir que el compilador haga una copia bit a bit. Para ello se define una función propia que se utilizará siempre que el compilador necesite crear un nuevo objeto a partir de otro existente. Como lógicamente se está creando un nuevo objeto, esta función es un constructor y, también lógicamente, su único argumento tiene que ver con el objeto a partir del cual se construye. Pero ese objeto no se le puede pasar por valor al constructor, porque se está intentando <emphasis>definir</emphasis> la función que se encarga del paso por valor, y sintácticamente tampoco tiene sentido pasar un puntero porque, al fin y al cabo, se está creando el nuevo objeto a partir de un objeto existente. Aquí acuden al rescate las referencias: se toma una referencia al objeto origen. Esta función se llama <emphasis>constructor de copia</emphasis>, y a menudo se la denomina <function>X(X&amp;)</function>, que es su aspecto para una clase llamada <classname>X</classname>.</para>
 
       <!--
       If you create a copy-constructor, the compiler will not perform a bitcopy when creating a new object from an existing one. It will always call your copy-constructor. So, if you don't create a copy-constructor, the compiler will do something sensible, but you have the choice of taking over complete control of the process.
       -->
-      <para>Si crea un constructor de copia, el compilador no realizará una copia bit a bit cuando cree un nuevo objeto a partir de otro. El compilador siempre llamará al constructor de copia. Si no crea el constructor de copia, el compilador intentará hacer algo razonable, pero usted tiene la opción de tener control total del proceso.</para>
+      <para>Si crea un constructor de copia, el compilador no hará una copia bit a bit cuando cree un nuevo objeto a partir de otro existente: siempre llamará a su constructor de copia. Así, si no crea un constructor de copia, el compilador hará algo razonable, pero tiene la opción de tomar el control total del proceso.</para>
 
       <!-- Now it's possible to fix the problem in HowMany.cpp: -->
       <para>Ahora es posible solucionar el problema en <filename>HowMany.cpp</filename>:</para>
@@ -456,12 +455,12 @@ HowMany h2 = f(h);
       <!--
       There are a number of new twists thrown in here so you can get a better idea of what's happening. First, the string name acts as an object identifier when information about that object is printed. In the constructor, you can put an identifier string (usually the name of the object) that is copied to name using the string constructor. The default = "" creates an empty string. The constructor increments the objectCount as before, and the destructor decrements it.
       -->
-      <para>Hay unas cuantas cosas nuevas para que pueda hacerse una idea mejor de lo que pasa. Primeramente, el <code>string name</code> hace de identificador de objeto cuando se imprime información sobre él. Puede poner un identificador (normalmente el nombre del objeto) en el constructor para que se copie en <varname>name</varname> utilizando el constructor con un <type>string</type> como argumento. Por defecto se crea un <type>string</type> vacío. El constructor incrementa <varname>objectCount</varname> y el destructor lo disminuye, igual que en el ejemplo anterior.</para>
+      <para>Hay varias novedades para que pueda hacerse una idea mejor de lo que ocurre. En primer lugar, el <type>string</type> <varname>name</varname> sirve de identificador del objeto cuando se imprime información sobre él. En el constructor se puede indicar una cadena identificadora (normalmente el nombre del objeto), que se copia en <varname>name</varname> mediante el constructor de <type>string</type>. El valor por defecto <code>= ""</code> crea un <type>string</type> vacío. El constructor incrementa <varname>objectCount</varname> como antes, y el destructor lo decrementa.</para>
 
       <!--
 	Next is the copy-constructor, HowMany2(const HowMany2&). The copy-constructor can create a new object only from an existing one, so the existing object's name is copied to name, followed by the word "copy" so you can see where it came from. If you look closely, you'll see that the call name(h.name) in the constructor initializer list is actually calling the string copy-constructor.
 	-->
-      <para>Lo siguiente es el constructor de copia, <function>HowMany2(const HowMany2&amp;)</function>. El constructor de copia sólo puede crear un objeto a partir de otro existente, así que copia en <varname>name</varname> el identificador del objeto origen, seguido de la palabra <quote>copy</quote>, y así puede ver de dónde procede. Si mira atentamente, verá que la llamada <code>name(h.name)</code> en la lista de inicialización del constructor está llamando al constructor de copia de la clase <type>string</type>.</para>
+      <para>Lo siguiente es el constructor de copia, <function>HowMany2(const HowMany2&amp;)</function>. El constructor de copia solo puede crear un objeto a partir de otro existente, así que copia en <varname>name</varname> el identificador del objeto origen, seguido de la palabra <quote>copy</quote>, y así puede ver de dónde procede. Si mira atentamente, verá que la llamada <code>name(h.name)</code> en la lista de inicialización del constructor está llamando al constructor de copia de la clase <type>string</type>.</para>
 
       <!--
 	Inside the copy-constructor, the object count is incremented just as it is inside the normal constructor. This means you'll now get an accurate object count when passing and returning by value.
@@ -469,7 +468,7 @@ HowMany h2 = f(h);
       <para>Dentro del constructor de copia, se incrementa el contador igual que en el constructor normal. Esto quiere decir que obtendrá un contador de objetos preciso cuando pase y retorne por valor.</para>
 
 	<!--
-      The print() function has been modified to print out a message, the object identifier, and the object count. It must now access the name data of a particular object, so it can no longer be a static member function. <para>
+      The print() function has been modified to print out a message, the object identifier, and the object count. It must now access the name data of a particular object, so it can no longer be a static member function.
       -->
       <para>La función <function>print()</function> se ha modificado para imprimir en la salida un mensaje, el identificador del objeto y el contador de objetos. Como ahora accede al atributo <varname>name</varname> de un objeto concreto, ya no puede ser un método estático.</para>
 
@@ -482,7 +481,7 @@ HowMany h2 = f(h);
       <!--
       Before showing the output, here's a little program that uses iostreams to add line numbers to any file:
       -->
-      <para>Pero antes de mostrar la salida, he aquí un pequeño programa que utiliza <classname>iostreams</classname> para añadir números de línea a cualquier fichero:</para>
+      <para>Antes de mostrar la salida, he aquí un pequeño programa que utiliza iostreams para añadir números de línea a cualquier fichero:</para>
 
 
 //: V1C11:Linenum.cpp
@@ -490,12 +489,12 @@ HowMany h2 = f(h);
       <!--
       The entire file is read into a vector<string>, using the same code that you've seen earlier in the book. When printing the line numbers, we'd like all the lines to be aligned with each other, and this requires adjusting for the number of lines in the file so that the width allowed for the line numbers is consistent. We can easily determine the number of lines using vector::size(), but what we really need to know is whether there are more than 10 lines, 100 lines, 1,000 lines, etc. If you take the logarithm, base 10, of the number of lines in the file, truncate it to an int and add one to the value, you'll find out the maximum width that your line count will be.
       -->
-      <para>El fichero se pasa a un <type>vector&lt;string></type>, utilizando el mismo código fuente que ha visto anteriormente en este libro. Cuando se ponen los números de línea, conviene que todas las líneas estén alineadas, y para ello hay que tener en cuenta el número de líneas del fichero de modo que el ancho reservado para los números de línea sea siempre el mismo. Se puede conocer el número de líneas con <function>vector::size()</function>, pero lo que realmente hace falta saber es si hay más de 10 líneas, 100, 1000, etc. Si se utiliza el logaritmo en base 10 sobre el número de líneas en el fichero, se trunca a un entero y se añade uno al valor resultante, eso determinará el ancho máximo en dígitos que un número de línea puede tener.</para>
+      <para>El fichero completo se lee en un <type>vector&lt;string&gt;</type>, con el mismo código que ya ha visto antes en el libro. Al imprimir los números de línea, conviene que todas las líneas queden alineadas, y para ello hay que tener en cuenta el número de líneas del fichero, de modo que el ancho reservado para los números de línea sea siempre el mismo. El número de líneas se obtiene fácilmente con <function>vector::size()</function>, pero lo que de verdad hace falta saber es si hay más de 10 líneas, de 100, de 1000, etc. Si se calcula el logaritmo en base 10 del número de líneas del fichero, se trunca a <type>int</type> y se le suma uno, se obtiene el ancho máximo que tendrá el número de línea.</para>
 
       <!--
 	You'll notice a couple of strange calls inside the for loop: setf() and width(). These are ostream calls that allow you to control, in this case, the justification and width of the output. However, they must be called each time a line is output and that is why they are inside the for loop. Volume 2 of this book has an entire chapter explaining iostreams that will tell you more about these calls as well as other ways to control iostreams.
 	-->
-      <para>Nótese que hay un par de llamadas extrañas dentro del bucle <kw>for</kw>: <function>setf()</function> y <function>width()</function>. Son llamadas de <classname>ostream</classname> que permiten controlar, en este caso, la justificación y anchura de la salida. Sin embargo se deben llamar cada vez que se imprime una línea y por eso están dentro del bucle <kw>for</kw>. El Volumen 2 de este libro tiene un capítulo entero que explica los <classname>iostreams</classname> y que cuenta más sobre estas llamadas así como otras formas de controlar los <classname>iostreams</classname>.</para>
+      <para>Observe que dentro del bucle <kw>for</kw> hay un par de llamadas extrañas: <function>setf()</function> y <function>width()</function>. Son llamadas de <classname>ostream</classname> que permiten controlar, en este caso, la justificación y el ancho de la salida. Sin embargo, hay que hacerlas cada vez que se imprime una línea, y por eso están dentro del bucle <kw>for</kw>. El Volumen 2 de este libro dedica un capítulo entero a iostreams, donde se explican con más detalle estas llamadas y otras formas de controlar los flujos.</para>
 
       <!-- When Linenum.cpp is applied to HowMany2.out, the result is
 	-->
@@ -538,12 +537,12 @@ HowMany h2 = f(h);
       <!--
       As you would expect, the first thing that happens is that the normal constructor is called for h, which increments the object count to one. But then, as f() is entered, the copy-constructor is quietly called by the compiler to perform the pass-by-value. A new object is created, which is the copy of h (thus the name "h copy") inside the function frame of f(), so the object count becomes two, courtesy of the copy-constructor.
       -->
-      <para>Como cabía esperar, la primera cosa que ocurre es que para <varname>h</varname> se llama al constructor normal, el cual incrementa el contador de objetos a uno. Pero entonces, mientras se entra en <function>f()</function>, el compilador llama silenciosamente al constructor de copia para hacer el paso por valor. Se crea un nuevo objeto, que es copia de <varname>h</varname> (y por tanto tendrá el identificador <quote>h copy</quote>) dentro del marco de la función <function>f()</function>. Así pues, el contador de objetos se incrementa a dos, por cortesía del constructor de copia.</para>
+      <para>Como era de esperar, lo primero que ocurre es que se llama al constructor normal para <varname>h</varname>, que incrementa el contador a uno. Pero después, al entrar en <function>f()</function>, el compilador llama silenciosamente al constructor de copia para hacer el paso por valor. Se crea un nuevo objeto, copia de <varname>h</varname> (de ahí el nombre <quote>h copy</quote>), dentro del marco de la función <function>f()</function>, así que el contador pasa a valer dos, por cortesía del constructor de copia.</para>
 
       <!--
 	Line eight indicates the beginning of the return from f(). But before the local variable "h copy" can be destroyed (it goes out of scope at the end of the function), it must be copied into the return value, which happens to be h2. A previously unconstructed object (h2) is created from an existing object (the local variable inside f()), so of course the copy-constructor is used again in line nine. Now the name becomes "h copy copy" for h2's identifier because it's being copied from the copy that is the local object inside f(). After the object is returned, but before the function ends, the object count becomes temporarily three, but then the local object "h copy" is destroyed. After the call to f() completes in line 13, there are only two objects, h and h2, and you can see that h2 did indeed end up as "h copy copy."
 	-->
-      <para>La línea ocho indica el principio del retorno de <function>f()</function>. Pero antes de que se destruya la variable local <quote>h copy</quote> (pues sale de ámbito al final de la función), se debe copiar al valor de retorno, que es <varname>h2</varname>. Por tanto <varname>h2</varname>, que no estaba creado previamente, se crea a partir de un objeto ya existente (la variable local dentro de <function>f()</function>) y el constructor de copia vuelve a utilizarse en la línea 9. Ahora el identificador de <varname>h2</varname> es <quote>h copy copy</quote> porque copió el identificador de la variable local de <function>f()</function>. Después de devolver el objeto, pero antes de que la función termine, el contador de objetos se incrementa temporalmente a tres, pero la variable local con identificador <quote>h copy</quote> se destruye, disminuyendo a dos. Después de que se complete la llamada a <function>f()</function> en la línea 13, sólo hay dos objetos, <varname>h</varname> y <varname>h2</varname>, y puede comprobar, de hecho, que <varname>h2</varname> terminó con el identificador <quote>h copy copy</quote>.</para>
+      <para>La línea ocho indica el principio del retorno de <function>f()</function>. Pero antes de que se destruya la variable local <quote>h copy</quote> (pues sale de ámbito al final de la función), se debe copiar al valor de retorno, que es <varname>h2</varname>. Por tanto <varname>h2</varname>, que no estaba creado previamente, se crea a partir de un objeto ya existente (la variable local dentro de <function>f()</function>) y el constructor de copia vuelve a utilizarse en la línea 9. Ahora el identificador de <varname>h2</varname> es <quote>h copy copy</quote> porque copió el identificador de la variable local de <function>f()</function>. Después de devolver el objeto, pero antes de que la función termine, el contador de objetos se incrementa temporalmente a tres, pero la variable local con identificador <quote>h copy</quote> se destruye, disminuyendo a dos. Después de que se complete la llamada a <function>f()</function> en la línea 13, solo hay dos objetos, <varname>h</varname> y <varname>h2</varname>, y puede comprobar, de hecho, que <varname>h2</varname> terminó con el identificador <quote>h copy copy</quote>.</para>
 
       <sect3>
 	<!-- : Temporary objects -->
@@ -557,7 +556,7 @@ HowMany h2 = f(h);
 	<!--
 	  It turns out the compiler can create a temporary object whenever it needs one to properly evaluate an expression. In this case it creates one you don't even see to act as the destination for the ignored return value of f(). The lifetime of this temporary object is as short as possible so the landscape doesn't get cluttered up with temporaries waiting to be destroyed and taking up valuable resources. In some cases, the temporary might immediately be passed to another function, but in this case it isn't needed after the function call, so as soon as the function call ends by calling the destructor for the local object (lines 23 and 24), the temporary object is destroyed (lines 25 and 26).
 	  -->
-	<para>Resulta que el compilador puede crear un objeto temporal cuando lo necesita para evaluar adecuadamente una expresión. En este caso, crea uno, que ni siquiera se ve, para que actúe como destino del valor de retorno ignorado de <function>f()</function>. El tiempo de vida de este objeto temporal es tan corto como sea posible para que el programa no se llene de objetos temporales esperando a ser destruidos, lo cual provocaría la utilización ineficiente de recursos valiosos. En algunos casos, el objeto temporal podría pasarse inmediatamente a otra función, pero en este caso no se necesita después de la llamada a la función, así que en cuanto la función termina, llamando al destructor del objeto local (líneas 23 y 24), el objeto temporal también se destruye (líneas 25 y 26).</para>
+	<para>Resulta que el compilador puede crear un objeto temporal siempre que lo necesite para evaluar correctamente una expresión. En este caso crea uno, que ni siquiera se ve, para que actúe como destino del valor de retorno ignorado de <function>f()</function>. La vida de este objeto temporal es lo más corta posible, para que el programa no se llene de temporales que esperan a ser destruidos ocupando recursos valiosos. En algunos casos el temporal podría pasarse inmediatamente a otra función, pero aquí no se necesita después de la llamada, así que en cuanto la llamada termina con la destrucción del objeto local (líneas 23 y 24), el objeto temporal se destruye (líneas 25 y 26).</para>
 
 	<!--
 	  Finally, in lines 28-31, the h2 object is destroyed, followed by h, and the object count goes correctly back to zero.
@@ -578,12 +577,12 @@ HowMany h2 = f(h);
       <!--
       When more complex types are involved, the C++ compiler will still automatically create a copy-constructor if you don't make one. Again, however, a bitcopy doesn't make sense, because it doesn't necessarily implement the proper meaning.
       -->
-      <para>Cuando se utilizan tipos más complejos, el compilador de C++ creará un constructor de copia automáticamente si no se implementa explícitamente. De nuevo, una copia bit a bit no tiene sentido, porque no tiene por qué ser el comportamiento que se necesita.</para>
+      <para>Cuando intervienen tipos más complejos, el compilador de C++ también crea automáticamente un constructor de copia si no se define uno. Pero, de nuevo, una copia bit a bit no tiene sentido, porque no tiene por qué reflejar el significado adecuado.</para>
 
       <!--
       Here's an example to show the more intelligent approach the compiler takes. Suppose you create a new class composed of objects of several existing classes. This is called, appropriately enough, composition, and it's one of the ways you can make new classes from existing classes. Now take the role of a naive user who's trying to solve a problem quickly by creating a new class this way. You don't know about copy-constructors, so you don't create one. The example demonstrates what the compiler does while creating the default copy-constructor for your new class:
       -->
-      <para>He aquí un ejemplo para mostrar el comportamiento más inteligente del compilador. Suponga que crea una nueva clase compuesta por objetos de varias clases diferentes. A esto se le denomina <emphasis>composición</emphasis>, y es una de las formas en las que se pueden hacer nuevas clases a partir de las ya existentes. Ahora desempeñe el papel de un novato que trata de resolver un problema rápidamente creando una nueva clase de esta manera. No sabe nada sobre los constructores de copia, así que no crea ninguno. El ejemplo muestra lo que el compilador hace cuando crea un constructor de copia por defecto para su nueva clase:</para>
+      <para>He aquí un ejemplo que muestra el comportamiento más inteligente del compilador. Suponga que crea una nueva clase compuesta por objetos de varias clases existentes. A esto se le llama, con mucha propiedad, <emphasis>composición</emphasis>, y es una de las formas de crear clases nuevas a partir de las existentes. Póngase ahora en el papel de un usuario ingenuo que intenta resolver un problema rápidamente creando una clase nueva de esta manera. No sabe nada de constructores de copia, así que no crea ninguno. El ejemplo muestra lo que hace el compilador al crear el constructor de copia por defecto de la nueva clase:</para>
 
 
 //: V1C11:DefaultCopyConstructor.cpp
@@ -591,17 +590,17 @@ HowMany h2 = f(h);
       <!--
       The class WithCC contains a copy-constructor, which simply announces that it has been called, and this brings up an interesting issue. In the class Composite, an object of WithCC is created using a default constructor. If there were no constructors at all in WithCC, the compiler would automatically create a default constructor, which would do nothing in this case. However, if you add a copy-constructor, you've told the compiler you're going to handle constructor creation, so it no longer creates a default constructor for you and will complain unless you explicitly create a default constructor as was done for WithCC.
       -->
-      <para>La clase <classname>WithCC</classname> contiene un constructor de copia, que simplemente anuncia que ha sido llamado, y esto demuestra una cuestión interesante: dentro de la clase <classname>Composite</classname> se crea un objeto tipo <classname>WithCC</classname> utilizando el constructor por defecto. Si <classname>WithCC</classname> no tuviera ningún constructor, el compilador crearía uno por defecto automáticamente, el cual, en este caso, no haría nada. No obstante, si añade un constructor de copia, le está diciendo al compilador que usted se encargará de crear los constructores, por lo que ya no crea ningún constructor por defecto y se quejará a no ser que explícitamente cree un constructor por defecto, como se hizo en <classname>WithCC</classname>.</para>
+      <para>La clase <classname>WithCC</classname> contiene un constructor de copia que simplemente anuncia que se le ha llamado, y esto plantea una cuestión interesante. En la clase <classname>Composite</classname> se crea un objeto <classname>WithCC</classname> utilizando un constructor por defecto. Si <classname>WithCC</classname> no tuviera ningún constructor, el compilador crearía automáticamente un constructor por defecto, que en este caso no haría nada. Pero si añade un constructor de copia, le está diciendo al compilador que es usted quien se va a encargar de crear los constructores, así que este ya no crea un constructor por defecto y se quejará a menos que cree uno explícitamente, como se ha hecho en <classname>WithCC</classname>.</para>
 
       <!--
       The class WoCC has no copy-constructor, but its constructor will store a message in an internal string that can be printed out using print( ). This constructor is explicitly called in Composite's constructor initializer list (briefly introduced in Chapter 8 and covered fully in Chapter 14). The reason for this becomes apparent later.
       -->
-      <para>La clase <classname>WoCC</classname> no tiene constructor de copia, pero su constructor almacenará un <type>string</type> interno imprimible por la función <function>print()</function>. La lista de inicialización del constructor (presentada brevemente en el <link linkend="C08"> Capítulo 8</link> y tratada completamente en el <link linkend="C14">Capítulo 14</link>) de <classname>Composite</classname> llama explícitamente a este constructor. La razón de esto se verá posteriormente.</para>
+      <para>La clase <classname>WoCC</classname> no tiene constructor de copia, pero su constructor guarda un mensaje en un <type>string</type> interno que se puede imprimir con <function>print()</function>. A este constructor se le llama explícitamente en la lista de inicialización del constructor de <classname>Composite</classname> (presentada brevemente en el <link linkend="C08">Capítulo 8</link> y tratada a fondo en el <link linkend="C14">Capítulo 14</link>). El motivo quedará claro más adelante.</para>
 
       <!--
       The class Composite has member objects of both WithCC and WoCC (note the embedded object wocc is initialized in the constructor-initializer list, as it must be), and no explicitly defined copy-constructor. However, in main() an object is created using the copy-constructor in the definition:
       -->
-      <para>La clase <classname>Composite</classname> tiene objetos miembro tanto de <classname>WithCC</classname> como de <classname>WoCC</classname> (note que el objeto interno <varname>wocc</varname> se inicializa en la lista de inicialización del constructor de <classname>Composite</classname>, como debe ser), y no tiene ningún constructor de copia definido explícitamente. Sin embargo un objeto <classname>Composite</classname> se crea en <function>main()</function> utilizando el constructor de copia:</para>
+      <para>La clase <classname>Composite</classname> tiene objetos miembro de <classname>WithCC</classname> y de <classname>WoCC</classname> (observe que el objeto interno <varname>wocc</varname> se inicializa en la lista de inicialización del constructor, como debe ser), y ningún constructor de copia definido explícitamente. Sin embargo, en <function>main()</function> se crea un objeto mediante el constructor de copia, en la definición:</para>
 
 <programlisting>
 Composite c2 = c;
@@ -622,12 +621,12 @@ Contents of c2: Composite()
       <!--
       To create a copy-constructor for a class that uses composition (and inheritance, which is introduced in Chapter 14), the compiler recursively calls the copy-constructors for all the member objects and base classes. That is, if the member object also contains another object, its copy-constructor is also called. So in this case, the compiler calls the copy-constructor for WithCC. The output shows this constructor being called. Because WoCC has no copy-constructor, the compiler creates one for it that just performs a bitcopy, and calls that inside the Composite copy-constructor. The call to Composite::print() in main shows that this happens because the contents of c2.wocc are identical to the contents of c.wocc. The process the compiler goes through to synthesize a copy-constructor is called memberwise initialization.
       -->
-      <para>Para la creación de un constructor de copia para una clase que utiliza composición (y herencia, que se trata en el <link linkend="C14">Capítulo 14</link>), el compilador llama a todos los constructores de copia de todos los miembros objeto y de las clases base de manera recursiva. Es decir, si el miembro también contiene otro objeto, también se llama a su constructor de copia. En el ejemplo, el compilador llama al constructor de copia de <classname>WithCC</classname>. La salida muestra que se llama a este constructor. Como <classname>WoCC</classname> no tiene constructor de copia, el compilador crea uno que realiza simplemente una copia bit a bit para que el constructor de copia de <classname>Composite</classname> lo pueda llamar. La llamada a <code>Composite::print()</code> en <function>main()</function> muestra que esto ocurre, porque el contenido de <varname>c2.wocc</varname> es idéntico al contenido de <varname>c.wocc</varname>. El proceso que realiza el compilador para crear un constructor de copia se denomina <emphasis>inicialización miembro a miembro</emphasis> (<foreignphrase>memberwise initialization</foreignphrase>).</para>
+      <para>Para crear el constructor de copia de una clase que utiliza composición (y herencia, que se presenta en el <link linkend="C14">Capítulo 14</link>), el compilador llama recursivamente a los constructores de copia de todos los objetos miembro y de las clases base. Es decir, si el objeto miembro contiene a su vez otro objeto, también se llama al constructor de copia de este. En este caso, el compilador llama al constructor de copia de <classname>WithCC</classname>, como muestra la salida. Como <classname>WoCC</classname> no tiene constructor de copia, el compilador crea uno que se limita a hacer una copia bit a bit, y lo llama dentro del constructor de copia de <classname>Composite</classname>. La llamada a <code>Composite::print()</code> en <function>main()</function> muestra que ocurre así, porque el contenido de <varname>c2.wocc</varname> es idéntico al de <varname>c.wocc</varname>. El proceso que sigue el compilador para sintetizar un constructor de copia se denomina <emphasis>inicialización miembro a miembro</emphasis> (<foreignphrase>memberwise initialization</foreignphrase>).</para>
 
       <!--
 	It's always best to create your own copy-constructor instead of letting the compiler do it for you. This guarantees that it will be under your control.
 	-->
-      <para>Se recomienda definir un constructor de copia propio en vez de usar el que crea el compilador. Eso garantiza que estará bajo su control.</para>
+      <para>Siempre es mejor crear su propio constructor de copia en lugar de dejar que lo haga el compilador. Así se garantiza que estará bajo su control.</para>
     </sect2>
 
     <sect2>
@@ -636,7 +635,7 @@ Contents of c2: Composite()
       <!--
       At this point your head may be swimming, and you might be wondering how you could have possibly written a working class without knowing about the copy-constructor. But remember: You need a copy-constructor only if you're going to pass an object of your class by value. If that never happens, you don't need a copy-constructor.
       -->
-      <para>A estas alturas su cabeza debe estar echando humo, y se preguntará cómo es posible que pudiera escribir una clase que funcionase sin saber nada acerca del constructor de copia. No obstante, recuerde que el constructor de copia sólo es necesario cuando se va a pasar un objeto de la clase <emphasis>por valor</emphasis>. Si esto no va a ocurrir, entonces no lo necesita.</para>
+      <para>A estas alturas puede que la cabeza le dé vueltas y se pregunte cómo ha podido escribir alguna vez una clase que funcionara sin saber nada del constructor de copia. Pero recuerde: el constructor de copia solo hace falta si se va a pasar un objeto de la clase <emphasis>por valor</emphasis>. Si eso no ocurre nunca, no lo necesita.</para>
 
       <sect3>
 	<!-- : Preventing pass-by-value -->
@@ -650,7 +649,7 @@ Contents of c2: Composite()
 	<!--
 	  There's a simple technique for preventing pass-by-value: declare a private copy-constructor. You don't even need to create a definition, unless one of your member functions or a friend function needs to perform a pass-by-value. If the user tries to pass or return the object by value, the compiler will produce an error message because the copy-constructor is private. It can no longer create a default copy-constructor because you've explicitly stated that you're taking over that job.
 	  -->
-	<para>Existe una técnica simple para evitar el paso por valor: declare un constructor de copia <kw>private</kw>. Ni siquiera necesita definirlo (sólo declararlo), a no ser que un método o una función <kw>friend</kw> necesite realizar un paso por valor. Si el usuario intenta pasar o retornar el objeto por valor, el compilador se quejará con un error porque el constructor de copia es privado. El compilador ya no puede crear un constructor de copia por defecto porque explícitamente ya hay uno creado.</para>
+	<para>Hay una técnica sencilla para evitar el paso por valor: declarar un constructor de copia <kw>private</kw>. Ni siquiera hace falta definirlo, salvo que uno de los métodos o una función <kw>friend</kw> necesite hacer un paso por valor. Si el usuario intenta pasar o devolver el objeto por valor, el compilador dará un error, porque el constructor de copia es privado. Y ya no puede crear un constructor de copia por defecto, porque ha indicado explícitamente que se encarga usted de esa tarea.</para>
 
 	<!-- Here's an example: -->
 	<para>He aquí un ejemplo:</para>
@@ -659,7 +658,7 @@ Contents of c2: Composite()
 //: V1C11:NoCopyConstruction.cpp
 
         <!-- Notice the use of the more general form -->
-	<para>Note la utilización de la forma más general</para>
+	<para>Observe que se utiliza la forma más general</para>
 
 
 <programlisting>
@@ -667,7 +666,7 @@ NoCC(const NoCC&amp;);
 </programlisting>
 
         <!-- using the const. -->
-	<para>utilizando <kw>const</kw></para>
+	<para>que lleva <kw>const</kw>.</para>
       </sect3>
 
       <sect3>
@@ -677,7 +676,7 @@ NoCC(const NoCC&amp;);
 	<!--
         Reference syntax is nicer to use than pointer syntax, yet it clouds the meaning for the reader. For example, in the iostreams library one overloaded version of the get() function takes a char& as an argument, and the whole point of the function is to modify its argument by inserting the result of the get(). However, when you read code using this function it's not immediately obvious to you that the outside object is being modified:
         -->
-	<para>La sintaxis de referencias es más agradable que la de punteros, aunque oscurece el significado para el que lea el código fuente. Por ejemplo, en la librería <filename>iostreams</filename> existe una versión sobrecargada de la función <function>get()</function> que tiene como argumento un <code>char &amp;</code>, y su cometido es precisamente modificar ese argumento insertando en él el resultado de <function>get()</function>. No obstante, si lee código que utiliza esta función, no es inmediatamente obvio que la variable que se pasa como argumento vaya a ser modificada:</para>
+	<para>La sintaxis de las referencias es más cómoda que la de los punteros, pero oscurece el significado para el lector. Por ejemplo, en la librería iostreams hay una versión sobrecargada de la función <function>get()</function> que recibe como argumento un <type>char&amp;</type>, y su único propósito es modificar ese argumento guardando en él el resultado de <function>get()</function>. Sin embargo, al leer código que utiliza esta función, no resulta evidente que se esté modificando el objeto externo:</para>
 
 
 <programlisting>
@@ -694,7 +693,7 @@ cin.get(c);
 	<!--
         Because of this, it's probably safer from a code maintenance standpoint to use pointers when you're passing the address of an argument to modify. If you always pass addresses as const references except when you intend to modify the outside object via the address, where you pass by non-const pointer, then your code is far easier for the reader to follow.
         -->
-	<para>A causa de esto, es probablemente más seguro, desde el punto de vista de mantenimiento del código fuente, utilizar punteros que pasen la dirección del argumento que se desee modificar. Si <emphasis>siempre</emphasis> pasa direcciones como referencias constantes <emphasis>excepto</emphasis> cuando pretende modificar el argumento que se pasa a través de la dirección, donde pasaría un puntero no constante, entonces es más fácil para el lector seguir el código fuente.</para>
+	<para>Por eso, desde el punto de vista del mantenimiento del código, probablemente sea más seguro usar punteros cuando se pasa la dirección de un argumento para modificarlo. Si <emphasis>siempre</emphasis> pasa las direcciones como referencias constantes, <emphasis>excepto</emphasis> cuando pretende modificar el objeto externo a través de la dirección, en cuyo caso pasa un puntero no constante, el código será mucho más fácil de seguir para el lector.</para>
       </sect3>
     </sect2>
   </sect1>
@@ -706,12 +705,12 @@ cin.get(c);
     <!--
     A pointer is a variable that holds the address of some location. You can change what a pointer selects at runtime, and the destination of the pointer can be either data or a function. The C++ pointer-to-member follows this same concept, except that what it selects is a location inside a class. The dilemma here is that a pointer needs an address, but there is no "address" inside a class; selecting a member of a class means offsetting into that class. You can't produce an actual address until you combine that offset with the starting address of a particular object. The syntax of pointers to members requires that you select an object at the same time you're dereferencing the pointer to member.
     -->
-    <para>Un puntero es una variable que contiene la dirección de alguna ubicación. Se puede cambiar a lo que el puntero apunta en tiempo de ejecución. La ubicación a la que apunta puede ser un dato o una función. El <emphasis>puntero a miembro</emphasis> de C++ sigue el mismo concepto, excepto que a lo que apunta es una ubicación dentro de una clase. Pero surge el dilema de que un puntero necesita una dirección y no hay <quote>dirección</quote> alguna dentro de una clase; la selección de un miembro de una clase se realiza mediante un desplazamiento dentro de la clase. Pero primero hay que conocer la dirección donde comienza un objeto en particular para luego sumarle el desplazamiento y así localizar el miembro de la clase. La sintaxis de los punteros a miembros requiere que usted seleccione un objeto al mismo tiempo que dereferencia el puntero a miembro.</para>
+    <para>Un puntero es una variable que contiene la dirección de alguna ubicación. Lo que selecciona un puntero se puede cambiar en tiempo de ejecución, y su destino puede ser un dato o una función. El <emphasis>puntero a miembro</emphasis> de C++ sigue el mismo concepto, salvo que lo que selecciona es una ubicación dentro de una clase. El dilema es que un puntero necesita una dirección, pero dentro de una clase no hay <quote>direcciones</quote>: seleccionar un miembro de una clase significa aplicar un desplazamiento dentro de ella. No se obtiene una dirección real hasta que se combina ese desplazamiento con la dirección de inicio de un objeto concreto. La sintaxis de los punteros a miembro exige seleccionar un objeto al mismo tiempo que se dereferencia el puntero a miembro.</para>
 
     <!--
       To understand this syntax, consider a simple structure, with a pointer sp and an object so for this structure. You can select members with the syntax shown:
       -->
-    <para>Para entender esta sintaxis, considere una estructura simple, con un puntero <varname>sp</varname> y un objeto <varname>so</varname>. Puede seleccionar sus miembros de la misma manera que en el siguiente ejemplo:</para>
+    <para>Para entender esta sintaxis, considere una estructura sencilla, con un puntero <varname>sp</varname> y un objeto <varname>so</varname> de esa estructura. Los miembros se seleccionan con la sintaxis que se muestra:</para>
 
 
 //: V1C11:SimpleStructure.cpp
@@ -720,7 +719,7 @@ cin.get(c);
     <!--
     Now suppose you have an ordinary pointer to an integer, ip. To access what ip is pointing to, you dereference the pointer with a '*':
     -->
-    <para>Ahora suponga que tiene un puntero normal que se llama <varname>ip</varname> y que apunta a un entero. Para acceder a lo que apunta <varname>ip</varname>, ha de dereferenciar el puntero con un '*':</para>
+    <para>Suponga ahora que tiene un puntero normal a un entero, <varname>ip</varname>. Para acceder a aquello a lo que apunta <varname>ip</varname>, se dereferencia el puntero con un <oper>*</oper>:</para>
 
 
 <programlisting>
@@ -731,7 +730,7 @@ cin.get(c);
     <!--
     Finally, consider what happens if you have a pointer that happens to point to something inside a class object, even if it does in fact represent an offset into the object. To access what it's pointing at, you must dereference it with *. But it's an offset into an object, so you must also refer to that particular object. Thus, the * is combined with the object dereference. So the new syntax becomes ->* for a pointer to an object, and .* for the object or a reference, like this:
     -->
-    <para>Finalmente, se preguntará qué pasa si tiene un puntero que está apuntando a algo que está dentro de un objeto, incluso si lo que realmente representa es un desplazamiento dentro del objeto. Para acceder a lo que está apuntando, debe dereferenciarlo con '*'. Pero como es un desplazamiento dentro de un objeto, también ha de referirse a ese objeto concreto. Así, el * se combina con la dereferencia del objeto. Por tanto, la nueva sintaxis se escribe <emphasis>->*</emphasis> para un puntero que apunta a un objeto, y <emphasis>.*</emphasis> para un objeto o referencia, así:</para>
+    <para>Por último, considere qué ocurre si tiene un puntero que apunta a algo que está dentro de un objeto de una clase, aunque en realidad represente un desplazamiento dentro del objeto. Para acceder a aquello a lo que apunta, hay que dereferenciarlo con <oper>*</oper>. Pero como es un desplazamiento dentro de un objeto, también hay que referirse a ese objeto concreto. Por eso, el <oper>*</oper> se combina con la dereferencia del objeto. Así, la nueva sintaxis es <oper>-&gt;*</oper> para un puntero a un objeto, y <oper>.*</oper> para el objeto o una referencia, de este modo:</para>
 
 <programlisting>
 objectPointer->*pointerToMember = 47;
@@ -742,7 +741,7 @@ object.*pointerToMember = 47;
     <!--
     Now, what is the syntax for defining pointerToMember? Like any pointer, you have to say what type it's pointing at, and you use a * in the definition. The only difference is that you must say what class of objects this pointer-to-member is used with. Of course, this is accomplished with the name of the class and the scope resolution operator. Thus,
     -->
-    <para>Pero, ¿cuál es la sintaxis para definir el <varname>pointerToMember</varname>? Pues como cualquier puntero, tiene que decir el tipo al que apuntará, por lo que se utilizaría el '*' en la definición. La única diferencia es que debe decir con qué clase de objetos se utiliza ese puntero a miembro. Obviamente, esto se consigue con el nombre de la clase y el operador de resolución de ámbito. Así,</para>
+    <para>Ahora bien, ¿cuál es la sintaxis para definir <varname>pointerToMember</varname>? Como con cualquier puntero, hay que indicar a qué tipo apunta, y se usa un <oper>*</oper> en la definición. La única diferencia es que hay que indicar con qué clase de objetos se utiliza este puntero a miembro. Por supuesto, eso se consigue con el nombre de la clase y el operador de resolución de ámbito. Así,</para>
 
 <programlisting>
 int ObjectClass::*pointerToMember;
@@ -762,7 +761,7 @@ int ObjectClass::*pointerToMember = &amp;ObjectClass::a;
     <!--
     There is actually no "address" of ObjectClass::a because you're just referring to the class and not an object of that class. Thus, &ObjectClass::a can be used only as pointer-to-member syntax.
     -->
-    <para>Realmente no existe una <quote>dirección</quote> de <code>ObjectClass::a</code> porque se está refiriendo a la clase y no a un objeto de esa clase. Así, <code>&amp;ObjectClass::a</code> se puede utilizar sólo con la sintaxis de un puntero a miembro.</para>
+    <para>Realmente no existe una <quote>dirección</quote> de <code>ObjectClass::a</code> porque se está refiriendo a la clase y no a un objeto de esa clase. Así, <code>&amp;ObjectClass::a</code> se puede utilizar solo con la sintaxis de un puntero a miembro.</para>
 
     <!--
       Here's an example that shows how to create and use pointers to data members:
@@ -776,7 +775,7 @@ int ObjectClass::*pointerToMember = &amp;ObjectClass::a;
     <!--
     Obviously, these are too awkward to use anywhere except for special cases (which is exactly what they were intended for).
     -->
-    <para>Obviamente, son muy desagradables de utilizar en cualquier lugar excepto para casos especiales (que es exactamente para lo que se crearon).</para>
+    <para>Obviamente, resultan demasiado incómodos para usarlos fuera de casos especiales (que es exactamente para lo que se crearon).</para>
 
 
     <!--
@@ -828,7 +827,7 @@ int (*fp)(float);
         <!--
         The value of a pointer is that you can change what it points to at runtime, which provides an important flexibility in your programming because through a pointer you can select or change behavior at runtime. A pointer-to-member is no different; it allows you to choose a member at runtime. Typically, your classes will only have member functions publicly visible (data members are usually considered part of the underlying implementation), so the following example selects member functions at runtime.
         -->
-	<para>Lo interesante de un puntero es que se puede cambiar el valor del mismo para apuntar a otro lugar en tiempo de ejecución, lo cual proporciona mucha flexibilidad en la programación porque a través de un puntero se puede cambiar el <emphasis>comportamiento</emphasis> del programa en tiempo de ejecución. Un puntero a miembro no es distinto; le permite elegir un miembro en tiempo de ejecución. Típicamente, sus clases sólo tendrán métodos visibles públicamente (los atributos normalmente se consideran parte de la implementación que va oculta), de modo que el siguiente ejemplo elige métodos en tiempo de ejecución.</para>
+	<para>La utilidad de un puntero es que se puede cambiar a qué apunta en tiempo de ejecución, lo que aporta una flexibilidad importante a la programación, porque con un puntero se puede seleccionar o cambiar el <emphasis>comportamiento</emphasis> en tiempo de ejecución. Un puntero a miembro no es distinto: permite elegir un miembro en tiempo de ejecución. Normalmente, las clases solo tendrán métodos visibles públicamente (los atributos suelen considerarse parte de la implementación subyacente), así que el siguiente ejemplo elige métodos en tiempo de ejecución.</para>
 
 
 //: V1C11:PointerToMemberFunction.cpp
@@ -837,7 +836,7 @@ int (*fp)(float);
         <!--
         Of course, it isn't particularly reasonable to expect the casual user to create such complicated expressions. If the user must directly manipulate a pointer-to-member, then a typedef is in order. To really clean things up, you can use the pointer-to-member as part of the internal implementation mechanism. Here's the preceding example using a pointer-to-member inside the class. All the user needs to do is pass a number in to select a function.[48]
         -->
-	<para>Por supuesto, no es razonable esperar que el usuario ocasional cree expresiones tan complejas. Si el usuario necesita manipular directamente un puntero a miembro, los <kw>typedef</kw> vienen al rescate. Para dejar aún mejor las cosas, puede utilizar un puntero a miembro como parte del mecanismo interno de la implementación. He aquí un ejemplo que utiliza un puntero a miembro <emphasis>dentro</emphasis> de la clase. Todo lo que el usuario necesita es pasar un número para elegir una función. <footnote><para>Gracias a Owen Mortensen por este ejemplo</para></footnote></para>
+	<para>Por supuesto, no es muy razonable esperar que el usuario ocasional escriba expresiones tan complicadas. Si el usuario tiene que manipular directamente un puntero a miembro, conviene usar un <kw>typedef</kw>. Para dejarlo todo realmente limpio, se puede utilizar el puntero a miembro como parte del mecanismo interno de la implementación. He aquí el ejemplo anterior con un puntero a miembro <emphasis>dentro</emphasis> de la clase. Lo único que tiene que hacer el usuario es pasar un número para elegir una función.<footnote><para>Gracias a Owen Mortensen por este ejemplo</para></footnote></para>
 
 
 //: V1C11:PointerToMemberFunction2.cpp
@@ -846,12 +845,12 @@ int (*fp)(float);
         <!--
         In the class interface and in main(), you can see that the entire implementation, including the functions, has been hidden away. The code must even ask for the count() of functions. This way, the class implementer can change the quantity of functions in the underlying implementation without affecting the code where the class is used.
         -->
-	<para>En la interfaz de la clase y en <function>main()</function>, puede observar que toda la implementación, funciones incluidas, es privada. El código incluso ha de pedir el <function>count()</function> de las funciones. De esta manera, el que implementa la clase puede cambiar la cantidad de funciones en la implementación subyacente sin que afecte al código que utilice la clase.</para>
+	<para>En la interfaz de la clase y en <function>main()</function> puede ver que toda la implementación, funciones incluidas, está oculta. El código tiene que preguntar incluso cuántas funciones hay, con <function>count()</function>. Así, quien implementa la clase puede cambiar la cantidad de funciones de la implementación subyacente sin afectar al código que utiliza la clase.</para>
 
 	<!--
 	  The initialization of the pointers-to-members in the constructor may seem overspecified. Shouldn't you be able to say
 	  -->
-	<para>La inicialización de los punteros a miembro en el constructor puede parecer redundante. ¿No debería ser capaz de poner</para>
+	<para>La inicialización de los punteros a miembro en el constructor puede parecer excesiva. ¿No debería bastar con escribir</para>
 
 
 <programlisting>
@@ -885,23 +884,23 @@ fptr[1] = &amp;g;
     <!--
     Pointers in C++ are almost identical to pointers in C, which is good. Otherwise, a lot of C code wouldn't compile properly under C++. The only compile-time errors you will produce occur with dangerous assignments. If these are in fact what are intended, the compile-time errors can be removed with a simple (and explicit!) cast.
     -->
-    <para>Los punteros en C++ son casi idénticos a los punteros en C, lo cual es bueno. De otra manera, gran cantidad de código C no compilaría en C++. Los únicos errores en tiempo de compilación serán aquéllos que realicen asignaciones peligrosas. Si eso es realmente lo que se pretende, esos errores pueden eliminarse con un simple (¡y explícito!) molde.</para>
+    <para>Los punteros de C++ son casi idénticos a los de C, lo cual es bueno; de otro modo, mucho código C no compilaría correctamente en C++. Los únicos errores de compilación que obtendrá se producen con asignaciones peligrosas. Si de verdad es eso lo que se pretende, esos errores se pueden eliminar con un simple (¡y explícito!) molde.</para>
 
 
     <!--
     C++ also adds the reference from Algol and Pascal, which is like a constant pointer that is automatically dereferenced by the compiler. A reference holds an address, but you treat it like an object. References are essential for clean syntax with operator overloading (the subject of the next chapter), but they also add syntactic convenience for passing and returning objects for ordinary functions.
     -->
-    <para>C++ también añade la <emphasis>referencia</emphasis> de Algol y Pascal, que es como un puntero constante que el compilador dereferencia automáticamente. Una referencia contiene una dirección, pero se trata como un objeto. Las referencias son esenciales para una sintaxis clara con la sobrecarga de operadores (el tema del siguiente capítulo), pero también proporcionan mejoras sintácticas para el paso y retorno de objetos en funciones normales.</para>
+    <para>C++ también incorpora, de Algol y Pascal, la <emphasis>referencia</emphasis>, que es como un puntero constante que el compilador dereferencia automáticamente. Una referencia contiene una dirección, pero se trata como un objeto. Las referencias son esenciales para tener una sintaxis clara con la sobrecarga de operadores (el tema del siguiente capítulo), pero además hacen más cómodo el paso y el retorno de objetos en las funciones normales.</para>
 
     <!--
     The copy-constructor takes a reference to an existing object of the same type as its argument, and it is used to create a new object from an existing one. The compiler automatically calls the copy-constructor when you pass or return an object by value. Although the compiler will automatically create a copy-constructor for you, if you think one will be needed for your class, you should always define it yourself to ensure that the proper behavior occurs. If you don't want the object passed or returned by value, you should create a private copy-constructor.
     -->
-    <para>El constructor de copia recibe como argumento una referencia a un objeto existente del mismo tipo, y se utiliza para crear un nuevo objeto a partir de otro existente. El compilador llama automáticamente al constructor de copia cuando pasa o retorna un objeto por valor. Aunque el compilador crea un constructor de copia automáticamente, si cree que su clase necesita uno, debería definirlo siempre usted mismo para asegurar un comportamiento apropiado. Si no desea que el objeto se pase o retorne por valor, debería crear un constructor de copia privado.</para>
+    <para>El constructor de copia recibe como argumento una referencia a un objeto existente del mismo tipo, y se utiliza para crear un nuevo objeto a partir de otro existente. El compilador llama automáticamente al constructor de copia cuando se pasa o se devuelve un objeto por valor. Aunque el compilador crea automáticamente un constructor de copia, si cree que su clase va a necesitar uno, debería definirlo siempre para asegurarse de que el comportamiento es el correcto. Si no quiere que el objeto se pase o se devuelva por valor, debería crear un constructor de copia privado.</para>
 
     <!--
       Pointers-to-members have the same functionality as ordinary pointers: You can choose a particular region of storage (data or function) at runtime. Pointers-to-members just happen to work with class members instead of with global data or functions. You get the programming flexibility that allows you to change behavior at runtime.
       -->
-    <para>Los punteros a miembro tienen la misma capacidad que los punteros normales: puede elegir una región de memoria particular (atributo o método) en tiempo de ejecución. Los punteros a miembro funcionan con los miembros de una clase en vez de variables o funciones globales. Ofrecen la suficiente flexibilidad para cambiar el comportamiento en tiempo de ejecución.</para>
+    <para>Los punteros a miembro tienen la misma funcionalidad que los punteros normales: permiten elegir una región concreta de memoria (atributo o método) en tiempo de ejecución. Simplemente, trabajan con miembros de una clase en lugar de con datos o funciones globales. Proporcionan la flexibilidad necesaria para cambiar el comportamiento en tiempo de ejecución.</para>
   </sect1>
 
   <sect1>
@@ -915,21 +914,21 @@ fptr[1] = &amp;g;
 	<!--
 	1. Turn the "bird & rock" code fragment at the beginning of this chapter into a C program (using structs for the data types), and show that it compiles. Now try to compile it with the C++ compiler and see what happens.
 	-->
-	<para>Convierta el fragmento de código <quote>bird &amp; rock</quote> del principio de este capítulo a un programa C (utilizando estructuras para los tipos de datos), y compruebe que compila. Ahora intente compilarlo con un compilador de C++ y vea qué ocurre.</para>
+	<para>Convierta el fragmento de código <quote>bird &amp; rock</quote> del principio de este capítulo en un programa C (utilizando estructuras para los tipos de datos), y compruebe que compila. Ahora intente compilarlo con un compilador de C++ y vea qué ocurre.</para>
 	</listitem>
 
       <listitem>
 	<!--
 	2. Take the code fragments in the beginning of the section titled "References in C++" and put them into a main(). Add statements to print output so that you can prove to yourself that references are like pointers that are automatically dereferenced.
 	-->
-	  <para>Coja los fragmentos de código al principio de la sección titulada <quote>Referencias en C++</quote> y póngalos en un <function>main()</function>. Añada sentencias para imprimir en la salida para que pueda demostrar usted mismo que las referencias son como punteros que se dereferencian automáticamente.</para>
+	  <para>Tome los fragmentos de código del principio de la sección titulada <quote>Referencias en C++</quote> y póngalos en un <function>main()</function>. Añada sentencias que impriman resultados para comprobar por sí mismo que las referencias son como punteros que se dereferencian automáticamente.</para>
       </listitem>
 
       <listitem>
 	<!--
 	3. Write a program in which you try to (1) Create a reference that is not initialized when it is created. (2) Change a reference to refer to another object after it is initialized. (3) Create a NULL reference.
 	-->
-	<para>Escriba un programa en el cual intente (1) Crear una referencia que no esté inicializada cuando se crea. (2) Cambiar una referencia para que se refiera a otro objeto después de que se haya inicializado. (3) Crear una referencia nula.</para>
+	<para>Escriba un programa en el que intente: (1) crear una referencia que no se inicialice al crearla; (2) cambiar una referencia para que se refiera a otro objeto después de haberla inicializado; (3) crear una referencia nula.</para>
       </listitem>
 
       <listitem>
@@ -944,14 +943,14 @@ fptr[1] = &amp;g;
 	5. Create a class with some member functions, and make that the object that is pointed to by the argument of Exercise
 	4. Make the pointer a const and make some of the member functions const and prove that you can only call the const member functions inside your function. Make the argument to your function a reference instead of a pointer.
 	-->
-	<para>Cree una nueva clase con algunos métodos, y haga que el argumento del Ejercicio 4 apunte a un objeto de esa clase. Haga que el puntero pasado como argumento y algunos métodos sean constantes y pruebe que sólo puede llamar a los métodos constantes dentro de su función. Haga que el argumento de su función sea una referencia en vez de un puntero.</para>
+	<para>Cree una clase con algunos métodos y haga que el argumento del Ejercicio 4 apunte a un objeto de esa clase. Haga que el puntero sea constante, y también algunos de los métodos, y demuestre que dentro de su función solo puede llamar a los métodos constantes. Haga que el argumento de su función sea una referencia en vez de un puntero.</para>
       </listitem>
 
 	<listitem>
 	<!--
 	6. Take the code fragments at the beginning of the section titled "Pointer references" and turn them into a program.
 	-->
-	<para>Coja los fragmentos de código al principio de la sección <quote>Referencias a puntero</quote> y conviértalos en un programa.</para>
+	<para>Tome los fragmentos de código del principio de la sección titulada <quote>Referencias a puntero</quote> y conviértalos en un programa.</para>
       </listitem>
 
       <listitem>
@@ -965,7 +964,7 @@ fptr[1] = &amp;g;
 	<!--
 	8. Create a function that takes a char& argument and modifies that argument. In main(), print out a char variable, call your function for that variable, and print it out again to prove to yourself that it has been changed. How does this affect program readability?
 	-->
-	<para>Cree una función que tome un argumento del tipo <type>char&amp;</type> y lo modifique. En el <function>main()</function> imprima a la salida una variable <type>char</type>, llame a su función con esa variable e imprima la variable de nuevo para demostrar que ha sido cambiada. ¿Cómo afecta esto a la legibilidad del programa?</para>
+	<para>Cree una función que reciba un argumento <type>char&amp;</type> y lo modifique. En <function>main()</function>, imprima una variable <type>char</type>, llame a su función con esa variable e imprímala de nuevo para comprobar que ha cambiado. ¿Cómo afecta esto a la legibilidad del programa?</para>
       </listitem>
 
       <listitem>
@@ -998,14 +997,14 @@ fptr[1] = &amp;g;
       <listitem> <!--
 	13. Produce assembly code for PassingBigStructures.cpp. Trace through and demystify the way your compiler generates code to pass and return large structures.
 	-->
-	  <para>Genere el código ensamblador de <filename>PassingBigStructures.cpp</filename>. Recorra y desmitifique la manera en que su compilador genera el código para pasar y devolver estructuras grandes.</para>
+	  <para>Genere el código ensamblador de <filename>PassingBigStructures.cpp</filename>. Recórralo paso a paso y desmitifique la manera en que su compilador genera el código para pasar y devolver estructuras grandes.</para>
 	</listitem>
 
 	<listitem>
 	<!--
 	14. Write a simple recursive function that decrements its argument and returns zero if the argument becomes zero, otherwise it calls itself. Generate assembly code for this function and explain how the way that the assembly code is created by the compiler supports recursion.
 	-->
-	<para>Escriba una simple función recursiva que disminuya su argumento y retorne cero si el argumento llega a cero, o en otro caso que se llame a sí misma. Genere el código ensamblador para esta función y explique cómo la forma en que el compilador genera el código ensamblador permite la recursividad.</para>
+	<para>Escriba una función recursiva sencilla que decremente su argumento y devuelva cero si el argumento llega a cero; si no, que se llame a sí misma. Genere el código ensamblador de esta función y explique cómo la forma en que el compilador genera el código ensamblador permite la recursividad.</para>
       </listitem>
 
       <listitem>
@@ -1018,7 +1017,7 @@ fptr[1] = &amp;g;
       <listitem> <!--
 	16. Write a class with a copy-constructor that announces itself to cout. Now create a function that passes an object of your new class in by value and another one that creates a local object of your new class and returns it by value. Call these functions to prove to yourself that the copy-constructor is indeed quietly called when passing and returning objects by value.
 	-->
-	<para>Escriba una clase con un constructor de copia que se anuncie a sí mismo a través de <varname>cout</varname>. Ahora cree una función que reciba un objeto de su nueva clase por valor y otra más que cree un objeto local de su nueva clase y lo devuelva por valor. Llame a estas funciones para demostrar que el constructor de copia es, en efecto, llamado silenciosamente cuando se pasan y retornan objetos por valor.</para>
+	<para>Escriba una clase con un constructor de copia que se anuncie por <varname>cout</varname>. Ahora cree una función que reciba por valor un objeto de su nueva clase y otra que cree un objeto local de esa clase y lo devuelva por valor. Llame a estas funciones para comprobar que, efectivamente, el compilador llama de forma silenciosa al constructor de copia al pasar y devolver objetos por valor.</para>
       </listitem>
 
 	<listitem> <!--
@@ -1049,14 +1048,14 @@ fptr[1] = &amp;g;
       <listitem> <!--
 	21. Create a simple class without a copy-constructor, and a simple function that takes an object of that class by value. Now change your class by adding a private declaration (only) for the copy-constructor. Explain what happens when your function is compiled.
 	-->
-	<para>Cree una clase simple sin constructor de copia, y una función simple que tome un objeto de esa clase por valor. Ahora cambie su clase añadiéndole una declaración (sólo declare, no defina) privada de un constructor de copia. Explique lo que ocurre cuando compila la función.</para>
+	<para>Cree una clase simple sin constructor de copia, y una función simple que tome un objeto de esa clase por valor. Ahora cambie su clase añadiéndole una declaración (solo declare, no defina) privada de un constructor de copia. Explique lo que ocurre cuando compila la función.</para>
       </listitem>
 
       <listitem>
 	<!--
 	22. This exercise creates an alternative to using the copy-constructor. Create a class X and declare (but don't define) a private copy-constructor. Make a public clone() function as a const member function that returns a copy of the object that is created using new. Now write a function that takes as an argument a const X& and clones a local copy that can be modified. The drawback to this approach is that you are responsible for explicitly destroying the cloned object (using delete) when you're done with it.
 	-->
-	<para>Este ejercicio crea una alternativa a la utilización del constructor de copia. Cree una clase <classname>X</classname> y declare (pero no defina) un constructor de copia privado. Haga una función <function>clone()</function> pública como un método constante que devuelva una copia del objeto, creada utilizando <kw>new</kw>. Ahora escriba una función que tome como argumento un <type>const X&amp;</type> y clone una copia local que pueda modificarse. El inconveniente de esto es que es el programador el responsable de destruir explícitamente el objeto clonado (utilizando <kw>delete</kw>) cuando haya terminado con él.</para>
+	<para>Este ejercicio crea una alternativa al uso del constructor de copia. Cree una clase <classname>X</classname> y declare (pero no defina) un constructor de copia privado. Escriba una función pública <function>clone()</function>, que sea un método constante, que devuelva una copia del objeto creada con <kw>new</kw>. Ahora escriba una función que reciba como argumento un <type>const X&amp;</type> y clone una copia local que se pueda modificar. El inconveniente de este enfoque es que hay que destruir explícitamente el objeto clonado (con <kw>delete</kw>) cuando se ha terminado de usar.</para>
       </listitem>
 
       <listitem>
@@ -1084,19 +1083,19 @@ fptr[1] = &amp;g;
 	<!--
 	26. Modify PmemFunDefinition.cpp by adding an overloaded member function f() (you can determine the argument list that causes the overload). Now make a second pointer to member, assign it to the overloaded version of f(), and call the function through that pointer. How does the overload resolution happen in this case?
 	-->
-	<para>Modifique <filename>PmemFunDefinition.cpp</filename> añadiendo un método <function>f()</function> sobrecargado (puede determinar la lista de argumentos que cause la sobrecarga). Ahora cree un segundo puntero a miembro, asígnelo a la versión sobrecargada de <function>f()</function>, y llame al método a través del puntero. ¿Cómo sucede la resolución de la función sobrecargada en este caso?</para>
+	<para>Modifique <filename>PmemFunDefinition.cpp</filename> añadiendo un método <function>f()</function> sobrecargado (puede elegir la lista de argumentos que produzca la sobrecarga). Ahora cree un segundo puntero a miembro, asígnele la versión sobrecargada de <function>f()</function> y llame a la función a través de ese puntero. ¿Cómo se resuelve la sobrecarga en este caso?</para>
       </listitem>
 
-      <listitem> <!--
- 27. Start with FunctionTable.cpp from Chapter
-	3. Create a class that contains a vector of pointers to functions, with add() and remove( ) member functions to add and remove pointers to functions. Add a run() function that moves through the vector and calls all of the functions.
+      <listitem>
+	<!--
+	27. Start with FunctionTable.cpp from Chapter 3. Create a class that contains a vector of pointers to functions, with add() and remove( ) member functions to add and remove pointers to functions. Add a run() function that moves through the vector and calls all of the functions.
 	-->
 	<para>Empiece con <filename>FunctionTable.cpp</filename> del <link linkend="C03">Capítulo 3</link>. Cree una clase que contenga un <type>vector</type> de punteros a funciones, con métodos <function>add()</function> y <function>remove()</function> para añadir y quitar punteros a función. Añada una función denominada <function>run()</function> que recorra el <type>vector</type> y llame a todas las funciones.</para>
       </listitem>
 
       <listitem>
 	<!--
-	Modify the above Exercise 27 so that it works with pointers to member functions instead.
+	28. Modify the above Exercise 27 so that it works with pointers to member functions instead.
 	-->
 	<para>Modifique el Ejercicio 27 para que funcione con punteros a métodos.</para>
       </listitem>

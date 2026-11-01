@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Restaura la tipografía del texto original en los comentarios de un capítulo.
 
-Uso: restore_original.py [-n] [-v] ORIGINAL FICHERO.xml...
+Uso: restore_original.py [-n] [-v] [-d] ORIGINAL FICHERO.xml...
 
 En algunos capítulos, el texto original que se conserva comentado perdió
 por el camino los apóstrofos, las comillas y las rayas («youre»,
@@ -12,6 +12,9 @@ el texto del comentario por el del original.
 
   -n  no modifica los ficheros; solo informa
   -v  muestra cada comentario que cambia
+  -d  solo los comentarios dañados: los que tienen «??» o caracteres de
+      sustitución, o las marcas «FIXME:LETRA» que dejó una conversión
+      antigua (las marcas se quitan antes de buscar el texto)
 """
 import html
 import re
@@ -19,6 +22,7 @@ import sys
 from html.parser import HTMLParser
 
 MINIMO = 25  # letras y dígitos; los comentarios más cortos son ambiguos
+MARCA = re.compile(r'FIXME(?::?LETRA)?:?')
 
 
 class Texto(HTMLParser):
@@ -95,7 +99,11 @@ def ajusta(lado, original, k, paso):
     return j
 
 
-def restaura(original, fichero, simula, detalle):
+def dañado(cuerpo):
+    return '??' in cuerpo or '\ufffd' in cuerpo or 'FIXME:LETRA' in cuerpo
+
+
+def restaura(original, fichero, simula, detalle, solo_dañados=False):
     red, pos = indice(original)
     texto = open(fichero, encoding='utf-8').read()
     cambios = 0
@@ -103,6 +111,10 @@ def restaura(original, fichero, simula, detalle):
     def cambia(m):
         nonlocal cambios
         cuerpo = m.group(1)
+        if solo_dañados:
+            if not dañado(cuerpo):
+                return m.group(0)
+            cuerpo = MARCA.sub('', cuerpo)
         clave, _ = indice(cuerpo)
         if len(clave) < MINIMO:
             return m.group(0)
@@ -135,12 +147,13 @@ def main():
     args = sys.argv[1:]
     simula = '-n' in args
     detalle = '-v' in args
-    args = [a for a in args if a not in ('-n', '-v')]
+    solo_dañados = '-d' in args
+    args = [a for a in args if a not in ('-n', '-v', '-d')]
     if len(args) < 2:
         sys.exit(__doc__)
     original = lee_original(args[0])
     for f in args[1:]:
-        restaura(original, f, simula, detalle)
+        restaura(original, f, simula, detalle, solo_dañados)
 
 
 if __name__ == '__main__':

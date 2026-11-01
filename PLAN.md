@@ -207,27 +207,47 @@ comentarios de los listados. Es una tarea de revisión, no de traducción. (El
 cambio de «template» por «plantilla» ya está hecho en la prosa del volumen 1;
 solo queda la aclaración «(o templates)» de la primera mención en C16.)
 
-## Revisión de estilo del volumen 1 (pendiente)
+## Revisión de estilo del volumen 1 (terminada el 30/10/2026)
 
-La traducción del volumen 1 no se ha releído con el criterio que se aplicó
-al volumen 2: cotejar cada párrafo con el original, retraducir lo poco
-natural y aplicar el glosario y `misc/guiaestilo.html`. Se hará capítulo a
-capítulo, con un commit por capítulo, y aprovechando para pasar a
-`programlisting`, `screen`, `informaltable` y `orderedlist` lo que siga
-escrito como párrafos. Se empezará cuando termine la segunda pasada del
-volumen 2. Los asuntos de terminología que la bloqueaban ya están resueltos
-(sección siguiente).
+Se ha releído el volumen 1 con el criterio que se aplicó al volumen 2:
+cotejar cada párrafo con el original, retraducir lo poco natural y aplicar
+el glosario y `misc/guiaestilo.html`.
 
-Al revisar cada capítulo hay que pasar a minúscula «Librería Estándar» y «C++
-Estándar» (el volumen 1 los escribe con mayúscula unas 160 veces), como ya
-están en el volumen 2 y en el glosario. Solo conserva la mayúscula el
-Estándar como documento («el Estándar de C++»).
+Primero, en todo el volumen y solo en la prosa:
+
+- «solo» y los demostrativos sin tilde (unos 600 cambios), como el volumen
+  2 y la norma actual de la RAE;
+- «librería estándar», «C++ estándar» y «C estándar» en minúscula (unos
+  100); solo conserva la mayúscula el Estándar como documento («el Estándar
+  de C++»);
+- comentarios en inglés dañados en C02, C05 y C09 («??» en lugar de
+  apóstrofos y comillas, marcas `FIXME:LETRA`), restaurados con
+  `utils/restore_original.py -d` a partir del HTML del MIT, y secuencias
+  `\u2019` escritas literalmente en C06, C09 y C13;
+- los 36 FIXME del volumen resueltos.
+
+Después, la relectura párrafo a párrafo, repartida por capítulos entre
+varios agentes con las mismas instrucciones. Se reescribieron unos 1.900
+párrafos de 3.400 (los capítulos más flojos, C03, C16 y C01, casi enteros;
+C14, casi nada) y se corrigieron errores de sentido, omisiones y añadidos.
+En la estructura: comentarios de varios párrafos partidos para que cada
+`<para>` lleve el suyo, listas con un comentario por `<listitem>`, salidas
+de programa en `<screen>` (y en inglés, como las escribe el programa), cinco
+listados de C10 que faltaban, y los comentarios en inglés reparados contra
+el original. Tres erratas del original llevan una (N. del T.): el ASCII de
+`'0'` (C03), `AutoCounter` en el montículo (C16) y WG14 por WG21 en la cita
+de Clamage (Prefacio). Los términos nuevos que se fijaron están en el
+glosario.
 
 Herramientas: `utils/pairs.py` vuelca cada comentario en inglés con su
 traducción, una pareja por línea, para leer el capítulo de corrido;
-`utils/runin_titles.py` señala los comentarios que repiten el título de su
-sección (en el volumen 1 solo hay uno de verdad, «Technique one» en C10; el
-resto son falsos positivos).
+`utils/revise.py` rehace párrafos a partir de un fichero de reglas sin
+perder sus notas al pie; `utils/runin_titles.py` señala los comentarios que
+repiten el título de su sección.
+
+Decidido después: *slicing* es «rebanado» en los dos volúmenes (C15 y ApenB
+decían «truncado») y *embed*, referido a objetos miembro, «incrustar» (C14
+decía «alojar», que el glosario reserva para *allocate*).
 
 ## Asuntos del volumen 1 (resueltos el 30/10/2026)
 
